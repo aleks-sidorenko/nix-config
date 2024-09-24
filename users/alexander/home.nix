@@ -45,23 +45,27 @@
     };
   };
 
-  # TODO: Set your username
+  # Set username
   home = {
-    username = "your-username";
-    homeDirectory = "/home/your-username";
+    username = lib.mkDefault "alexander";
+    homeDirectory = lib.mkDefault "/home/${config.home.username}";
+    
+    # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+    stateVersion = "24.05";
   };
 
   # Add stuff for your user as you see fit:
   # programs.neovim.enable = true;
   # home.packages = with pkgs; [ steam ];
 
-  # Enable home-manager and git
-  programs.home-manager.enable = true;
-  programs.git.enable = true;
+  # Configure programs
+  programs = {
+    home-manager.enable = true;
+    git.enable = true;
+  };
 
   # Nicely reload system units when changing configs
   systemd.user.startServices = "sd-switch";
 
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = "23.05";
+  
 }
