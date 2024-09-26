@@ -61,6 +61,7 @@ umount /mnt
 
 # Installation
 
+## Mounting
 ```
 # Mount the directories
 
@@ -81,10 +82,25 @@ mount -o subvol=log,compress=zstd,noatime /dev/lvm/root /mnt/var/log
 # don't forget this!
 mkdir /mnt/boot
 mount ${DISK}p1 /mnt/boot
-
+```
+## Configuring
+### Generate
+```
 # generate configurations
 nixos-generate-config --root /mnt
+
 ```
 
+### Edit
+* `/mnt/etc/nixos/configuration.nix`
+* `/mnt/etc/nixos/hardware-configuration.nix`
+
+
+## Install
+
+```
+nixos-install
+reboot
+```
 
 #
