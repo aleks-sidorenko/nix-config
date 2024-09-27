@@ -7,8 +7,10 @@
 
   boot = {
     initrd = {
-      
-      # Override default /persist
+
+
+      # Additional persist device      
+      luks.devices."persist".device = "/dev/disk/by-label/persist_crypt";
       fileSystems."/persist" = {
         device = "/dev/disk/by-label/persist";
         fsType = "btrfs";
@@ -31,9 +33,11 @@
       kernelModules = ["kvm-intel"];
     };
     loader = {
-      systemd-boot = {
+      # systemd-boot fails https://github.com/NixOS/nixpkgs/issues/45032
+      grub = {
         enable = true;
-        consoleMode = "max";
+        devices = [ "nodev" ];
+        efiSupport = true;
       };
       efi.canTouchEfiVariables = true;
     };
