@@ -44,15 +44,22 @@
 
     persistence = {
       "/persist/${config.home.homeDirectory}" = {
-        defaultDirectoryMethod = "symlink";
         directories = [
           "Documents"
           "Downloads"
+          "Music"
           "Pictures"
           "Projects"
           "Videos"          
+          "VirtualBox VMs"
+          ".gnupg"
           ".local/bin"
-          ".local/share/nix" # trusted settings and repl history
+          ".local/share/keyrings"
+          ".local/share/direnv"
+          ".local/share/nix" # trusted settings and repl history 
+          ".nixops"
+          ".ssh"
+          
         ];
         allowOther = true;
       };

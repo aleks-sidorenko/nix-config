@@ -12,17 +12,7 @@
 
       # Additional persist device      
       luks.devices."persist".device = "/dev/disk/by-label/persist_crypt";
-      fileSystems."/persist" = {
-        device = "/dev/disk/by-label/persist";
-        fsType = "btrfs";
-        options = [
-          "subvol=persist"
-          "compress=zstd"
-        ];
-        neededForBoot = true;
-      };
-    
-
+      
       availableKernelModules = [
         "nvme"
         "xhci_pci"
@@ -49,6 +39,8 @@
       device = "/dev/disk/by-label/ESP";
       fsType = "vfat";
     };
+
+    "/persist".device = lib.mkForce "/dev/disk/by-label/persist";
   };
 
   swapDevices = [
