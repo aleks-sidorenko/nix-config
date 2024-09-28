@@ -6,26 +6,7 @@
 }: let
   ssh = "${pkgs.openssh}/bin/ssh";
 
-  git-m7 = pkgs.writeShellScriptBin "git-m7" ''
-    case "''${1:-ls}" in
-      ls)
-        ${ssh} -TA git@m7.rs ls | grep '\.git$'
-        ;;
-      init)
-        name="''${2:-$(basename "$PWD")}"
-        ${ssh} -TA git@m7.rs << EOF
-          git init --bare "$name.git"
-          git -C "$name.git" branch -m main
-    EOF
-        git remote add origin git@m7.rs:"$name.git"
-        ;;
-      *)
-        repo="$(git remote -v | grep git@m7.rs | head -1 | cut -d ':' -f2 | cut -d ' ' -f1)"
-        if [[ "$repo" != *".git" ]]; then repo="$repo.git"; fi
-        ${ssh} -TA git@m7.rs git -C "/srv/git/$repo" "$@"
-        ;;
-    esac
-  '';
+  
   # git commit --amend, but for older commits
   git-fixup = pkgs.writeShellScriptBin "git-fixup" ''
     rev="$(git rev-parse "$1")"
@@ -34,7 +15,6 @@
   '';
 in {
   home.packages = [
-    git-m7
     git-fixup
   ];
   programs.git = {

@@ -14,7 +14,6 @@
     ./pfetch.nix
     ./shellcolor.nix
     ./ssh.nix
-    ./xpo.nix
     ./fzf.nix
   ];
   home.packages = with pkgs; [
@@ -30,7 +29,7 @@
     httpie # Better curl
     diffsitter # Better diff
     jq # JSON pretty printer and manipulator
-    trekscii # Cute startrek cli printer
+    # trekscii # Cute startrek cli printer
     timer # To help with my ADHD paralysis
 
     nixd # Nix LSP

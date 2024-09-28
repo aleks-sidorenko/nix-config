@@ -60,7 +60,7 @@ in {
     };
 
     "/nix" = {
-      device = "/dev/disk/by-label/${device}";
+      device = lib.mkDefault "/dev/disk/by-label/${device}";
       fsType = "btrfs";
       options = [
         "subvol=nix"
@@ -70,7 +70,7 @@ in {
     };
 
     "/persist" = {
-      device = "/dev/disk/by-label/${device}";
+      device = lib.mkDefault "/dev/disk/by-label/${device}";
       fsType = "btrfs";
       options = [
         "subvol=persist"
