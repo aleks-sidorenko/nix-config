@@ -4,7 +4,7 @@
   config,
   ...
 }: let
-  devices = "root";
+  device = "root";
 
   wipeScript = ''
     mkdir /tmp -p

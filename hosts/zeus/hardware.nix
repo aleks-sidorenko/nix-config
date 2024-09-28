@@ -1,3 +1,4 @@
+{ config, lib, pkgs, modulesPath, ... }:
 {
   imports = [
     ../common/optional/ephemeral-btrfs.nix
@@ -63,7 +64,7 @@
     enableAllFirmware = true;
     graphics.enable = true;
     cpu = {
-      intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+      intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
     };
   };
 }
