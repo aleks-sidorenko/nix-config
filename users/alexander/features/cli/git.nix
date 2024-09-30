@@ -21,17 +21,38 @@ in {
     enable = true;
     package = pkgs.gitAndTools.gitFull;
     aliases = {
-      p = "pull --ff-only";
-      ff = "merge --ff-only";
-      graph = "log --decorate --oneline --graph";
-      pushall = "!git remote | xargs -L1 git push --all";
-      add-nowhitespace = "!git diff -U0 -w --no-color | git apply --cached --ignore-whitespace --unidiff-zero -";
+      a = "commit --amend";
+      br = "branch";
+      c = "commit";
+      ca = "!git add -A && git commit"; # Commit all changes.
+      co = "checkout";
+      cp = "cherry-pick";
+      d = "diff";
+      dc = "diff --cached";
+      f = "fetch";
+      git = "!exec git"; # Allow `$ git git git...`
+      lc = "shortlog --email --numbered --summary";  # List contributors.
+      p = "push";
+      pf = "push --force-with-lease";
+      r = "rebase";
+      s = "status";
+      w = "instaweb --httpd=webrick";  # Start web-based visualizer.
+      pl = "pull --ff-only";
+      m = "merge --ff-only";
+      g = "log --decorate --oneline --graph";
+      cc = "!f() { \
+        git log --pretty=custom --decorate --date=short -S\"$1\"; \
+      }; f";
+      brd = "!f() { \
+        git branch | grep -v \"master\" | xargs git branch -D; \
+      }; f";
+
     };
-    userName = "Gabriel Fontes";
-    userEmail = lib.mkDefault "hi@m7.rs";
+    userName = "Alexander Sidorenko";
+    userEmail = lib.mkDefault "aleks.sidorenko@gmail.com";
     extraConfig = {
       init.defaultBranch = "main";
-      user.signing.key = "CE707A2C17FAAC97907FF8EF2E54EA7BFE630916";
+      user.signing.key = "14A3B7B14DBED4A1";
       commit.gpgSign = lib.mkDefault true;
       gpg.program = "${config.programs.gpg.package}/bin/gpg2";
 

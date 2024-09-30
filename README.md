@@ -10,4 +10,4 @@ The installation guide is available [here](INSTALL.md)
 
 # Bootstraping
 * `nixos-rebuild switch --flake .` To build system configurations
-* `home-manager --flake .` To build user configurations
+* `home-manager switch --flake .` To build user configurations
