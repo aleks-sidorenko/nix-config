@@ -50,16 +50,11 @@
           "Music"
           "Pictures"
           "Projects"
-          "Videos"          
-          "VirtualBox VMs"
-          ".gnupg"
+          "Videos"        
           ".local/bin"
           ".local/share/keyrings"
-          ".local/share/direnv"
           ".local/share/nix" # trusted settings and repl history 
           ".nixops"
-          ".ssh"
-          
         ];
         allowOther = true;
       };

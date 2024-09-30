@@ -14,6 +14,8 @@
     ../common/users
 
      ../common/optional/peripherals.nix
+     ../common/optional/greetd.nix
+     ../common/optional/pipewire.nix
 
   ];
 

@@ -14,7 +14,6 @@
       ./podman.nix
       ./systemd-initrd.nix
       ./nix-ld.nix      
-      ./kdeconnect.nix
       ./upower.nix
     ]
     ++ (builtins.attrValues outputs.nixosModules);
