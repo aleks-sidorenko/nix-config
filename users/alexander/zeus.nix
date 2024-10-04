@@ -3,16 +3,14 @@
   ...
 }: {
   imports = [
-    ./global
-    ./optional/desktop/hyprland
-    ./optional/rgb
-    ./optional/pass
+    ../common/global
+    ../common/optional/desktop
+    ../common/optional/pass
   ];
 
   # Green
   wallpaper = pkgs.wallpapers.aenami-northern-lights;
   colorscheme.type = "rainbow";
-
 
   #  -----   ------
   # | DVI-I-1 | | HDMI-A-1 |

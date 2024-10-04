@@ -7,11 +7,6 @@
     ./gh.nix
     ./git.nix
     ./gpg.nix
-    ./jujutsu.nix
-    ./lyrics.nix
-    ./nushell.nix
-    ./nix-index.nix
-    ./pfetch.nix
     ./shellcolor.nix
     ./ssh.nix
     ./fzf.nix
