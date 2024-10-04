@@ -4,11 +4,9 @@
 }: {
   imports = [
     ./global
-    ./features/desktop/hyprland
-    #./features/desktop/wireless
-    ./features/rgb
-    ./features/productivity
-    ./features/pass
+    ./optional/desktop/hyprland
+    ./optional/rgb
+    ./optional/pass
   ];
 
   # Green
