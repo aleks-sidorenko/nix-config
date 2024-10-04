@@ -10,10 +10,9 @@
       ./fish.nix
       ./locale.nix
       ./nix.nix      
-      ./optin-persistence.nix
+      ./persistence.nix
       ./podman.nix
-      ./systemd-initrd.nix
-      ./nix-ld.nix      
+      ./boot.nix
       ./upower.nix
     ]
     ++ (builtins.attrValues outputs.nixosModules);
@@ -30,13 +29,8 @@
     };
   };
 
-  # Fix for qt6 plugins
-  # TODO: maybe upstream this?
-  environment.profileRelativeSessionVariables = {
-    QT_PLUGIN_PATH = ["/lib/qt-6/plugins"];
-  };
-
   hardware.enableRedistributableFirmware = true;
+  
   networking.domain = "lan";
 
   # Increase open file limit for sudoers
