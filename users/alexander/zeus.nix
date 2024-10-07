@@ -1,5 +1,6 @@
 {
   pkgs,
+  nix-colors,
   ...
 }: {
   imports = [
@@ -7,11 +8,12 @@
     ./optional/desktop/hyprland
     ./optional/rgb
     ./optional/pass
+
+     nix-colors.homeManagerModules.default
   ];
 
-  # Green
-  wallpaper = pkgs.wallpapers.aenami-northern-lights;
-  colorscheme.type = "rainbow";
+  wallpaper = pkgs.wallpapers.aenami-top-of-the-world;
+  colorScheme = nix-colors.colorSchemes.dracula;
 
 
   #  -----   ------
