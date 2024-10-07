@@ -9,10 +9,8 @@
       inputs.home-manager.nixosModules.home-manager      
       ./fish.nix
       ./locale.nix
-      ./nix.nix      
-      ./optin-persistence.nix
-      ./podman.nix
-      ./systemd-initrd.nix
+      ./nix.nix
+      ./podman.nix      
       ./nix-ld.nix      
       ./upower.nix
     ]

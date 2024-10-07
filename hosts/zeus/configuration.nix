@@ -9,11 +9,12 @@
     inputs.hardware.nixosModules.common-pc-ssd
 
     ./hardware.nix
+    ../common/disks
+    
+    ../common/core
 
-    ../common/global
     ../common/users
-
-     ../common/optional/peripherals.nix
+     
      ../common/optional/greetd.nix
      ../common/optional/pipewire.nix
 

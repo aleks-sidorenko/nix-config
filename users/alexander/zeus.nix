@@ -1,19 +1,15 @@
 {
   pkgs,
-  nix-colors,
   ...
 }: {
   imports = [
-    ./global
+    ./core
     ./optional/desktop/hyprland
-    ./optional/rgb
     ./optional/pass
-
-     nix-colors.homeManagerModules.default
   ];
 
   wallpaper = pkgs.wallpapers.aenami-top-of-the-world;
-  colorScheme = nix-colors.colorSchemes.dracula;
+  colorscheme.type = "dracula";
 
 
   #  -----   ------

@@ -9,8 +9,8 @@
   imports =
     [
       inputs.impermanence.nixosModules.home-manager.impermanence
-      ../optional/cli
-      ../optional/nvim
+      ./cli
+      ./nvim
     ]
     ++ (builtins.attrValues outputs.homeManagerModules);
 

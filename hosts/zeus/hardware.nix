@@ -1,17 +1,11 @@
 { config, lib, pkgs, modulesPath, ... }:
 {
   imports = [
-    ../common/optional/ephemeral-btrfs.nix
-    ../common/optional/encrypted-root.nix
+    ../common/disks
   ];
-
 
   boot = {
     initrd = {
-
-
-      # Additional persist device      
-      luks.devices."persist".device = "/dev/disk/by-label/persist_crypt";
       
       availableKernelModules = [
         "nvme"
@@ -23,26 +17,11 @@
       ];
       kernelModules = ["kvm-intel"];
     };
-    loader = {
-      # systemd-boot fails https://github.com/NixOS/nixpkgs/issues/45032
-      grub = {
-        enable = true;
-        devices = [ "nodev" ];
-        efiSupport = true;
-      };
-      efi.canTouchEfiVariables = true;
-    };
   };
 
-  fileSystems = {
-    "/boot" = {
-      device = "/dev/disk/by-label/ESP";
-      fsType = "vfat";
-    };
-
-    "/persist".device = lib.mkForce "/dev/disk/by-label/persist";
-  };
-
+  boot.initrd.luks.devices."persist".device = "/dev/disk/by-label/persist_crypt";
+  fileSystems."/persist".device = lib.mkForce "/dev/disk/by-label/persist";
+  
   swapDevices = [
     {
       device = "/swap/swapfile";

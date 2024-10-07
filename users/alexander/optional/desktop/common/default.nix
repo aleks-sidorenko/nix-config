@@ -5,7 +5,6 @@
 }: {
   imports = [    
     ./dragon.nix
-    ./firefox.nix
     ./font.nix
     ./gtk.nix
     ./pavucontrol.nix
