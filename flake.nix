@@ -61,9 +61,10 @@
 
     homeConfigurations = {
       # Standalone HM only
+      
       # Main desktop
       "alexander@zeus" = lib.homeManagerConfiguration {
-        modules = [ ./users/alexander/zeus.nix ./users/alexander/nixpkgs.nix ];
+        modules = [ ./home/alexander/zeus.nix ./home/alexander/nixpkgs.nix ];
         pkgs = pkgsFor.x86_64-linux;
         extraSpecialArgs = {
           inherit inputs outputs;
