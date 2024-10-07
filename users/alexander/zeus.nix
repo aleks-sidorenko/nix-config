@@ -9,7 +9,7 @@
   ];
 
   wallpaper = pkgs.wallpapers.aenami-top-of-the-world;
-  colorscheme.type = "dracula";
+  colorscheme.type = "content";
 
 
   #  -----   ------
