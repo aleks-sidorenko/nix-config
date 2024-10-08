@@ -2,10 +2,10 @@
 {
   lib,
   config,
+  device ? "main",
   ...
 }: let
-  device = "root";
-
+  
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
@@ -48,44 +48,3 @@ in {
       script = wipeScript;
     };
   };
-
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/${device}";
-      fsType = "btrfs";
-      options = [
-        "subvol=root"
-        "compress=zstd"
-      ];
-    };
-
-    "/nix" = {
-      device = lib.mkDefault "/dev/disk/by-label/${device}";
-      fsType = "btrfs";
-      options = [
-        "subvol=nix"
-        "noatime"
-        "compress=zstd"
-      ];
-    };
-
-    "/persist" = {
-      device = lib.mkDefault "/dev/disk/by-label/${device}";
-      fsType = "btrfs";
-      options = [
-        "subvol=persist"
-        "compress=zstd"
-      ];
-      neededForBoot = true;
-    };
-
-    "/swap" = {
-      device = "/dev/disk/by-label/${device}";
-      fsType = "btrfs";
-      options = [
-        "subvol=swap"
-        "noatime"
-      ];
-    };
-  };
-}

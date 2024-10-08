@@ -1,6 +1,5 @@
 {
-  imports = [    
-    ./encrypted-root.nix
+  imports = [
     ./ephemeral-btrfs.nix
   ];
 }
