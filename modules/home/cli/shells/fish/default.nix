@@ -83,8 +83,8 @@ in {
 
         nd = "nix develop";
         nfu = "nix flake update";
-        hms = "home-manager switch --flake ~/nix-config#${config.nix-config.user.name}@${host}";
-        nrs = "sudo nixos-rebuild switch --flake ~/nix-config#${host}";
+        hms = "home-manager switch --flake ~/.nix-config#${config.nix-config.user.name}@${host}";
+        nrs = "sudo nixos-rebuild switch --flake ~/.nix-config#${host}";
 
         # new commads
         weather = "curl wttr.in/London";
