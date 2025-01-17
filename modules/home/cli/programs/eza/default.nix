@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.eza;
 in {
   options.cli.programs.eza = with types; {

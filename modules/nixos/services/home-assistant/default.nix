@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.home-assistant;
+  cfg = config.services.nix-config.home-assistant;
 in {
-  options.services.nixicle.home-assistant = {
+  options.services.nix-config.home-assistant = {
     enable = mkEnableOption "Enable home assistant";
   };
 
@@ -27,7 +27,7 @@ in {
           "history_stats"
         ];
         customComponents = with pkgs.home-assistant-custom-components;
-        with pkgs.nixicle; [
+        with pkgs.nix-config; [
           octopus-energy
           auth-header
         ];

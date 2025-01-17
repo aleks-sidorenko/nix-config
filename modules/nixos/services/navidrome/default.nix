@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.navidrome;
+  cfg = config.services.nix-config.navidrome;
 in {
-  options.services.nixicle.navidrome = {
+  options.services.nix-config.navidrome = {
     enable = mkEnableOption "Enable the navidrome service";
   };
 

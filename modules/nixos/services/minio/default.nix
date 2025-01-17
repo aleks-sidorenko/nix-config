@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.minio;
+with lib.nix-config; let
+  cfg = config.services.nix-config.minio;
 in {
-  options.services.nixicle.minio = {
+  options.services.nix-config.minio = {
     enable = mkEnableOption "Enable the minio";
   };
 

@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   inherit (lib) types mkOption mkEnableOption optional optionals;
   cfg = config.services.virtualisation.vfio;
 

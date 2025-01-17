@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.audiobookshelf;
+  cfg = config.services.nix-config.audiobookshelf;
 in {
-  options.services.nixicle.audiobookshelf = {
+  options.services.nix-config.audiobookshelf = {
     enable = mkEnableOption "Enable the audiobookshelf service";
   };
 

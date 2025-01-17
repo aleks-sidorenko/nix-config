@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.uptime-kuma;
+  cfg = config.services.nix-config.uptime-kuma;
 in {
-  options.services.nixicle.uptime-kuma = {
+  options.services.nix-config.uptime-kuma = {
     enable = mkEnableOption "Enable uptime kuma";
   };
 

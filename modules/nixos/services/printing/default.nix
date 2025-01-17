@@ -6,10 +6,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.printing;
+with lib.nix-config; let
+  cfg = config.services.nix-config.printing;
 in {
-  options.services.nixicle.printing = with types; {
+  options.services.nix-config.printing = with types; {
     enable = mkBoolOpt false "Whether or not to configure printing support.";
   };
 

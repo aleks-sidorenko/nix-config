@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.plausible;
+with lib.nix-config; let
+  cfg = config.services.nix-config.plausible;
 in {
-  options.services.nixicle.plausible = {
+  options.services.nix-config.plausible = {
     enable = mkEnableOption "Enable the plausible service";
   };
 

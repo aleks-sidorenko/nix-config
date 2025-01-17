@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.services.tandoor;
 in {
   options.services.tandoor = {

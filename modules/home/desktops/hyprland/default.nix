@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle;
+with lib.nix-config;
 with types; let
   cfg = config.desktops.hyprland;
 in {

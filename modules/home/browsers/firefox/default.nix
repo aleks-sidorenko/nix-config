@@ -53,7 +53,7 @@ in {
           "gnomeTheme.systemIcons" = true;
           "gnomeTheme.spinner" = true;
           "layers.acceleration.force-enabled" = true;
-          "identity.fxaccounts.account.device.name" = "${config.nixicle.user.name}@${host}";
+          "identity.fxaccounts.account.device.name" = "${config.nix-config.user.name}@${host}";
           "browser.urlbar.oneOffSearches" = false;
           "browser.search.hiddenOneOffs" = "Google,Yahoo,Bing,Amazon.com,Twitter,Wikipedia (en),YouTube,eBay";
           "extensions.pocket.enabled" = false;

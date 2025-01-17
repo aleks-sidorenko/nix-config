@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.redis;
+  cfg = config.services.nix-config.redis;
 in {
-  options.services.nixicle.redis = {
+  options.services.nix-config.redis = {
     enable = mkEnableOption "Enable redis";
   };
 

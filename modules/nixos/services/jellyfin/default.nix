@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.jellyfin;
+  cfg = config.services.nix-config.jellyfin;
 in {
-  options.services.nixicle.jellyfin = {
+  options.services.nix-config.jellyfin = {
     enable = mkEnableOption "Enable jellyfin service";
   };
 

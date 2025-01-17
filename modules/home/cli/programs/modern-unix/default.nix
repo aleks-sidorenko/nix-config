@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.modern-unix;
 in {
   options.cli.programs.modern-unix = with types; {

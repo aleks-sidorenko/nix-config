@@ -58,13 +58,13 @@ in {
             };
             options = {
               nixos = {
-                expr = ''(builtins.getFlake "${home}/nixicle").nixosConfigurations.workstation.options'';
+                expr = ''(builtins.getFlake "${home}/nix-config").nixosConfigurations.workstation.options'';
               };
               home_manager = {
-                expr = ''(builtins.getFlake "${home}/nixicle").homeConfigurations."haseeb@workstation".options'';
+                expr = ''(builtins.getFlake "${home}/nix-config").homeConfigurations."haseeb@workstation".options'';
               };
               flake_parts = {
-                expr = ''let flake = builtins.getFlake ("${home}/nixicle"); in flake.debug.options // flake.currentSystem.options'';
+                expr = ''let flake = builtins.getFlake ("${home}/nix-config"); in flake.debug.options // flake.currentSystem.options'';
               };
             };
           };

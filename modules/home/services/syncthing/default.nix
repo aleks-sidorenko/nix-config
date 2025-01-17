@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.syncthing;
+  cfg = config.services.nix-config.syncthing;
 in {
-  options.services.nixicle.syncthing = {
+  options.services.nix-config.syncthing = {
     enable = mkEnableOption "Enable syncthing service";
   };
 

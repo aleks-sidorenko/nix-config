@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.adguard;
+  cfg = config.services.nix-config.adguard;
 in {
-  options.services.nixicle.adguard = {
+  options.services.nix-config.adguard = {
     enable = mkEnableOption "Enable AdGuard Home";
   };
 

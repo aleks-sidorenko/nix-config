@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.db;
 in {
   options.cli.programs.db = with types; {

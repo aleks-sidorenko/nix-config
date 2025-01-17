@@ -34,7 +34,7 @@
   services = {
     avahi.enable = lib.mkForce false;
 
-    nixicle = {
+    nix-config = {
       traefik.enable = true;
       logging.enable = true;
       postgresql.enable = true;

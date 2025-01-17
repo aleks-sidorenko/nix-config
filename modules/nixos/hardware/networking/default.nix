@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.hardware.networking;
 in {
   options.hardware.networking = with types; {

@@ -52,7 +52,7 @@ in {
       homeManagerIntegration.followSystem = false;
       targets.nixvim.enable = false;
 
-      image = pkgs.nixicle.wallpapers.earth;
+      image = pkgs.nix-config.wallpapers.earth;
 
       cursor = {
         name = "Bibata-Modern-Classic";
@@ -78,7 +78,7 @@ in {
         };
 
         monospace = {
-          package = pkgs.nixicle.monolisa;
+          package = pkgs.nix-config.monolisa;
           name = "MonoLisa Nerd Font";
         };
 

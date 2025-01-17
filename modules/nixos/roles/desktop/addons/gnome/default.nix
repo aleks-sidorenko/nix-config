@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.desktop.addons.gnome;
 in {
   options.roles.desktop.addons.gnome = with types; {

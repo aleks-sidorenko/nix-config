@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.n8n;
+  cfg = config.services.nix-config.n8n;
 in {
-  options.services.nixicle.n8n = {
+  options.services.nix-config.n8n = {
     enable = mkEnableOption "Enable n8n";
   };
 

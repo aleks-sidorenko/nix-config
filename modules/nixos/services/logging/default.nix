@@ -5,10 +5,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.logging;
+with lib.nix-config; let
+  cfg = config.services.nix-config.logging;
 in {
-  options.services.nixicle.logging = {
+  options.services.nix-config.logging = {
     enable = mkEnableOption "Enable The log collection";
   };
 

@@ -15,7 +15,7 @@
   services = {
     virtualisation.kvm.enable = true;
     hardware.openrgb.enable = true;
-    nixicle.nfs.enable = true;
+    nix-config.nfs.enable = true;
   };
   programs.coolercontrol.enable = true;
   hardware.amdgpu.opencl.enable = true;

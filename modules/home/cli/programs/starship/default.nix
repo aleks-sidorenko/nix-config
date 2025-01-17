@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.starship;
   inherit (config.lib.stylix) colors;
 in {

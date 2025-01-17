@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.authentik;
+with lib.nix-config; let
+  cfg = config.services.nix-config.authentik;
 in {
-  options.services.nixicle.authentik = {
+  options.services.nix-config.authentik = {
     enable = mkEnableOption "Enable the authentik auth service";
   };
 

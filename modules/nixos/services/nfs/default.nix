@@ -5,10 +5,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.nfs;
+with lib.nix-config; let
+  cfg = config.services.nix-config.nfs;
 in {
-  options.services.nixicle.nfs = {
+  options.services.nix-config.nfs = {
     enable = mkEnableOption "Enable the (mount) nfs drive";
   };
 

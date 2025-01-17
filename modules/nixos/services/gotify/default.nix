@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.gotify;
+with lib.nix-config; let
+  cfg = config.services.nix-config.gotify;
 in {
-  options.services.nixicle.gotify = {
+  options.services.nix-config.gotify = {
     enable = mkEnableOption "Enable the notify service";
   };
 

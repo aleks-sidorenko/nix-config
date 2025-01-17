@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.gamedev;
 in {
   options.roles.gamedev = with types; {

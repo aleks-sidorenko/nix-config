@@ -12,7 +12,7 @@
     server.enable = true;
   };
 
-  services.nixicle = {
+  services.nix-config = {
     traefik.enable = true;
     postgresql.enable = true;
     home-assistant.enable = true;

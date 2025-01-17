@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.couchdb;
+  cfg = config.services.nix-config.couchdb;
 in {
-  options.services.nixicle.couchdb = {
+  options.services.nix-config.couchdb = {
     enable = mkEnableOption "Enable CouchDB";
   };
 

@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.kubernetes;
 in {
   options.roles.kubernetes = {
@@ -18,7 +18,7 @@ in {
     };
 
     services = {
-      nixicle.k3s = {
+      nix-config.k3s = {
         enable = true;
         inherit (cfg) role;
       };

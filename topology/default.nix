@@ -10,7 +10,7 @@
 in {
   networks.home = {
     name = "Home";
-    cidrv4 = "192.168.1.1/24";
+    cidrv4 = "10.0.0.1/24";
   };
 
   nodes = {

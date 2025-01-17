@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.deluge;
+  cfg = config.services.nix-config.deluge;
 in {
-  options.services.nixicle.deluge = {
+  options.services.nix-config.deluge = {
     enable = mkEnableOption "Enable the deluge downloader";
   };
 

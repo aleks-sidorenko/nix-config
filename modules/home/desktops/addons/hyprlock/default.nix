@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.desktops.addons.hyprlock;
 in {
   options.desktops.addons.hyprlock = with types; {

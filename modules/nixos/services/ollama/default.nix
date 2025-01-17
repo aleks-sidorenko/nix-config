@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.ollama;
+  cfg = config.services.nix-config.ollama;
 in {
-  options.services.nixicle.ollama = {
+  options.services.nix-config.ollama = {
     enable = mkEnableOption "Enable ollama and web ui";
   };
 

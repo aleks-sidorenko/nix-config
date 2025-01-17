@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.network-tools;
 in {
   options.cli.programs.network-tools = with types; {

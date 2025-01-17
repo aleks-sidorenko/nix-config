@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.stirling-pdf;
+  cfg = config.services.nix-config.stirling-pdf;
 in {
-  options.services.nixicle.stirling-pdf = {
+  options.services.nix-config.stirling-pdf = {
     enable = mkEnableOption "Enable stirling pdf service";
   };
 

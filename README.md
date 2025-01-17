@@ -1,7 +1,7 @@
 <div align="center">
 <h1>
 <img width="96" src="./images/logo.png"></img> <br>
-  Nixicle
+  nix-config
 </h1>
 </h2><img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/macchiato.png" width="500" />
 <img src="./images/terminal.png"></img>
@@ -24,7 +24,7 @@ no OS on the device. You need to copy ssh keys onto the target machine
 `mkdir -p ~/.ssh && curl https://github.com/hmajid2301.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
 
 ```bash
-git clone git@github.com:hmajid2301/nixicle.git ~/nixicle/
+git clone git@github.com:hmajid2301/nix-config.git ~/nix-config/
 cd nixcile
 
 nix develop
@@ -42,8 +42,8 @@ Then run `nix_installer`, which will then ask you which host you would like to i
 To build my config for a specific host you can do something like:
 
 ```bash
-git clone git@github.com:hmajid2301/nixicle.git ~/nixicle/
-cd nixicle
+git clone git@github.com:hmajid2301/nix-config.git ~/nix-config/
+cd nix-config
 
 nix develop
 

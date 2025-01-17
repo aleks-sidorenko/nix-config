@@ -6,7 +6,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   inherit (config.lib.stylix) colors;
   cfg = config.cli.shells.fish;
 in {
@@ -83,8 +83,8 @@ in {
 
         nd = "nix develop";
         nfu = "nix flake update";
-        hms = "home-manager switch --flake ~/nixicle#${config.nixicle.user.name}@${host}";
-        nrs = "sudo nixos-rebuild switch --flake ~/nixicle#${host}";
+        hms = "home-manager switch --flake ~/nix-config#${config.nix-config.user.name}@${host}";
+        nrs = "sudo nixos-rebuild switch --flake ~/nix-config#${host}";
 
         # new commads
         weather = "curl wttr.in/London";

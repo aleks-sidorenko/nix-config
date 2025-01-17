@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.homepage;
+  cfg = config.services.nix-config.homepage;
 in {
-  options.services.nixicle.homepage = {
+  options.services.nix-config.homepage = {
     enable = mkEnableOption "Enable homepage for homelab services";
   };
 

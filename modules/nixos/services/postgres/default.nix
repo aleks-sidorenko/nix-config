@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.postgresql;
+  cfg = config.services.nix-config.postgresql;
 in {
-  options.services.nixicle.postgresql = {
+  options.services.nix-config.postgresql = {
     enable = mkEnableOption "Enable postgresql";
   };
 

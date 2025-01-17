@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.k3s;
+with lib.nix-config; let
+  cfg = config.services.nix-config.k3s;
 in {
-  options.services.nixicle.k3s = {
+  options.services.nix-config.k3s = {
     enable = mkEnableOption "Enable The k3s service";
     role = mkOpt (types.nullOr types.str) "server" "Whether this node is a server or agent";
   };

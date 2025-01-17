@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.desktops.addons.rofi;
   inherit (config.lib.stylix) colors;
 in {

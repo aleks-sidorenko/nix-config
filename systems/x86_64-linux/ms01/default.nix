@@ -31,7 +31,7 @@
     arr.enable = true;
     # vpn.enable = true;
 
-    nixicle = {
+    nix-config = {
       authentik.enable = true;
       audiobookshelf.enable = true;
       couchdb.enable = true;

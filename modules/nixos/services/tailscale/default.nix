@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.tailscale;
+  cfg = config.services.nix-config.tailscale;
 in {
-  options.services.nixicle.tailscale = {
+  options.services.nix-config.tailscale = {
     enable = mkEnableOption "Enable tailscale";
   };
 

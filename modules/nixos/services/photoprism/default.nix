@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.photoprism;
+  cfg = config.services.nix-config.photoprism;
 in {
-  options.services.nixicle.photoprism = {
+  options.services.nix-config.photoprism = {
     enable = mkEnableOption "Enable photo prism";
   };
 

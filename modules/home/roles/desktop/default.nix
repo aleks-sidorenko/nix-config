@@ -58,7 +58,7 @@ in {
     };
 
     services = {
-      nixicle.kdeconnect.enable = true;
+      nix-config.kdeconnect.enable = true;
       spotify.enable = true;
     };
     desktops.addons.xdg.enable = true;

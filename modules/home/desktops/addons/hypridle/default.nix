@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.desktops.addons.hypridle;
 in {
   options.desktops.addons.hypridle = with types; {

@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.paperless;
+with lib.nix-config; let
+  cfg = config.services.nix-config.paperless;
 in {
-  options.services.nixicle.paperless = {
+  options.services.nix-config.paperless = {
     enable = mkEnableOption "Enable the paperless service";
   };
 

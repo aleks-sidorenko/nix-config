@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.desktop.addons.nautilus;
 in {
   options.roles.desktop.addons.nautilus = with types; {

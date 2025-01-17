@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.netdata;
+with lib.nix-config; let
+  cfg = config.services.nix-config.netdata;
 in {
-  options.services.nixicle.netdata = {
+  options.services.nix-config.netdata = {
     enable = mkEnableOption "Enable the netdata service";
   };
 

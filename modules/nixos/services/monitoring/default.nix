@@ -5,10 +5,10 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
-  cfg = config.services.nixicle.monitoring;
+with lib.nix-config; let
+  cfg = config.services.nix-config.monitoring;
 in {
-  options.services.nixicle.monitoring = {
+  options.services.nix-config.monitoring = {
     enable = mkEnableOption "Enable The monitoring stack(loki, prometheus, grafana)";
   };
 

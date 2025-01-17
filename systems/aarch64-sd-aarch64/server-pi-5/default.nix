@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; {
+with lib.nix-config; {
   nixpkgs.overlays = [
     (final: super: {
       makeModulesClosure = x:

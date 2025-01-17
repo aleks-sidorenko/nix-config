@@ -5,14 +5,14 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.gitea;
+  cfg = config.services.nix-config.gitea;
   theme = pkgs.fetchzip {
     url = "https://github.com/catppuccin/gitea/releases/download/v0.4.1/catppuccin-gitea.tar.gz";
     hash = "sha256-14XqO1ZhhPS7VDBSzqW55kh6n5cFZGZmvRCtMEh8JPI=";
     stripRoot = false;
   };
 in {
-  options.services.nixicle.gitea = {
+  options.services.nix-config.gitea = {
     enable = mkEnableOption "Enable gitea self hosted git server";
   };
 

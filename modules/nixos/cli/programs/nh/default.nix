@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.cli.programs.nh;
 in {
   options.cli.programs.nh = with types; {
@@ -16,7 +16,7 @@ in {
       enable = true;
       clean.enable = true;
       clean.extraArgs = "--keep-since 4d --keep 3";
-      flake = "/home/${config.user.name}/nixicle";
+      flake = "/home/${config.user.name}/nix-config";
     };
   };
 }

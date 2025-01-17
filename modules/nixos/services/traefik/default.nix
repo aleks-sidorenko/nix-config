@@ -4,9 +4,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.traefik;
+  cfg = config.services.nix-config.traefik;
 in {
-  options.services.nixicle.traefik = {
+  options.services.nix-config.traefik = {
     enable = mkEnableOption "Enable traefik";
   };
 

@@ -86,7 +86,7 @@ in {
     };
   };
 
-  nixicle.user = {
+  nix-config.user = {
     enable = true;
     name = "haseebmajid";
   };

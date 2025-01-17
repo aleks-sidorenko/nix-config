@@ -4,7 +4,7 @@
     gaming.enable = true;
   };
 
-  nixicle.user = {
+  nix-config.user = {
     enable = true;
     name = "haseeb";
   };

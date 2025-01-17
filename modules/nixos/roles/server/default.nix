@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.server;
 in {
   options.roles.server = {
@@ -18,7 +18,7 @@ in {
     };
 
     services = {
-      nixicle = {
+      nix-config = {
         avahi.enable = true;
         tailscale.enable = true;
       };

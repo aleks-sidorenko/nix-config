@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nixicle; let
+with lib.nix-config; let
   cfg = config.roles.desktop;
 in {
   options.roles.desktop = {
@@ -30,7 +30,7 @@ in {
     };
 
     services = {
-      nixicle.avahi.enable = true;
+      nix-config.avahi.enable = true;
       backup.enable = true;
       vpn.enable = true;
       virtualisation.podman.enable = true;

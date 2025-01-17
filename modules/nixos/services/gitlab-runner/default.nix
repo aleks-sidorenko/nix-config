@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.nixicle.gitlab-runner;
+  cfg = config.services.nix-config.gitlab-runner;
 in {
-  options.services.nixicle.gitlab-runner = {
+  options.services.nix-config.gitlab-runner = {
     enable = mkEnableOption "Enable gitlab runner";
   };
 

@@ -10,7 +10,7 @@
     };
   };
 
-  services.nixicle = {
+  services.nix-config = {
     syncthing.enable = true;
   };
 
@@ -22,7 +22,7 @@
     video.enable = true;
   };
 
-  nixicle.user = {
+  nix-config.user = {
     enable = true;
     name = "haseeb";
   };

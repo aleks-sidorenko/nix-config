@@ -161,10 +161,10 @@
       src = ./.;
 
       snowfall = {
-        metadata = "nixicle";
-        namespace = "nixicle";
+        metadata = "nix-config";
+        namespace = "nix-config";
         meta = {
-          name = "nixicle";
+          name = "nix-config";
           title = "Haseeb's Nix Flake";
         };
       };
