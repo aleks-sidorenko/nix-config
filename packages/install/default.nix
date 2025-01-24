@@ -5,7 +5,7 @@
 }:
 # Taken from: https://github.com/IogaMaster/dotfiles/blob/main/packages/install/default.nix
 writeShellScriptBin "install" ''
-  ${gum}/bin/gum style --border normal --margin "1" --padding "1 2" --border-foreground 212 "✨ Haseeb's dotfiles installer ✨"
+  ${gum}/bin/gum style --border normal --margin "1" --padding "1 2" --border-foreground 212 "✨ Alexander's dotfiles installer ✨"
   echo "This script will wipe the remote system!"
   ${gum}/bin/gum confirm "Cancel..." && exit
 

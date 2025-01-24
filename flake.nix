@@ -1,5 +1,5 @@
 {
-  description = "Haseeb's Nix/NixOS Config";
+  description = "Alexander's Nix/NixOS Config";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -165,7 +165,7 @@
         namespace = "nix-config";
         meta = {
           name = "nix-config";
-          title = "Haseeb's Nix Flake";
+          title = "Alexander's Nix Flake";
         };
       };
     };

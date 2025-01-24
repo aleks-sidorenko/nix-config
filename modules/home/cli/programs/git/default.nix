@@ -26,7 +26,7 @@ in {
 
     programs.git = {
       enable = true;
-      userName = "Haseeb Majid";
+      userName = "Alexander Sidorenko";
       userEmail = cfg.email;
 
       extraConfig =
