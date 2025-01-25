@@ -1,22 +1,7 @@
-<div align="center">
-<h1>
-<img width="96" src="./images/logo.png"></img> <br>
-  nix-config
-</h1>
-</h2><img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/macchiato.png" width="500" />
-<img src="./images/terminal.png"></img>
-<p>
-  Screenshot updated: 2024-07-15
-</p>
-<h4>
-  :warning: This config repo is constantly changing,
-  Let me know if you see something that can be improved or done better :smile: .</h4>
-</div>
 
 ## 💽 Usage
 
-<details>
-  <summary>Install</summary>
+### Install
 
 To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
 You will need to be able to SSH to the target machine from where this command will be run. Load nix installer ISO if
@@ -35,7 +20,6 @@ nixos-anywhere --flake '.#workstation' nixos@192.168.1.8 # Replace with your IP
 After building it you can copy the ISO from the `result` folder to your USB.
 Then run `nix_installer`, which will then ask you which host you would like to install.
 
-</details>
 
 ### Building
 
@@ -100,22 +84,6 @@ Some features of my config:
 - 🐄 : Virtual Machine
 - ☁️ : Server
 
-
-## 🖼️ Showcase
-
-### Desktop
-
-![terminal](images/terminal.png)
-![swaync](images/swaync.png)
-![wallpaper](images/wallpaper.png)
-![monkeytype](images/monkeytype.png)
-
-### Neovim
-
-![Telescope](images/nvim/telescope.png)
-![Editor](images/nvim/editor.png)
-![Go Code](images/nvim/go-code.png)
-![CMP](images/nvim/cmp.png)
 
 ## Appendix
 
