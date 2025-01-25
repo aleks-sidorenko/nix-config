@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  namespace
   ...
 }: {
   imports = [
@@ -15,13 +16,12 @@
   services = {
     virtualisation.kvm.enable = true;
     hardware.openrgb.enable = true;
-    nix-config.nfs.enable = true;
+    ${namespace}.nfs.enable = true;
   };
   programs.coolercontrol.enable = true;
   hardware.amdgpu.opencl.enable = true;
 
-  roles = {
-    gaming.enable = true;
+  roles = {    
     desktop = {
       enable = true;
       addons = {
@@ -31,6 +31,7 @@
   };
 
   boot = {
+    # FIXME: validate offset
     kernelParams = [
       "resume_offset=533760"
     ];
@@ -41,6 +42,7 @@
 
     supportedFilesystems = lib.mkForce ["btrfs"];
     kernelPackages = pkgs.linuxPackages_latest;
+    # FIXME: validate label after disko
     resumeDevice = "/dev/disk/by-label/nixos";
 
     initrd = {
@@ -49,5 +51,6 @@
     };
   };
 
-  system.stateVersion = "23.11";
+  # Do not change this value! This tracks when NixOS was installed on your system.
+  system.stateVersion = "24.11";
 }

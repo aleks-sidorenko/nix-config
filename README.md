@@ -21,10 +21,10 @@
 To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
 You will need to be able to SSH to the target machine from where this command will be run. Load nix installer ISO if
 no OS on the device. You need to copy ssh keys onto the target machine
-`mkdir -p ~/.ssh && curl https://github.com/hmajid2301.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
+`mkdir -p ~/.ssh && curl https://github.com/aleks-sidorenko.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
 
 ```bash
-git clone git@github.com:hmajid2301/nix-config.git ~/.nix-config/
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/.nix-config/
 cd nixcile
 
 nix develop
@@ -129,10 +129,7 @@ Some features of my config:
 
 ### Inspired By
 
-- Snowfall config: https://github.com/jakehamilton/config?tab=readme-ov-file
-- More snowfall config: https://github.dev/khaneliman/khanelinix/blob/f4f4149dd8a0fda1c01fa7b14894b2bcf5653572/flake.nix
-- My original structure and nixlang code: https://github.com/Misterio77/nix-config
-- Waybar & scripts: https://github.dev/yurihikari/garuda-sway-config
-- Neovim UI: https://github.com/NvChad/nvchad
-- README: https://github.com/notohh/snowflake/tree/master
-- README table: https://github.com/wimpysworld/nix-config
+- Snowfall https://github.com/hmajid2301/nixicle
+- Another snowfall https://github.com/8bitbuddhist/nix-configuration
+- Original structure https://github.com/Misterio77/nix-config
+

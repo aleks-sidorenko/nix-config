@@ -67,7 +67,7 @@ in {
               command = "${pkgs.gotools}/bin/goimports";
               args = [
                 "-local"
-                "gitlab.com/hmajid2301,git.curve.tools,go.curve.tools"
+                "gitlab.com/aleks-sidorenko,git.curve.tools,go.curve.tools"
               ];
             };
           };

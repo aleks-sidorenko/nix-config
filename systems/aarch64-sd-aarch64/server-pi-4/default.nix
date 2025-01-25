@@ -2,10 +2,11 @@
   lib,
   modulesPath,
   inputs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; {
+with lib.${namespace}; {
   nixpkgs.overlays = [
     (final: super: {
       makeModulesClosure = x:
@@ -15,7 +16,7 @@ with lib.nix-config; {
 
   imports = with inputs.nixos-hardware.nixosModules; [
     (modulesPath + "/installer/scan/not-detected.nix")
-    raspberry-pi-5
+    raspberry-pi-4
   ];
 
   roles = {
@@ -24,7 +25,7 @@ with lib.nix-config; {
 
   sdImage.compressImage = false;
   system.boot.enable = lib.mkForce false;
-  hardware.raspberry-pi-5.enable = true;
+  hardware.raspberry-pi-4.enable = true;
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.11";
 }

@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{pkgs, namespace,...}: {
   cli.programs.git.allowedSigners = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINP5gqbEEj+pykK58djSI1vtMtFiaYcygqhHd3mzPbSt hello@haseebmajid.dev";
 
   desktops = {
@@ -10,22 +10,20 @@
     };
   };
 
-  services.nix-config = {
+  services.${namespace} = {
     syncthing.enable = true;
   };
 
   roles = {
     desktop.enable = true;
-    social.enable = true;
-    gaming.enable = true;
-    gamedev.enable = true;
+    social.enable = true;    
     video.enable = true;
   };
 
-  nix-config.user = {
+  ${namespace}.user = {
     enable = true;
-    name = "haseeb";
+    name = "alexander";
   };
 
-  home.stateVersion = "23.11";
+  home.stateVersion = "24.11";
 }

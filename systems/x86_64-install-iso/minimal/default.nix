@@ -16,8 +16,8 @@
 
   user = {
     name = "nixos";
-    initialPassword = "1";
+    initialPassword = "nixos";
   };
 
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.11";
 }

@@ -17,7 +17,7 @@ require("lze").load({
 				formatters = {
 					goimports = {
 						command = "goimports",
-						args = { "-local", "gitlab.com/hmajid2301,git.curve.tools,go.curve.tools" },
+						args = { "-local", "gitlab.com/aleks-sidorenko,git.curve.tools,go.curve.tools" },
 					},
 				},
 				formatters_by_ft = {
