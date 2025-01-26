@@ -111,7 +111,7 @@ in {
 
     user = {
       name = "nixos";
-      initialPassword = "1";
+      initialPassword = "nixos";
     };
   };
 }

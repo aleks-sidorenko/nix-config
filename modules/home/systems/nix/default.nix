@@ -26,7 +26,8 @@ in {
     };
 
     home.sessionVariables = {
-      FLAKE = "/home/${config.nix-config.user.name}/nix-config";
+      # TODO - make reusable var
+      FLAKE = "/home/${config.nix-config.user.name}/.nix-config";
     };
 
     nix = {

@@ -91,7 +91,8 @@ Some features of my config:
 
 ### Inspired By
 
-- Snowfall https://github.com/hmajid2301/nixicle
-- Another snowfall https://github.com/8bitbuddhist/nix-configuration
-- Original structure https://github.com/Misterio77/nix-config
+- Snowfall based https://github.com/hmajid2301/nixicle
+- Snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
+- Another snowfall based https://github.com/8bitbuddhist/nix-configuration
+- Mature config https://github.com/Misterio77/nix-config
 

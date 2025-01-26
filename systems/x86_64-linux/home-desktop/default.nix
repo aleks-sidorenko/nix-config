@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  namespace
+  namespace,
   ...
 }: {
   imports = [
@@ -9,17 +9,16 @@
     ./disks.nix
   ];
 
-  environment.pathsToLink = ["/share/fish"];
-  systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
-  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+  system.boot.plymouth = lib.mkForce false;
+
+  system.impermanence.enable = true;
 
   services = {
     virtualisation.kvm.enable = true;
-    hardware.openrgb.enable = true;
-    ${namespace}.nfs.enable = true;
+    hardware.openrgb.enable = true;    
   };
+  
   programs.coolercontrol.enable = true;
-  hardware.amdgpu.opencl.enable = true;
 
   roles = {    
     desktop = {
@@ -31,7 +30,7 @@
   };
 
   boot = {
-    # FIXME: validate offset
+    
     kernelParams = [
       "resume_offset=533760"
     ];
@@ -42,8 +41,8 @@
 
     supportedFilesystems = lib.mkForce ["btrfs"];
     kernelPackages = pkgs.linuxPackages_latest;
-    # FIXME: validate label after disko
-    resumeDevice = "/dev/disk/by-label/nixos";
+    
+    resumeDevice = "/dev/disk/by-label/root";
 
     initrd = {
       supportedFilesystems = ["nfs"];

@@ -6,15 +6,15 @@
 }:
 with lib;
 with lib.nix-config; let
-  cfg = config.hardware.raspberry-pi-5;
+  cfg = config.hardware.raspberry-pi-4;
 in {
-  options.hardware.raspberry-pi-5 = {
-    enable = mkEnableOption "Enable The raspberry-pi-5 config";
+  options.hardware.raspberry-pi-4 = {
+    enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 
   config = mkIf cfg.enable {
     boot = {
-      kernelPackages = (import <nixpkgs-rpi5> {}).linuxPackages_rpi5;
+      kernelPackages = (import <nixpkgs-rpi4> {}).linuxPackages_rpi5;
       kernelParams = [
         "cgroup_memory=1"
         "cgroup_enable=cpuset"
