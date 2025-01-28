@@ -24,7 +24,6 @@ in {
       fontpreview
       unar
       poppler
-      unar
     ];
   };
 }

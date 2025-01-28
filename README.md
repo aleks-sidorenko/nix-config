@@ -43,8 +43,6 @@ nix build .#install-isoConfigurations.graphical
 # Deploy my to remote server i.e. Home Lab (using SSH)
 deploy .#ms01 --hostname ms01 --ssh-user nixos --skip-checks
 
-# Build Home Lab diagram using nix-topology
-nix build .#topology.config.output
 ```
 
 ## 🚀 Features
@@ -66,8 +64,8 @@ Some features of my config:
 
 |   Hostname                                   |            Board                                          |               CPU                                                   |  RAM          |         Primary GPU                                    |  Role | OS  | State |
 | :---------:                                  | :-------------------------:                               | :----------------------------:                                      | :---:         | :-------------------------:                            |  :--: | :-: | :---: |
-| `home-desktop`                                | ASUS P8P67 PRO (REV 3.0) P67/ s1155               | Intel Core i7-2600K                                                  | 32GB          | Asus PCI-Ex GeForce GTX 560 Ti 1024MB                 | 🖥️     | ❄️   | ✅    |
-| `home-server`                                  | Rasberry PI 4 model B                            | Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz                                               | 8GB          | Integrated                                    | ☁️     | ❄️   | ✅    |
+| `desktop`                                | ASUS P8P67 PRO (REV 3.0) P67/ s1155               | Intel Core i7-2600K                                                  | 32GB          | Asus PCI-Ex GeForce GTX 560 Ti 1024MB                 | 🖥️     | ❄️   | ✅    |
+| `server`                                  | Rasberry PI 4 model B                            | Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz                                               | 8GB          | Integrated                                    | ☁️     | ❄️   | ✅    |
 
 
 **Key**

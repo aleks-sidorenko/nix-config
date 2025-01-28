@@ -1,5 +1,8 @@
 {pkgs, namespace,...}: {
+  # FIXME
   cli.programs.git.allowedSigners = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINP5gqbEEj+pykK58djSI1vtMtFiaYcygqhHd3mzPbSt hello@haseebmajid.dev";
+
+  networking.hostName = "desktop";
 
   desktops = {
     hyprland = {
@@ -24,6 +27,7 @@
     enable = true;
     name = "alexander";
   };
+
 
   home.stateVersion = "24.11";
 }

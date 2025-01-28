@@ -15,8 +15,7 @@ in {
       editors.nvim.enable = true;
       multiplexers.zellij.enable = true;
 
-      programs = {
-        # attic.enable = true;
+      programs = {        
         atuin.enable = true;
         bat.enable = true;
         bottom.enable = true;

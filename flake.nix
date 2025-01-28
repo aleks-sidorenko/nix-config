@@ -84,26 +84,10 @@
 
     # Homelab
 
-    attic = {
-      url = "github:zhaofengli/attic";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nix-topology = {
-      url = "github:oddlama/nix-topology";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    poetry2nix.url = "github:nix-community/poetry2nix";
-    authentik-nix = {
-      url = "github:nix-community/authentik-nix";
-    };
-    authentik-nix.inputs.poetry2nix.follows = "poetry2nix";
 
     # Styling
 
@@ -182,22 +166,15 @@
         lanzaboote.nixosModules.lanzaboote
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
-        nix-topology.nixosModules.default
-        authentik-nix.nixosModules.default
       ];
 
       systems.hosts.framework.modules = with inputs; [
         nixos-hardware.nixosModules.framework-13-7040-amd
       ];
 
-      # homes.modules = with inputs; [
-      #   impermanence.nixosModules.home-manager.impermanence
-      # ];
-
       overlays = with inputs; [
         nixgl.overlay
         nur.overlays.default
-        nix-topology.overlays.default
       ];
 
       deploy = lib.mkDeploy {inherit (inputs) self;};
@@ -207,18 +184,5 @@
         (system: deploy-lib:
           deploy-lib.deployChecks inputs.self.deploy)
         inputs.deploy-rs.lib;
-
-      topology = with inputs; let
-        host = self.nixosConfigurations.${builtins.head (builtins.attrNames self.nixosConfigurations)};
-      in
-        import nix-topology {
-          inherit (host) pkgs; # Only this package set must include nix-topology.overlays.default
-          modules = [
-            (import ./topology {
-              inherit (host) config;
-            })
-            {inherit (self) nixosConfigurations;}
-          ];
-        };
     };
 }

@@ -18,16 +18,10 @@ in {
     };
 
     services = {
-      nix-config = {
-        avahi.enable = true;
+      nix-config = {        
         tailscale.enable = true;
       };
-
-      getty.autologinUser = "nixos";
-      openiscsi = {
-        enable = true;
-        name = "<some-name>";
-      };
+      
     };
 
     environment =
