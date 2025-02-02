@@ -7,6 +7,9 @@
 with lib;
 with lib.nix-config; let
   cfg = config.system.locale;
+  locale = "en_US.UTF-8";
+  layout = "us";
+  timeZone = "Europe/Kyiv";
 in {
   options.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
@@ -14,27 +17,32 @@ in {
 
   config = mkIf cfg.enable {
     i18n = {
-      defaultLocale = lib.mkDefault "en_GB.UTF-8";
+      
+      defaultLocale = lib.mkDefault ${locale};
+
       extraLocaleSettings = {
-        LC_ADDRESS = "en_GB.UTF-8";
-        LC_IDENTIFICATION = "en_GB.UTF-8";
-        LC_MEASUREMENT = "en_GB.UTF-8";
-        LC_MONETARY = "en_GB.UTF-8";
-        LC_NAME = "en_GB.UTF-8";
-        LC_NUMERIC = "en_GB.UTF-8";
-        LC_PAPER = "en_GB.UTF-8";
-        LC_TELEPHONE = "en_GB.UTF-8";
-        LC_TIME = "en_GB.UTF-8";
+        LC_ADDRESS = ${locale};
+        LC_IDENTIFICATION = ${locale};
+        LC_MEASUREMENT = ${locale};
+        LC_MONETARY = ${locale};
+        LC_NAME = ${locale};
+        LC_NUMERIC = ${locale};
+        LC_PAPER = ${locale};
+        LC_TELEPHONE = ${locale};
+        LC_TIME = ${locale};
       };
     };
-    time.timeZone = "Europe/London";
+    time.timeZone = ${timeZone};
 
     # Configure keymap in X11
     services.xserver = {
-      xkb.layout = "gb";
-      xkb.variant = "";
+      xkb =  {
+        layout = ${layout};
+        variant = "";
+      };
     };
+
     # Configure console keymap
-    console.keyMap = "uk";
+    console.keyMap = ${layout};
   };
 }
