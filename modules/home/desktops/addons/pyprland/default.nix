@@ -2,12 +2,13 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.pyprland;
+  cfg = config.${namespace}.desktops.addons.pyprland;
 in {
-  options.desktops.addons.pyprland = {
+  options.${namespace}.desktops.addons.pyprland = {
     enable = mkEnableOption "Enable pyprland plugins for hyprland";
   };
 

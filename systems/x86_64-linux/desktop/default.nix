@@ -9,31 +9,41 @@
     ./disks.nix
   ];
 
-  system.boot.plymouth = lib.mkForce false;
 
-  system.impermanence.enable = true;
+  ${namespace} = {
+    roles = {
+      desktop = {
+        enable = true;
+        addons = {
+          hyprland.enable = true;
+        };
+      };
+    };
 
-  services = {
-    virtualisation.kvm.enable = true;
+    services = {
+      virtualisation.kvm = enabled;
+    };
+
+    system.impermanence = enabled;
+
+  };
+
+
+  services = {    
     hardware.openrgb.enable = true;    
   };
   
   programs.coolercontrol.enable = true;
 
-  roles = {    
-    desktop = {
-      enable = true;
-      addons = {
-        hyprland.enable = true;
-      };
-    };
-  };
-
+  
   boot = {
     
     kernelParams = [
       "resume_offset=533760"
     ];
+
+    resumeDevice = "/dev/disk/by-label/root";
+    
     blacklistedKernelModules = [
       "ath12k_pci"
       "ath12k"
@@ -42,7 +52,7 @@
     supportedFilesystems = lib.mkForce ["btrfs"];
     kernelPackages = pkgs.linuxPackages_latest;
     
-    resumeDevice = "/dev/disk/by-label/root";
+    
 
     initrd = {
       supportedFilesystems = ["nfs"];

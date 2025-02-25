@@ -19,13 +19,18 @@ with lib.${namespace}; {
     raspberry-pi-4
   ];
 
-  roles = {
-    server.enable = true;
+  ${namespace} = {
+    roles = {
+      server = enabled;
+    };
+
+    hardware.raspberry-pi-4 = enabled;
   };
+  
 
   sdImage.compressImage = false;
   system.boot.enable = lib.mkForce false;
-  hardware.raspberry-pi-4.enable = true;
+  
 
   system.stateVersion = "24.11";
 }

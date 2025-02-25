@@ -6,7 +6,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.roles.video;
 in {
   options.roles.video = with types; {

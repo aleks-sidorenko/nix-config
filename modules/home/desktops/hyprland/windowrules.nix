@@ -2,11 +2,12 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
   rule = rules: attrs: attrs // {inherit rules;};
-  cfg = config.desktops.hyprland;
+  cfg = config.${namespace}.desktops.hyprland;
 in {
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.windowRules = let

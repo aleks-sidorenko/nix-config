@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.security.sops;
 in {
   options.security.sops = with types; {

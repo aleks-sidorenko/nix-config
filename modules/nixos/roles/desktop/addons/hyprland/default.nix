@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.roles.desktop.addons.hyprland;
 in {
   options.roles.desktop.addons.hyprland = with types; {

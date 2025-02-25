@@ -2,10 +2,11 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.hyprland;
+  cfg = config.${namespace}.desktops.hyprland;
   inherit (config.lib.stylix) colors;
 in {
   config = mkIf cfg.enable {

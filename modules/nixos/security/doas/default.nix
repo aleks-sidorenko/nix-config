@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.security.nix-config.doas;
+with lib.${namespace}; let
+  cfg = config.${namespace}.security.doas;
 in {
-  options.security.nix-config.doas = {
+  options.${namespace}.security.doas = {
     enable = mkBoolOpt false "Whether or not to replace sudo with doas.";
   };
 

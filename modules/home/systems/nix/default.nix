@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.system.nix;
 in {
   options.system.nix = with types; {
@@ -27,7 +27,7 @@ in {
 
     home.sessionVariables = {
       # TODO - make reusable var
-      FLAKE = "/home/${config.nix-config.user.name}/.nix-config";
+      FLAKE = "/home/${config.${namespace}.user.name}/.nix-config";
     };
 
     nix = {

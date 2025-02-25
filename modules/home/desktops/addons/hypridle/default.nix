@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.hypridle;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.hypridle;
 in {
-  options.desktops.addons.hypridle = with types; {
+  options.${namespace}.desktops.addons.hypridle = with types; {
     enable = mkBoolOpt false "Whether to enable the hypridle";
   };
 

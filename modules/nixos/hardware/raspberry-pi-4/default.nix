@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.hardware.raspberry-pi-4;
 in {
   options.hardware.raspberry-pi-4 = {

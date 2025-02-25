@@ -2,6 +2,7 @@
   config,
   lib,
   inputs,
+  namespace,
   ...
 }: let
   inherit (inputs.nixCats) utils;
@@ -345,7 +346,7 @@ in {
         regularCats = {pkgs, ...}: {
           settings = {
             wrapRc = false;
-            unwrappedCfgPath = "${config.home.homeDirectory}/nix-config/modules/home/cli/editors/neovim/";
+            unwrappedCfgPath = "${config.home.homeDirectory}/${namespace}/modules/home/cli/editors/neovim/";
             configDirName = "nixCats-nvim";
             aliases = ["testCat"];
             neovim-unwrapped = inputs.neovim-nightly-overlay.packages.${pkgs.system}.neovim;

@@ -2,12 +2,13 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.gtk;
+  cfg = config.${namespace}.desktops.addons.gtk;
 in {
-  options.desktops.addons.gtk = {
+  options.${namespace}.desktops.addons.gtk = {
     enable = mkEnableOption "enable gtk theme management";
   };
 

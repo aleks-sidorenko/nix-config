@@ -4,10 +4,10 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.terminals.kitty;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.terminals.kitty;
 in {
-  options.cli.terminals.kitty = with types; {
+  options.${namespace}.cli.terminals.kitty = with types; {
     enable = mkBoolOpt false "enable kitty terminal emulator";
   };
 

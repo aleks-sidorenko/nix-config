@@ -2,14 +2,15 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.gnome;
+  cfg = config.${namespace}.desktops.gnome;
 in {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.desktops.gnome = {
+  options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "enable gnome DE";
   };
 

@@ -2,10 +2,11 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.hyprland;
+  cfg = config.${namespace}.desktops.hyprland;
   laptop_lid_switch = pkgs.writeShellScriptBin "laptop_lid_switch" ''
     #!/usr/bin/env bash
 
@@ -62,7 +63,7 @@ in {
     wayland.windowManager.hyprland.keyBinds = {
       bind = {
         "SUPER, Return" = "exec, foot";
-        "SUPER, B" = "exec, ${config.desktops.addons.rofi.package}/bin/rofi -show drun -mode drun";
+        "SUPER, B" = "exec, ${config.${namespace}.desktops.addons.rofi.package}/bin/rofi -show drun -mode drun";
         "SUPER, Q" = "killactive,";
         "SUPER, F" = "Fullscreen,0";
         "SUPER, R" = "exec, ${resize}/bin/resize";

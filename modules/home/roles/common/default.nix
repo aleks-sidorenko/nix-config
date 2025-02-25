@@ -22,7 +22,7 @@ in {
       terminals.ghostty.enable = true;
       shells.fish.enable = true;
     };
-    programs = {
+    apps = {
       guis.enable = true;
       tuis.enable = true;
     };

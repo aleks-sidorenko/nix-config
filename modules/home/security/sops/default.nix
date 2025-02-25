@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.security.sops;
 in {
   options.security.sops = with types; {
@@ -20,8 +20,8 @@ in {
     sops = {
       age = {
         generateKey = true;
-        keyFile = "/home/${config.nix-config.user.name}/.config/sops/age/keys.txt";
-        sshKeyPaths = ["/home/${config.nix-config.user.name}/.ssh/id_ed25519"];
+        keyFile = "/home/${config.${namespace}.user.name}/.config/sops/age/keys.txt";
+        sshKeyPaths = ["/home/${config.${namespace}.user.name}/.ssh/id_ed25519"];
       };
 
       defaultSymlinkPath = "/run/user/1000/secrets";

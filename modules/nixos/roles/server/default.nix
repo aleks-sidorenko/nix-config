@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.roles.server;
 in {
   options.roles.server = {

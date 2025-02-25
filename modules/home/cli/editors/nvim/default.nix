@@ -3,12 +3,13 @@
   lib,
   inputs,
   config,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config;
+with lib.${namespace};
 with inputs; let
-  cfg = config.cli.editors.nvim;
+  cfg = config.${namespace}.cli.editors.nvim;
 in {
   imports =
     [
@@ -16,7 +17,7 @@ in {
     ]
     ++ lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.cli.editors.nvim = with types; {
+  options.${namespace}.cli.editors.nvim = with types; {
     enable = mkBoolOpt false "enable neovim editor";
   };
 

@@ -2,13 +2,14 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.swaylock;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.swaylock;
 in {
-  options.desktops.addons.swaylock = {
+  options.${namespace}.desktops.addons.swaylock = {
     enable = mkEnableOption "Enable swaylock lock management";
     blur = mkOpt (types.nullOr types.str) "7x5" "radius x times blur the image.";
     vignette = mkOpt (types.nullOr types.str) "0.5x0.5" "base:factor apply vignette effect.";

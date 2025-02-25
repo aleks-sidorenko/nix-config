@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.system.locale;
   locale = "en_US.UTF-8";
   layout = "us";

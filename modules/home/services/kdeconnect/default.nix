@@ -5,7 +5,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.services.nix-config.kdeconnect;
 in {
   options.services.nix-config.kdeconnect = with types; {

@@ -2,14 +2,15 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.rofi;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.rofi;
   inherit (config.lib.stylix) colors;
 in {
-  options.desktops.addons.rofi = {
+  options.${namespace}.desktops.addons.rofi = {
     enable = mkEnableOption "Enable rofi app manager";
     package = mkPackageOpt pkgs.rofi-wayland "Package to use for rofi";
   };

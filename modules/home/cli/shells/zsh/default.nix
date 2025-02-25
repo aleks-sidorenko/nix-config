@@ -6,10 +6,10 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.shells.zsh;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.shells.zsh;
 in {
-  options.cli.shells.zsh = with types; {
+  options.${namespace}.cli.shells.zsh = with types; {
     enable = mkBoolOpt false "enable zsh shell";
   };
 

@@ -2,11 +2,12 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.multiplexers.tmux;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.multiplexers.tmux;
 
   tmux-floax = pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "tmux-floax";
@@ -19,7 +20,7 @@ with lib.nix-config; let
     };
   };
 in {
-  options.cli.multiplexers.tmux = with types; {
+  options.${namespace}.cli.multiplexers.tmux = with types; {
     enable = mkBoolOpt false "enable tmux multiplexer";
   };
 

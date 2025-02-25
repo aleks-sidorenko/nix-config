@@ -2,12 +2,13 @@
   inputs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config;
+with lib.${namespace};
 with types; let
-  cfg = config.desktops.hyprland;
+  cfg = config.${namespace}.desktops.hyprland;
 in {
   imports = with inputs;
     [
@@ -15,7 +16,7 @@ in {
     ]
     ++ lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.desktops.hyprland = {
+  options.${namespace}.desktops.hyprland = {
     enable = mkEnableOption "enable hyprland window manager";
     execOnceExtras = mkOpt (listOf str) [] "Extra programs to exec once";
   };

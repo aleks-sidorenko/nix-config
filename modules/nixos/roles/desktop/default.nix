@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.roles.desktop;
 in {
   options.roles.desktop = {
@@ -40,7 +40,7 @@ in {
       boot.plymouth = true;
     };
 
-    cli.programs = {
+    cli.tools = {
       nh.enable = true;
       nix-ld.enable = true;
     };

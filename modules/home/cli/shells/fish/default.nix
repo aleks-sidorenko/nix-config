@@ -6,11 +6,11 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   inherit (config.lib.stylix) colors;
-  cfg = config.cli.shells.fish;
+  cfg = config.${namespace}.cli.shells.fish;
 in {
-  options.cli.shells.fish = with types; {
+  options.${namespace}.cli.shells.fish = with types; {
     enable = mkBoolOpt false "enable fish shell";
   };
 
@@ -83,7 +83,7 @@ in {
 
         nd = "nix develop";
         nfu = "nix flake update";
-        hms = "home-manager switch --flake ~/.nix-config#${config.nix-config.user.name}@${host}";
+        hms = "home-manager switch --flake ~/.nix-config#${config.${namespace}.user.name}@${host}";
         nrs = "sudo nixos-rebuild switch --flake ~/.nix-config#${host}";
 
         # new commads

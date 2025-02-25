@@ -4,7 +4,7 @@
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   cfg = config.services.ssh;
 in {
   options.services.ssh = with types; {

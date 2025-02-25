@@ -14,7 +14,7 @@ cd .nix-config
 
 nix develop
 
-nixos-anywhere --flake '.#home-desktop' nixos@192.168.1.8 # Replace with your IP
+nixos-anywhere --flake '.#desktop' nixos@192.168.1.8 # Replace with your IP
 ```
 
 After building it you can copy the ISO from the `result` folder to your USB.
@@ -38,7 +38,7 @@ nh os switch
 nh home switch
 
 # Build ISO in result/ folder
-nix build .#install-isoConfigurations.graphical
+nix build .#install-isoConfigurations.minimal
 
 # Deploy my to remote server i.e. Home Lab (using SSH)
 deploy .#ms01 --hostname ms01 --ssh-user nixos --skip-checks
