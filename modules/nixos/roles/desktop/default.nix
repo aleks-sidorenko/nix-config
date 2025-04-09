@@ -13,10 +13,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    boot.binfmt.emulatedSystems = ["aarch64-linux"];
-
     ${namespace} = {
-
       roles = {
         common.enable = true;
 
@@ -46,10 +43,11 @@ in {
 
     };
 
+    boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
     system = {
       boot.plymouth = true;
     };
-
 
     user = {
       name = "alexander";

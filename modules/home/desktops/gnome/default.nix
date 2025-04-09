@@ -91,10 +91,6 @@ in {
         "@as" = [];
       };
 
-      # "org/gnome/desktop/background" = {
-      #   picture-uri-dark = "file:///${pkgs.nix-config.wallpapers.Kurzgesagt-Galaxy_2}";
-      # };
-
       "org/gnome/shell/extensions/search-light" = {
         shortcut-search = ["<Super>b"];
       };

@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.security.sops;
+  cfg = config.${namespace}.security.sops;
 in {
-  options.security.sops = with types; {
+  options.${namespace}.security.sops = with types; {
     enable = mkBoolOpt false "Whether to enable sop for secrets management.";
   };
 

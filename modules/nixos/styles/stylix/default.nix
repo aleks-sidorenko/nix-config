@@ -2,11 +2,12 @@
   lib,
   pkgs,
   config,
+  namespace,
   ...
 }: let
-  cfg = config.styles.stylix;
+  cfg = config.${namespace}.styles.stylix;
 in {
-  options.styles.stylix = {
+  options.${namespace}.styles.stylix = {
     enable = lib.mkEnableOption "Enable stylix";
   };
 

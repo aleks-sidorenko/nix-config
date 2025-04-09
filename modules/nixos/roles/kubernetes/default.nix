@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  namespace,
   ...
 }:
 with lib;
@@ -13,17 +14,22 @@ in {
   };
 
   config = mkIf cfg.enable {
-    roles = {
-      server.enable = true;
-    };
-
-    services = {
-      nix-config.k3s = {
-        enable = true;
-        inherit (cfg) role;
+    ${namespace} = {
+      roles = {
+        server.enable = true;
       };
-    };
+      
+      services = {
+        k3s = {
+          enable = true;
+          inherit (cfg) role;
+        };
+      };
 
+
+    };
+    
+    
     networking.firewall = lib.mkForce {
       enable = true;
       allowedUDPPorts = [

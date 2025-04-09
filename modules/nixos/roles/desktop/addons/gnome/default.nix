@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
@@ -13,8 +14,10 @@ in {
   };
 
   config = mkIf cfg.enable {
-    roles.desktop.addons.nautilus.enable = true;
-
+    ${namespace} = {
+      roles.desktop.addons.nautilus.enable = true;
+    };
+    
     services = {
       xserver = {
         enable = true;

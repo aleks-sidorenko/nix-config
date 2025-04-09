@@ -2,13 +2,14 @@
   lib,
   pkgs,
   config,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.services.virtualisation.kvm;
+  cfg = config.${namespace}.services.virtualisation.kvm;
 in {
-  options.services.virtualisation.kvm = {
+  options.${namespace}.services.virtualisation.kvm = {
     enable = lib.mkEnableOption "enable kvm virtualisation";
   };
 

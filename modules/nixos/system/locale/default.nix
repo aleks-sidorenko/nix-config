@@ -2,16 +2,18 @@
   options,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.system.locale;
+  cfg = config.${namespace}.system.locale;
   locale = "en_US.UTF-8";
   layout = "us";
   timeZone = "Europe/Kyiv";
+  
 in {
-  options.system.locale = with types; {
+  options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
   };
 

@@ -9,8 +9,9 @@ no OS on the device. You need to copy ssh keys onto the target machine
 `mkdir -p ~/.ssh && curl https://github.com/aleks-sidorenko.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
 
 ```bash
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/.nix-config/
-cd .nix-config
+export CONFIG_HOME=.nix-config
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/$CONFIG_HOME/
+cd $CONFIG_HOME
 
 nix develop
 
@@ -26,8 +27,9 @@ Then run `nix_installer`, which will then ask you which host you would like to i
 To build my config for a specific host you can do something like:
 
 ```bash
-git clone git@github.com:hmajid2301/nix-config.git ~/.nix-config/
-cd .nix-config
+export CONFIG_HOME=.nix-config
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/$CONFIG_HOME/
+cd $CONFIG_HOME
 
 nix develop
 
@@ -80,7 +82,6 @@ Some features of my config:
 ## Appendix
 
 - <a href="https://www.flaticon.com/free-icons/dot" title="dot icons">Dot icons created by Roundicons - Flaticon</a>
--  You can read more about my dotfiles and development workflows on my [blog here](https://haseebmajid.dev/series/my-development-workflow/) (#ShamelessPlug).
 - [Wallpaper From Catppuccin Discord](https://discord.com/channels/907385605422448742/1199293891392852009)
   - Galaxy: https://discord.com/channels/907385605422448742/1199293891392852009
   - Old Catppuccin wallpaper: https://github.com/Gingeh/wallpapers

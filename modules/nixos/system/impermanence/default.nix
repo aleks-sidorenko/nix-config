@@ -1,11 +1,12 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.system.impermanence;
+  cfg = config.${namespace}.system.impermanence;
 
   wipeScript = ''
     mkdir /tmp -p
@@ -33,7 +34,7 @@ with lib.${namespace}; let
   phase1Systemd = config.boot.initrd.systemd.enable;
 
 in {
-  options.system.impermanence = with types; {
+  options.${namespace}.system.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
     device =
       mkOpt str "root"

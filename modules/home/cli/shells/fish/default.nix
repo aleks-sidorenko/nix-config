@@ -3,6 +3,7 @@
   lib,
   config,
   host,
+  namespace,
   ...
 }:
 with lib;
@@ -83,11 +84,11 @@ in {
 
         nd = "nix develop";
         nfu = "nix flake update";
-        hms = "home-manager switch --flake ~/.nix-config#${config.${namespace}.user.name}@${host}";
-        nrs = "sudo nixos-rebuild switch --flake ~/.nix-config#${host}";
+        hms = "home-manager switch --flake ~/.${namespace}#${config.${namespace}.user.name}@${host}";
+        nrs = "sudo nixos-rebuild switch --flake ~/.${namespace}#${host}";
 
         # new commads
-        weather = "curl wttr.in/London";
+        weather = "curl wttr.in/Kyiv";
 
         pfile = "fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'";
         gdub = "git fetch -p && git branch -vv | grep ': gone]' | awk '{print }' | xargs git branch -D $argv;";

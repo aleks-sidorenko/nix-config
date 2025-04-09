@@ -1,9 +1,14 @@
 {
   pkgs,
   config,
+  namespace,
   ...
-}: let
-  home = config.home.homeDirectory;
+}: let  
+  flake = config.home.sessionVariables.FLAKE;
+  
+  hostCfg = "desktop";
+  user = config.${namespace}.user.name;
+  homeCfg = "${user}@${hostCfg}";
 in {
   programs.nixvim = {
     files = {
@@ -58,13 +63,13 @@ in {
             };
             options = {
               nixos = {
-                expr = ''(builtins.getFlake "${home}/nix-config").nixosConfigurations.workstation.options'';
+                expr = ''(builtins.getFlake "${flake}").nixosConfigurations.${hostCfg}.options'';
               };
               home_manager = {
-                expr = ''(builtins.getFlake "${home}/nix-config").homeConfigurations."haseeb@workstation".options'';
+                expr = ''(builtins.getFlake "${flake}").homeConfigurations."${homeCfg}".options'';
               };
               flake_parts = {
-                expr = ''let flake = builtins.getFlake ("${home}/nix-config"); in flake.debug.options // flake.currentSystem.options'';
+                expr = ''let flake = builtins.getFlake ("${flake}"); in flake.debug.options // flake.currentSystem.options'';
               };
             };
           };

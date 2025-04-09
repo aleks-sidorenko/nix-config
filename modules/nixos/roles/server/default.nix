@@ -2,6 +2,7 @@
   lib,
   config,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
@@ -13,16 +14,16 @@ in {
   };
 
   config = mkIf cfg.enable {
-    roles = {
-      common.enable = true;
-    };
+   
+   ${namespace} = {
+      roles = {
+        common.enable = true;
+      };
 
-    services = {
-      nix-config = {        
+      services = {
         tailscale.enable = true;
       };
-      
-    };
+   };
 
     environment =
       {

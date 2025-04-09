@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.user;
+  cfg = config.${namespace}.user;
 in {
-  options.user = with types; {
+  options.${namespace}.user = with types; {
     name = mkOpt str "alexander" "The name of the user's account";
     initialPassword =
       mkOpt str "alexander"

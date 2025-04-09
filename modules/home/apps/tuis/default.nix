@@ -14,7 +14,7 @@ in {
 
   config = mkIf cfg.enable {
     home.packages = with pkgs;
-    with pkgs.nix-config; [
+    with pkgs.${namespace}; [
       # s-tui
       # lazysql
     ];
