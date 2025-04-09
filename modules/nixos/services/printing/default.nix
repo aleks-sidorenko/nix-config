@@ -7,9 +7,9 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.services.nix-config.printing;
+  cfg = config.services.${namespace}.printing;
 in {
-  options.services.nix-config.printing = with types; {
+  options.services.${namespace}.printing = with types; {
     enable = mkBoolOpt false "Whether or not to configure printing support.";
   };
 

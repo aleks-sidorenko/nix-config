@@ -3,16 +3,17 @@
   pkgs,
   config,
   inputs,
+  namespace,
   ...
 }: let
-  cfg = config.styles.stylix;
+  cfg = config.${namespace}.styles.stylix;
 in {
   imports = with inputs; [
     stylix.homeManagerModules.stylix
     catppuccin.homeManagerModules.catppuccin
   ];
 
-  options.styles.stylix = {
+  options.${namespace}.styles.stylix = {
     enable = lib.mkEnableOption "Enable stylix";
   };
 
@@ -34,7 +35,7 @@ in {
       base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
       targets.nixvim.enable = false;
 
-      image = pkgs.nix-config.wallpapers.earth;
+      image = pkgs.${namespace}.wallpapers.earth;
 
       cursor = {
         name = "Bibata-Modern-Classic";
@@ -60,7 +61,7 @@ in {
         };
 
         monospace = {
-          package = pkgs.nix-config.monolisa;
+          package = pkgs.${namespace}.monolisa;
           name = "MonoLisa Nerd Font";
         };
 

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
@@ -18,7 +19,7 @@ in {
       assertions = [
         {
           assertion = cfg.name != null;
-          message = "nix-config.user.name must be set";
+          message = "${namespace}.user.name must be set";
         }
       ];
 

@@ -5,9 +5,9 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.kubernetes;
+  cfg = config.${namespace}.roles.kubernetes;
 in {
-  options.roles.kubernetes = {
+  options.${namespace}.roles.kubernetes = {
     enable = mkEnableOption "Enable kubernetes configuration";
     role = mkOpt (types.nullOr types.str) "server" "Whether this node is a server or agent";
   };

@@ -1,49 +1,55 @@
 {
   lib,
   config,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.desktop;
+  cfg = config.${namespace}.roles.desktop;
 in {
-  options.roles.desktop = {
+  options.${namespace}.roles.desktop = {
     enable = mkEnableOption "Enable desktop configuration";
   };
 
   config = mkIf cfg.enable {
     boot.binfmt.emulatedSystems = ["aarch64-linux"];
 
-    roles = {
-      common.enable = true;
+    ${namespace} = {
 
-      desktop.addons = {
-        nautilus.enable = true;
+      roles = {
+        common.enable = true;
+
+        desktop.addons = {
+          nautilus.enable = true;
+        };
       };
-    };
 
-    hardware = {
-      audio.enable = true;
-      bluetooth.enable = true;
-      logitechMouse.enable = true;
-      zsa.enable = true;
-    };
+      hardware = {
+        audio.enable = true;
+        bluetooth.enable = true;
+        logitechMouse.enable = true;
+        zsa.enable = true;
+      };
 
-    services = {
-      nix-config.avahi.enable = true;
-      backup.enable = true;
-      vpn.enable = true;
-      virtualisation.podman.enable = true;
+      services = {
+        avahi.enable = true;
+        backup.enable = true;
+        vpn.enable = true;
+        virtualisation.podman.enable = true;
+      };
+
+      cli.tools = {
+        nh.enable = true;
+        nix-ld.enable = true;
+      };
+
     };
 
     system = {
       boot.plymouth = true;
     };
 
-    cli.tools = {
-      nh.enable = true;
-      nix-ld.enable = true;
-    };
 
     user = {
       name = "alexander";

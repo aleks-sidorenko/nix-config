@@ -6,9 +6,9 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.desktop.addons.gnome;
+  cfg = config.${namespace}.roles.desktop.addons.gnome;
 in {
-  options.roles.desktop.addons.gnome = with types; {
+  options.${namespace}.roles.desktop.addons.gnome = with types; {
     enable = mkBoolOpt false "Enable or disable the gnome DE.";
   };
 

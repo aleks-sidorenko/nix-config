@@ -2,37 +2,41 @@
   lib,
   pkgs,
   config,
+  namespace,
   ...
 }: let
-  cfg = config.roles.common;
+  cfg = config.${namespace}.roles.common;
 in {
-  options.roles.common = {
+  options.${namespace}.roles.common = {
     enable = lib.mkEnableOption "Enable common configuration";
   };
 
   config = lib.mkIf cfg.enable {
-    browsers.firefox.enable = true;
+    ${namespace} = {
+      browsers.firefox.enable = true;
 
-    system = {
-      nix.enable = true;
-    };
+      system = {
+        nix.enable = true;
+      };
 
-    cli = {
-      terminals.foot.enable = true;
-      terminals.ghostty.enable = true;
-      shells.fish.enable = true;
-    };
-    apps = {
-      guis.enable = true;
-      tuis.enable = true;
-    };
+      cli = {
+        terminals.foot.enable = true;
+        terminals.ghostty.enable = true;
+        shells.fish.enable = true;
+      };
+      apps = {
+        guis.enable = true;
+        tuis.enable = true;
+      };
 
-    security = {
-      sops.enable = true;
+      security = {
+        sops.enable = true;
+      };
+      styles.stylix.enable = true;
     };
-    styles.stylix.enable = true;
+    
 
-    # TODO: move this to a separate module
+    # TODO: move this to a separate module like `cli/tools` 
     home.packages = with pkgs; [
       keymapp
 
@@ -43,9 +47,7 @@ in {
       moreutils
       nvtopPackages.amd
       unzip
-      gnupg
-
-      showmethekey
+      gnupg      
     ];
   };
 }

@@ -2,13 +2,14 @@
   options,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.desktop.addons.hyprland;
+  cfg = config.${namespace}.roles.desktop.addons.hyprland;
 in {
-  options.roles.desktop.addons.hyprland = with types; {
+  options.${namespace}.roles.desktop.addons.hyprland = with types; {
     enable = mkBoolOpt false "Enable or disable the hyprland window manager.";
   };
 

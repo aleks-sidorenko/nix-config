@@ -15,7 +15,12 @@ in {
   };
 
   config = mkIf cfg.enable {
-    services.nix-config.kdeconnect.enable = lib.mkForce false;
+    ${namespace} = {
+      services.kdeconnect.enable = lib.mkForce false;
+      desktops.addons = {
+        gnome.enable = true;
+      };
+    };
 
     home.packages = with pkgs; [
       gnome-tweaks
@@ -32,10 +37,6 @@ in {
       gnomeExtensions.caffeine
       gnomeExtensions.launch-new-instance
     ];
-
-    desktops.addons = {
-      gnome.enable = true;
-    };
 
     dconf.settings = {
       "org/gnome/desktop/applications/terminal" = {

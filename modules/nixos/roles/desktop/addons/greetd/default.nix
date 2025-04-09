@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.roles.desktop.addons.greetd;
+  cfg = config.${namespace}.roles.desktop.addons.greetd;
 in {
-  options.roles.desktop.addons.greetd = {
+  options.${namespace}.roles.desktop.addons.greetd = {
     enable = mkEnableOption "Enable login greeter";
   };
 

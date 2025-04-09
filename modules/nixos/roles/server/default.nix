@@ -6,9 +6,9 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.server;
+  cfg = config.${namespace}.roles.server;
 in {
-  options.roles.server = {
+  options.${namespace}.roles.server = {
     enable = mkEnableOption "Enable server configuration";
   };
 

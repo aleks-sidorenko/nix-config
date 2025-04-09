@@ -2,13 +2,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.system.nix;
+  cfg = config.${namespace}.system.nix;
 in {
-  options.system.nix = with types; {
+  options.${namespace}.system.nix = with types; {
     enable = mkBoolOpt false "Whether or not to manage nix configuration";
   };
 

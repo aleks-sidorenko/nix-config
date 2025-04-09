@@ -6,9 +6,9 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.roles.desktop.addons.nautilus;
+  cfg = config.${namespace}.roles.desktop.addons.nautilus;
 in {
-  options.roles.desktop.addons.nautilus = with types; {
+  options.${namespace}.roles.desktop.addons.nautilus = with types; {
     enable = mkBoolOpt false "Whether to enable the gnome file manager.";
   };
 

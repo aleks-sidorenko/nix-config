@@ -2,13 +2,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config.services.nix-config.kdeconnect;
+  cfg = config.${namespace}.services.kdeconnect;
 in {
-  options.services.nix-config.kdeconnect = with types; {
+  options.${namespace}.services.kdeconnect = with types; {
     enable = mkBoolOpt false "Whether or not to manage kdeconnect";
   };
 
