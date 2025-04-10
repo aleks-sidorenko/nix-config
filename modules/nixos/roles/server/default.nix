@@ -2,27 +2,33 @@
   lib,
   config,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.server;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.server;
 in {
-  options.roles.server = {
+  options.${namespace}.roles.server = {
     enable = mkEnableOption "Enable server configuration";
   };
 
   config = mkIf cfg.enable {
-    roles = {
-      common.enable = true;
-    };
+   
+   ${namespace} = {
+      roles = {
+        common.enable = true;
+      };
 
-    services = {
-      nix-config = {        
+      services = {
         tailscale.enable = true;
       };
-      
-    };
+
+      user = {
+        name = "nixos";
+        initialPassword = "nixos";
+      };
+   };
 
     environment =
       {
@@ -66,9 +72,6 @@ in {
     # UTC everywhere!
     time.timeZone = lib.mkDefault "UTC";
 
-    # No mutable users by default
-    users.mutableUsers = false;
-
     systemd = {
       services.NetworkManager-wait-online.enable = false;
       network.wait-online.enable = false;
@@ -103,9 +106,5 @@ in {
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
 
-    user = {
-      name = "nixos";
-      initialPassword = "nixos";
-    };
   };
 }

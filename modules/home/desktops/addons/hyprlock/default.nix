@@ -2,13 +2,14 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.hyprlock;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.hyprlock;
 in {
-  options.desktops.addons.hyprlock = with types; {
+  options.${namespace}.desktops.addons.hyprlock = with types; {
     enable = mkBoolOpt false "Whether to enable the hyprlock";
   };
 

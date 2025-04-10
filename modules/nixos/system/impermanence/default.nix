@@ -1,17 +1,19 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.system.impermanence;
+with lib.${namespace}; let
+  cfg = config.${namespace}.system.impermanence;
+  device = config.${namespace}.system.boot.device;
 
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
     (
-      mount -t btrfs -o subvol=/ /dev/disk/by-label/${cfg.device} "$MNTPOINT"
+      mount -t btrfs -o subvol=/ /dev/disk/by-label/${device} "$MNTPOINT"
       trap 'umount "$MNTPOINT"' EXIT
 
       echo "Creating needed directories"
@@ -33,11 +35,8 @@ with lib.nix-config; let
   phase1Systemd = config.boot.initrd.systemd.enable;
 
 in {
-  options.system.impermanence = with types; {
-    enable = mkBoolOpt false "Enable impermanence";
-    device =
-      mkOpt str "root"
-      "The root disk device name for rollback btrfs rootfs";
+  options.${namespace}.system.impermanence = with types; {
+    enable = mkBoolOpt false "Enable impermanence";    
   };
 
   config = mkIf cfg.enable {
@@ -54,10 +53,10 @@ in {
       systemd.services.restore-root = lib.mkIf phase1Systemd {
         description = "Rollback btrfs rootfs";
         wantedBy = ["initrd.target"];
-        requires = ["dev-disk-by\\x2dlabel-${cfg.device}.device"];
+        requires = ["dev-disk-by\\x2dlabel-${device}.device"];
         after = [
-          "dev-disk-by\\x2dlabel-${cfg.device}.device"
-          "systemd-cryptsetup@${cfg.device}.service"
+          "dev-disk-by\\x2dlabel-${device}.device"
+          "systemd-cryptsetup@${device}.service"
         ];
         before = ["sysroot.mount"];
         unitConfig.DefaultDependencies = "no";

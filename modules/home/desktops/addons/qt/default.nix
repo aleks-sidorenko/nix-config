@@ -2,12 +2,13 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.qt;
+  cfg = config.${namespace}.desktops.addons.qt;
 in {
-  options.desktops.addons.qt = {
+  options.${namespace}.desktops.addons.qt = {
     enable = mkEnableOption "enable qt theme management";
   };
 

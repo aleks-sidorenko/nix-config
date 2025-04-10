@@ -2,19 +2,25 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.gnome;
+  cfg = config.${namespace}.desktops.gnome;
 in {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.desktops.gnome = {
+  options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "enable gnome DE";
   };
 
   config = mkIf cfg.enable {
-    services.nix-config.kdeconnect.enable = lib.mkForce false;
+    ${namespace} = {
+      services.kdeconnect.enable = lib.mkForce false;
+      desktops.addons = {
+        gnome.enable = true;
+      };
+    };
 
     home.packages = with pkgs; [
       gnome-tweaks
@@ -31,10 +37,6 @@ in {
       gnomeExtensions.caffeine
       gnomeExtensions.launch-new-instance
     ];
-
-    desktops.addons = {
-      gnome.enable = true;
-    };
 
     dconf.settings = {
       "org/gnome/desktop/applications/terminal" = {
@@ -88,10 +90,6 @@ in {
       "org/gnome/shell/keybindings/toggle-application-view" = {
         "@as" = [];
       };
-
-      # "org/gnome/desktop/background" = {
-      #   picture-uri-dark = "file:///${pkgs.nix-config.wallpapers.Kurzgesagt-Galaxy_2}";
-      # };
 
       "org/gnome/shell/extensions/search-light" = {
         shortcut-search = ["<Super>b"];

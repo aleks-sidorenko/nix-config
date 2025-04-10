@@ -2,13 +2,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.security.yubikey;
+with lib.${namespace}; let
+  cfg = config.${namespace}.security.yubikey;
 in {
-  options.security.yubikey = with types; {
+  options.${namespace}.security.yubikey = with types; {
     enable = mkBoolOpt false "Whether to enable yubikey for auth.";
   };
 

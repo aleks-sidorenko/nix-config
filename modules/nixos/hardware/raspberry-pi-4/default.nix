@@ -2,13 +2,14 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.hardware.raspberry-pi-4;
+with lib.${namespace}; let
+  cfg = config.${namespace}.hardware.raspberry-pi-4;
 in {
-  options.hardware.raspberry-pi-4 = {
+  options.${namespace}.hardware.raspberry-pi-4 = {
     enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 

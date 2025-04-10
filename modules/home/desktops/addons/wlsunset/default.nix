@@ -1,19 +1,20 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.wlsunset;
+  cfg = config.${namespace}.desktops.addons.wlsunset;
 in {
-  options.desktops.addons.wlsunset = {
+  options.${namespace}.desktops.addons.wlsunset = {
     enable = mkEnableOption "Enable wlsunset night light";
   };
 
   config = mkIf cfg.enable {
     services.wlsunset = {
       enable = true;
-      latitude = "51.5072";
+      latitude = "51.5072"; # FIXME
       longitude = "-0.1275";
     };
   };

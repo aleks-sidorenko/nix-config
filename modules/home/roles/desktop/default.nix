@@ -2,10 +2,11 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.roles.desktop;
+  cfg = config.${namespace}.roles.desktop;
   elgato-fix = pkgs.writeScriptBin "elgato-fix" ''
     #!/usr/bin/env bash
 
@@ -39,16 +40,25 @@ with lib; let
     fi
   '';
 in {
-  options.roles.desktop = {
+  options.${namespace}.roles.desktop = {
     enable = mkEnableOption "Enable desktop suite";
   };
 
   config = mkIf cfg.enable {
-    roles = {
-      common.enable = true;
-      development.enable = true;
-    };
+    ${namespace} = {
+      roles = {
+        common.enable = true;
+        development.enable = true;
+      };
 
+      services = {
+        kdeconnect.enable = true;      
+      };
+
+      desktops.addons.xdg.enable = true;
+    };
+    
+    
     # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
     systemd.user.targets.tray = {
       Unit = {
@@ -57,11 +67,6 @@ in {
       };
     };
 
-    services = {
-      nix-config.kdeconnect.enable = true;
-      spotify.enable = true;
-    };
-    desktops.addons.xdg.enable = true;
 
     home.sessionVariables = {
       MOZ_ENABLE_WAYLAND = 1;

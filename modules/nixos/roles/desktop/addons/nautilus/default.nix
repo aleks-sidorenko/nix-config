@@ -2,13 +2,14 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.desktop.addons.nautilus;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.desktop.addons.nautilus;
 in {
-  options.roles.desktop.addons.nautilus = with types; {
+  options.${namespace}.roles.desktop.addons.nautilus = with types; {
     enable = mkBoolOpt false "Whether to enable the gnome file manager.";
   };
 
@@ -40,7 +41,7 @@ in {
       ];
     };
 
-    snowfallorg.users.${config.user.name}.home.config = {
+    snowfallorg.users.${config.${namespace}.user.name}.home.config = {
       dconf.settings = {
         "org/gnome/desktop/privacy" = {
           remember-recent-files = false;

@@ -2,12 +2,13 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.waybar;
+  cfg = config.${namespace}.desktops.addons.waybar;
 in {
-  options.desktops.addons.waybar = {
+  options.${namespace}.desktops.addons.waybar = {
     enable = mkEnableOption "Enable waybar";
   };
 

@@ -3,13 +3,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.video;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.video;
 in {
-  options.roles.video = with types; {
+  options.${namespace}.roles.video = with types; {
     enable = mkBoolOpt false "Whether or not to manage video editting and recording";
   };
 

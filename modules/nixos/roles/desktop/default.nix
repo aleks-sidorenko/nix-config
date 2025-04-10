@@ -1,53 +1,59 @@
 {
   lib,
   config,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.desktop;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.desktop;
 in {
-  options.roles.desktop = {
+  options.${namespace}.roles.desktop = {
     enable = mkEnableOption "Enable desktop configuration";
   };
 
   config = mkIf cfg.enable {
-    boot.binfmt.emulatedSystems = ["aarch64-linux"];
+    ${namespace} = {
+      roles = {
+        common.enable = true;
 
-    roles = {
-      common.enable = true;
-
-      desktop.addons = {
-        nautilus.enable = true;
+        desktop.addons = {
+          nautilus.enable = true;
+        };
       };
-    };
 
-    hardware = {
-      audio.enable = true;
-      bluetooth.enable = true;
-      logitechMouse.enable = true;
-      zsa.enable = true;
-    };
+      hardware = {
+        audio.enable = true;
+        bluetooth.enable = true;
+        logitechMouse.enable = true;
+        zsa.enable = true;
+      };
 
-    services = {
-      nix-config.avahi.enable = true;
-      backup.enable = true;
-      vpn.enable = true;
-      virtualisation.podman.enable = true;
-    };
+      services = {        
+        # TODO impl
+        # backup.enable = true;
+        # TODO impl
+        # vpn.enable = true;
+        virtualisation.podman.enable = true;
+      };
 
-    system = {
-      boot.plymouth = true;
-    };
+      cli.tools = {
+        nh.enable = true;
+        nix-ld.enable = true;
+      };
 
-    cli.programs = {
-      nh.enable = true;
-      nix-ld.enable = true;
-    };
+      system = {
+        boot = {
+          hibernation.enable = true;
+          plymouth = true;
+        };
+      };
 
-    user = {
-      name = "alexander";
-      initialPassword = "alexander";
+      user = {
+        name = "alexander";
+        initialPassword = "alexander";
+      };
+
     };
   };
 }

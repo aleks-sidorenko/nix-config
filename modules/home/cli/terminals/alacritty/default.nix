@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.terminals.alacritty;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.terminals.alacritty;
 in {
-  options.cli.terminals.alacritty = with types; {
+  options.${namespace}.cli.terminals.alacritty = with types; {
     enable = mkBoolOpt false "enable alacritty terminal emulator";
   };
 

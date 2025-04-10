@@ -3,13 +3,14 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.desktop.addons.xdg-portal;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.desktop.addons.xdg-portal;
 in {
-  options.roles.desktop.addons.xdg-portal = with types; {
+  options.${namespace}.roles.desktop.addons.xdg-portal = with types; {
     enable = mkBoolOpt false "Whether or not to add support for xdg portal.";
   };
 

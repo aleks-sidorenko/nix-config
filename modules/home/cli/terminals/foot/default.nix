@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.terminals.foot;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.terminals.foot;
 in {
-  options.cli.terminals.foot = with types; {
+  options.${namespace}.cli.terminals.foot = with types; {
     enable = mkBoolOpt false "enable foot terminal emulator";
   };
 

@@ -2,13 +2,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.gaming;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.gaming;
 in {
-  options.roles.gaming = with types; {
+  options.${namespace}.roles.gaming = with types; {
     enable = mkBoolOpt false "Whether or not to manage gaming configuration";
   };
 

@@ -2,12 +2,13 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.kanshi;
+  cfg = config.${namespace}.desktops.addons.kanshi;
 in {
-  options.desktops.addons.kanshi = {
+  options.${namespace}.desktops.addons.kanshi = {
     enable = mkEnableOption "Enable kanshi display addon";
   };
 

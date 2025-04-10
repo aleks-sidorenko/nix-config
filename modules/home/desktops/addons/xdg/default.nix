@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.xdg;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.xdg;
 in {
-  options.desktops.addons.xdg = with types; {
+  options.${namespace}.desktops.addons.xdg = with types; {
     enable = mkBoolOpt false "manage xdg config";
   };
 

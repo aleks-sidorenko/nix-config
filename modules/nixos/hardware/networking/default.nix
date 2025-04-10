@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.hardware.networking;
+with lib.${namespace}; let
+  cfg = config.${namespace}.hardware.networking;
 in {
-  options.hardware.networking = with types; {
+  options.${namespace}.hardware.networking = with types; {
     enable = mkBoolOpt false "Enable networkmanager";
   };
 

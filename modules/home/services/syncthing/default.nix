@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.services.nix-config.syncthing;
+  cfg = config.${namespace}.services.syncthing;
 in {
-  options.services.nix-config.syncthing = {
+  options.${namespace}.services.syncthing = {
     enable = mkEnableOption "Enable syncthing service";
   };
 

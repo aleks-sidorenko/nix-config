@@ -2,12 +2,13 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.desktops.addons.wlogout;
+  cfg = config.${namespace}.desktops.addons.wlogout;
 in {
-  options.desktops.addons.wlogout = {
+  options.${namespace}.desktops.addons.wlogout = {
     enable = mkEnableOption "Enable wlogout screen for managing sessions.";
   };
 

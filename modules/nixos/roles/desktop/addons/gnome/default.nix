@@ -2,19 +2,22 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.roles.desktop.addons.gnome;
+with lib.${namespace}; let
+  cfg = config.${namespace}.roles.desktop.addons.gnome;
 in {
-  options.roles.desktop.addons.gnome = with types; {
+  options.${namespace}.roles.desktop.addons.gnome = with types; {
     enable = mkBoolOpt false "Enable or disable the gnome DE.";
   };
 
   config = mkIf cfg.enable {
-    roles.desktop.addons.nautilus.enable = true;
-
+    ${namespace} = {
+      roles.desktop.addons.nautilus.enable = true;
+    };
+    
     services = {
       xserver = {
         enable = true;

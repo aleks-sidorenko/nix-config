@@ -2,13 +2,14 @@
   options,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.hardware.zsa;
+with lib.${namespace}; let
+  cfg = config.${namespace}.hardware.zsa;
 in {
-  options.hardware.zsa = with types; {
+  options.${namespace}.hardware.zsa = with types; {
     enable = mkBoolOpt false "Enable ZSA Keyboard";
   };
 

@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.services.nix-config.tailscale;
+  cfg = config.${namespace}.services.tailscale;
 in {
-  options.services.nix-config.tailscale = {
+  options.${namespace}.services.tailscale = {
     enable = mkEnableOption "Enable tailscale";
   };
 

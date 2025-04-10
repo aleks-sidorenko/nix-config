@@ -2,19 +2,23 @@
   pkgs,
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.roles.social;
+  cfg = config.${namespace}.roles.social;
 in {
-  options.roles.social = {
+  options.${namespace}.roles.social = {
     enable = mkEnableOption "Enable social suite";
   };
 
   config = mkIf cfg.enable {
-    programs = {
-      discord.enable = true;
-      shotwell.enable = true;
+    ${namespace} = {
+      apps = {
+        discord.enable = true;
+        shotwell.enable = true;
+      };
     };
+    
   };
 }

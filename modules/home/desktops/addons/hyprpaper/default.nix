@@ -1,13 +1,14 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.desktops.addons.hyprpaper;
+with lib.${namespace}; let
+  cfg = config.${namespace}.desktops.addons.hyprpaper;
 in {
-  options.desktops.addons.hyprpaper = with types; {
+  options.${namespace}.desktops.addons.hyprpaper = with types; {
     enable = mkBoolOpt false "Whether to enable the hyprpaper config";
   };
 

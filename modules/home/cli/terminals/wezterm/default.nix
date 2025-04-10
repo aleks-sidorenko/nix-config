@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.cli.terminals.wezterm;
+  cfg = config.${namespace}.cli.terminals.wezterm;
 in {
-  options.cli.terminals.wezterm = {
+  options.${namespace}.cli.terminals.wezterm = {
     enable = mkEnableOption "enable wezterm terminal emulator";
   };
 

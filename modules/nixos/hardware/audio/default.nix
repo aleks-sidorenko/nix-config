@@ -2,13 +2,14 @@
   config,
   pkgs,
   lib,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.hardware.audio;
+with lib.${namespace}; let
+  cfg = config.${namespace}.hardware.audio;
 in {
-  options.hardware.audio = with types; {
+  options.${namespace}.hardware.audio = with types; {
     enable = mkBoolOpt false "Enable or disable hardware audio support";
   };
 

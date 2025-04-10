@@ -1,33 +1,38 @@
-{pkgs, namespace,...}: {
-  # FIXME
-  cli.programs.git.allowedSigners = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINP5gqbEEj+pykK58djSI1vtMtFiaYcygqhHd3mzPbSt hello@haseebmajid.dev";
-
-  networking.hostName = "desktop";
-
-  desktops = {
-    hyprland = {
-      enable = true;
-      execOnceExtras = [
-        "${pkgs.trayscale}/bin/trayscale"
-      ];
+{
+  lib,
+  pkgs, 
+  config,
+  namespace,
+  ...
+}: 
+with lib.${namespace};
+{
+  
+  # TODO - replace with ${namespace} once this is fixed https://github.com/snowfallorg/lib/issues/142
+  nix-config = {
+    roles = {
+      desktop = enabled;
+      social = enabled;
+      video = enabled;
     };
+
+    user = {
+      enable = true;
+      name = "alexander";
+    };
+
+    desktops = {
+      hyprland = {
+        enable = true;
+        execOnceExtras = [
+          "${pkgs.trayscale}/bin/trayscale"
+        ];
+      };
+    };
+
   };
 
-  services.${namespace} = {
-    syncthing.enable = true;
-  };
-
-  roles = {
-    desktop.enable = true;
-    social.enable = true;    
-    video.enable = true;
-  };
-
-  ${namespace}.user = {
-    enable = true;
-    name = "alexander";
-  };
 
 
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 }

@@ -3,14 +3,15 @@
   lib,
   config,
   host,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
+with lib.${namespace}; let
   inherit (config.lib.stylix) colors;
-  cfg = config.cli.shells.fish;
+  cfg = config.${namespace}.cli.shells.fish;
 in {
-  options.cli.shells.fish = with types; {
+  options.${namespace}.cli.shells.fish = with types; {
     enable = mkBoolOpt false "enable fish shell";
   };
 
@@ -83,11 +84,11 @@ in {
 
         nd = "nix develop";
         nfu = "nix flake update";
-        hms = "home-manager switch --flake ~/.nix-config#${config.nix-config.user.name}@${host}";
-        nrs = "sudo nixos-rebuild switch --flake ~/.nix-config#${host}";
+        hms = "home-manager switch --flake ~/.${namespace}#${config.${namespace}.user.name}@${host}";
+        nrs = "sudo nixos-rebuild switch --flake ~/.${namespace}#${host}";
 
         # new commads
-        weather = "curl wttr.in/London";
+        weather = "curl wttr.in/Kyiv";
 
         pfile = "fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'";
         gdub = "git fetch -p && git branch -vv | grep ': gone]' | awk '{print }' | xargs git branch -D $argv;";

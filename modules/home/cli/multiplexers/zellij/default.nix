@@ -2,11 +2,12 @@
   pkgs,
   lib,
   config,
+  namespace,
   ...
 }:
 with lib;
-with lib.nix-config; let
-  cfg = config.cli.multiplexers.zellij;
+with lib.${namespace}; let
+  cfg = config.${namespace}.cli.multiplexers.zellij;
   inherit (config.lib.stylix) colors;
 
   # zellij-wrapped = pkgs.writeShellApplication {
@@ -56,7 +57,7 @@ with lib.nix-config; let
     fi
   '';
 in {
-  options.cli.multiplexers.zellij = with types; {
+  options.${namespace}.cli.multiplexers.zellij = with types; {
     enable = mkBoolOpt false "enable zellij multiplexer";
   };
 

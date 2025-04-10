@@ -4,12 +4,13 @@
   host,
   pkgs,
   config,
+  namespace,
   ...
 }:
 with lib; let
-  cfg = config.browsers.firefox;
+  cfg = config.${namespace}.browsers.firefox;
 in {
-  options.browsers.firefox = {
+  options.${namespace}.browsers.firefox = {
     enable = mkEnableOption "enable firefox browser";
   };
 
@@ -53,7 +54,7 @@ in {
           "gnomeTheme.systemIcons" = true;
           "gnomeTheme.spinner" = true;
           "layers.acceleration.force-enabled" = true;
-          "identity.fxaccounts.account.device.name" = "${config.nix-config.user.name}@${host}";
+          "identity.fxaccounts.account.device.name" = "${config.${namespace}.user.name}@${host}";
           "browser.urlbar.oneOffSearches" = false;
           "browser.search.hiddenOneOffs" = "Google,Yahoo,Bing,Amazon.com,Twitter,Wikipedia (en),YouTube,eBay";
           "extensions.pocket.enabled" = false;

@@ -2,17 +2,19 @@
   config,
   lib,
   pkgs,
+  namespace,
   ...
-}: let
-  inherit (lib) mkIf;
-  inherit (lib.nix-config) mkBoolOpt;
+}: 
+  with lib;
+  with lib.${namespace}; let
 
-  cfg = config.system.boot;
+  cfg = config.${namespace}.system.boot;
 in {
-  options.system.boot = {
+  options.${namespace}.system.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting.";
     plymouth = mkBoolOpt false "Whether or not to enable plymouth boot splash.";
-    secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
+    secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";    
+    device = mkOpt str "root" "The boot device name";
   };
 
   config = mkIf cfg.enable {
