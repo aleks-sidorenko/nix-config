@@ -2,7 +2,8 @@
   pkgs,
   config,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/js.lua" = {
@@ -29,8 +30,8 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            typescript = ["prettierd"];
-            javascript = ["prettierd"];
+            typescript = [ "prettierd" ];
+            javascript = [ "prettierd" ];
           };
 
           formatters = {
@@ -43,8 +44,8 @@
 
       lint = {
         lintersByFt = {
-          typescript = ["eslint_d"];
-          javascript = ["eslint_d"];
+          typescript = [ "eslint_d" ];
+          javascript = [ "eslint_d" ];
         };
         linters = {
           eslint_d = {

@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.gnome;
-in {
+in
+{
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.desktops.gnome = {
@@ -80,7 +82,7 @@ in {
       };
 
       "org/gnome/desktop/wm/keybindings" = {
-        close = ["<Super>q"];
+        close = [ "<Super>q" ];
       };
 
       "com/github/stunkymonkey/nautilus-open-any-terminal" = {
@@ -88,11 +90,11 @@ in {
       };
 
       "org/gnome/shell/keybindings/toggle-application-view" = {
-        "@as" = [];
+        "@as" = [ ];
       };
 
       "org/gnome/shell/extensions/search-light" = {
-        shortcut-search = ["<Super>b"];
+        shortcut-search = [ "<Super>b" ];
       };
     };
   };

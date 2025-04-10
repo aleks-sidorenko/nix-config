@@ -6,11 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; {
+with lib.${namespace};
+{
   nixpkgs.overlays = [
     (final: super: {
-      makeModulesClosure = x:
-        super.makeModulesClosure (x // {allowMissing = true;});
+      makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
     })
   ];
 
@@ -28,11 +28,8 @@ with lib.${namespace}; {
 
     system.boot.enable = lib.mkForce false;
   };
-  
 
   sdImage.compressImage = false;
-  
-  
 
   system.stateVersion = "25.05";
 }

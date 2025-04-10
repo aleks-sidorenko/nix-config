@@ -6,24 +6,29 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.hardware.raspberry-pi-4;
-in {
+in
+{
   options.${namespace}.hardware.raspberry-pi-4 = {
     enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 
   config = mkIf cfg.enable {
     boot = {
-      kernelPackages = (import <nixpkgs-rpi4> {}).linuxPackages_rpi5;
+      kernelPackages = (import <nixpkgs-rpi4> { }).linuxPackages_rpi5;
       kernelParams = [
         "cgroup_memory=1"
         "cgroup_enable=cpuset"
         "cgroup_enable=memory"
       ];
-      supportedFilesystems = ["btrfs"];
+      supportedFilesystems = [ "btrfs" ];
 
-      initrd.kernelModules = ["zstd" "btrfs"];
+      initrd.kernelModules = [
+        "zstd"
+        "btrfs"
+      ];
       initrd.availableKernelModules = [
         # Allows early (earlier) modesetting for the Raspberry Pi
         "vc4"

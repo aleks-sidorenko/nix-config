@@ -5,7 +5,8 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.roles.desktop;
   elgato-fix = pkgs.writeScriptBin "elgato-fix" ''
     #!/usr/bin/env bash
@@ -39,7 +40,8 @@ with lib; let
         echo "Switched to Arctis Nova Pro Wireless"
     fi
   '';
-in {
+in
+{
   options.${namespace}.roles.desktop = {
     enable = mkEnableOption "Enable desktop suite";
   };
@@ -52,21 +54,19 @@ in {
       };
 
       services = {
-        kdeconnect.enable = true;      
+        kdeconnect.enable = true;
       };
 
       desktops.addons.xdg.enable = true;
     };
-    
-    
+
     # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
     systemd.user.targets.tray = {
       Unit = {
         Description = "Home Manager System Tray";
-        Requires = ["graphical-session-pre.target"];
+        Requires = [ "graphical-session-pre.target" ];
       };
     };
-
 
     home.sessionVariables = {
       MOZ_ENABLE_WAYLAND = 1;

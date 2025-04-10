@@ -6,16 +6,18 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.server;
-in {
+in
+{
   options.${namespace}.roles.server = {
     enable = mkEnableOption "Enable server configuration";
   };
 
   config = mkIf cfg.enable {
-   
-   ${namespace} = {
+
+    ${namespace} = {
       roles = {
         common.enable = true;
       };
@@ -28,7 +30,7 @@ in {
         name = "nixos";
         initialPassword = "nixos";
       };
-   };
+    };
 
     environment =
       {

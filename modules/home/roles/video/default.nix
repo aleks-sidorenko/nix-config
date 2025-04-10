@@ -7,9 +7,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.video;
-in {
+in
+{
   options.${namespace}.roles.video = with types; {
     enable = mkBoolOpt false "Whether or not to manage video editting and recording";
   };

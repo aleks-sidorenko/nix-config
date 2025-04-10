@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.gtk;
-in {
+in
+{
   options.${namespace}.desktops.addons.gtk = {
     enable = mkEnableOption "enable gtk theme management";
   };

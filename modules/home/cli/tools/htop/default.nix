@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.htop;
-in {
+in
+{
   options.${namespace}.cli.tools.htop = with types; {
     enable = mkBoolOpt false "Whether or not to enable htop";
   };

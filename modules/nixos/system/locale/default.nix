@@ -6,13 +6,15 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.system.locale;
   locale = cfg.locale;
   layout = cfg.layout;
   timeZone = cfg.timeZone;
-  
-in {
+
+in
+{
   options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
     locale = mkOpt str "en_US.UTF-8" "The system locale.";
@@ -29,10 +31,10 @@ in {
         LC_IDENTIFICATION = "${locale}";
         LC_MEASUREMENT = "${locale}";
         LC_MONETARY = "${locale}";
-        LC_NAME =  "${locale}";
+        LC_NAME = "${locale}";
         LC_NUMERIC = "${locale}";
-        LC_PAPER =  "${locale}";
-        LC_TELEPHONE =  "${locale}";
+        LC_PAPER = "${locale}";
+        LC_TELEPHONE = "${locale}";
         LC_TIME = "${locale}";
       };
     };
@@ -40,7 +42,7 @@ in {
 
     # Configure keymap in X11
     services.xserver = {
-      xkb =  {
+      xkb = {
         layout = "${layout}";
         variant = "";
       };

@@ -6,10 +6,12 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.desktops.addons.rofi;
   inherit (config.lib.stylix) colors;
-in {
+in
+{
   options.${namespace}.desktops.addons.rofi = {
     enable = mkEnableOption "Enable rofi app manager";
     package = mkPackageOpt pkgs.rofi-wayland "Package to use for rofi";
@@ -33,9 +35,10 @@ in {
         display-Network = " 󰤨  Network";
         sidebar-mode = true;
       };
-      theme = let
-        inherit (config.lib.formats.rasi) mkLiteral;
-      in
+      theme =
+        let
+          inherit (config.lib.formats.rasi) mkLiteral;
+        in
         lib.mkForce {
           #"@import" = "default";
           "*" = {

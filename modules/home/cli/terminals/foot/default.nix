@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.terminals.foot;
-in {
+in
+{
   options.${namespace}.cli.terminals.foot = with types; {
     enable = mkBoolOpt false "enable foot terminal emulator";
   };

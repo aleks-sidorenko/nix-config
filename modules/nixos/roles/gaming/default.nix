@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.gaming;
-in {
+in
+{
   options.${namespace}.roles.gaming = with types; {
     enable = mkBoolOpt false "Enable the gaming suite";
   };
@@ -34,8 +36,8 @@ in {
       steam = {
         enable = true;
         package = pkgs.steam.override {
-          extraPkgs = p:
-            with p; [
+          extraPkgs =
+            p: with p; [
               mangohud
               gamemode
             ];

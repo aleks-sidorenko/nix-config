@@ -2,8 +2,10 @@
   config,
   pkgs,
   ...
-}: {
-  xdg.configFile."nvim/queries/html/injections.scm".text = builtins.readFile ./lua/html/injections.scm;
+}:
+{
+  xdg.configFile."nvim/queries/html/injections.scm".text =
+    builtins.readFile ./lua/html/injections.scm;
 
   programs.nixvim = {
     files = {
@@ -20,7 +22,10 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            html = ["htmlbeautifier" "rustywind"];
+            html = [
+              "htmlbeautifier"
+              "rustywind"
+            ];
           };
 
           formatters = {
@@ -38,7 +43,10 @@
 
         html = {
           enable = true;
-          filetypes = ["html" "templ"];
+          filetypes = [
+            "html"
+            "templ"
+          ];
           settings = {
             html = {
               format = {

@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     plugins = {
       lsp.servers.dockerls.enable = true;
@@ -10,7 +11,7 @@
 
       lint = {
         lintersByFt = {
-          docker = ["hadolint"];
+          docker = [ "hadolint" ];
         };
 
         linters = {

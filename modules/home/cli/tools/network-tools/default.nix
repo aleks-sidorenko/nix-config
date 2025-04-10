@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.network-tools;
-in {
+in
+{
   options.${namespace}.cli.tools.network-tools = with types; {
     enable = mkBoolOpt false "Whether or not to enable network tools";
   };

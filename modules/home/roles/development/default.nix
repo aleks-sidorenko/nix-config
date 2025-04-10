@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.roles.development;
-in {
+in
+{
   options.${namespace}.roles.development = {
     enable = mkEnableOption "Enable development configuration";
   };
@@ -17,7 +19,7 @@ in {
         editors.nvim.enable = true;
         multiplexers.zellij.enable = true;
 
-        tools = {        
+        tools = {
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;

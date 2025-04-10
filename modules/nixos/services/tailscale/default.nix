@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.services.tailscale;
-in {
+in
+{
   options.${namespace}.services.tailscale = {
     enable = mkEnableOption "Enable tailscale";
   };

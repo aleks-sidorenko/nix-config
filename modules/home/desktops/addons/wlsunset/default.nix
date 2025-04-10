@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.wlsunset;
-in {
+in
+{
   options.${namespace}.desktops.addons.wlsunset = {
     enable = mkEnableOption "Enable wlsunset night light";
   };

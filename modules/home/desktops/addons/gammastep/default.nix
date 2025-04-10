@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.gammastep;
-in {
+in
+{
   options.${namespace}.desktops.addons.gammastep = {
     enable = mkEnableOption "Enable gammastep night light";
   };

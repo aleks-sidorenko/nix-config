@@ -6,7 +6,8 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.multiplexers.zellij;
   inherit (config.lib.stylix) colors;
 
@@ -56,7 +57,8 @@ with lib.${namespace}; let
     	zellij attach -c "$SESSION_TITLE"
     fi
   '';
-in {
+in
+{
   options.${namespace}.cli.multiplexers.zellij = with types; {
     enable = mkBoolOpt false "enable zellij multiplexer";
   };

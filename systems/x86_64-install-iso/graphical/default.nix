@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -24,7 +25,7 @@
   };
 
   users.users = {
-    nixos.extraGroups = ["networkmanager"];
+    nixos.extraGroups = [ "networkmanager" ];
 
     # FIXME add keys
     nixos.openssh.authorizedKeys.keys = [

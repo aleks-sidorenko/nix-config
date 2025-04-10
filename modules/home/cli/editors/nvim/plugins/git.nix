@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   programs.nixvim = {
     extraPlugins = with pkgs.vimPlugins; [
       advanced-git-search-nvim
@@ -62,12 +63,24 @@
         settings = {
           current_line_blame = false;
           signs = {
-            add = {text = "│";};
-            change = {text = "│";};
-            delete = {text = "󰍵";};
-            topdelete = {text = "‾";};
-            changedelete = {text = "~";};
-            untracked = {text = "│";};
+            add = {
+              text = "│";
+            };
+            change = {
+              text = "│";
+            };
+            delete = {
+              text = "󰍵";
+            };
+            topdelete = {
+              text = "‾";
+            };
+            changedelete = {
+              text = "~";
+            };
+            untracked = {
+              text = "│";
+            };
           };
         };
       };

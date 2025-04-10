@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.yazi;
-in {
+in
+{
   options.${namespace}.cli.tools.yazi = with types; {
     enable = mkBoolOpt false "Whether or not to enable yazi";
   };

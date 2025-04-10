@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.desktop;
-in {
+in
+{
   options.${namespace}.roles.desktop = {
     enable = mkEnableOption "Enable desktop configuration";
   };
@@ -29,7 +31,7 @@ in {
         zsa.enable = true;
       };
 
-      services = {        
+      services = {
         # TODO impl
         # backup.enable = true;
         # TODO impl

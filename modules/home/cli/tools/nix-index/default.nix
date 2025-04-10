@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.nix-index;
-in {
+in
+{
   options.${namespace}.cli.tools.nix-index = with types; {
     enable = mkBoolOpt false "Whether or not to nix index";
   };

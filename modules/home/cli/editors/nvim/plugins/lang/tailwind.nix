@@ -1,10 +1,11 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   programs.nixvim = {
     plugins = {
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            templ = ["rustywind"];
+            templ = [ "rustywind" ];
           };
 
           formatters = {
@@ -18,7 +19,10 @@
       lsp.servers = {
         tailwindcss = {
           enable = true;
-          filetypes = ["html" "templ"];
+          filetypes = [
+            "html"
+            "templ"
+          ];
           settings = {
             tailwindCSS = {
               includeLanguages = {

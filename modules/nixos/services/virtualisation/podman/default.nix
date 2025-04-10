@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.services.virtualisation.podman;
-in {
+in
+{
   options.${namespace}.services.virtualisation.podman = {
     enable = mkEnableOption "Enable podman";
   };

@@ -6,7 +6,8 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.multiplexers.tmux;
 
   tmux-floax = pkgs.tmuxPlugins.mkTmuxPlugin {
@@ -19,7 +20,8 @@ with lib.${namespace}; let
       sha256 = "sha256-lX5P1l4yHV8jiuHsa7GkbgGT+wk0BdyvSSUu/L6G4eQ=";
     };
   };
-in {
+in
+{
   options.${namespace}.cli.multiplexers.tmux = with types; {
     enable = mkBoolOpt false "enable tmux multiplexer";
   };

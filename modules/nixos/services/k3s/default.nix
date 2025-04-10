@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.services.k3s;
-in {
+in
+{
   options.${namespace}.services.k3s = {
     enable = mkEnableOption "Enable The k3s service";
     role = mkOpt (types.nullOr types.str) "server" "Whether this node is a server or agent";

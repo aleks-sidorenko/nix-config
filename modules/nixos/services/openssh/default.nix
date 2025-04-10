@@ -5,18 +5,20 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.services.openssh;
-in {
+in
+{
   options.${namespace}.services.openssh = with types; {
     enable = mkBoolOpt false "Enable ssh";
-    authorizedKeys = mkOpt (listOf str) [] "The public keys to apply.";
+    authorizedKeys = mkOpt (listOf str) [ ] "The public keys to apply.";
   };
 
   config = mkIf cfg.enable {
     services.openssh = {
       enable = true;
-      ports = [22];
+      ports = [ 22 ];
 
       settings = {
         PasswordAuthentication = false;
@@ -24,7 +26,7 @@ in {
         GatewayPorts = "clientspecified";
       };
     };
-    
+
     users.users = {
       # FIXME add keys
       ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = [

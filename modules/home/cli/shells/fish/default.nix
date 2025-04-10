@@ -7,10 +7,12 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   inherit (config.lib.stylix) colors;
   cfg = config.${namespace}.cli.shells.fish;
-in {
+in
+{
   options.${namespace}.cli.shells.fish = with types; {
     enable = mkBoolOpt false "enable fish shell";
   };

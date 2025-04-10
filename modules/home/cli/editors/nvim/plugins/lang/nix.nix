@@ -3,13 +3,15 @@
   config,
   namespace,
   ...
-}: let  
+}:
+let
   flake = config.home.sessionVariables.FLAKE;
-  
+
   hostCfg = "desktop";
   user = config.${namespace}.user.name;
   homeCfg = "${user}@${hostCfg}";
-in {
+in
+{
   programs.nixvim = {
     files = {
       "ftplugin/nix.lua" = {
@@ -29,7 +31,7 @@ in {
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            nix = ["alejandra"];
+            nix = [ "alejandra" ];
           };
           formatters = {
             alejandra = {
@@ -41,7 +43,7 @@ in {
 
       lint = {
         lintersByFt = {
-          nix = ["statix"];
+          nix = [ "statix" ];
         };
         linters = {
           statix = {

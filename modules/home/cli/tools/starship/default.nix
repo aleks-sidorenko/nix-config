@@ -5,10 +5,12 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.starship;
   inherit (config.lib.stylix) colors;
-in {
+in
+{
   options.${namespace}.cli.tools.starship = with types; {
     enable = mkBoolOpt false "Whether or not to enable starship";
   };

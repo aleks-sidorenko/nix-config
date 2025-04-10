@@ -5,26 +5,30 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.ssh;
-in {
+in
+{
   options.${namespace}.cli.tools.ssh = with types; {
     enable = mkBoolOpt false "Whether or not to enable ssh";
 
     extraHosts = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule {
-        options = {
-          hostname = lib.mkOption {
-            type = lib.types.str;
-            description = "The hostname or IP address of the SSH host.";
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            hostname = lib.mkOption {
+              type = lib.types.str;
+              description = "The hostname or IP address of the SSH host.";
+            };
+            identityFile = lib.mkOption {
+              type = lib.types.str;
+              description = "The path to the identity file for the SSH host.";
+            };
           };
-          identityFile = lib.mkOption {
-            type = lib.types.str;
-            description = "The path to the identity file for the SSH host.";
-          };
-        };
-      });
-      default = {};
+        }
+      );
+      default = { };
       description = "A set of extra SSH hosts.";
       example = literalExample ''
         {
@@ -40,8 +44,11 @@ in {
   config = mkIf cfg.enable {
     programs.keychain = {
       enable = true;
-      keys = ["id_ed25519"];
-      agents = ["gpg" "ssh"];
+      keys = [ "id_ed25519" ];
+      agents = [
+        "gpg"
+        "ssh"
+      ];
     };
 
     programs.ssh = {

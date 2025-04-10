@@ -5,10 +5,12 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.hyprland;
   inherit (config.lib.stylix) colors;
-in {
+in
+{
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland = {
       enable = true;
@@ -35,29 +37,29 @@ in {
           rounding = 5;
         };
 
-        misc = let
-          FULLSCREEN_ONLY = 2;
-        in {
-          vrr = FULLSCREEN_ONLY;
-          disable_hyprland_logo = true;
-          disable_splash_rendering = true;
-          force_default_wallpaper = 0;
-        };
+        misc =
+          let
+            FULLSCREEN_ONLY = 2;
+          in
+          {
+            vrr = FULLSCREEN_ONLY;
+            disable_hyprland_logo = true;
+            disable_splash_rendering = true;
+            force_default_wallpaper = 0;
+          };
 
-        source = ["${config.home.homeDirectory}/.config/hypr/monitors.conf"];
+        source = [ "${config.home.homeDirectory}/.config/hypr/monitors.conf" ];
 
-        exec-once =
-          [
-            "dbus-update-activation-environment --systemd --all"
-            "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
-            "${pkgs.kanshi}/bin/kanshi"
-            "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-            "${pkgs.pyprland}/bin/pypr"
-            "${pkgs.clipse}/bin/clipse -listen"
-            "${pkgs.solaar}/bin/solaar -w hide"
-            "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator"
-          ]
-          ++ cfg.execOnceExtras;
+        exec-once = [
+          "dbus-update-activation-environment --systemd --all"
+          "systemctl --user import-environment QT_QPA_PLATFORMTHEME"
+          "${pkgs.kanshi}/bin/kanshi"
+          "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+          "${pkgs.pyprland}/bin/pypr"
+          "${pkgs.clipse}/bin/clipse -listen"
+          "${pkgs.solaar}/bin/solaar -w hide"
+          "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator"
+        ] ++ cfg.execOnceExtras;
       };
     };
   };

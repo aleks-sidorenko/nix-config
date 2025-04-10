@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.kanshi;
-in {
+in
+{
   options.${namespace}.desktops.addons.kanshi = {
     enable = mkEnableOption "Enable kanshi display addon";
   };

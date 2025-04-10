@@ -2,13 +2,16 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   buildFlags = "-tags=unit,integration,e2e,bdd,dind";
-in {
+in
+{
   xdg.configFile."nvim/queries/go/injections.scm".text = builtins.readFile ./lua/go/injections.scm;
-  xdg.configFile."nvim/queries/templ/injections.scm".text = builtins.readFile ./lua/html/injections.scm;
+  xdg.configFile."nvim/queries/templ/injections.scm".text =
+    builtins.readFile ./lua/html/injections.scm;
 
-  home.packages = with pkgs; [delve];
+  home.packages = with pkgs; [ delve ];
 
   programs.nixvim = {
     files = {
@@ -51,7 +54,7 @@ in {
         settings = {
           formatters_by_ft = {
             # go = ["goimports" "golines"];
-            go = ["goimports"];
+            go = [ "goimports" ];
           };
 
           formatters = {
@@ -76,7 +79,7 @@ in {
 
       lint = {
         lintersByFt = {
-          go = ["golangcilint"];
+          go = [ "golangcilint" ];
         };
         linters = {
           golangcilint = {
@@ -90,11 +93,11 @@ in {
           enable = true;
           settings = {
             dap_go_enabled = true;
-            go_list_args = [buildFlags];
-            go_test_args = [buildFlags];
+            go_list_args = [ buildFlags ];
+            go_test_args = [ buildFlags ];
             dap_go_opts = {
               delve = {
-                build_flags = [buildFlags];
+                build_flags = [ buildFlags ];
               };
             };
           };
@@ -111,9 +114,15 @@ in {
 
           extraOptions.settings = {
             gopls = {
-              buildFlags = [buildFlags];
+              buildFlags = [ buildFlags ];
               staticcheck = true;
-              directoryFilters = ["-.git" "-.vscode" "-.idea" "-.vscode-test" "-node_modules"];
+              directoryFilters = [
+                "-.git"
+                "-.vscode"
+                "-.idea"
+                "-.vscode-test"
+                "-node_modules"
+              ];
               semanticTokens = true;
               codelenses = {
                 gc_details = false;

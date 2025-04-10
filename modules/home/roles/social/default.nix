@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.roles.social;
-in {
+in
+{
   options.${namespace}.roles.social = {
     enable = mkEnableOption "Enable social suite";
   };
@@ -19,6 +21,6 @@ in {
         shotwell.enable = true;
       };
     };
-    
+
   };
 }

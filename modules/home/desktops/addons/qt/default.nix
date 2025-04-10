@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.qt;
-in {
+in
+{
   options.${namespace}.desktops.addons.qt = {
     enable = mkEnableOption "enable qt theme management";
   };

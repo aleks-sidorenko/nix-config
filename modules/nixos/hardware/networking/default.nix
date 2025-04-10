@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.hardware.networking;
-in {
+in
+{
   options.${namespace}.hardware.networking = with types; {
     enable = mkBoolOpt false "Enable networkmanager";
   };

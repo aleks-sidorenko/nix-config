@@ -7,9 +7,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.shells.zsh;
-in {
+in
+{
   options.${namespace}.cli.shells.zsh = with types; {
     enable = mkBoolOpt false "enable zsh shell";
   };

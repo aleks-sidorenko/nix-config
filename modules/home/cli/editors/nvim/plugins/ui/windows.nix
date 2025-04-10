@@ -2,13 +2,15 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   maximize-nvim = pkgs.vimUtils.buildVimPlugin {
     version = "latest";
     pname = "maximize.nvim";
     src = inputs.plugins-maximize-nvim;
   };
-in {
+in
+{
   programs.nixvim = {
     keymaps = [
       {

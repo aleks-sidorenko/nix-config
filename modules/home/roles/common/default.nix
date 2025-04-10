@@ -4,9 +4,11 @@
   config,
   namespace,
   ...
-}: let
+}:
+let
   cfg = config.${namespace}.roles.common;
-in {
+in
+{
   options.${namespace}.roles.common = {
     enable = lib.mkEnableOption "Enable common configuration";
   };
@@ -34,9 +36,8 @@ in {
       };
       styles.stylix.enable = true;
     };
-    
 
-    # TODO: move this to a separate module like `cli/tools` 
+    # TODO: move this to a separate module like `cli/tools`
     home.packages = with pkgs; [
       keymapp
 
@@ -47,7 +48,7 @@ in {
       moreutils
       nvtopPackages.amd
       unzip
-      gnupg      
+      gnupg
     ];
   };
 }

@@ -1,5 +1,5 @@
 {
-  
+
   disko.devices = {
     disk = {
       root = {
@@ -17,7 +17,7 @@
               type = "EF00";
               content = {
                 type = "filesystem";
-                extraArgs = ["-n ESP"];
+                extraArgs = [ "-n ESP" ];
                 format = "vfat";
                 mountpoint = "/boot";
                 mountOptions = [ "defaults" ];
@@ -30,7 +30,7 @@
                 type = "luks";
                 name = "root";
                 settings = {
-                  allowDiscards = true;                  
+                  allowDiscards = true;
                   crypttabExtraOpts = [
                     "fido2-device=auto"
                     "token-timeout=10"
@@ -40,13 +40,16 @@
                 # unless their parent is mounted
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" "-L root"]; # force overwrite + label
+                  extraArgs = [
+                    "-f"
+                    "-L root"
+                  ]; # force overwrite + label
                   postCreateHook = ''
-										MNTPOINT=$(mktemp -d)
-										mount "/dev/mapper/root" "$MNTPOINT" -o subvol=/
-										trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
-										btrfs subvolume snapshot -r $MNTPOINT/root $MNTPOINT/root-blank
-									'';
+                    										MNTPOINT=$(mktemp -d)
+                    										mount "/dev/mapper/root" "$MNTPOINT" -o subvol=/
+                    										trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
+                    										btrfs subvolume snapshot -r $MNTPOINT/root $MNTPOINT/root-blank
+                    									'';
                   subvolumes = {
                     "@root" = {
                       mountpoint = "/";
@@ -55,7 +58,7 @@
                         "noatime"
                       ];
                     };
-                    
+
                     "@nix" = {
                       mountpoint = "/nix";
                       mountOptions = [
@@ -65,7 +68,11 @@
                     };
                     "@log" = {
                       mountpoint = "/var/log";
-                      mountOptions = ["subvol=log" "compress=zstd" "noatime"];
+                      mountOptions = [
+                        "subvol=log"
+                        "compress=zstd"
+                        "noatime"
+                      ];
                     };
                     "@swap" = {
                       mountpoint = "/swap";
@@ -93,9 +100,9 @@
               label = "persist_encrypted";
               content = {
                 type = "luks";
-                name = "persist";                
+                name = "persist";
                 settings = {
-                  allowDiscards = true;                  
+                  allowDiscards = true;
                   crypttabExtraOpts = [
                     "fido2-device=auto"
                     "token-timeout=10"
@@ -105,7 +112,10 @@
                 # unless their parent is mounted
                 content = {
                   type = "btrfs";
-                  extraArgs = [ "-f" "-L persist"]; # force overwrite + label
+                  extraArgs = [
+                    "-f"
+                    "-L persist"
+                  ]; # force overwrite + label
                   subvolumes = {
                     "@persist" = {
                       mountpoint = "/persist";
@@ -119,12 +129,12 @@
               };
             };
           };
-        };           
+        };
       };
     };
   };
-  
+
   fileSystems."/persist".neededForBoot = true;
   fileSystems."/var/log".neededForBoot = true;
-  
+
 }

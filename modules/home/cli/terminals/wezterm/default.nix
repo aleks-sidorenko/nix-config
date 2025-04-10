@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.cli.terminals.wezterm;
-in {
+in
+{
   options.${namespace}.cli.terminals.wezterm = {
     enable = mkEnableOption "enable wezterm terminal emulator";
   };

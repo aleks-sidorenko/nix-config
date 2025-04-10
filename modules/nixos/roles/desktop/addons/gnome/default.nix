@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.desktop.addons.gnome;
-in {
+in
+{
   options.${namespace}.roles.desktop.addons.gnome = with types; {
     enable = mkBoolOpt false "Enable or disable the gnome DE.";
   };
@@ -17,7 +19,7 @@ in {
     ${namespace} = {
       roles.desktop.addons.nautilus.enable = true;
     };
-    
+
     services = {
       xserver = {
         enable = true;
@@ -31,7 +33,7 @@ in {
       };
     };
 
-    services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
+    services.udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
     programs.dconf.enable = true;
   };
 }

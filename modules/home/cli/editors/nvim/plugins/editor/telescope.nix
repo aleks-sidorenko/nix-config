@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   programs.nixvim = {
     keymaps = [
       {
@@ -113,7 +114,7 @@
             "╯"
             "╰"
           ];
-          border = {};
+          border = { };
           layout_strategy = "horizontal";
 
           vimgrep_arguments = [

@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.terminals.kitty;
-in {
+in
+{
   options.${namespace}.cli.terminals.kitty = with types; {
     enable = mkBoolOpt false "enable kitty terminal emulator";
   };

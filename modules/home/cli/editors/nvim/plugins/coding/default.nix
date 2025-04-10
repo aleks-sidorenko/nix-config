@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   programs.nixvim = {
@@ -6,15 +7,17 @@
       mini = {
         enable = true;
         modules = {
-          surround = {};
-          comment = {};
-          files = {};
+          surround = { };
+          comment = { };
+          files = { };
           pairs = {
             mappings = {
-              "\"" = {neigh_pattern = "[^\\][%s%)%]}]";};
+              "\"" = {
+                neigh_pattern = "[^\\][%s%)%]}]";
+              };
             };
           };
-          trailspace = {};
+          trailspace = { };
         };
       };
 
