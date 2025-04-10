@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     plugins = {
       lsp.servers.terraformls = {
@@ -12,8 +13,8 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            tf = ["terraform_fmt"];
-            terraform = ["terraform_fmt"];
+            tf = [ "terraform_fmt" ];
+            terraform = [ "terraform_fmt" ];
           };
 
           formatters = {

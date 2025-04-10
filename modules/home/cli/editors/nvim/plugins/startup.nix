@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   programs.nixvim = {
     plugins = {
       auto-session = {

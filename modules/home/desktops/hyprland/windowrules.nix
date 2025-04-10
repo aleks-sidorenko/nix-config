@@ -5,11 +5,13 @@
   namespace,
   ...
 }:
-with lib; let
-  rule = rules: attrs: attrs // {inherit rules;};
+with lib;
+let
+  rule = rules: attrs: attrs // { inherit rules; };
   cfg = config.${namespace}.desktops.hyprland;
-in {
-   config = mkIf cfg.enable {
+in
+{
+  config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
       windowrule = [
         "float, bitwarden"
@@ -19,5 +21,5 @@ in {
         "idleinhibit fullscreen, class:^(firefox)$"
       ];
     };
-  };  
+  };
 }

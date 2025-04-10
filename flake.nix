@@ -128,21 +128,23 @@
     };
   };
 
-  outputs = inputs: let
-    lib = inputs.snowfall-lib.mkLib {
-      inherit inputs;
-      src = ./.;
+  outputs =
+    inputs:
+    let
+      lib = inputs.snowfall-lib.mkLib {
+        inherit inputs;
+        src = ./.;
 
-      snowfall = {
-        metadata = "nix-config";
-        namespace = "nix-config";
-        meta = {
-          name = "nix-config";
-          title = "Alexander's Nix Flake";
+        snowfall = {
+          metadata = "nix-config";
+          namespace = "nix-config";
+          meta = {
+            name = "nix-config";
+            title = "Alexander's Nix Flake";
+          };
         };
       };
-    };
-  in
+    in
     lib.mkFlake {
       channels-config = {
         allowUnfree = true;
@@ -162,12 +164,12 @@
         nur.overlays.default
       ];
 
-      deploy = lib.mkDeploy {inherit (inputs) self;};
+      deploy = lib.mkDeploy { inherit (inputs) self; };
 
-      checks =
-        builtins.mapAttrs
-        (system: deploy-lib:
-          deploy-lib.deployChecks inputs.self.deploy)
-        inputs.deploy-rs.lib;
+      checks = builtins.mapAttrs (
+        system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
+      ) inputs.deploy-rs.lib;
+
+      outputs-builder = channels: { formatter = channels.nixpkgs.nixfmt-rfc-style; };
     };
 }

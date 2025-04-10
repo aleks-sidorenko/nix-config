@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.roles.common;
-in {
+in
+{
   options.${namespace}.roles.common = {
     enable = mkEnableOption "Enable common configuration";
   };
@@ -20,7 +22,6 @@ in {
       services = {
         openssh.enable = true;
       };
-
 
       security = {
         sops.enable = true;
@@ -36,6 +37,6 @@ in {
       styles.stylix.enable = true;
 
     };
-     
+
   };
 }

@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.kubernetes;
-in {
+in
+{
   options.${namespace}.roles.kubernetes = {
     enable = mkEnableOption "Enable kubernetes configuration";
     role = mkOpt (types.nullOr types.str) "server" "Whether this node is a server or agent";
@@ -18,7 +20,7 @@ in {
       roles = {
         server.enable = true;
       };
-      
+
       services = {
         k3s = {
           enable = true;
@@ -26,10 +28,8 @@ in {
         };
       };
 
-
     };
-    
-    
+
     networking.firewall = lib.mkForce {
       enable = true;
       allowedUDPPorts = [

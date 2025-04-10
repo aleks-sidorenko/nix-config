@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.cli.terminals.ghostty;
-in {
+in
+{
   options.${namespace}.cli.terminals.ghostty = {
     enable = mkEnableOption "enable ghostty terminal emulator";
   };

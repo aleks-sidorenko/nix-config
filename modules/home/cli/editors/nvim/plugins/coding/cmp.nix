@@ -2,7 +2,8 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   cmp-dbee = pkgs.vimUtils.buildVimPlugin {
     version = "latest";
     pname = "cmp-dbee";
@@ -12,7 +13,8 @@
       "cmp-dbee.source"
     ];
   };
-in {
+in
+{
   programs.nixvim = {
     extraPlugins = with pkgs.vimPlugins; [
       cmp-dbee
@@ -66,7 +68,11 @@ in {
             '';
           };
           formatting = {
-            fields = ["abbr" "kind" "menu"];
+            fields = [
+              "abbr"
+              "kind"
+              "menu"
+            ];
             format =
               # lua
               ''

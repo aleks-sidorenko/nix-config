@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.services.syncthing;
-in {
+in
+{
   options.${namespace}.services.syncthing = {
     enable = mkEnableOption "Enable syncthing service";
   };
@@ -15,7 +17,7 @@ in {
     services.syncthing = {
       enable = true;
       tray.enable = true;
-      extraOptions = ["--gui-address=127.0.0.1:8384"];
+      extraOptions = [ "--gui-address=127.0.0.1:8384" ];
     };
   };
 }

@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.hardware.bluetooth;
-in {
+in
+{
   options.${namespace}.hardware.bluetooth = {
     enable = mkEnableOption "Enable bluetooth service and packages";
   };

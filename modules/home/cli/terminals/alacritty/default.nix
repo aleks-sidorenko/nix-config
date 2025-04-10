@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.terminals.alacritty;
-in {
+in
+{
   options.${namespace}.cli.terminals.alacritty = with types; {
     enable = mkBoolOpt false "enable alacritty terminal emulator";
   };

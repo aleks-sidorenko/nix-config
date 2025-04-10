@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.desktops.addons.hypridle;
-in {
+in
+{
   options.${namespace}.desktops.addons.hypridle = with types; {
     enable = mkBoolOpt false "Whether to enable the hypridle";
   };

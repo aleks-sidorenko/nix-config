@@ -5,9 +5,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.nh;
-in {
+in
+{
   options.${namespace}.cli.tools.nh = with types; {
     enable = mkBoolOpt false "Whether or not to enable nh.";
   };

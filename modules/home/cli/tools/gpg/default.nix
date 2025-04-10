@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.gpg;
-in {
+in
+{
   options.${namespace}.cli.tools.gpg = with types; {
     enable = mkBoolOpt false "Whether or not to enable gpg";
   };
@@ -24,7 +26,7 @@ in {
       enable = true;
       enableSshSupport = true;
       enableExtraSocket = true;
-      sshKeys = ["D528D50F4E9F031AACB1F7A9833E49C848D6C90"]; # FIXME
+      sshKeys = [ "D528D50F4E9F031AACB1F7A9833E49C848D6C90" ]; # FIXME
       pinentryPackage = pkgs.pinentry-gnome3;
     };
 
@@ -33,6 +35,6 @@ in {
         enable = true;
         #homedir = "${config.xdg.dataHome}/gnupg";
       };
-    };    
+    };
   };
 }

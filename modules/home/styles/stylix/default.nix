@@ -5,9 +5,11 @@
   inputs,
   namespace,
   ...
-}: let
+}:
+let
   cfg = config.${namespace}.styles.stylix;
-in {
+in
+{
   imports = with inputs; [
     stylix.homeManagerModules.stylix
     catppuccin.homeManagerModules.catppuccin

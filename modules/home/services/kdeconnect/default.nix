@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.services.kdeconnect;
-in {
+in
+{
   options.${namespace}.services.kdeconnect = with types; {
     enable = mkBoolOpt false "Whether or not to manage kdeconnect";
   };

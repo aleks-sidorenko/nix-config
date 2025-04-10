@@ -2,7 +2,8 @@
   pkgs,
   config,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/jinja.lua" = {
@@ -26,7 +27,7 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            jinja = ["djlint"];
+            jinja = [ "djlint" ];
           };
 
           formatters = {

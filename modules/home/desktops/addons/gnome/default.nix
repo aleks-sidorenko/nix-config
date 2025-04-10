@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.gnome;
-in {
+in
+{
   options.${namespace}.desktops.addons.gnome = {
     enable = mkEnableOption "enable gnome extras to work with home-manager";
   };

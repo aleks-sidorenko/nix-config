@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/yaml.lua" = {
@@ -31,13 +32,16 @@
 
       lint = {
         lintersByFt = {
-          yml = ["yamllint"];
-          yaml = ["yamllint"];
+          yml = [ "yamllint" ];
+          yaml = [ "yamllint" ];
         };
         linters = {
           yamllint = {
             cmd = "${pkgs.yamllint}/bin/yamllint";
-            args = ["-formatter" "retain_line_breaks=true"];
+            args = [
+              "-formatter"
+              "retain_line_breaks=true"
+            ];
           };
         };
       };

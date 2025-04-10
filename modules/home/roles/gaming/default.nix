@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.roles.gaming;
-in {
+in
+{
   options.${namespace}.roles.gaming = with types; {
     enable = mkBoolOpt false "Whether or not to manage gaming configuration";
   };

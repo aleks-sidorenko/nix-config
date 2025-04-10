@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.wlogout;
-in {
+in
+{
   options.${namespace}.desktops.addons.wlogout = {
     enable = mkEnableOption "Enable wlogout screen for managing sessions.";
   };

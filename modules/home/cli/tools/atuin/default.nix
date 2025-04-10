@@ -6,7 +6,8 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.atuin;
 
   atuin-export-fish = pkgs.buildGoModule rec {
@@ -22,15 +23,19 @@ with lib.${namespace}; let
 
     vendorHash = "sha256-hLEmRq7Iw0hHEAla0Ehwk1EfmpBv6ddBuYtq12XdhVc=";
 
-    ldflags = ["-s" "-w"];
+    ldflags = [
+      "-s"
+      "-w"
+    ];
   };
-in {
+in
+{
   options.${namespace}.cli.tools.atuin = with types; {
     enable = mkBoolOpt false "Whether or not to enable atuin";
   };
 
   config = mkIf cfg.enable {
-    home.packages = [atuin-export-fish];
+    home.packages = [ atuin-export-fish ];
 
     programs.atuin = {
       enable = true;

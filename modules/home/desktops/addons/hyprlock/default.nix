@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.desktops.addons.hyprlock;
-in {
+in
+{
   options.${namespace}.desktops.addons.hyprlock = with types; {
     enable = mkBoolOpt false "Whether to enable the hyprlock";
   };

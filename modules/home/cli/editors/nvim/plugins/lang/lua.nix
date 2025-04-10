@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/lua.lua" = {
@@ -19,7 +20,7 @@
         enable = true;
         settings = {
           diagnostics = {
-            globals = ["vim"];
+            globals = [ "vim" ];
           };
         };
       };
@@ -27,7 +28,7 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            lua = ["stylua"];
+            lua = [ "stylua" ];
           };
 
           formatters = {
@@ -40,7 +41,7 @@
 
       lint = {
         lintersByFt = {
-          lua = ["luacheck"];
+          lua = [ "luacheck" ];
         };
         linters = {
           luacheck = {

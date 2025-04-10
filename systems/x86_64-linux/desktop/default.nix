@@ -3,16 +3,17 @@
   lib,
   namespace,
   ...
-}: 
-  with lib;
-  with lib.${namespace}; let
-     
-in {
+}:
+with lib;
+with lib.${namespace};
+let
+
+in
+{
   imports = [
     ./hardware-configuration.nix
     ./disks.nix
   ];
-
 
   ${namespace} = {
     roles = {
@@ -32,11 +33,10 @@ in {
 
   };
 
-  
   boot = {
-    
+
     kernelPackages = pkgs.linuxPackages_latest;
-    
+
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

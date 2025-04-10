@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.services.virtualisation.kvm;
-in {
+in
+{
   options.${namespace}.services.virtualisation.kvm = {
     enable = lib.mkEnableOption "enable kvm virtualisation";
   };
@@ -38,7 +40,7 @@ in {
           swtpm.enable = true;
           ovmf = {
             enable = true;
-            packages = [pkgs.OVMFFull.fd];
+            packages = [ pkgs.OVMFFull.fd ];
           };
         };
       };

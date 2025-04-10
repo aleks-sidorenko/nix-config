@@ -7,14 +7,16 @@
 }:
 with lib;
 with lib.${namespace};
-with types; let
+with types;
+let
   cfg = config.${namespace}.desktops.hyprland;
-in {
+in
+{
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.desktops.hyprland = {
     enable = mkEnableOption "enable hyprland window manager";
-    execOnceExtras = mkOpt (listOf str) [] "Extra programs to exec once";
+    execOnceExtras = mkOpt (listOf str) [ ] "Extra programs to exec once";
   };
 
   config = mkIf cfg.enable {
@@ -33,10 +35,10 @@ in {
         hypridle.enable = true;
       };
     };
-    nix.settings = {      
-      trusted-substituters = ["https://hyprland.cachix.org"];
-      trusted-public-keys = ["hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="];
-    };    
+    nix.settings = {
+      trusted-substituters = [ "https://hyprland.cachix.org" ];
+      trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    };
 
   };
 }

@@ -3,13 +3,15 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   gx-nvim = pkgs.vimUtils.buildVimPlugin {
     version = "latest";
     pname = "gx.nvim";
     src = inputs.plugins-gx-nvim;
   };
-in {
+in
+{
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   programs.nixvim = {
@@ -22,52 +24,52 @@ in {
       {
         action = "<cmd>lua require('smart-splits').start_resize_mode()<cr>";
         key = "<leader>mr";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').move_cursor_left()<cr>";
         key = "<C-h>";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').move_cursor_down()<cr>";
         key = "<C-j>";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').move_cursor_up()<cr>";
         key = "<C-k>";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').move_cursor_right()<cr>";
         key = "<C-l>";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').move_cursor_previous()<cr>";
         key = "<C-\\>";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').swap_buf_left()<cr>";
         key = "<leader><leader>h";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').swap_buf_down()<cr>";
         key = "<leader><leader>j";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').swap_buf_up()<cr>";
         key = "<leader><leader>k";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('smart-splits').swap_buf_right()<cr>";
         key = "<leader><leader>l";
-        mode = ["n"];
+        mode = [ "n" ];
       }
       {
         action = "<cmd>lua require('flash').jump()<cr>";
@@ -218,7 +220,10 @@ in {
         enable = true;
         settings = {
           whitespace = {
-            highlight = ["IndentBlanklineSpaceChar" "IndentBlanklineSpaceCharBlankline"];
+            highlight = [
+              "IndentBlanklineSpaceChar"
+              "IndentBlanklineSpaceCharBlankline"
+            ];
           };
           scope = {
             show_start = false;

@@ -57,7 +57,8 @@ let
     base0E = "#CBA6F7";
     base0F = "#F38BA8";
   };
-in {
+in
+{
   programs.nixvim = {
     colorschemes.catppuccin = {
       enable = true;
@@ -190,7 +191,9 @@ in {
         fg = base08;
         bg = base0A;
       };
-      CursorLineNr = {fg = white;};
+      CursorLineNr = {
+        fg = white;
+      };
       Comment = {
         fg = grey_fg;
         bg = null;
@@ -272,7 +275,9 @@ in {
         fg = white;
         bg = grey;
       };
-      MatchParen = {link = "MatchWord";};
+      MatchParen = {
+        link = "MatchWord";
+      };
       Cursor = {
         fg = base00;
         bg = base05;
@@ -495,12 +500,16 @@ in {
         fg = base0A;
         bg = null;
       };
-      "@conditional" = {link = "Conditional";};
+      "@conditional" = {
+        link = "Conditional";
+      };
       "@exception" = {
         fg = base08;
         bg = null;
       };
-      "@include" = {link = "Include";};
+      "@include" = {
+        link = "Include";
+      };
       "@keyword.return" = {
         fg = base0E;
         bg = null;
@@ -593,7 +602,9 @@ in {
         fg = base0F;
         bg = null;
       };
-      "@tag.attribute" = {link = "@Property";};
+      "@tag.attribute" = {
+        link = "@Property";
+      };
       "@punctuation.bracket" = {
         fg = base0F;
         bg = null;
@@ -636,7 +647,9 @@ in {
         bg = null;
         bold = true;
       };
-      TreesitterContext = {link = "CursorLine";};
+      TreesitterContext = {
+        link = "CursorLine";
+      };
 
       markdownBlockquote = {
         fg = green;
@@ -773,7 +786,9 @@ in {
         fg = green;
         bg = null;
       };
-      WhichKeyFloat = {link = "NormalFloat";};
+      WhichKeyFloat = {
+        link = "NormalFloat";
+      };
 
       SignAdd = {
         fg = green;
@@ -1245,14 +1260,22 @@ in {
         bg = null;
       };
 
-      CmpItemAbbr = {fg = white;};
-      CmpDoc = {bg = darker_black;};
-      CmpBorder = {fg = grey_fg;};
+      CmpItemAbbr = {
+        fg = white;
+      };
+      CmpDoc = {
+        bg = darker_black;
+      };
+      CmpBorder = {
+        fg = grey_fg;
+      };
       CmpDocBorder = {
         fg = darker_black;
         bg = darker_black;
       };
-      CmpPmenu = {bg = black;};
+      CmpPmenu = {
+        bg = black;
+      };
       CmpSel = {
         link = "PmenuSel";
         bold = true;
@@ -1373,44 +1396,102 @@ in {
       };
 
       # nvim-dap
-      DapBreakpoint = {fg = red;};
-      DapBreakpointCondition = {fg = yellow;};
-      DapLogPoint = {fg = sky;};
-      DapStopped = {bg = grey;};
+      DapBreakpoint = {
+        fg = red;
+      };
+      DapBreakpointCondition = {
+        fg = yellow;
+      };
+      DapLogPoint = {
+        fg = sky;
+      };
+      DapStopped = {
+        bg = grey;
+      };
 
       # nvim-dap-ui
-      DAPUIScope = {fg = sky;};
-      DAPUIType = {fg = mauve;};
-      DAPUIValue = {fg = sky;};
-      DAPUIVariable = {fg = text;};
-      DapUIModifiedValue = {fg = peach;};
-      DapUIDecoration = {fg = sky;};
-      DapUIThread = {fg = green;};
-      DapUIStoppedThread = {fg = sky;};
-      DapUISource = {fg = lavender;};
-      DapUILineNumber = {fg = sky;};
-      DapUIFloatBorder = {fg = sky;};
+      DAPUIScope = {
+        fg = sky;
+      };
+      DAPUIType = {
+        fg = mauve;
+      };
+      DAPUIValue = {
+        fg = sky;
+      };
+      DAPUIVariable = {
+        fg = text;
+      };
+      DapUIModifiedValue = {
+        fg = peach;
+      };
+      DapUIDecoration = {
+        fg = sky;
+      };
+      DapUIThread = {
+        fg = green;
+      };
+      DapUIStoppedThread = {
+        fg = sky;
+      };
+      DapUISource = {
+        fg = lavender;
+      };
+      DapUILineNumber = {
+        fg = sky;
+      };
+      DapUIFloatBorder = {
+        fg = sky;
+      };
 
-      DapUIWatchesEmpty = {fg = maroon;};
-      DapUIWatchesValue = {fg = green;};
-      DapUIWatchesError = {fg = maroon;};
+      DapUIWatchesEmpty = {
+        fg = maroon;
+      };
+      DapUIWatchesValue = {
+        fg = green;
+      };
+      DapUIWatchesError = {
+        fg = maroon;
+      };
 
-      DapUIBreakpointsPath = {fg = sky;};
-      DapUIBreakpointsInfo = {fg = green;};
+      DapUIBreakpointsPath = {
+        fg = sky;
+      };
+      DapUIBreakpointsInfo = {
+        fg = green;
+      };
       DapUIBreakpointsCurrentLine = {
         fg = green;
         bold = true;
       };
-      DapUIBreakpointsDisabledLine = {fg = surface2;};
+      DapUIBreakpointsDisabledLine = {
+        fg = surface2;
+      };
 
-      DapUIStepOver = {fg = blue;};
-      DapUIStepInto = {fg = blue;};
-      DapUIStepBack = {fg = blue;};
-      DapUIStepOut = {fg = blue;};
-      DapUIStop = {fg = red;};
-      DapUIPlayPause = {fg = green;};
-      DapUIRestart = {fg = green;};
-      DapUIUnavailable = {fg = surface1;};
+      DapUIStepOver = {
+        fg = blue;
+      };
+      DapUIStepInto = {
+        fg = blue;
+      };
+      DapUIStepBack = {
+        fg = blue;
+      };
+      DapUIStepOut = {
+        fg = blue;
+      };
+      DapUIStop = {
+        fg = red;
+      };
+      DapUIPlayPause = {
+        fg = green;
+      };
+      DapUIRestart = {
+        fg = green;
+      };
+      DapUIUnavailable = {
+        fg = surface1;
+      };
     };
   };
 }

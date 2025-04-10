@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.system.nix;
-in {
+in
+{
   options.${namespace}.system.nix = with types; {
     enable = mkBoolOpt false "Whether or not to manage nix configuration";
   };
@@ -45,7 +47,10 @@ in {
           "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
         ];
 
-        experimental-features = ["nix-command" "flakes"];
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
         warn-dirty = false;
         use-xdg-base-directories = true;
       };
@@ -53,8 +58,8 @@ in {
 
     news = {
       display = "silent";
-      json = lib.mkForce {};
-      entries = lib.mkForce [];
+      json = lib.mkForce { };
+      entries = lib.mkForce [ ];
     };
   };
 }

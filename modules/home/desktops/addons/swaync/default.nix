@@ -4,9 +4,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.swaync;
-in {
+in
+{
   options.${namespace}.desktops.addons.swaync = {
     enable = mkEnableOption "Enable sway notification center";
   };
@@ -14,7 +16,7 @@ in {
   config = mkIf cfg.enable {
     services.swaync = {
       enable = true;
-      settings = {};
+      settings = { };
       style = builtins.readFile ./swaync.css;
     };
   };

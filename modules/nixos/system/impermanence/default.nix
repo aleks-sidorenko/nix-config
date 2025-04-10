@@ -5,7 +5,8 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.system.impermanence;
   device = config.${namespace}.system.boot.device;
 
@@ -34,9 +35,10 @@ with lib.${namespace}; let
   '';
   phase1Systemd = config.boot.initrd.systemd.enable;
 
-in {
+in
+{
   options.${namespace}.system.impermanence = with types; {
-    enable = mkBoolOpt false "Enable impermanence";    
+    enable = mkBoolOpt false "Enable impermanence";
   };
 
   config = mkIf cfg.enable {
@@ -47,18 +49,18 @@ in {
 
     programs.fuse.userAllowOther = true;
 
-    boot.initrd = {            
-      supportedFilesystems = ["btrfs"];
+    boot.initrd = {
+      supportedFilesystems = [ "btrfs" ];
       postDeviceCommands = lib.mkIf (!phase1Systemd) (lib.mkBefore wipeScript);
       systemd.services.restore-root = lib.mkIf phase1Systemd {
         description = "Rollback btrfs rootfs";
-        wantedBy = ["initrd.target"];
-        requires = ["dev-disk-by\\x2dlabel-${device}.device"];
+        wantedBy = [ "initrd.target" ];
+        requires = [ "dev-disk-by\\x2dlabel-${device}.device" ];
         after = [
           "dev-disk-by\\x2dlabel-${device}.device"
           "systemd-cryptsetup@${device}.service"
         ];
-        before = ["sysroot.mount"];
+        before = [ "sysroot.mount" ];
         unitConfig.DefaultDependencies = "no";
         serviceConfig.Type = "oneshot";
         script = wipeScript;
@@ -67,14 +69,14 @@ in {
 
     environment.persistence."/persist" = {
       hideMounts = true;
-      directories = [        
+      directories = [
         "/.cache/nix/"
-        "/etc/NetworkManager/system-connections"        
+        "/etc/NetworkManager/system-connections"
         "/var/db/sudo/"
         "/var/lib/"
         "/var/lib/systemd"
         "/var/lib/nixos"
-        "/var/log"  
+        "/var/log"
       ];
       files = [
         "/etc/machine-id"

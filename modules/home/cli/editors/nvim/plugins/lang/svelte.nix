@@ -2,7 +2,8 @@
   pkgs,
   config,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/svelte.lua" = {
@@ -21,7 +22,7 @@
 
       lsp.servers.tailwindcss = {
         enable = true;
-        filetypes = ["svelte"];
+        filetypes = [ "svelte" ];
       };
     };
   };

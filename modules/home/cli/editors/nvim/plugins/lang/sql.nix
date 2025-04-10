@@ -2,7 +2,8 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   programs.nixvim = {
     files = {
       "ftplugin/sql.lua" = {
@@ -18,7 +19,7 @@
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            sql = ["sqlfluff"];
+            sql = [ "sqlfluff" ];
           };
 
           formatters = {
@@ -31,7 +32,7 @@
 
       lint = {
         lintersByFt = {
-          sql = ["sqlfluff"];
+          sql = [ "sqlfluff" ];
         };
         linters = {
           sqlfluff = {

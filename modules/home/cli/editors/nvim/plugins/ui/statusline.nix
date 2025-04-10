@@ -80,8 +80,12 @@
                 gui = "bold";
               };
               diagnostics_color = {
-                color_error = {fg = "#F38BA8";};
-                color_warn = {fg = "#FAE3B0";};
+                color_error = {
+                  fg = "#F38BA8";
+                };
+                color_warn = {
+                  fg = "#FAE3B0";
+                };
               };
               symbols = {
                 error = " ";

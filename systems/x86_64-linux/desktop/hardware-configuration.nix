@@ -6,14 +6,14 @@
   lib,
   modulesPath,
   ...
-}: {
+}:
+{
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  
   boot = {
-    initrd = {  
+    initrd = {
       availableKernelModules = [
         "nvme"
         "xhci_pci"
@@ -22,7 +22,7 @@
         "usbhid"
         "sd_mod"
       ];
-      kernelModules = ["kvm-intel"];
+      kernelModules = [ "kvm-intel" ];
     };
   };
 
@@ -31,8 +31,8 @@
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault true;
-  
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  
+
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

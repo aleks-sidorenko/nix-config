@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.apps.shotwell;
-in {
+in
+{
   options.${namespace}.apps.shotwell = {
     enable = mkEnableOption "Enable shotwell program";
   };

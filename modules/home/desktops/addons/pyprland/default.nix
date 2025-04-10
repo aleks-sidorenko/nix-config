@@ -5,9 +5,11 @@
   namespace,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.${namespace}.desktops.addons.pyprland;
-in {
+in
+{
   options.${namespace}.desktops.addons.pyprland = {
     enable = mkEnableOption "Enable pyprland plugins for hyprland";
   };
@@ -16,7 +18,7 @@ in {
     xdg.configFile."hypr/pyprland.toml".source = ./pyprland.toml;
 
     home = {
-      packages = with pkgs; [pyprland];
+      packages = with pkgs; [ pyprland ];
     };
   };
 }

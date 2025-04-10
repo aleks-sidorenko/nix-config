@@ -1,10 +1,14 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   programs.nixvim = {
     keymaps = [
       {
         action = "<cmd>lua vim.lsp.buf.code_action()<CR>";
         key = "<leader>ca";
-        mode = ["n" "v"];
+        mode = [
+          "n"
+          "v"
+        ];
         options = {
           desc = "Code Actions";
         };
@@ -12,7 +16,7 @@
       {
         action = "<cmd>LspRestart<CR>";
         key = "<leader>lR";
-        mode = ["n"];
+        mode = [ "n" ];
         options = {
           desc = "Restart LSP";
         };
@@ -20,7 +24,7 @@
       {
         action = "<cmd>Telescope lsp_references<CR>";
         key = "<leader>gr";
-        mode = ["n"];
+        mode = [ "n" ];
         options = {
           desc = "LSP References";
         };

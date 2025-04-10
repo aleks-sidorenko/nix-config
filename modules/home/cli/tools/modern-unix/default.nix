@@ -6,9 +6,11 @@
   ...
 }:
 with lib;
-with lib.${namespace}; let
+with lib.${namespace};
+let
   cfg = config.${namespace}.cli.tools.modern-unix;
-in {
+in
+{
   options.${namespace}.cli.tools.modern-unix = with types; {
     enable = mkBoolOpt false "Whether or not to enable modern unix tools";
   };
