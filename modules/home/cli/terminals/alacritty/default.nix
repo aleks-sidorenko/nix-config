@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  namespace,
   ...
 }:
 with lib;

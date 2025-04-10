@@ -16,9 +16,11 @@ in {
   };
 
   config = mkIf cfg.enable {
-    kernelParams = [
-      "resume_offset=533760"
-    ];
-    resumeDevice = "/dev/disk/by-label/${device}";
+    boot = {
+      kernelParams = [
+        "resume_offset=533760"
+      ];
+      resumeDevice = "/dev/disk/by-label/${device}";
+    };
   };
 }

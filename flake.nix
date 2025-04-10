@@ -71,17 +71,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland-git.url = "github:hyprwm/hyprland";
-    hyprland-xdph-git.url = "github:hyprwm/xdg-desktop-portal-hyprland";
-    hyprland-protocols-git.url = "github:hyprwm/xdg-desktop-portal-hyprland";
-    hyprland-nix.url = "github:spikespaz/hyprland-nix";
-    hyprland-nix.inputs = {
-      hyprland.follows = "hyprland-git";
-      hyprland-xdph.follows = "hyprland-xdph-git";
-      hyprland-protocols.follows = "hyprland-protocols-git";
-    };
-    hyprpanel.url = "github:Jas-SinghFSU/HyprPanel/ba7e0dfd52172c9c63ee11da689dce49cf76ae1f";
-
     # Homelab
 
     deploy-rs = {
@@ -166,10 +155,6 @@
         lanzaboote.nixosModules.lanzaboote
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
-      ];
-
-      systems.hosts.framework.modules = with inputs; [
-        nixos-hardware.nixosModules.framework-13-7040-amd
       ];
 
       overlays = with inputs; [

@@ -29,10 +29,11 @@ in {
         zsa.enable = true;
       };
 
-      services = {
-        avahi.enable = true;
-        backup.enable = true;
-        vpn.enable = true;
+      services = {        
+        # TODO impl
+        # backup.enable = true;
+        # TODO impl
+        # vpn.enable = true;
         virtualisation.podman.enable = true;
       };
 

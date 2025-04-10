@@ -41,7 +41,7 @@ in {
       ];
     };
 
-    snowfallorg.users.${config.user.name}.home.config = {
+    snowfallorg.users.${config.${namespace}.user.name}.home.config = {
       dconf.settings = {
         "org/gnome/desktop/privacy" = {
           remember-recent-files = false;

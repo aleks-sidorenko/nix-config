@@ -4,9 +4,9 @@
   pkgs,
   namespace,
   ...
-}: let
-  inherit (lib) mkIf;
-  inherit (lib.${namespace}) mkBoolOpt;
+}: 
+  with lib;
+  with lib.${namespace}; let
 
   cfg = config.${namespace}.system.boot;
 in {

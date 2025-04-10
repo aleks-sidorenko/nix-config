@@ -6,7 +6,7 @@
 }:
 with lib;
 with lib.${namespace}; let
-  cfg = config..${namespace}.cli.tools.fzf;
+  cfg = config.${namespace}.cli.tools.fzf;
 in {
   options.${namespace}.cli.tools.fzf = with types; {
     enable = mkBoolOpt false "Whether or not to enable fzf";

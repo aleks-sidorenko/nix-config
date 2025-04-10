@@ -8,8 +8,8 @@
 with lib.${namespace};
 {
   
-  ${namespace} = {
-  
+  # TODO - replace with ${namespace} once this is fixed https://github.com/snowfallorg/lib/issues/142
+  nix-config = {
     roles = {
       desktop = enabled;
       social = enabled;
@@ -34,5 +34,5 @@ with lib.${namespace};
 
 
 
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 }

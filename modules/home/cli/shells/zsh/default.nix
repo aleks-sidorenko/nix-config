@@ -3,6 +3,7 @@
   lib,
   config,
   host,
+  namespace,
   ...
 }:
 with lib;
