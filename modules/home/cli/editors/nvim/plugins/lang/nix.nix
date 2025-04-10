@@ -6,9 +6,9 @@
 }:
 let
   flake = config.home.sessionVariables.FLAKE;
-
-  hostCfg = "desktop";
-  user = config.${namespace}.user.name;
+  user = config.home.username;
+  
+  hostCfg = "desktop";  
   homeCfg = "${user}@${hostCfg}";
 in
 {
@@ -31,11 +31,11 @@ in
       conform-nvim = {
         settings = {
           formatters_by_ft = {
-            nix = [ "alejandra" ];
+            nix = [ "nixfmt" ];
           };
           formatters = {
-            alejandra = {
-              command = "${pkgs.alejandra}/bin/alejandra";
+            nixfmt = {
+              command = "${pkgs.nixfmt-rfc-style}/bin/nixfmt-rfc-style";
             };
           };
         };

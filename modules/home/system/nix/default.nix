@@ -30,7 +30,7 @@ in
 
     home.sessionVariables = {
       # TODO - make reusable var
-      FLAKE = "/home/${config.${namespace}.user.name}/.${namespace}";
+      FLAKE = "$HOME/.${namespace}";
     };
 
     nix = {
