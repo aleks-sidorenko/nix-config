@@ -41,17 +41,18 @@ in {
         nix-ld.enable = true;
       };
 
-    };
+      system = {
+        boot = {
+          hibernation.enable = true;
+          plymouth = true;
+        };
+      };
 
-    boot.binfmt.emulatedSystems = ["aarch64-linux"];
+      user = {
+        name = "alexander";
+        initialPassword = "alexander";
+      };
 
-    system = {
-      boot.plymouth = true;
-    };
-
-    user = {
-      name = "alexander";
-      initialPassword = "alexander";
     };
   };
 }

@@ -25,11 +25,13 @@ with lib.${namespace}; {
     };
 
     hardware.raspberry-pi-4 = enabled;
+
+    system.boot.enable = lib.mkForce false;
   };
   
 
   sdImage.compressImage = false;
-  system.boot.enable = lib.mkForce false;
+  
   
 
   system.stateVersion = "24.11";

@@ -23,6 +23,11 @@ in {
       services = {
         tailscale.enable = true;
       };
+
+      user = {
+        name = "nixos";
+        initialPassword = "nixos";
+      };
    };
 
     environment =
@@ -67,9 +72,6 @@ in {
     # UTC everywhere!
     time.timeZone = lib.mkDefault "UTC";
 
-    # No mutable users by default
-    users.mutableUsers = false;
-
     systemd = {
       services.NetworkManager-wait-online.enable = false;
       network.wait-online.enable = false;
@@ -104,9 +106,5 @@ in {
       "net.ipv4.tcp_congestion_control" = "bbr";
     };
 
-    user = {
-      name = "nixos";
-      initialPassword = "nixos";
-    };
   };
 }
