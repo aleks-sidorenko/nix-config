@@ -7,8 +7,8 @@
 let
   flake = config.home.sessionVariables.FLAKE;
   user = config.home.username;
-  
-  hostCfg = "desktop";  
+
+  hostCfg = "desktop";
   homeCfg = "${user}@${hostCfg}";
 in
 {
