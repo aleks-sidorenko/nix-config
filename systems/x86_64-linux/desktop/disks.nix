@@ -88,19 +88,19 @@
           };
         };
       };
-      persist = {
+      data = {
         type = "disk";
         device = "/dev/nvme0n1";
-        name = "persist";
+        name = "data";
         content = {
           type = "gpt";
           partitions = {
             encryped = {
               size = "100%";
-              label = "persist_encrypted";
+              label = "data_encrypted";
               content = {
                 type = "luks";
-                name = "persist";
+                name = "data";
                 settings = {
                   allowDiscards = true;
                   crypttabExtraOpts = [
@@ -114,9 +114,17 @@
                   type = "btrfs";
                   extraArgs = [
                     "-f"
-                    "-L persist"
+                    "-L data"
                   ]; # force overwrite + label
                   subvolumes = {
+                    "@home" = {
+                      mountpoint = "/home";
+                      mountOptions = [
+                        "subvol=home"
+                        "compress=zstd"
+                        "noatime"
+                      ];
+                    };
                     "@persist" = {
                       mountpoint = "/persist";
                       mountOptions = [

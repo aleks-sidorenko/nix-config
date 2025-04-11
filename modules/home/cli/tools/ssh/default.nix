@@ -34,7 +34,7 @@ in
         {
           "gitlab-personal" = {
             hostname = "gitlab.com";
-            identityFile = "~/.ssh/id_ed25519_personal";
+            identityFile = "~/.ssh/id_ed25519";
           };
         }
       '';

@@ -23,8 +23,8 @@ in
     sops = {
       age = {
         generateKey = true;
-        keyFile = "/home/${config.${namespace}.user.name}/.config/sops/age/keys.txt";
-        sshKeyPaths = [ "/home/${config.${namespace}.user.name}/.ssh/id_ed25519" ];
+        keyFile = "$HOME/.config/sops/age/keys.txt";
+        sshKeyPaths = [ "$HOME/.ssh/id_ed25519" ];
       };
 
       defaultSymlinkPath = "/run/user/1000/secrets";

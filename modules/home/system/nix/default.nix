@@ -28,9 +28,12 @@ in
       home-manager.enable = true;
     };
 
-    home.sessionVariables = {
-      # TODO - make reusable var
-      FLAKE = "/home/${config.${namespace}.user.name}/.${namespace}";
+    home = {
+      sessionVariables = {
+        # TODO - make reusable var
+        FLAKE = "$HOME/.${namespace}";
+      };
+      sessionPath = [ "$HOME/.local/bin" ];
     };
 
     nix = {
