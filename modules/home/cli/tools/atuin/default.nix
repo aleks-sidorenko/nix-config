@@ -43,19 +43,15 @@ in
         "--disable-up-arrow"
         "--disable-ctrl-r"
       ];
+
       settings = {
-        sync_address = "https://majiy00-shell.fly.dev";
-        sync_frequency = "15m";
-        dialect = "uk";
-        enter_accept = false;
-        records = true;
-        search_mode = "skim";
-        # key_path = config.sops.secrets.atuin_key.path;
+        auto_sync = true;
+        sync_frequency = "5m";
+        sync_address = "https://api.atuin.sh";
+        search_mode = "prefix";
+
       };
     };
 
-    sops.secrets.atuin_key = {
-      sopsFile = ../../../secrets.yaml;
-    };
   };
 }

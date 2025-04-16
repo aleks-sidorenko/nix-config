@@ -71,7 +71,6 @@ in
       hideMounts = true;
       directories = [
         "/.cache/nix/"
-        "/etc/NetworkManager/system-connections"
         "/var/db/sudo/"
         "/var/lib/"
         "/var/lib/systemd"

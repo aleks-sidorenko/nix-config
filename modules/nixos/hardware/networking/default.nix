@@ -8,6 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.hardware.networking;
+  impermanenceCfg = config.${namespace}.system.impermanence;
 in
 {
   options.${namespace}.hardware.networking = with types; {
@@ -15,24 +16,17 @@ in
   };
 
   config = mkIf cfg.enable {
-    networking.firewall = {
-      enable = true;
-      allowedTCPPortRanges = [
-        {
-          from = 1714;
-          to = 1764;
-        }
-      ];
-      allowedUDPPortRanges = [
-        {
-          from = 1714;
-          to = 1764;
-        }
-      ];
+    networking = {
+      # Enable NetworkManager
+      useNetworkManager = mkDefault true;
+      # Enable NetworkManager to manage the network interfaces
+      useDHCP = mkDefault true;
+      # Enable NetworkManager to manage the network interfaces
+      networkmanager.enable = true;
     };
-    networking.networkmanager.enable = true;
-    # environment.persistence."/persist".directories = [
-    #   "/etc/NetworkManager"
-    # ];
+
+    environment.persistence."/persist".directories = mkIf impermanenceCfg.enable [
+      "/etc/NetworkManager/system-connections"
+    ];
   };
 }

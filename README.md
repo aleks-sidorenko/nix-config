@@ -90,8 +90,9 @@ Some features of my config:
 
 ### Inspired By
 
-- Snowfall based https://github.com/hmajid2301/nixicle
-- Snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
-- Another snowfall based https://github.com/8bitbuddhist/nix-configuration
-- Mature config https://github.com/Misterio77/nix-config
+- hmajid2301 config, snowfall based https://github.com/hmajid2301/nixicle
+- jakehamilton config, snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
+- 8bitbuddhist config, snowfall based https://github.com/8bitbuddhist/nix-configuration
+- Misterio77 config https://github.com/Misterio77/nix-config
+- EmergentMind config https://github.com/EmergentMind/nix-config
 
