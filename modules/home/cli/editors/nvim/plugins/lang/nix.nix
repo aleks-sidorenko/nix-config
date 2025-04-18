@@ -5,7 +5,7 @@
   ...
 }:
 let
-  flake = config.home.sessionVariables.FLAKE;
+  flakeDir = config.home.sessionVariables.FLAKE_DIR;
   user = config.home.username;
 
   hostCfg = "desktop";
@@ -65,13 +65,13 @@ in
             };
             options = {
               nixos = {
-                expr = ''(builtins.getFlake "${flake}").nixosConfigurations.${hostCfg}.options'';
+                expr = ''(builtins.getFlake "${flakeDir}").nixosConfigurations.${hostCfg}.options'';
               };
               home_manager = {
-                expr = ''(builtins.getFlake "${flake}").homeConfigurations."${homeCfg}".options'';
+                expr = ''(builtins.getFlake "${flakeDir}").homeConfigurations."${homeCfg}".options'';
               };
               flake_parts = {
-                expr = ''let flake = builtins.getFlake ("${flake}"); in flake.debug.options // flake.currentSystem.options'';
+                expr = ''let flake = builtins.getFlake ("${flakeDir}"); in flake.debug.options // flake.currentSystem.options'';
               };
             };
           };

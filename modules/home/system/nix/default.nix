@@ -31,7 +31,7 @@ in
     home = {
       sessionVariables = {
         # TODO - make reusable var
-        FLAKE = "$HOME/.${namespace}";
+        FLAKE_DIR = "$HOME/.${namespace}";
       };
       sessionPath = [ "$HOME/.local/bin" ];
     };

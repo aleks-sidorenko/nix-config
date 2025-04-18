@@ -15,10 +15,9 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      hardware = {
-        networking.enable = true;
-      };
+      
 
+      
       services = {
         openssh.enable = true;
       };
@@ -32,6 +31,7 @@ in
         nix.enable = true;
         boot.enable = true;
         locale.enable = true;
+        networking.enable = true;
       };
 
       styles.stylix.enable = true;

@@ -8,16 +8,14 @@
 
     system = {
       locale.enable = true;
+      networking.enable = true;
     };
 
     user = {
       name = "nixos";
       initialPassword = "nixos";
     };
-    hardware.networking = {
-      enable = true;
-
-    };
+    
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

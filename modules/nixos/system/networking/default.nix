@@ -7,11 +7,11 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.hardware.networking;
+  cfg = config.${namespace}.system.networking;
   impermanenceCfg = config.${namespace}.system.impermanence;
 in
 {
-  options.${namespace}.hardware.networking = with types; {
+  options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networkmanager";
   };
 
