@@ -20,37 +20,28 @@ keys:
     - &alexander 07E36E87C0270E464DB4D663B423D1630A58837C
     
   - &hosts:
+    # FIXME - add
     - &desktop age1kzxen8ynw28h935jnjc9t8cx4p8mv6angk5suvkp6ntu4am9pe4smfw22z
     - &vm age1fy626vylmpya4t4gyqx6kw4ggn7j79upjgt4jka2gq6lysluhd0s8ytqls
     
 creation_rules:
   - path_regex: modules/nixos/roles/kubernetes/secrets.ya?ml$
     key_groups:
-    - age:
-      - *desktop
-      - *vm
+    - gpg:
+      - *alexander
    
   - path_regex: modules/nixos/secrets.ya?ml$
     key_groups:
-    - age:
-      - *desktop
-      - *vm
     - gpg:
       - *alexander
       
 
   - path_regex: modules/nixos/services/secrets.ya?ml$
     key_groups:
-    - age:
-      - *desktop
-      - *vm
     - gpg:
       - *alexander
 
   - path_regex: modules/home/secrets.ya?ml$
     key_groups:
-    - age:
-      - *desktop
-      - *vm
     - gpg:
       - *alexander
