@@ -26,14 +26,13 @@ in
       enable = true;
       enableSshSupport = true;
       enableExtraSocket = true;
-      sshKeys = [ "D528D50F4E9F031AACB1F7A9833E49C848D6C90" ]; # FIXME
+      sshKeys = [ "D475CFA955B1C3902A57492EC78CD48FE9404C90" ];
       pinentryPackage = pkgs.pinentry-gnome3;
     };
 
     programs = {
       gpg = {
         enable = true;
-        #homedir = "${config.xdg.dataHome}/gnupg";
       };
     };
   };

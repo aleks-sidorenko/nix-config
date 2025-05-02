@@ -9,9 +9,9 @@ no OS on the device. You need to copy ssh keys onto the target machine
 `mkdir -p ~/.ssh && curl https://github.com/aleks-sidorenko.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
 
 ```bash
-export CONFIG_HOME=.nix-config
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/$CONFIG_HOME/
-cd $CONFIG_HOME
+export FLAKE_DIR=$HOME/.nix-config
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/$FLAKE_DIR/
+cd $FLAKE_DIR
 
 nix develop
 
@@ -27,9 +27,9 @@ Then run `nix_installer`, which will then ask you which host you would like to i
 To build my config for a specific host you can do something like:
 
 ```bash
-export CONFIG_HOME=.nix-config
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/$CONFIG_HOME/
-cd $CONFIG_HOME
+export FLAKE_DIR=$HOME/.nix-config
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/$FLAKE_DIR/
+cd $FLAKE_DIR
 
 nix develop
 
@@ -90,8 +90,9 @@ Some features of my config:
 
 ### Inspired By
 
-- Snowfall based https://github.com/hmajid2301/nixicle
-- Snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
-- Another snowfall based https://github.com/8bitbuddhist/nix-configuration
-- Mature config https://github.com/Misterio77/nix-config
+- hmajid2301 config, snowfall based https://github.com/hmajid2301/nixicle
+- jakehamilton config, snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
+- 8bitbuddhist config, snowfall based https://github.com/8bitbuddhist/nix-configuration
+- Misterio77 config https://github.com/Misterio77/nix-config
+- EmergentMind config https://github.com/EmergentMind/nix-config
 

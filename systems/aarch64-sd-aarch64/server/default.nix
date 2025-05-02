@@ -31,5 +31,6 @@ with lib.${namespace};
 
   sdImage.compressImage = false;
 
+  # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";
 }

@@ -1,24 +1,23 @@
-{ lib, ... }:
+{ lib, namespace, ... }:
 {
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  ${namespace} = {
+    nix.enable = true;
+    services = {
+      openssh.enable = true;
+    };
 
-  networking.wireless.enable = lib.mkForce false;
-  networking.networkmanager.enable = true;
+    system = {
+      locale.enable = true;
+      networking.enable = true;
+    };
 
-  nix.enable = true;
-  services = {
-    openssh.enable = true;
+    user = {
+      name = "nixos";
+      initialPassword = "nixos";
+    };
+    
   };
 
-  system = {
-    locale.enable = true;
-  };
-
-  user = {
-    name = "nixos";
-    initialPassword = "nixos";
-  };
-
+  # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";
 }

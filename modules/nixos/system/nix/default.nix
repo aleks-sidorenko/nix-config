@@ -12,6 +12,11 @@ in
 {
   options.${namespace}.system.nix = with types; {
     enable = mkBoolOpt false "Whether or not to manage nix configuration";
+    retention = mkOption {
+      description = "How long to retain NixOS generations. Defaults to two weeks.";
+      type = str;
+      default = "14d";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -21,6 +26,7 @@ in
           "@wheel"
           "root"
         ];
+        # Optimize the Nix store on each build
         auto-optimise-store = lib.mkDefault true;
         use-xdg-base-directories = true;
         experimental-features = [
@@ -33,7 +39,21 @@ in
           "big-parallel"
           "nixos-test"
         ];
+
       };
+
+      # Enable garbage collection
+      gc = {
+        automatic = true;
+        dates = "weekly";
+        options = "--delete-older-than ${cfg.retention}";
+        persistent = true;
+        randomizedDelaySec = "1hour";
+      };
+
+      # Configure NixOS to use the same software channel as Flakes
+      registry.nixpkgs.flake = inputs.nixpkgs;
+      nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
 
       # flake-utils-plus
       generateRegistryFromInputs = true;
