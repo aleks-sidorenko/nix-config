@@ -1,20 +1,24 @@
 { lib, namespace, ... }:
 {
   ${namespace} = {
-    nix.enable = true;
+    
     services = {
       openssh.enable = true;
     };
 
+
     system = {
       locale.enable = true;
       networking.enable = true;
+      nix.enable = true;
     };
 
     user = {
       name = "nixos";
       initialPassword = "nixos";
     };
+
+    
     
   };
 
