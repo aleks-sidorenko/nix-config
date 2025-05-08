@@ -23,7 +23,7 @@ in
       enable = true;
       extraRules = [
         {
-          users = [ config.user.name ];
+          users = [ config.${namespace}.user.name ];
           noPass = true;
           keepEnv = true;
         }

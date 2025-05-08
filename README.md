@@ -1,16 +1,36 @@
 
 ## 💽 Usage
 
+### Prepare
+#### Set up environment
+```bash
+export GITHUB_USER=aleks-sidorenko
+export NIX_CONFIG_REPO_NAME=nix-config
+```
+
+#### Enabled SSH
+#### VM
+VM is provisioned via Vagrant and has SSH enabled already with keys copied from GitHub.
+```
+vagrant up
+vagrant ssh-config >> .ssh.config
+```
+#### Non-VM
+You will need to be able to SSH to the target machine from where this command will be run. Load nix installer ISO if
+no OS on the device. You need to copy ssh keys onto the target machine 
+```bash
+mkdir -p ~/.ssh && curl https://github.com/$GITHUB_USER.keys > ~/.ssh/authorized_keys
+```
+In my case I can copy them from GitHub.
+
+
 ### Install
 
 To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
-You will need to be able to SSH to the target machine from where this command will be run. Load nix installer ISO if
-no OS on the device. You need to copy ssh keys onto the target machine
-`mkdir -p ~/.ssh && curl https://github.com/aleks-sidorenko.keys > ~/.ssh/authorized_keys` in my case I can copy them from GitHub.
 
 ```bash
 export FLAKE_DIR=$HOME/.nix-config
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/$FLAKE_DIR/
+git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
 cd $FLAKE_DIR
 
 nix develop
@@ -20,7 +40,6 @@ nixos-anywhere --flake '.#desktop' nixos@192.168.1.8 # Replace with your IP
 
 After building it you can copy the ISO from the `result` folder to your USB.
 Then run `nix_installer`, which will then ask you which host you would like to install.
-
 
 ### Building
 
@@ -42,7 +61,7 @@ nh home switch
 # Build ISO in result/ folder
 nix build .#install-isoConfigurations.minimal
 
-# Deploy my to remote server i.e. Home Lab (using SSH)
+# Deploy config to remote server i.e. Home Lab (using SSH)
 deploy .#ms01 --hostname ms01 --ssh-user nixos --skip-checks
 
 ```
@@ -64,10 +83,10 @@ Some features of my config:
 ## 🏠 Configurations
 
 
-|   Hostname                                   |            Board                                          |               CPU                                                   |  RAM          |         Primary GPU                                    |  Role | OS  | State |
-| :---------:                                  | :-------------------------:                               | :----------------------------:                                      | :---:         | :-------------------------:                            |  :--: | :-: | :---: |
-| `desktop`                                | ASUS P8P67 PRO (REV 3.0) P67/ s1155               | Intel Core i7-2600K                                                  | 32GB          | Asus PCI-Ex GeForce GTX 560 Ti 1024MB                 | 🖥️     | ❄️   | ✅    |
-| `server`                                  | Rasberry PI 4 model B                            | Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz                                               | 8GB          | Integrated                                    | ☁️     | ❄️   | ✅    |
+| Hostname  |                Board                |                                 CPU                                 |  RAM  |              Primary GPU              | Role  |  OS   | State |
+| :-------: | :---------------------------------: | :-----------------------------------------------------------------: | :---: | :-----------------------------------: | :---: | :---: | :---: |
+| `desktop` | ASUS P8P67 PRO (REV 3.0) P67/ s1155 |                         Intel Core i7-2600K                         | 32GB  | Asus PCI-Ex GeForce GTX 560 Ti 1024MB |   🖥️   |   ❄️   |   ✅   |
+| `server`  |        Rasberry PI 4 model B        | Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz |  8GB  |              Integrated               |   ☁️   |   ❄️   |   ✅   |
 
 
 **Key**

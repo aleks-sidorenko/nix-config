@@ -34,7 +34,7 @@
 
       image = {
         enable = true;
-        integrations.markdown = {
+        settings.integrations.markdown = {
           clearInInsertMode = true;
           onlyRenderImageAtCursor = true;
         };

@@ -22,7 +22,7 @@ in
         extraArgs = "--keep-since 4d --keep 3";
       };
       # TODO - make reusable var
-      flake = "/home/${config.user.name}/.${namespace}";
+      flake = "/home/${config.${namespace}.user.name}/.${namespace}";
     };
   };
 }

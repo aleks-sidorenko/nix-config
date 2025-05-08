@@ -15,9 +15,7 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      
 
-      
       services = {
         openssh.enable = true;
       };
