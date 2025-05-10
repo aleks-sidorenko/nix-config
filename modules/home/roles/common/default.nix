@@ -19,6 +19,7 @@ in
 
       system = {
         nix.enable = true;
+        locale.enable = true;
       };
 
       cli = {
@@ -36,6 +37,7 @@ in
       };
       styles.stylix.enable = true;
     };
+
 
     # TODO: move this to a separate module like `cli/tools`
     home.packages = with pkgs; [

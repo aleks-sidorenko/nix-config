@@ -13,11 +13,6 @@ in
 {
   options.${namespace}.system.nix = with types; {
     enable = mkBoolOpt false "Whether or not to manage nix configuration";
-    retention = mkOption {
-      description = "How long to retain NixOS generations. Defaults to two weeks.";
-      type = str;
-      default = "14d";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -47,7 +42,7 @@ in
       gc = {
         automatic = true;
         dates = "weekly";
-        options = "--delete-older-than ${cfg.retention}";
+        options = "--delete-older-than 7d";
         persistent = true;
         randomizedDelaySec = "1hour";
       };

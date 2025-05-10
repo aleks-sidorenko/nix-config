@@ -67,15 +67,15 @@ in
       };
     };
 
+    # TODO - split to modules
     environment.persistence."/persist" = {
       hideMounts = true;
       directories = [
         "/.cache/nix/"
+        "/var/cache/"
         "/var/db/sudo/"
         "/var/lib/"
-        "/var/lib/systemd"
-        "/var/lib/nixos"
-        "/var/log"
+        
       ];
       files = [
         "/etc/machine-id"

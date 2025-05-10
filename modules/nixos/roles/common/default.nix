@@ -22,7 +22,6 @@ in
 
       security = {
         sops.enable = true;
-        yubikey.enable = true;
       };
 
       system = {

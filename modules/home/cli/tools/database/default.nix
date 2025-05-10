@@ -8,11 +8,11 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.li.tools.db;
+  cfg = config.${namespace}.cli.tools.database;
 in
 {
-  options.${namespace}.cli.tools.db = with types; {
-    enable = mkBoolOpt false "Whether or not to manage db";
+  options.${namespace}.cli.tools.database = with types; {
+    enable = mkBoolOpt false "Whether or not to manage database";
   };
 
   config = mkIf cfg.enable {

@@ -20,7 +20,7 @@ in
       enable = true;
       enableFishIntegration = true;
       settings = {
-        palette = "custom";
+        palette = mkForce "custom";
         palettes.custom = {
           rosewater = "#${colors.base06}";
           flamingo = "#${colors.base0F}";

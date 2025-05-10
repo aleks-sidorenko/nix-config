@@ -38,6 +38,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-facter-modules = {
+      url = "github:numtide/nixos-facter-modules";
+    };
+
     nixos-anywhere = {
       url = "github:numtide/nixos-anywhere";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -54,6 +58,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    
     # Hyprland
 
     hypr-contrib = {
@@ -70,6 +75,11 @@
       url = "github:hyprland-community/pyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    hyprpanel = { 
+      url = "github:Jas-SinghFSU/HyprPanel";
+    };
+    
 
     # Homelab
 
@@ -158,6 +168,7 @@
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
       ];
+
 
       overlays = with inputs; [
         nixgl.overlay

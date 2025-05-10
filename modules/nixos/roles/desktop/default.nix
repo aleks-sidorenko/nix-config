@@ -26,7 +26,7 @@ in
 
       hardware = {
         audio.enable = true;
-        bluetooth.enable = true;        
+        bluetooth.enable = true;
         zsa.enable = true;
       };
 
