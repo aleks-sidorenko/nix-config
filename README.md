@@ -6,6 +6,7 @@
 ```bash
 export GITHUB_USER=aleks-sidorenko
 export NIX_CONFIG_REPO_NAME=nix-config
+export FLAKE_DIR=$HOME/.nix-config
 ```
 
 #### Enabled SSH
@@ -29,7 +30,6 @@ In my case I can copy them from GitHub.
 To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
 
 ```bash
-export FLAKE_DIR=$HOME/.nix-config
 git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
 cd $FLAKE_DIR
 
@@ -46,8 +46,7 @@ Then run `nix_installer`, which will then ask you which host you would like to i
 To build my config for a specific host you can do something like:
 
 ```bash
-export FLAKE_DIR=$HOME/.nix-config
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/$FLAKE_DIR/
+git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
 cd $FLAKE_DIR
 
 nix develop
@@ -62,7 +61,7 @@ nh home switch
 nix build .#install-isoConfigurations.minimal
 
 # Deploy config to remote server i.e. Home Lab (using SSH)
-deploy .#ms01 --hostname ms01 --ssh-user nixos --skip-checks
+deploy .#server --hostname ms01 --ssh-user nixos --skip-checks
 
 ```
 
