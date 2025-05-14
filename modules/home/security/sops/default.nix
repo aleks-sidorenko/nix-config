@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.sops;
+  home = config.home.homeDirectory;
 in
 {
   options.${namespace}.security.sops = with types; {
@@ -23,8 +24,8 @@ in
     sops = {
       age = {
         generateKey = true;
-        keyFile = "$HOME/.config/sops/age/keys.txt";
-        sshKeyPaths = [ "$HOME/.ssh/id_ed25519" ];
+        keyFile = "${home}/.config/sops/age/keys.txt";
+        sshKeyPaths = [ "${home}/.ssh/id_ed25519" ];
       };
 
       defaultSymlinkPath = "/run/user/1000/secrets";

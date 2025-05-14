@@ -60,6 +60,11 @@ in
       desktops.addons.xdg.enable = true;
     };
 
+    accounts = {
+      contact.basePath = ".contacts";
+      calendar.basePath = ".calendars";
+    };
+
     # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
     systemd.user.targets.tray = {
       Unit = {

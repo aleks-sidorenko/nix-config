@@ -1,5 +1,5 @@
 {
-
+ # Move to reusable module
   disko.devices = {
     disk = {
       root = {

@@ -19,10 +19,13 @@ in
       enable = true;
       clean = {
         enable = true;
-        extraArgs = "--keep-since 4d --keep 3";
+        extraArgs = "--keep-since 7d --keep 5";
       };
       # TODO - make reusable var
-      flake = "/home/${config.user.name}/.${namespace}";
+      flake = "/home/${config.${namespace}.user.name}/.${namespace}";
     };
+
+    # to avoid evaluation warning: programs.nh.clean.enable and nix.gc.automatic are both enabled. Please use one or the other to avoid conflict.
+    nix.gc.automatic = mkForce false; 
   };
 }

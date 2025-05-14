@@ -1,0 +1,43 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2204"  # Base OS (will be replaced with NixOS)
+   
+   # Increase timeout and retries
+   config.vm.boot_timeout = 6000
+   config.ssh.connect_timeout = 600
+
+  # Use libvirt provider
+   config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.memory = 8096
+    libvirt.cpus = 4
+    libvirt.nested = true
+    libvirt.management_network_name = "default"
+    libvirt.management_network_address = "192.168.122.0/24"
+  end
+  
+  # Create a public network (bridged to your local network)
+  config.vm.network :public_network,
+    :dev => "virbr0",
+    :mode => "bridge",
+    :type => "bridge",
+    :libvirt__network_name => "vagrant-libvirt"
+  
+  config.vm.provision "shell", inline: <<-SHELL
+    # Set up the DNS
+    sudo rm /etc/resolv.conf
+    sudo bash -c 'echo "nameserver 8.8.8.8" > /etc/resolv.conf'
+    sudo chattr +i /etc/resolv.conf  # Lock file (Debian/Ubuntu)
+
+    # Configure passwordless sudo
+    echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vagrant
+    chmod 440 /etc/sudoers.d/vagrant
+    
+    # Set up SSH access
+    mkdir -p /home/vagrant/.ssh
+    curl -o /home/vagrant/.ssh/authorized_keys https://github.com/aleks-sidorenko.keys
+    chown -R vagrant:vagrant /home/vagrant/.ssh
+    chmod 700 /home/vagrant/.ssh
+    chmod 600 /home/vagrant/.ssh/authorized_keys
+        
+  SHELL
+end

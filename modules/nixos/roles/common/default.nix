@@ -15,16 +15,13 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      
 
-      
       services = {
         openssh.enable = true;
       };
 
       security = {
         sops.enable = true;
-        yubikey.enable = true;
       };
 
       system = {

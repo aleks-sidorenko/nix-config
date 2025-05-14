@@ -12,7 +12,7 @@ in
 {
   imports = with inputs; [
     stylix.homeManagerModules.stylix
-    catppuccin.homeManagerModules.catppuccin
+    catppuccin.homeModules.catppuccin
   ];
 
   options.${namespace}.styles.stylix = {

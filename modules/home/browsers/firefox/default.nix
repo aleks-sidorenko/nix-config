@@ -34,7 +34,7 @@ in
           ${builtins.readFile "${inputs.firefox-gnome-theme}/configuration/user.js"}
         '';
 
-        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
           bitwarden
           enhancer-for-youtube
           languagetool

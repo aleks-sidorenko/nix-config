@@ -23,7 +23,7 @@ in
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;
-          db.enable = true;
+          database.enable = true;
           direnv.enable = true;
           eza.enable = true;
           fzf.enable = true;
