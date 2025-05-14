@@ -4,7 +4,7 @@
     disk = {
       root = {
         type = "disk";
-        device = "/dev/vda";
+        device = "/dev/sda";
         name = "root";
         content = {
           type = "gpt";
@@ -17,7 +17,7 @@
               type = "EF00";
               content = {
                 type = "filesystem";
-                extraArgs = [ "-n ESP" ];
+                extraArgs = [ "-nESP" ];
                 format = "vfat";
                 mountpoint = "/boot";
                 mountOptions = [ "defaults" ];

@@ -13,7 +13,6 @@ with lib.${namespace};
     roles = {
       desktop = enabled;
       social = enabled;
-      video = enabled;
     };
 
     user = {

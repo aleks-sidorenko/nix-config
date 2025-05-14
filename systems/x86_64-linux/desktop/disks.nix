@@ -17,7 +17,7 @@
               type = "EF00";
               content = {
                 type = "filesystem";
-                extraArgs = [ "-n ESP" ];
+                extraArgs = [ "-nESP" ];
                 format = "vfat";
                 mountpoint = "/boot";
                 mountOptions = [ "defaults" ];
