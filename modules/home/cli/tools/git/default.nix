@@ -19,7 +19,7 @@ in
 {
   options.${namespace}.cli.tools.git = with types; {
     enable = mkBoolOpt false "Whether or not to enable git.";
-    email = mkOpt (nullOr str) "alexander@sidorenko.me" "The email to use with git.";
+    email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git.";
     urlRewrites = mkOpt (attrsOf str) { } "url we need to rewrite i.e. ssh to http";
     allowedSigners = mkOpt str "" "The public key used for signing commits";
   };

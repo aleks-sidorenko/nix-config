@@ -7,30 +7,22 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.system.impermanence;
-  device = config.${namespace}.system.boot.device;
-
+  cfg = config.${namespace}.system.impermanence;  
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
     (
       mount -t btrfs -o subvol=/ /dev/disk/by-label/${device} "$MNTPOINT"
-      trap 'umount "$MNTPOINT"' EXIT
+      trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
 
-      echo "Creating needed directories"
-      mkdir -p "$MNTPOINT"/persist/var/{log,lib/{nixos,systemd}}
-      if [ -e "$MNTPOINT/persist/dont-wipe" ]; then
-        echo "Skipping wipe"
-      else
-        echo "Cleaning root subvolume"
-        btrfs subvolume list -o "$MNTPOINT/root" | cut -f9 -d ' ' |
-        while read -r subvolume; do
-          btrfs subvolume delete "$MNTPOINT/$subvolume"
-        done && btrfs subvolume delete "$MNTPOINT/root"
+      echo "Cleaning root subvolume"
+      btrfs subvolume list -o "$MNTPOINT/@root" | cut -f9 -d ' ' |
+      while read -r subvolume; do
+        btrfs subvolume delete "$MNTPOINT/$subvolume"
+      done && btrfs subvolume delete "$MNTPOINT/@root"
 
-        echo "Restoring blank subvolume"
-        btrfs subvolume snapshot "$MNTPOINT/root-blank" "$MNTPOINT/root"
-      fi
+      echo "Restoring blank subvolume"
+      btrfs subvolume snapshot "$MNTPOINT/@root-blank" "$MNTPOINT/@root"
     )
   '';
   phase1Systemd = config.boot.initrd.systemd.enable;
@@ -39,9 +31,10 @@ in
 {
   options.${namespace}.system.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
+    device = mkOpt str config.${namespace}.system.boot.device "The boot device to use";
   };
 
-  config = mkIf cfg.enable {
+  config = with cfg; mkIf enable {
     security.sudo.extraConfig = ''
       # rollback results in sudo lectures after each reboot
       Defaults lecture = never
