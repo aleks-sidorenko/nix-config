@@ -13,6 +13,17 @@
   ];
 
   boot = {
+
+ 
+
+    kernelParams = [
+      "nomodeset"
+      "i915.modeset=0"
+      "radeon.modeset=0"
+      "nouveau.modeset=0"
+      "amdgpu.modeset=0"
+    ];
+
     initrd = {
       availableKernelModules = [
         "nvme"

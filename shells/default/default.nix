@@ -11,7 +11,6 @@ pkgs.mkShell {
     inputs.nixos-anywhere.packages.${pkgs.system}.nixos-anywhere
     python312Packages.mkdocs-material
     deploy-rs
-
     statix
     deadnix
     alejandra

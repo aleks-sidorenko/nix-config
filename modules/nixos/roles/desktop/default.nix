@@ -46,7 +46,6 @@ in
       system = {
         boot = {
           hibernation.enable = true;
-          plymouth = true;
         };
       };
 

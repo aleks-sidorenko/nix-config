@@ -7,7 +7,8 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.system.impermanence;  
+  cfg = config.${namespace}.system.impermanence;
+  device = cfg.bootDevice;
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
@@ -31,10 +32,10 @@ in
 {
   options.${namespace}.system.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
-    device = mkOpt str config.${namespace}.system.boot.device "The boot device to use";
+    bootDevice = mkOpt str config.${namespace}.system.boot.device "The boot device to use";
   };
 
-  config = with cfg; mkIf enable {
+  config = mkIf cfg.enable {
     security.sudo.extraConfig = ''
       # rollback results in sudo lectures after each reboot
       Defaults lecture = never
