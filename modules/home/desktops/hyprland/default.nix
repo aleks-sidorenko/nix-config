@@ -7,14 +7,13 @@
 }:
 with lib;
 with lib.${namespace};
-with types;
 let
   cfg = config.${namespace}.desktops.hyprland;
 in
 {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.${namespace}.desktops.hyprland = {
+  options.${namespace}.desktops.hyprland = with types; {
     enable = mkEnableOption "enable hyprland window manager";
     execOnceExtras = mkOpt (listOf str) [ ] "Extra programs to exec once";
   };

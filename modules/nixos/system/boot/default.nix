@@ -14,7 +14,6 @@ in
 {
   options.${namespace}.system.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting.";
-    plymouth = mkBoolOpt false "Whether or not to enable plymouth boot splash.";
     secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
     device = mkOpt str "root" "The boot device name";
   };
@@ -31,16 +30,18 @@ in
       ++ lib.optionals cfg.secureBoot [ sbctl ];
 
     boot = {
-      # TODO: if plymouth on
-      kernelParams = lib.optionals cfg.plymouth [
-        "quiet"
-        "splash"
-        "loglevel=3"
-        "udev.log_level=0"
+      kernelParams = [
+
       ];
-      # initrd.verbose = lib.optionals cfg.plymouth false;
-      # consoleLogLevel = lib.optionals cfg.plymouth 0;
-      initrd.systemd.enable = true;
+
+      initrd = {
+        systemd.enable = true;
+        # Verbose initrd output
+        verbose = true;
+      };
+
+      # Increase console log level (7 is maximum)
+      consoleLogLevel = 7;
 
       lanzaboote = mkIf cfg.secureBoot {
         enable = true;
@@ -56,11 +57,8 @@ in
           enable = !cfg.secureBoot;
           configurationLimit = 20;
           editor = false;
+          consoleMode = "max";
         };
-      };
-
-      plymouth = {
-        enable = cfg.plymouth;
       };
     };
 

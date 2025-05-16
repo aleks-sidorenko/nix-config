@@ -60,8 +60,11 @@ nh home switch
 # Build ISO in result/ folder
 nix build .#install-isoConfigurations.minimal
 
-# Deploy config to remote server i.e. Home Lab (using SSH)
-deploy .#server --hostname ms01 --ssh-user nixos --skip-checks
+# Deploy config to VM (using SSH)
+deploy .#vm --hostname vm --ssh-opts="-p 2222" --skip-checks
+
+# Deploy config to server (using SSH)
+deploy .#server --hostname server --ssh-user nixos --skip-checks
 
 ```
 
