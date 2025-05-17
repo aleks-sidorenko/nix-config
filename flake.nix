@@ -28,8 +28,7 @@
     };
 
     impermanence.url = "github:nix-community/impermanence";
-    lanzaboote.url = "github:nix-community/lanzaboote";
-
+    
     nixgl.url = "github:nix-community/nixGL";
     nix-index-database.url = "github:nix-community/nix-index-database";
 
@@ -164,7 +163,6 @@
         stylix.nixosModules.stylix
         home-manager.nixosModules.home-manager
         disko.nixosModules.disko
-        lanzaboote.nixosModules.lanzaboote
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
       ];

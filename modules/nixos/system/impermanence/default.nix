@@ -1,3 +1,4 @@
+# TODO - move to nixos/disks/ 
 {
   config,
   lib,

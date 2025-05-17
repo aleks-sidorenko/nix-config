@@ -17,8 +17,9 @@ in
 
   ${namespace} = {
     roles = {
+      common.enable = true;
       desktop = {
-        enable = true;
+        enable = false;
         addons = {
           hyprland = enabled;
         };

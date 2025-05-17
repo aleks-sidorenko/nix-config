@@ -16,6 +16,7 @@ in
     enable = mkBoolOpt false "Whether or not to enable booting.";
     secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
     device = mkOpt str "root" "The boot device name";
+    debug = mkBoolOpt false "Enable debug mode";
   };
 
   config = mkIf cfg.enable {
@@ -30,36 +31,27 @@ in
       ++ lib.optionals cfg.secureBoot [ sbctl ];
 
     boot = {
-      kernelParams = [
-
-      ];
-
+      
+      loader = {
+        # systemd-boot fails https://github.com/NixOS/nixpkgs/issues/45032
+        grub = {
+          enable = true;
+          devices = [ "nodev" ];
+          efiSupport = true;
+        };
+        efi.canTouchEfiVariables = true;
+      };
+      
+      
       initrd = {
         systemd.enable = true;
         # Verbose initrd output
-        verbose = true;
+        verbose = cfg.debug;
       };
 
-      # Increase console log level (7 is maximum)
-      consoleLogLevel = 7;
+      # Increase console log level (4 is default, 7 is maximum)
+      consoleLogLevel = if cfg.debug then 7 else 4;
 
-      lanzaboote = mkIf cfg.secureBoot {
-        enable = true;
-        pkiBundle = "/etc/secureboot";
-      };
-
-      loader = {
-        efi = {
-          canTouchEfiVariables = true;
-        };
-
-        systemd-boot = {
-          enable = !cfg.secureBoot;
-          configurationLimit = 20;
-          editor = false;
-          consoleMode = "max";
-        };
-      };
     };
 
     # services.fwupd.enable = true;
