@@ -4,7 +4,7 @@
     disk = {
       root = {
         type = "disk";
-        device = "/dev/sdd";
+        device = "/dev/sdc";
         name = "root";
         content = {
           type = "gpt";

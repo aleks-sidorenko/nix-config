@@ -15,7 +15,7 @@ in
 
   config = lib.mkIf cfg.enable {
     ${namespace} = {
-      browsers.firefox.enable = true;
+      browsers.firefox.enable = false;
 
       system = {
         nix.enable = true;
