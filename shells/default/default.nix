@@ -7,9 +7,9 @@ pkgs.mkShell {
   NIX_CONFIG = "extra-experimental-features = nix-command flakes";
 
   packages = with pkgs; [
+    nix
     nh
-    inputs.nixos-anywhere.packages.${pkgs.system}.nixos-anywhere
-    python312Packages.mkdocs-material
+    inputs.nixos-anywhere.packages.${pkgs.system}.nixos-anywhere    
     deploy-rs
     statix
     deadnix
@@ -20,5 +20,6 @@ pkgs.mkShell {
     ssh-to-age
     gnupg
     age
+      
   ];
 }

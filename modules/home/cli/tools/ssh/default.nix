@@ -41,20 +41,13 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-    programs.keychain = {
-      enable = true;
-      keys = [ "id_ed25519" ];
-      agents = [
-        "gpg"
-        "ssh"
-      ];
-    };
+  config = mkIf cfg.enable {    
 
     programs.ssh = {
       enable = true;
       addKeysToAgent = "yes";
       matchBlocks = cfg.extraHosts;
+      startAgent = false; # gpg-agent is used for ssh
     };
   };
 }
