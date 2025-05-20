@@ -7,15 +7,14 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.openssh;
-
+  cfg = config.${namespace}.security.ssh;
 in
 {
-  options.${namespace}.services.openssh = with types; {
-    enable = mkBoolOpt false "Enable ssh";
+  options.${namespace}.security.ssh = with types; {
+    enable = mkBoolOpt false "Enable SSH";
     authorizedKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (lib.fileContents ../../../home/security/keys/ssh/id_ed25519.pub) ];
+      default = [ (lib.fileContents ../../../home/security/ssh/id_ed25519.pub) ];
       description = "List of SSH public keys to authorize";
     };
   };

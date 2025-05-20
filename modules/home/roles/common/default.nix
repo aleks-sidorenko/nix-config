@@ -27,12 +27,15 @@ in
         terminals.ghostty.enable = true;
         shells.fish.enable = true;
       };
+
       apps = {
         guis.enable = true;
         tuis.enable = true;
       };
 
       security = {
+        gpg.enable = true;
+        ssh.enable = true;
         sops.enable = true;
       };
       styles.stylix.enable = true;

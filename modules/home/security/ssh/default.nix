@@ -7,10 +7,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.cli.tools.ssh;
+  cfg = config.${namespace}.security.ssh;
 in
 {
-  options.${namespace}.cli.tools.ssh = with types; {
+  options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Whether or not to enable ssh";
 
     extraHosts = lib.mkOption {
@@ -42,12 +42,19 @@ in
   };
 
   config = mkIf cfg.enable {    
+    programs.keychain = {
+      enable = true;
+      keys = [ "id_ed25519" ];
+      agents = [
+        "gpg"
+        "ssh"
+      ];
+    };
 
     programs.ssh = {
       enable = true;
-      addKeysToAgent = "yes";
-      matchBlocks = cfg.extraHosts;
-      startAgent = false; # gpg-agent is used for ssh
+      addKeysToAgent = mkDefault "yes";
+      matchBlocks = cfg.extraHosts;      
     };
   };
 }

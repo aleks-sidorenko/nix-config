@@ -15,12 +15,8 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-
-      services = {
-        openssh.enable = true;
-      };
-
       security = {
+        ssh.enable = true;
         sops.enable = true;
       };
 

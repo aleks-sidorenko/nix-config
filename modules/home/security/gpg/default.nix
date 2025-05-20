@@ -8,23 +8,23 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.cli.tools.gpg;
+  cfg = config.${namespace}.security.gpg;
   
   gpgInitScript = ''
     gpg-connect-agent updatestartuptty /bye >/dev/null
   '';
 in
 {
-  options.${namespace}.cli.tools.gpg = with types; {
+  options.${namespace}.security.gpg = with types; {
     enable = mkBoolOpt false "Whether or not to enable gpg";
     publicKeys = mkOption {
       type = types.listOf types.str;
-      default = [ ../../../security/keys/gpg/key.asc ];
+      default = [ (toString ./gpg.asc) ];
       description = "A list of paths to public key files to import";
     };
     sshKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (lib.fileContents ../../../security/keys/gpg/ssh-key-id) ];
+      default = [ (lib.fileContents ./ssh-key-id) ];
       description = "List of GPG key IDs that can be used as SSH keys";
     };
   };
@@ -36,7 +36,7 @@ in
       enableSshSupport = true;
       enableExtraSocket = true;
       sshKeys = cfg.sshKeys;
-      pinentry.package =
+      pinentryPackage =
         if config.gtk.enable
         then pkgs.pinentry-gnome3
         else pkgs.pinentry-tty;
@@ -58,9 +58,12 @@ in
           
 
       };
+      
       ssh = {
-        addKeysToAgent = "no";
+        addKeysToAgent = mkForce "no";
       };
+      keychain.enable = mkForce false;
+
     };
 
   
