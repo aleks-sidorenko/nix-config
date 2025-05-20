@@ -22,14 +22,13 @@ in
 
   config = mkIf cfg.enable {
     sops = {
-      age = {
-        generateKey = true;
-        keyFile = "${home}/.config/sops/age/keys.txt";
-        sshKeyPaths = [ "${home}/.ssh/id_ed25519" ];
+      gnupg = {
+        home = "${home}/.gnupg";
+        sshKeyPaths = [];
       };
 
-      defaultSymlinkPath = "/run/user/1000/secrets";
-      defaultSecretsMountPoint = "/run/user/1000/secrets.d";
+      defaultSymlinkPath = "%r/secrets";
+      defaultSecretsMountPoint = "%r/secrets.d";
     };
   };
 }
