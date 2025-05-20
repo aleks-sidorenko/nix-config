@@ -42,19 +42,15 @@ in
   };
 
   config = mkIf cfg.enable {
-    programs.keychain = {
-      enable = true;
-      keys = [ "id_ed25519" ];
-      agents = [
-        "gpg"
-        "ssh"
-      ];
-    };
-
     programs.ssh = {
       enable = true;
-      addKeysToAgent = mkDefault "yes";
+      # Let GPG agent handle the keys
+      addKeysToAgent = "confirm";
       matchBlocks = cfg.extraHosts;
+      extraConfig = ''
+        # Use GPG agent for SSH
+        IdentityAgent "$(gpgconf --list-dirs agent-ssh-socket)"
+      '';
     };
   };
 }

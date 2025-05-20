@@ -36,10 +36,19 @@ in
       enableSshSupport = true;
       enableExtraSocket = true;
       sshKeys = cfg.sshKeys;
+      defaultCacheTtl = 1800;
+      defaultCacheTtlSsh = 1800;
       pinentryPackage = if config.gtk.enable then pkgs.pinentry-gnome3 else pkgs.pinentry-tty;
+      extraConfig = ''
+        allow-preset-passphrase
+        ttyname $GPG_TTY
+      '';
     };
 
-    home.packages = lib.optional config.gtk.enable pkgs.gcr;
+    
+    home.packages = with pkgs; [      
+      gnupg
+    ] ++ lib.optionals config.gtk.enable [ gcr ];
 
     programs = {
 
@@ -68,8 +77,10 @@ in
 
     home.sessionVariables = {
       SSH_AUTH_SOCK = "$(gpgconf --list-dirs agent-ssh-socket)";
+      GPG_TTY = "$(tty)";
     };
 
+    # Ensure GPG agent is updated with the current TTY at shell start
     programs.bash.initExtra = gpgInitScript;
     programs.zsh.initExtra = gpgInitScript;
     programs.fish.interactiveShellInit = gpgInitScript;
