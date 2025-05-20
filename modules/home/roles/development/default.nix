@@ -28,14 +28,11 @@ in
           eza.enable = true;
           fzf.enable = true;
           git.enable = true;
-          gpg.enable = true;
-          htop.enable = true;
-          k8s.enable = true;
+          htop.enable = true;          
           modern-unix.enable = true;
           network-tools.enable = true;
           nix-index.enable = true;
           podman.enable = true;
-          ssh.enable = true;
           starship.enable = true;
           yazi.enable = true;
           zoxide.enable = true;
