@@ -1,4 +1,4 @@
-# TODO - move to nixos/disks/ 
+# TODO - move to nixos/disks/
 {
   config,
   lib,
@@ -70,7 +70,7 @@ in
         "/var/cache/"
         "/var/db/sudo/"
         "/var/lib/"
-        
+
       ];
       files = [
         "/etc/machine-id"

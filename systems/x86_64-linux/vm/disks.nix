@@ -41,18 +41,18 @@
                 content = {
                   type = "btrfs";
                   extraArgs = [
-                    "-f"  # force overwrite
+                    "-f" # force overwrite
                     "-L root" # label we use later on in postCreateHook
                   ];
                   # Create snapshot regardless of if impermanence is enabled
                   # This way we can enable impermanence later on if we want
                   postCreateHook = ''
-                      mkdir /tmp -p
-                      MNTPOINT=$(mktemp -d)
-                      mount -t btrfs /dev/disk/by-label/root "$MNTPOINT"
-                      trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
-                      btrfs subvolume snapshot -r $MNTPOINT/@root $MNTPOINT/@root-blank
-                      '';
+                    mkdir /tmp -p
+                    MNTPOINT=$(mktemp -d)
+                    mount -t btrfs /dev/disk/by-label/root "$MNTPOINT"
+                    trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
+                    btrfs subvolume snapshot -r $MNTPOINT/@root $MNTPOINT/@root-blank
+                  '';
                   subvolumes = {
                     "@root" = {
                       mountpoint = "/";

@@ -1,4 +1,4 @@
-# TODO - move to nixos/disks/ 
+# TODO - move to nixos/disks/
 {
   config,
   lib,
@@ -32,7 +32,7 @@ in
       ++ lib.optionals cfg.secureBoot [ sbctl ];
 
     boot = {
-      
+
       loader = {
         # systemd-boot fails https://github.com/NixOS/nixpkgs/issues/45032
         grub = {
@@ -42,8 +42,7 @@ in
         };
         efi.canTouchEfiVariables = true;
       };
-      
-      
+
       initrd = {
         systemd.enable = true;
         # Verbose initrd output

@@ -1,11 +1,10 @@
 { lib, namespace, ... }:
 {
   ${namespace} = {
-    
+
     services = {
       openssh.enable = true;
     };
-
 
     system = {
       locale.enable = true;
@@ -18,8 +17,6 @@
       initialPassword = "nixos";
     };
 
-    
-    
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

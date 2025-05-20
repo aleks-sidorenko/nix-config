@@ -13,37 +13,41 @@
       end
     '';
 
-    plugins.dap = {
-      enable = true;
-      signs = {
-        dapBreakpoint = {
-          text = " ";
-          texthl = "DiagnosticInfo";
+    plugins = {
+      dap = {
+        enable = true;
+        signs = {
+          dapBreakpoint = {
+            text = " ";
+            texthl = "DiagnosticInfo";
+          };
+          dapBreakpointCondition = {
+            text = " ";
+            texthl = "DiagnosticInfo";
+          };
+          dapBreakpointRejected = {
+            text = " ";
+            texthl = "DiagnosticError";
+          };
+          dapLogPoint = {
+            text = " ";
+            texthl = "DiagnosticInfo";
+          };
+          dapStopped = {
+            text = "󰁕 ";
+            texthl = "DiagnosticWarn";
+            linehl = "DapStoppedLine";
+            numhl = "DapStoppedLine";
+          };
         };
-        dapBreakpointCondition = {
-          text = " ";
-          texthl = "DiagnosticInfo";
-        };
-        dapBreakpointRejected = {
-          text = " ";
-          texthl = "DiagnosticError";
-        };
-        dapLogPoint = {
-          text = " ";
-          texthl = "DiagnosticInfo";
-        };
-        dapStopped = {
-          text = "󰁕 ";
-          texthl = "DiagnosticWarn";
-          linehl = "DapStoppedLine";
-          numhl = "DapStoppedLine";
-        };
+
+        extensions = { };
       };
 
-      extensions = {
-        dap-ui = {
-          enable = true;
-          expandLines = false;
+      dap-ui = {
+        enable = true;
+        settings = {
+          expand_lines = false;
           layouts = [
             {
               elements = [
@@ -89,9 +93,12 @@
             }
           ];
         };
-        dap-virtual-text = {
-          enable = false;
-          enabledCommands = true;
+      };
+
+      dap-virtual-text = {
+        enable = false;
+        settings = {
+          enabled_commands = true;
         };
       };
     };

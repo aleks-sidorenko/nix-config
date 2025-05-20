@@ -26,6 +26,6 @@ in
     };
 
     # to avoid evaluation warning: programs.nh.clean.enable and nix.gc.automatic are both enabled. Please use one or the other to avoid conflict.
-    nix.gc.automatic = mkForce false; 
+    nix.gc.automatic = mkForce false;
   };
 }

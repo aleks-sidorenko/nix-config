@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.gpg;
-  
+
   gpgInitScript = ''
     gpg-connect-agent updatestartuptty /bye >/dev/null
   '';
@@ -30,22 +30,19 @@ in
   };
 
   config = mkIf cfg.enable {
-    
+
     services.gpg-agent = {
       enable = true;
       enableSshSupport = true;
       enableExtraSocket = true;
       sshKeys = cfg.sshKeys;
-      pinentryPackage =
-        if config.gtk.enable
-        then pkgs.pinentry-gnome3
-        else pkgs.pinentry-tty;
+      pinentryPackage = if config.gtk.enable then pkgs.pinentry-gnome3 else pkgs.pinentry-tty;
     };
 
     home.packages = lib.optional config.gtk.enable pkgs.gcr;
 
     programs = {
-      
+
       gpg = {
         enable = true;
         settings = {
@@ -55,10 +52,9 @@ in
           source = path;
           trust = "ultimate";
         }) cfg.publicKeys;
-          
 
       };
-      
+
       ssh = {
         addKeysToAgent = mkForce "no";
       };
@@ -66,8 +62,6 @@ in
 
     };
 
-  
-  
     systemd.user.tmpfiles.rules = [
       "L+ %h/.gnupg-sockets - - - - /run/user/%U/gnupg"
     ];

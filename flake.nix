@@ -28,7 +28,7 @@
     };
 
     impermanence.url = "github:nix-community/impermanence";
-    
+
     nixgl.url = "github:nix-community/nixGL";
     nix-index-database.url = "github:nix-community/nix-index-database";
 
@@ -57,7 +57,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    
     # Hyprland
 
     hypr-contrib = {
@@ -75,10 +74,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprpanel = { 
+    hyprpanel = {
       url = "github:Jas-SinghFSU/HyprPanel";
     };
-    
 
     # Homelab
 
@@ -166,7 +164,6 @@
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
       ];
-
 
       overlays = with inputs; [
         nixgl.overlay

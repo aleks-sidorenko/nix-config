@@ -28,7 +28,7 @@ in
           eza.enable = true;
           fzf.enable = true;
           git.enable = true;
-          htop.enable = true;          
+          htop.enable = true;
           modern-unix.enable = true;
           network-tools.enable = true;
           nix-index.enable = true;

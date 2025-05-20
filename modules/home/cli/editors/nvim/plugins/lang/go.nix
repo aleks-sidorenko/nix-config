@@ -33,21 +33,23 @@ in
     };
 
     plugins = {
-      dap.extensions.dap-go = {
+      dap-go = {
         enable = true;
-        delve = {
-          port = "38697";
-          path = "dlv";
-          inherit buildFlags;
+        settings = {
+          delve = {
+            port = "38697";
+            path = "dlv";
+            build_flags = buildFlags;
+          };
+          dap_configurations = [
+            {
+              type = "go";
+              name = "Attach remote";
+              mode = "remote";
+              request = "attach";
+            }
+          ];
         };
-        dapConfigurations = [
-          {
-            type = "go";
-            name = "Attach remote";
-            mode = "remote";
-            request = "attach";
-          }
-        ];
       };
 
       conform-nvim = {

@@ -41,7 +41,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {    
+  config = mkIf cfg.enable {
     programs.keychain = {
       enable = true;
       keys = [ "id_ed25519" ];
@@ -54,7 +54,7 @@ in
     programs.ssh = {
       enable = true;
       addKeysToAgent = mkDefault "yes";
-      matchBlocks = cfg.extraHosts;      
+      matchBlocks = cfg.extraHosts;
     };
   };
 }

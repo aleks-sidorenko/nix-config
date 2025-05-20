@@ -24,7 +24,7 @@ in
     sops = {
       gnupg = {
         home = "${home}/.gnupg";
-        sshKeyPaths = [];
+        sshKeyPaths = [ ];
       };
 
       defaultSymlinkPath = "%r/secrets";

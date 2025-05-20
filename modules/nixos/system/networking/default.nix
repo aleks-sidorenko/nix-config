@@ -16,14 +16,14 @@ in
   };
 
   config = mkIf cfg.enable {
-    networking = {     
+    networking = {
       # Enable NetworkManager to manage the network interfaces
       useDHCP = mkDefault true;
       # Enable NetworkManager to manage the network interfaces
       networkmanager.enable = true;
 
-      # Disable wireless networking since it conflicts with the networkmanager   
-      wireless.enable = false; 
+      # Disable wireless networking since it conflicts with the networkmanager
+      wireless.enable = false;
     };
 
     environment.persistence."/persist".directories = mkIf impermanenceCfg.enable [

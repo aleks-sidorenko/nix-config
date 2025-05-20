@@ -19,9 +19,10 @@ in
     hardware = {
       # xpadneo.enable = true;
       xone.enable = true;
-
-      graphics = {
+      opengl = {
         enable = true;
+        driSupport = true;
+        driSupport32Bit = true;
         extraPackages = with pkgs; [
           mesa
         ];

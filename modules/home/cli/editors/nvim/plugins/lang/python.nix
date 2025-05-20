@@ -6,7 +6,7 @@
 {
   programs.nixvim = {
     plugins = {
-      dap.extensions.dap-python.enable = true;
+      dap-python.enable = true;
 
       neotest = {
         adapters.python = {

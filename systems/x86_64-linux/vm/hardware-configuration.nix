@@ -14,8 +14,6 @@
 
   boot = {
 
- 
-
     kernelParams = [
       "nomodeset"
       "i915.modeset=0"
@@ -35,5 +33,5 @@
       ];
     };
   };
-  
+
 }
