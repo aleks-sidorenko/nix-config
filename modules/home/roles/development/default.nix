@@ -29,8 +29,7 @@ in
           fzf.enable = true;
           git.enable = true;
           gpg.enable = true;
-          htop.enable = true;
-          k8s.enable = true;
+          htop.enable = true;          
           modern-unix.enable = true;
           network-tools.enable = true;
           nix-index.enable = true;

@@ -8,11 +8,16 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.openssh;
+
 in
 {
   options.${namespace}.services.openssh = with types; {
     enable = mkBoolOpt false "Enable ssh";
-    authorizedKeys = mkOpt (listOf str) [ ] "The public keys to apply.";
+    authorizedKeys = mkOption {
+      type = types.listOf types.str;
+      default = [ (lib.fileContents ../../../home/security/keys/ssh/id_ed25519.pub) ];
+      description = "List of SSH public keys to authorize";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -28,10 +33,7 @@ in
     };
 
     users.users = {
-
-      ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDKc1m1PDN52C+xUqCxWOwEtTCczkXeJ5POhowH9+9F9 aleks.sidorenko@gmail.com"
-      ];
+      ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     };
   };
 }
