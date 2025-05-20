@@ -18,18 +18,23 @@ in
   ${namespace} = {
     roles = {
       common.enable = true;
+      
+      /*
       desktop = {
-        enable = false;
+        enable = true;
         addons = {
           hyprland = enabled;
         };
       };
+      */
     };
 
+    security.sops.enable = mkForce false;
+    
     services = {
       virtualisation.kvm = enabled;
     };
-
+    
     system.impermanence = enabled;
 
   };

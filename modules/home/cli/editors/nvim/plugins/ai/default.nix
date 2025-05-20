@@ -1,6 +1,8 @@
 {
   config,
+  lib,
   pkgs,
+  namespace,
   ...
 }:
 {
@@ -31,21 +33,7 @@
     ];
 
     plugins = {
-      # avante = {
-      #   enable = true;
-      #   settings = {
-      #     provider = "copilot";
-      #     auto_suggestions_provider = "copilot";
-      #   };
-      # };
-
-      # chatgpt = {
-      #   enable = true;
-      #   settings = {
-      #     api_key_cmd = "cat ${config.sops.secrets.chatgpt_api_key.path}";
-      #   };
-      # };
-
+      
       # ollama = {
       #   enable = true;
       # };
@@ -66,9 +54,5 @@
       #   enable = true;
       # };
     };
-  };
-
-  sops.secrets.chatgpt_api_key = {
-    sopsFile = ../../../../../secrets.yaml;
   };
 }
