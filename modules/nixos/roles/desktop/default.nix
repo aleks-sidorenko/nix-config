@@ -19,8 +19,20 @@ in
       roles = {
         common.enable = true;
 
+        /*
         desktop.addons = {
-          nautilus.enable = true;
+          nautilus.enable = false;
+        };
+        */
+      };
+
+
+      cli = {
+        shells.fish.enable = true;        
+      
+        tools = {        
+          nh.enable = true;
+          nix-ld.enable = true;
         };
       };
 
@@ -35,24 +47,22 @@ in
         # backup.enable = true;
         # TODO impl
         # vpn.enable = true;
-        virtualisation.podman.enable = true;
-      };
-
-      cli.tools = {
-        nh.enable = true;
-        nix-ld.enable = true;
-      };
+        # virtualisation.podman.enable = true;
+      };      
 
       system = {
         boot = {
           hibernation.enable = true;
         };
       };
+      
 
       user = {
         name = "alexander";
         initialPassword = "alexander";
       };
+
+      styles.stylix.enable = true;
 
     };
   };

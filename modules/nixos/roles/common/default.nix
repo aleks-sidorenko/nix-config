@@ -14,7 +14,9 @@ in
   };
 
   config = mkIf cfg.enable {
+ 
     ${namespace} = {
+    
       security = {        
         ssh.enable = true;
         sops.enable = true;
@@ -27,7 +29,7 @@ in
         networking.enable = true;
       };
 
-      styles.stylix.enable = true;
+
 
     };
 

@@ -5,6 +5,8 @@
   namespace,
   ...
 }:
+with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.roles.common;
 in
@@ -40,15 +42,10 @@ in
         tuis.enable = true;
       };
 
-      browsers.firefox.enable = false;
-
+      browsers.firefox.enable = mkForce false;
       
       styles.stylix.enable = true;
     };
-
-    # TODO: move this to a separate module like `cli/tools`
-    home.packages = with pkgs; [
-      keymapp
-    ];
+    
   };
 }

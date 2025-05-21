@@ -49,7 +49,7 @@ in
       matchBlocks = cfg.extraHosts;
       extraConfig = ''
         # Use GPG agent for SSH
-        IdentityAgent "$(gpgconf --list-dirs agent-ssh-socket)"
+        IdentityAgent "$SSH_AUTH_SOCK"
       '';
     };
   };

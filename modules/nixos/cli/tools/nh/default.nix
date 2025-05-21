@@ -21,8 +21,7 @@ in
         enable = true;
         extraArgs = "--keep-since 7d --keep 5";
       };
-      # TODO - make reusable var
-      flake = "/home/${config.${namespace}.user.name}/.${namespace}";
+      flake = flakeDir config;
     };
 
     # to avoid evaluation warning: programs.nh.clean.enable and nix.gc.automatic are both enabled. Please use one or the other to avoid conflict.

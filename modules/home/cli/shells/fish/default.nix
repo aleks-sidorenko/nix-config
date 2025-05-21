@@ -14,18 +14,17 @@ let
 in
 {
   options.${namespace}.cli.shells.fish = with types; {
-    enable = mkBoolOpt false "enable fish shell";
+    enable = mkBoolOpt false "Enable fish shell";
   };
 
   config = mkIf cfg.enable {
-    stylix.targets.fish.enable = false;
+    stylix.targets.fish.enable = false; # TODO: why??
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
-        set -x GOPATH $XDG_DATA_HOME/go
-        set -x GOPRIVATE "git.curve.tools,go.curve.tools,gitlab.com/imaginecurve"
-        set -gx PATH /usr/local/bin /usr/bin ~/.local/bin $GOPATH/bin/ $PATH $HOME/.krew/bin
+        
+        set -gx PATH /usr/local/bin /usr/bin ~/.local/bin $PATH
 
         # fifc setup
         set -Ux fifc_editor nvim
