@@ -17,16 +17,18 @@ in
 
   ${namespace} = {
     roles = {
-      common.enable = true;
       
-      /*
+      
+      
       desktop = {
         enable = true;
+        /*
         addons = {
           hyprland = enabled;
         };
+        */
       };
-      */
+      
     };
 
     security.sops.enable = mkForce false;

@@ -50,14 +50,17 @@ in
     ${namespace} = {
       roles = {
         common.enable = true;
-        development.enable = true;
+        development.enable = false;
       };
 
       services = {
-        kdeconnect.enable = true;
+        kdeconnect.enable = false;
       };
 
-      desktops.addons.xdg.enable = true;
+          
+      browsers.firefox.enable = mkForce false;
+
+      desktops.addons.xdg.enable = false;
     };
 
     accounts = {

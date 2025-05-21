@@ -29,7 +29,11 @@ in
         networking.enable = true;
       };
 
+      cli = {
+        shells.fish.enable = true;        
+      };
 
+      styles.stylix.enable = true;
 
     };
 

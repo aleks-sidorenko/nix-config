@@ -36,15 +36,8 @@ in
         editors.nvim.enable = true;
         tools.archivers.enable = true;
       };
-
-      apps = {
-        guis.enable = true;
-        tuis.enable = true;
-      };
-
-      browsers.firefox.enable = mkForce false;
-      
       styles.stylix.enable = true;
+      
     };
     
   };

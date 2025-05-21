@@ -61,8 +61,7 @@ in
         name = "alexander";
         initialPassword = "alexander";
       };
-
-      styles.stylix.enable = true;
+      
 
     };
   };
