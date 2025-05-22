@@ -50,7 +50,7 @@ in
     ${namespace} = {
       roles = {
         common.enable = true;
-        development.enable = false;
+        development.enable = true;
       };
 
       services = {

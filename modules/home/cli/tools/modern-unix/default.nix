@@ -19,6 +19,7 @@ in
     home.packages = with pkgs; [
       broot
       choose
+      comma
       curlie
       chafa
       dogdns
@@ -49,22 +50,8 @@ in
       xcp
       yq-go
       viddy
-
       kaf
 
-      # go
-      go
-      golangci-lint
-      air
-      templ
-      sqlc
-      golines
-      gotools
-      go-task
-      go-mockery
-      gotestsum
-
-      nodejs_23
     ];
   };
 }
