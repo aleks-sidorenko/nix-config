@@ -33,7 +33,7 @@
     ];
 
     plugins = {
-      
+
       # ollama = {
       #   enable = true;
       # };

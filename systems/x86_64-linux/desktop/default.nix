@@ -17,26 +17,24 @@ in
 
   ${namespace} = {
     roles = {
-      
-      
-      
+
       desktop = {
         enable = true;
         /*
-        addons = {
-          hyprland = enabled;
-        };
+          addons = {
+            hyprland = enabled;
+          };
         */
       };
-      
+
     };
 
     security.sops.enable = mkForce false;
-    
+
     services = {
       virtualisation.kvm = enabled;
     };
-    
+
     system.impermanence = enabled;
 
   };

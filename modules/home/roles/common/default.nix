@@ -17,7 +17,7 @@ in
 
   config = lib.mkIf cfg.enable {
     ${namespace} = {
-      
+
       system = {
         nix.enable = true;
         locale.enable = true;
@@ -32,13 +32,13 @@ in
       cli = {
         terminals.foot.enable = true;
         terminals.ghostty.enable = true;
-        shells.fish.enable = true;        
+        shells.fish.enable = true;
         editors.nvim.enable = true;
         tools.archivers.enable = true;
       };
       styles.stylix.enable = true;
-      
+
     };
-    
+
   };
 }

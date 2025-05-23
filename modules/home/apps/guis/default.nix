@@ -32,9 +32,9 @@ in
       ffmpegthumbnailer # thumbnails
       nautilus-python # enable plugins
       gst_all_1.gst-libav # thumbnails
-      
+
       keymapp
-    
+
     ];
 
     xdg.configFile."com.github.johnfactotum.Foliate/themes/mocha.json".text = ''

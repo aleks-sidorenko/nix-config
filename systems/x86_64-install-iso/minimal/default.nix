@@ -2,8 +2,8 @@
 {
   ${namespace} = {
 
-    services = {
-      openssh.enable = true;
+    security = {
+      ssh.enable = true;
     };
 
     system = {
@@ -12,11 +12,20 @@
       nix.enable = true;
     };
 
+    cli = {
+      shells.fish.enable = true;
+    };
+
     user = {
       name = "nixos";
       initialPassword = "nixos";
     };
 
+  };
+
+  isoImage = {
+    isoName = "nixos-minimal";
+    forceTextMode = true;
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

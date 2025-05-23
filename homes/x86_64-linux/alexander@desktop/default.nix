@@ -10,7 +10,7 @@ with lib.${namespace};
 
   # TODO - replace with ${namespace} once this is fixed https://github.com/snowfallorg/lib/issues/142
   nix-config = {
-    roles = {      
+    roles = {
       desktop = enabled;
       # social = enabled;
     };
@@ -23,14 +23,14 @@ with lib.${namespace};
     security.sops.enable = mkForce false;
 
     /*
-    desktops = {
-      hyprland = {
-        enable = true;
-        execOnceExtras = [
-          "${pkgs.trayscale}/bin/trayscale"
-        ];
+      desktops = {
+        hyprland = {
+          enable = true;
+          execOnceExtras = [
+            "${pkgs.trayscale}/bin/trayscale"
+          ];
+        };
       };
-    };
     */
 
   };
