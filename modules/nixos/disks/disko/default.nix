@@ -10,185 +10,183 @@ with lib.${namespace};
 with types;
 let
   cfg = config.${namespace}.disks.disko;
-  
-{ lib, ... }:
 
+  subvolume = name: "@${name}";
+  blank = name: "${name}-blank";
+  encryped = name: "${name}_encrypted";
 
-  partitionType = types.submodule {
-    options = {
-      name = mkOption {
-        type = types.str;
-        description = "Partition name";
-      };
-      size = mkOption {
-        type = types.str;
-        description = "Partition size (e.g., '512M' or '100%')";
-      };
-      type = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Partition type (e.g., 'EF00' for ESP)";
-      };
-      label = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Partition label";
-      };
-      content = mkOption {
-        type = types.nullOr (types.submodule {
-          options = {
-            filesystem = mkOption {
-              type = types.nullOr (types.submodule {
-                options = {
-                  format = mkOption {
-                    type = types.str;
-                    description = "Filesystem format (e.g., 'vfat', 'btrfs')";
-                  };
-                  mountpoint = mkOption {
-                    type = types.nullOr types.str;
-                    default = null;
-                    description = "Mount point for this filesystem";
-                  };
-                  mountOptions = mkOption {
-                    type = types.listOf types.str;
-                    default = [];
-                    description = "Mount options for this filesystem";
-                  };
-                  subvolumes = mkOption {
-                    type = types.attrsOf subvolumeType;
-                    default = {};
-                    description = "Btrfs subvolumes (if using btrfs)";
-                  };
-                };
-              });
-              default = null;
-            };
-            luks = mkOption {
-              type = types.nullOr (types.submodule {
-                options = {
-                  name = mkOption {
-                    type = types.str;
-                    description = "LUKS device name";
-                  };
-                  fido2 = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Enable FIDO2 authentication";
-                  };
-                  allowDiscards = mkOption {
-                    type = types.bool;
-                    default = true;
-                    description = "Allow TRIM/discard commands";
-                  };
-                };
-              });
-              default = null;
-            };
+  mkBootPartition =
+    let
+      boot = {
+        ESP = {
+          priority = 1;
+          name = "ESP";
+          label = "boot";
+          size = "512M";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            extraArgs = [ "-nESP" ];
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = [ "defaults" ];
           };
-        });
-        default = null;
-        description = "Partition content configuration";
+        };
       };
+    in
+    boot;
+
+  mkSubvolumes = disk:
+    let
+      defaultMountOptions = [
+        "compress=zstd"
+        "noatime"
+      ];
+      
+      mkSubvolume = subvol: {
+        ${subvolume subvol.name} = {
+          mountpoint = if subvol.mountpoint != null 
+            then subvol.mountpoint
+            else "/${subvol.name}";
+          mountOptions = if (lists.length subvol.mountOptions) > 0 
+            then subvol.mountOptions 
+            else defaultMountOptions;
+        } // optionalAttrs (subvol.swapfile != null) {
+          swap.swapfile.size = subvol.swapfile.size;
+        };
+      };
+    in
+    foldl' (acc: subvol: acc // mkSubvolume subvol) {} disk.subvolumes;
+
+  mkLuksPartition = disk: {
+    encryped = {
+      size = "100%";
+      label = encryped disk.name;
+      content = {
+        type = "luks";
+        inherit (disk) name;
+        settings = {
+          allowDiscards = true;
+          crypttabExtraOpts = [
+            "fido2-device=auto"
+            "token-timeout=10"
+          ];
+        };
+        # Subvolumes must set a mountpoint in order to be mounted,
+        # unless their parent is mounted
+        content = {
+          type = "btrfs";
+          extraArgs = [
+            "-f" # force overwrite
+            "-L ${disk.name}" # label we use later on in postCreateHook
+          ];
+          # Create snapshot regardless of if impermanence is enabled
+          # This way we can enable impermanence later on if we want
+          postCreateHook =
+            let
+              subvols = lib.filterAttrs (sv: sv.createBlankSnapshot) disk.subvolumes;
+              snapshotCommands = lib.mapAttrsToList (name: _: ''                  
+                echo "Creating blank snapshot of ${subvolume name}"
+                btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
+              '') subvols;
+            in
+            optionalString (!lists.isEmpty subvols) ''
+              mkdir -p /tmp
+              MNTPOINT=$(mktemp -d)
+              mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
+              trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
+              ${concatStringsSep "\n" snapshotCommands}
+            '';
+          subvolumes = mkSubvolumes disk;
+        };
+      };
+    };
+  };
+
+  mkDisk = disk: {
+    inherit (disk) device;
+    type = "disk";
+    name = disk.name;
+    content = {
+      type = "gpt";
+      partitions = optionalAttrs disk.boot (mkBootPartition disk) // mkLuksPartition disk;
     };
   };
 
 in
 {
-  options = {
-    snowfall.disks = {
-      enable = lib.mkEnableOption "Whether to enable the snowfall disk configuration";
+  options.${namespace}.disks.disko = {
+    enable = mkEnableOption "Whether to enable the disko disk configuration";
 
-      disks = mkOption {
-        type = types.attrsOf (types.submodule {
-          options = {
-            device = mkOption {
-              type = types.str;
-              description = "The device path for the disk (e.g., '/dev/sda')";
-            };
-            partitions = mkOption {
-              type = types.listOf partitionType;
-              default = [];
-              description = "Partitions to create on this disk";
-            };
+    disks = mkOption {
+      type = attrsOf (submodule {
+        options = {
+          device = mkOption {
+            type = types.str;
+            description = "The device path for the disk (e.g., '/dev/sda')";
           };
-        });
-        default = {};
-        description = "Disks to configure, keyed by disk name";
-      };
+          name = mkOption {
+            type = types.str;
+            description = "The name of the disk";
+          };
+          boot = mkBoolOpt false "Whether this disk is a boot disk";
+          subvolumes = mkOption {
+            type = types.listOf (submodule {
+              options = {
+                name = mkOption {
+                  type = types.str;
+                  description = "Name of the subvolume (without @ prefix)";
+                };
+                mountpoint = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                  description = "Mount point for the subvolume";
+                };
+                mountOptions = mkOption {
+                  type = types.listOf types.str;
+                  default = [];
+                  description = "Mount options for the subvolume";
+                };
+                swapfile = mkOption {
+                  type = types.nullOr (submodule {
+                    options = {
+                      size = mkOption {
+                        type = types.str;
+                        description = "Size of the swapfile (e.g., '8G')";
+                      };
+                    };
+                  });
+                  default = null;
+                  description = "Swapfile configuration for this subvolume";
+                };
+                createBlankSnapshot = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Whether to create a blank snapshot of this subvolume";
+                };
+              };
+            });
+            default = [];
+            description = "List of btrfs subvolumes to create";
+          };
+        };
+      });
+      default = {};
+      description = "Disks to configure";
     };
   };
 
-  config = let
-    cfg = config.snowfall.disks;
-
-    mkContent = content:
-      if content == null then null
-      else if content.luks != null then {
-        type = "luks";
-        name = content.luks.name;
-        settings = {
-          allowDiscards = content.luks.allowDiscards;
-          crypttabExtraOpts = lib.optionals content.luks.fido2 [
-            "fido2-device=auto"
-            "token-timeout=10"
-          ];
-        };
-        content = mkContent content.filesystem;
-      }
-      else if content.filesystem != null then {
-        type = "filesystem";
-        inherit (content.filesystem) format;
-        mountpoint = content.filesystem.mountpoint;
-        mountOptions = content.filesystem.mountOptions;
-        content = if content.filesystem.subvolumes != {} then {
-          type = "btrfs";
-          extraArgs = ["-f" "-L ${content.filesystem.format}"]; # Hardcoded extraArgs
-          subvolumes = lib.mapAttrs (name: sv: {
-            inherit (sv) mountpoint;
-            mountOptions = content.filesystem.mountOptions ++ sv.mountOptions;
-          } // (lib.optionalAttrs (sv.swapfile != null) {
-            swap.swapfile.size = sv.swapfile.size;
-          })) content.filesystem.subvolumes;
-        } else null;
-      }
-      else null;
-
-  in lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = cfg.disks != {};
-        message = "At least one disk must be specified in snowfall.disks.disks";
+        assertion = cfg.disks != { };
+        message = "At least one disk must be specified";
       }
     ];
 
     disko.devices = {
-      disk = lib.mapAttrs (name: disk: {
-        inherit (disk) device;
-        type = "disk";
-        name = name;
-        content = {
-          type = "gpt";
-          partitions = lib.listToAttrs (map (part: {
-            name = part.name;
-            value = {
-              inherit (part) size type label;
-              content = mkContent part.content;
-            };
-          }) disk.partitions);
-        };
-      }) cfg.disks;
+      disk = lib.mapAttrs (name: disk: mkDisk disk) cfg.disks;
     };
 
-    fileSystems = lib.mkMerge (
-      lib.flatten (lib.mapAttrsToList (_: disk:
-        lib.concatMap (part:
-          lib.optional (part.content != null && part.content.filesystem != null && part.content.filesystem.mountpoint != null)
-            (lib.optionalAttrs (lib.hasPrefix "/persist" part.content.filesystem.mountpoint ||
-                               lib.hasPrefix "/var/log" part.content.filesystem.mountpoint) {
-              ${part.content.filesystem.mountpoint}.neededForBoot = true;
-            })
-        ) disk.partitions
-      ) cfg.disks
-    );
   };
 }
