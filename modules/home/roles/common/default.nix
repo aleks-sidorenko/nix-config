@@ -29,12 +29,13 @@ in
         sops.enable = true;
       };
 
-      cli = {
-        terminals.foot.enable = true;
+      cli = {        
         terminals.ghostty.enable = true;
         shells.fish.enable = true;
         editors.nvim.enable = true;
         tools.archivers.enable = true;
+        tools.modern-unix.enable = true;
+        tools.network-tools.enable = true;
       };
       styles.stylix.enable = true;
 

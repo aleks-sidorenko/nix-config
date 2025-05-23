@@ -49,7 +49,7 @@ in
         # virtualisation.podman.enable = true;
       };
 
-      system = {
+      disks = {
         boot = {
           hibernation.enable = true;
         };

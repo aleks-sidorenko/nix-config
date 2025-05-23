@@ -10,10 +10,10 @@ with lib;
 with lib.${namespace};
 let
 
-  cfg = config.${namespace}.system.boot;
+  cfg = config.${namespace}.disks.boot;
 in
 {
-  options.${namespace}.system.boot = with types; {
+  options.${namespace}.disks.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting.";
     secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
     device = mkOpt str "root" "The boot device name";

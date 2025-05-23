@@ -25,7 +25,7 @@ in
       };
     };
 
-    system.impermanence = enabled;
+    disks.impermanence = enabled;
 
   };
 
