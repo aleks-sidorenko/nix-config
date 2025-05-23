@@ -14,8 +14,10 @@ in
   };
 
   config = mkIf cfg.enable {
+ 
     ${namespace} = {
-      security = {
+    
+      security = {        
         ssh.enable = true;
         sops.enable = true;
       };
@@ -25,6 +27,10 @@ in
         boot.enable = true;
         locale.enable = true;
         networking.enable = true;
+      };
+
+      cli = {
+        shells.fish.enable = true;        
       };
 
       styles.stylix.enable = true;

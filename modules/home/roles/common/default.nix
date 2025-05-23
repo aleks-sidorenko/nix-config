@@ -5,6 +5,8 @@
   namespace,
   ...
 }:
+with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.roles.common;
 in
@@ -15,22 +17,10 @@ in
 
   config = lib.mkIf cfg.enable {
     ${namespace} = {
-      browsers.firefox.enable = false;
-
+      
       system = {
         nix.enable = true;
         locale.enable = true;
-      };
-
-      cli = {
-        terminals.foot.enable = true;
-        terminals.ghostty.enable = true;
-        shells.fish.enable = true;
-      };
-
-      apps = {
-        guis.enable = true;
-        tuis.enable = true;
       };
 
       security = {
@@ -38,21 +28,17 @@ in
         ssh.enable = true;
         sops.enable = true;
       };
+
+      cli = {
+        terminals.foot.enable = true;
+        terminals.ghostty.enable = true;
+        shells.fish.enable = true;        
+        editors.nvim.enable = true;
+        tools.archivers.enable = true;
+      };
       styles.stylix.enable = true;
+      
     };
-
-    # TODO: move this to a separate module like `cli/tools`
-    home.packages = with pkgs; [
-      keymapp
-
-      src-cli
-      optinix
-
-      (hiPrio parallel)
-      moreutils
-      nvtopPackages.amd
-      unzip
-      gnupg
-    ];
+    
   };
 }

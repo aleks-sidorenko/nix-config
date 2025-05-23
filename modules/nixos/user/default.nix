@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   lib,
   namespace,
   ...
@@ -24,6 +25,7 @@ in
       inherit (cfg) name initialPassword;
       home = "/home/${cfg.name}";
       group = "users";
+      shell = pkgs.fish;  # Set Fish as default shell
 
       # TODO: set in modules
       extraGroups = [
@@ -44,5 +46,6 @@ in
       useGlobalPkgs = true;
       useUserPackages = true;
     };
+
   };
 }

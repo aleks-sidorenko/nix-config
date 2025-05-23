@@ -10,9 +10,8 @@ with lib.${namespace};
 
   # TODO - replace with ${namespace} once this is fixed https://github.com/snowfallorg/lib/issues/142
   nix-config = {
-    roles = {
-      common = enabled;
-      # desktop = enabled;
+    roles = {      
+      desktop = enabled;
       # social = enabled;
     };
 
@@ -22,7 +21,7 @@ with lib.${namespace};
     };
 
     security.sops.enable = mkForce false;
-    
+
     /*
     desktops = {
       hyprland = {
