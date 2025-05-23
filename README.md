@@ -58,7 +58,7 @@ nh os switch
 nh home switch
 
 # Build ISO in result/ folder
-nix build .#install-isoConfigurations.minimal
+c
 
 # Deploy config to VM (using SSH)
 deploy .#vm --hostname vm --ssh-opts="-p 2222" --skip-checks

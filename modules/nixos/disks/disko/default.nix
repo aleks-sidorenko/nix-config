@@ -14,49 +14,44 @@ let
   subvolume = name: "@${name}";
   blank = name: "${name}-blank";
   encryped = name: "${name}_encrypted";
+  mountpoint = subvol: if subvol.mountpoint != null then subvol.mountpoint else "/${subvol.name}";
 
   mkBootPartition =
-    let
-      boot = {
-        ESP = {
-          priority = 1;
-          name = "ESP";
-          label = "boot";
-          size = "512M";
-          type = "EF00";
-          content = {
-            type = "filesystem";
-            extraArgs = [ "-nESP" ];
-            format = "vfat";
-            mountpoint = "/boot";
-            mountOptions = [ "defaults" ];
-          };
-        };
-      };
-    in
-    boot;
+    disk:
 
-  mkSubvolumes = disk:
-    let
-      defaultMountOptions = [
-        "compress=zstd"
-        "noatime"
-      ];
-      
-      mkSubvolume = subvol: {
-        ${subvolume subvol.name} = {
-          mountpoint = if subvol.mountpoint != null 
-            then subvol.mountpoint
-            else "/${subvol.name}";
-          mountOptions = if (lists.length subvol.mountOptions) > 0 
-            then subvol.mountOptions 
-            else defaultMountOptions;
-        } // optionalAttrs (subvol.swapfile != null) {
-          swap.swapfile.size = subvol.swapfile.size;
+    optionalAttrs (disk.boot != null) {
+      ESP = {
+        priority = 1;
+        name = "ESP";
+        label = "boot";
+        size = disk.boot.size;
+        type = "EF00";
+        content = {
+          type = "filesystem";
+          extraArgs = [ "-nESP" ];
+          format = "vfat";
+          mountpoint = "/boot";
+          mountOptions = [ "defaults" ];
         };
       };
+    };
+
+  mkSubvolumes =
+    disk:
+    let
+
+      mkSubvolume = subvol: {
+        ${subvolume subvol.name} =
+          {
+            mountpoint = mountpoint subvol;
+            inherit (subvol) mountOptions;
+          }
+          // optionalAttrs (subvol.swapfile != null) {
+            swap.swapfile.size = subvol.swapfile.size;
+          };
+      };
     in
-    foldl' (acc: subvol: acc // mkSubvolume subvol) {} disk.subvolumes;
+    foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.subvolumes;
 
   mkLuksPartition = disk: {
     encryped = {
@@ -84,13 +79,19 @@ let
           # This way we can enable impermanence later on if we want
           postCreateHook =
             let
-              subvols = lib.filterAttrs (sv: sv.createBlankSnapshot) disk.subvolumes;
-              snapshotCommands = lib.mapAttrsToList (name: _: ''                  
-                echo "Creating blank snapshot of ${subvolume name}"
-                btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
-              '') subvols;
+              subvols = lib.filter (sv: sv.createBlankSnapshot) disk.subvolumes;
+              snapshotCommands = map (
+                subvol:
+                let
+                  name = subvol.name;
+                in
+                ''
+                  echo "Creating blank snapshot of ${subvolume name}"
+                  btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
+                ''
+              ) subvols;
             in
-            optionalString (!lists.isEmpty subvols) ''
+            optionalString (builtins.length subvols > 0) ''
               mkdir -p /tmp
               MNTPOINT=$(mktemp -d)
               mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
@@ -109,7 +110,7 @@ let
     name = disk.name;
     content = {
       type = "gpt";
-      partitions = optionalAttrs disk.boot (mkBootPartition disk) // mkLuksPartition disk;
+      partitions = mkBootPartition disk // mkLuksPartition disk;
     };
   };
 
@@ -125,33 +126,44 @@ in
             type = types.str;
             description = "The device path for the disk (e.g., '/dev/sda')";
           };
-          name = mkOption {
-            type = types.str;
-            description = "The name of the disk";
+          boot = mkOption {
+            type = types.nullOr (submodule {
+              options = {
+                size = mkOption {
+                  type = types.str;
+                  default = "512M";
+                  description = "Size of the boot partition (e.g., '512M')";
+                };
+              };
+            });
+            default = null;
+            description = "Swapfile configuration for this subvolume";
           };
-          boot = mkBoolOpt false "Whether this disk is a boot disk";
           subvolumes = mkOption {
             type = types.listOf (submodule {
               options = {
                 name = mkOption {
-                  type = types.str;
+                  type = str;
                   description = "Name of the subvolume (without @ prefix)";
                 };
                 mountpoint = mkOption {
-                  type = types.nullOr types.str;
+                  type = nullOr str;
                   default = null;
                   description = "Mount point for the subvolume";
                 };
                 mountOptions = mkOption {
-                  type = types.listOf types.str;
-                  default = [];
+                  type = listOf types.str;
+                  default = [
+                    "compress=zstd"
+                    "noatime"
+                  ];
                   description = "Mount options for the subvolume";
                 };
                 swapfile = mkOption {
-                  type = types.nullOr (submodule {
+                  type = nullOr (submodule {
                     options = {
                       size = mkOption {
-                        type = types.str;
+                        type = str;
                         description = "Size of the swapfile (e.g., '8G')";
                       };
                     };
@@ -160,23 +172,23 @@ in
                   description = "Swapfile configuration for this subvolume";
                 };
                 createBlankSnapshot = mkOption {
-                  type = types.bool;
+                  type = bool;
                   default = false;
                   description = "Whether to create a blank snapshot of this subvolume";
                 };
                 neededForBoot = mkOption {
-                  type = types.bool;
+                  type = bool;
                   default = false;
                   description = "Whether this subvolume is needed during early boot";
                 };
               };
             });
-            default = [];
+            default = [ ];
             description = "List of btrfs subvolumes to create";
           };
         };
       });
-      default = {};
+      default = { };
       description = "Disks to configure";
     };
   };
@@ -190,17 +202,20 @@ in
     ];
 
     disko.devices = {
-      disk = lib.mapAttrs (name: disk: mkDisk disk) cfg.disks;
+      disk = lib.mapAttrs (name: disk: mkDisk (disk // { inherit name; })) cfg.disks;
     };
 
     # Set neededForBoot for all subvolumes that require it
-    fileSystems = let
-      allSubvolumes = lib.flatten (map (disk: disk.subvolumes) (builtins.attrValues cfg.disks));
-      bootSubvolumes = builtins.filter (subvol: subvol.neededForBoot && subvol.mountpoint != null) allSubvolumes;
-    in
-      lib.listToAttrs (map (subvol: {
-        name = subvol.mountpoint;
-        value.neededForBoot = true;
-      }) bootSubvolumes);
+    fileSystems =
+      let
+        allSubvolumes = lib.flatten (map (disk: disk.subvolumes) (builtins.attrValues cfg.disks));
+        bootSubvolumes = builtins.filter (subvol: subvol.neededForBoot) allSubvolumes;
+      in
+      lib.listToAttrs (
+        map (subvol: {
+          name = mountpoint subvol;
+          value.neededForBoot = true;
+        }) bootSubvolumes
+      );
   };
 }

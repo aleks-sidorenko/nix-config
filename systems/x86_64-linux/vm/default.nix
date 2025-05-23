@@ -19,9 +19,11 @@ in
     roles = {
       desktop = {
         enable = true;
-        addons = {
-          hyprland = enabled;
-        };
+        /*
+          addons = {
+            hyprland = enabled;
+          };
+        */
       };
     };
 

@@ -1,111 +1,61 @@
 {
-  # Move to reusable module
-  disko.devices = {
-    disk = {
-      root = {
-        type = "disk";
-        device = "/dev/sda";
-        name = "root";
-        content = {
-          type = "gpt";
-          partitions = {
-            ESP = {
-              priority = 1;
-              name = "ESP";
-              label = "boot";
-              size = "512M";
-              type = "EF00";
-              content = {
-                type = "filesystem";
-                extraArgs = [ "-nESP" ];
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "defaults" ];
-              };
-            };
-            encryped = {
-              size = "100%";
-              label = "root_encrypted";
-              content = {
-                type = "luks";
-                name = "root";
-                settings = {
-                  allowDiscards = true;
-                  crypttabExtraOpts = [
-                    "fido2-device=auto"
-                    "token-timeout=10"
-                  ];
-                };
-                # Subvolumes must set a mountpoint in order to be mounted,
-                # unless their parent is mounted
-                content = {
-                  type = "btrfs";
-                  extraArgs = [
-                    "-f" # force overwrite
-                    "-L root" # label we use later on in postCreateHook
-                  ];
-                  # Create snapshot regardless of if impermanence is enabled
-                  # This way we can enable impermanence later on if we want
-                  postCreateHook = ''
-                    mkdir /tmp -p
-                    MNTPOINT=$(mktemp -d)
-                    mount -t btrfs /dev/disk/by-label/root "$MNTPOINT"
-                    trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
-                    btrfs subvolume snapshot -r $MNTPOINT/@root $MNTPOINT/@root-blank
-                  '';
-                  subvolumes = {
-                    "@root" = {
-                      mountpoint = "/";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
+  pkgs,
+  lib,
+  namespace,
+  ...
+}:
+with lib;
+with lib.${namespace};
+{
 
-                    "@nix" = {
-                      mountpoint = "/nix";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@log" = {
-                      mountpoint = "/var/log";
-                      mountOptions = [
-                        "subvol=log"
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@swap" = {
-                      mountpoint = "/swap";
-                    };
-                    "@home" = {
-                      mountpoint = "/home";
-                      mountOptions = [
-                        "subvol=home"
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                    "@persist" = {
-                      mountpoint = "/persist";
-                      mountOptions = [
-                        "compress=zstd"
-                        "noatime"
-                      ];
-                    };
-                  };
-                };
-              };
-            };
+  ${namespace} = {
+    disks.disko = {
+      enable = true;
+      disks = {
+        root = {
+          device = "/dev/sda";
+          boot = {
+            size = "512M";
           };
+          subvolumes = [
+            {
+              name = "root";
+              mountpoint = "/";
+              createBlankSnapshot = true;
+            }
+            {
+              name = "swap";
+            }
+            {
+              name = "nix";
+            }
+            {
+              name = "home";
+              mountOptions = [
+                "subvol=home"
+                "compress=zstd"
+                "noatime"
+              ];
+            }
+            {
+              name = "log";
+              mountpoint = "/var/log";
+              neededForBoot = true;
+              mountOptions = [
+                "subvol=log"
+                "compress=zstd"
+                "noatime"
+              ];
+            }
+            {
+              name = "persist";
+              neededForBoot = true;
+            }
+          ];
+
         };
       };
+
     };
   };
-
-  fileSystems."/persist".neededForBoot = true;
-  fileSystems."/var/log".neededForBoot = true;
-
 }
