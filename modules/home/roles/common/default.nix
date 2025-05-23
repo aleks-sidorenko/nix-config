@@ -29,7 +29,7 @@ in
         sops.enable = true;
       };
 
-      cli = {        
+      cli = {
         terminals.ghostty.enable = true;
         shells.fish.enable = true;
         editors.nvim.enable = true;

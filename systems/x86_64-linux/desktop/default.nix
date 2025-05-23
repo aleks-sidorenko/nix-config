@@ -34,7 +34,7 @@ in
     services = {
       virtualisation.kvm = enabled;
     };
-    
+
     disks.impermanence = enabled;
 
   };

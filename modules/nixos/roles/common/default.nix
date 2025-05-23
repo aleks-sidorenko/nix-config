@@ -23,7 +23,7 @@ in
       };
 
       system = {
-        nix.enable = true;        
+        nix.enable = true;
         locale.enable = true;
         networking.enable = true;
       };
