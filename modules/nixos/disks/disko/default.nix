@@ -164,6 +164,11 @@ in
                   default = false;
                   description = "Whether to create a blank snapshot of this subvolume";
                 };
+                neededForBoot = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Whether this subvolume is needed during early boot";
+                };
               };
             });
             default = [];
@@ -188,5 +193,14 @@ in
       disk = lib.mapAttrs (name: disk: mkDisk disk) cfg.disks;
     };
 
+    # Set neededForBoot for all subvolumes that require it
+    fileSystems = let
+      allSubvolumes = lib.flatten (map (disk: disk.subvolumes) (builtins.attrValues cfg.disks));
+      bootSubvolumes = builtins.filter (subvol: subvol.neededForBoot && subvol.mountpoint != null) allSubvolumes;
+    in
+      lib.listToAttrs (map (subvol: {
+        name = subvol.mountpoint;
+        value.neededForBoot = true;
+      }) bootSubvolumes);
   };
 }
