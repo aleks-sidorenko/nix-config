@@ -164,6 +164,10 @@
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
       ];
+      # Add modules to a specific system.
+      systems.hosts."minimal".modules = with inputs; [
+        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+      ];
 
       overlays = with inputs; [
         nixgl.overlay

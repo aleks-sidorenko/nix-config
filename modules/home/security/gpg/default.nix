@@ -45,10 +45,12 @@ in
       '';
     };
 
-    
-    home.packages = with pkgs; [      
-      gnupg
-    ] ++ lib.optionals config.gtk.enable [ gcr ];
+    home.packages =
+      with pkgs;
+      [
+        gnupg
+      ]
+      ++ lib.optionals config.gtk.enable [ gcr ];
 
     programs = {
 

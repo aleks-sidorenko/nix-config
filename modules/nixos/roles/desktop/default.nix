@@ -20,17 +20,16 @@ in
         common.enable = true;
 
         /*
-        desktop.addons = {
-          nautilus.enable = false;
-        };
+          desktop.addons = {
+            nautilus.enable = false;
+          };
         */
       };
 
-
       cli = {
-        shells.fish.enable = true;        
-      
-        tools = {        
+        shells.fish.enable = true;
+
+        tools = {
           nh.enable = true;
           nix-ld.enable = true;
         };
@@ -48,20 +47,18 @@ in
         # TODO impl
         # vpn.enable = true;
         # virtualisation.podman.enable = true;
-      };      
+      };
 
       system = {
         boot = {
           hibernation.enable = true;
         };
       };
-      
 
       user = {
         name = "alexander";
         initialPassword = "alexander";
       };
-      
 
     };
   };

@@ -23,7 +23,7 @@ in
       enable = true;
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
-        
+
         set -gx PATH /usr/local/bin /usr/bin ~/.local/bin $PATH
 
         # fifc setup
@@ -201,7 +201,7 @@ in
         {
           name = "fifc";
           inherit (pkgs.fishPlugins.fifc) src;
-        }       
+        }
         {
           name = "git-abbr";
           inherit (pkgs.fishPlugins.git-abbr) src;

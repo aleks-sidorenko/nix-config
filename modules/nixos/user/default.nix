@@ -25,7 +25,7 @@ in
       inherit (cfg) name initialPassword;
       home = "/home/${cfg.name}";
       group = "users";
-      shell = pkgs.fish;  # Set Fish as default shell
+      shell = pkgs.fish; # Set Fish as default shell
 
       # TODO: set in modules
       extraGroups = [

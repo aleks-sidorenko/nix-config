@@ -57,7 +57,6 @@ in
         kdeconnect.enable = false;
       };
 
-          
       browsers.firefox.enable = mkForce false;
 
       desktops.addons.xdg.enable = false;

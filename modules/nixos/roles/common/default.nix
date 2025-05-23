@@ -14,10 +14,10 @@ in
   };
 
   config = mkIf cfg.enable {
- 
+
     ${namespace} = {
-    
-      security = {        
+
+      security = {
         ssh.enable = true;
         sops.enable = true;
       };
@@ -30,7 +30,7 @@ in
       };
 
       cli = {
-        shells.fish.enable = true;        
+        shells.fish.enable = true;
       };
 
       styles.stylix.enable = true;
