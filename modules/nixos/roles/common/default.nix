@@ -24,13 +24,17 @@ in
 
       system = {
         nix.enable = true;
-        boot.enable = true;
         locale.enable = true;
         networking.enable = true;
       };
 
       cli = {
         shells.fish.enable = true;
+      };
+
+      disks = {
+        boot.enable = true;
+        impermanence.enable = true;
       };
 
       styles.stylix.enable = true;

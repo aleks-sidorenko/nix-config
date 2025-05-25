@@ -8,7 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.networking;
-  impermanenceCfg = config.${namespace}.system.impermanence;
+  impermanenceCfg = config.${namespace}.disks.impermanence;
 in
 {
   options.${namespace}.system.networking = with types; {

@@ -9,11 +9,11 @@ let
   inherit (lib) mkIf;
   inherit (lib.${namespace}) mkBoolOpt;
 
-  cfg = config.${namespace}.system.boot.hibernation;
-  device = config.${namespace}.system.boot.device;
+  cfg = config.${namespace}.disks.boot.hibernation;
+  device = config.${namespace}.disks.boot.device;
 in
 {
-  options.${namespace}.system.boot.hibernation = {
+  options.${namespace}.disks.boot.hibernation = {
     enable = mkBoolOpt false "Whether or not to enable hibernation.";
   };
 

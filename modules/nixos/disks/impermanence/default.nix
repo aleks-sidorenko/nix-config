@@ -8,7 +8,7 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.system.impermanence;
+  cfg = config.${namespace}.disks.impermanence;
   device = cfg.bootDevice;
   wipeScript = ''
     mkdir /tmp -p
@@ -31,9 +31,9 @@ let
 
 in
 {
-  options.${namespace}.system.impermanence = with types; {
+  options.${namespace}.disks.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
-    bootDevice = mkOpt str config.${namespace}.system.boot.device "The boot device to use";
+    bootDevice = mkOpt str config.${namespace}.disks.boot.device "The boot device to use";
   };
 
   config = mkIf cfg.enable {

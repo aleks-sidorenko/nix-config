@@ -19,7 +19,6 @@ in
     home.packages = with pkgs; [
       broot
       choose
-      comma
       curlie
       chafa
       dogdns
