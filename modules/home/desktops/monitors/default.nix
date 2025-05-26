@@ -56,15 +56,15 @@ in
           };
         }
       );
-      default = [];
+      default = [ ];
       description = "List of monitor devices to configure";
     };
   };
-  
+
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = 
+        assertion =
           ((lib.length cfg.devices) != 0) -> ((lib.length (lib.filter (m: m.primary) cfg.devices)) == 1);
         message = "Exactly one monitor must be set to primary.";
       }

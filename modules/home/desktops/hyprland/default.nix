@@ -11,6 +11,7 @@ let
   cfg = config.${namespace}.desktops.hyprland;
 in
 {
+  # TODO - refactor desktops, have common with shared addons and move hyprland specific addons to hyprland module
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.desktops.hyprland = with types; {

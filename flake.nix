@@ -92,11 +92,7 @@
       flake = false;
     };
 
-    firefox-gnome-theme = {
-      url = "github:rafaelmardojai/firefox-gnome-theme";
-      flake = false;
-    };
-
+    
     stylix.url = "github:danth/stylix";
     catppuccin.url = "github:catppuccin/nix";
 
@@ -132,6 +128,12 @@
     plugins-maximize-nvim = {
       url = "github:declancm/maximize.nvim";
       flake = false;
+    };
+
+    # firefox
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 

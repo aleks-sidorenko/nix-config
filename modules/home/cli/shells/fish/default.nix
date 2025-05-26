@@ -18,7 +18,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    stylix.targets.fish.enable = false; # TODO: why??
+    stylix.targets.fish.enable = true;
     programs.fish = {
       enable = true;
       interactiveShellInit = ''

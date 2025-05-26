@@ -10,14 +10,163 @@
 with lib;
 let
   cfg = config.${namespace}.browsers.firefox;
+  profileName = config.home.username or "default";
 in
 {
   options.${namespace}.browsers.firefox = {
     enable = mkEnableOption "enable firefox browser";
   };
 
-  config = mkIf cfg.enable {
-    home.file.".mozilla/firefox/default/chrome/firefox-gnome-theme".source = inputs.firefox-gnome-theme;
+  config = mkIf cfg.enable {    
+    stylix.targets.firefox = {
+      enable = true; 
+      profileNames = [ profileName ];
+    };
+    
+    programs.browserpass.enable = true;
+    programs.firefox = {
+      enable = true;
+      profiles.${profileName} = {
+        search = {
+          force = true;
+          default = "kagi";
+          privateDefault = "ddg";
+          order = [
+            "kagi"
+            "ddg"
+            "google"
+          ];
+          engines = {
+            kagi = {
+              name = "Kagi";
+              urls = [ { template = "https://kagi.com/search?q={searchTerms}"; } ];
+              icon = "https://kagi.com/favicon.ico";
+            };
+            bing.metaData.hidden = true;
+          };
+        };
+        bookmarks = { };
+        #extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
+          #ublock-origin
+          #browserpass
+        #];
+        bookmarks = { };
+        settings = {
+          "browser.startup.homepage" = "about:home";
+
+          # Disable irritating first-run stuff
+          "browser.disableResetPrompt" = true;
+          "browser.download.panel.shown" = true;
+          "browser.feeds.showFirstRunUI" = false;
+          "browser.messaging-system.whatsNewPanel.enabled" = false;
+          "browser.rights.3.shown" = true;
+          "browser.shell.checkDefaultBrowser" = false;
+          "browser.shell.defaultBrowserCheckCount" = 1;
+          "browser.startup.homepage_override.mstone" = "ignore";
+          "browser.uitour.enabled" = false;
+          "startup.homepage_override_url" = "";
+          "trailhead.firstrun.didSeeAboutWelcome" = true;
+          "browser.bookmarks.restore_default_bookmarks" = false;
+          "browser.bookmarks.addedImportButton" = true;
+
+          # Don't ask for download dir
+          "browser.download.useDownloadDir" = false;
+
+          # Disable crappy home activity stream page
+          "browser.newtabpage.activity-stream.feeds.topsites" = false;
+          "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
+          "browser.newtabpage.activity-stream.improvesearch.topSiteSearchShortcuts" = false;
+          "browser.newtabpage.blocked" = lib.genAttrs [
+            # Youtube
+            "26UbzFJ7qT9/4DhodHKA1Q=="
+            # Facebook
+            "4gPpjkxgZzXPVtuEoAL9Ig=="
+            # Wikipedia
+            "eV8/WsSLxHadrTL1gAxhug=="
+            # Reddit
+            "gLv0ja2RYVgxKdp0I5qwvA=="
+            # Amazon
+            "K00ILysCaEq8+bEqV/3nuw=="
+            # Twitter
+            "T9nJot5PurhJSy8n038xGA=="
+          ] (_: 1);
+
+          # Disable some telemetry
+          "app.shield.optoutstudies.enabled" = false;
+          "browser.discovery.enabled" = false;
+          "browser.newtabpage.activity-stream.feeds.telemetry" = false;
+          "browser.newtabpage.activity-stream.telemetry" = false;
+          "browser.ping-centre.telemetry" = false;
+          "datareporting.healthreport.service.enabled" = false;
+          "datareporting.healthreport.uploadEnabled" = false;
+          "datareporting.policy.dataSubmissionEnabled" = false;
+          "datareporting.sessions.current.clean" = true;
+          "devtools.onboarding.telemetry.logged" = false;
+          "toolkit.telemetry.archive.enabled" = false;
+          "toolkit.telemetry.bhrPing.enabled" = false;
+          "toolkit.telemetry.enabled" = false;
+          "toolkit.telemetry.firstShutdownPing.enabled" = false;
+          "toolkit.telemetry.hybridContent.enabled" = false;
+          "toolkit.telemetry.newProfilePing.enabled" = false;
+          "toolkit.telemetry.prompted" = 2;
+          "toolkit.telemetry.rejected" = true;
+          "toolkit.telemetry.reportingpolicy.firstRun" = false;
+          "toolkit.telemetry.server" = "";
+          "toolkit.telemetry.shutdownPingSender.enabled" = false;
+          "toolkit.telemetry.unified" = false;
+          "toolkit.telemetry.unifiedIsOptIn" = false;
+          "toolkit.telemetry.updatePing.enabled" = false;
+
+          # Disable fx accounts
+          "identity.fxaccounts.enabled" = false;
+          # Disable "save password" prompt
+          "signon.rememberSignons" = false;
+          # Harden
+          "privacy.trackingprotection.enabled" = true;
+          "dom.security.https_only_mode" = true;
+          # Layout
+          "browser.uiCustomization.state" = builtins.toJSON {
+            currentVersion = 20;
+            newElementCount = 5;
+            dirtyAreaCache = [
+              "nav-bar"
+              "PersonalToolbar"
+              "toolbar-menubar"
+              "TabsToolbar"
+              "widget-overflow-fixed-list"
+            ];
+            placements = {
+              PersonalToolbar = [ "personal-bookmarks" ];
+              TabsToolbar = [
+                "tabbrowser-tabs"
+                "new-tab-button"
+                "alltabs-button"
+              ];
+              nav-bar = [
+                "back-button"
+                "forward-button"
+                "stop-reload-button"
+                "urlbar-container"
+                "downloads-button"
+                "ublock0_raymondhill_net-browser-action"
+                "_testpilot-containers-browser-action"
+                "reset-pbm-toolbar-button"
+                "unified-extensions-button"
+              ];
+              toolbar-menubar = [ "menubar-items" ];
+              unified-extensions-area = [ ];
+              widget-overflow-fixed-list = [ ];
+            };
+            seen = [
+              "save-to-pocket-button"
+              "developer-button"
+              "ublock0_raymondhill_net-browser-action"
+              "_testpilot-containers-browser-action"
+            ];
+          };
+        };
+      };
+    };
 
     xdg.mimeApps.defaultApplications = {
       "text/html" = [ "firefox.desktop" ];
@@ -25,286 +174,6 @@ in
       "x-scheme-handler/http" = [ "firefox.desktop" ];
       "x-scheme-handler/https" = [ "firefox.desktop" ];
     };
-
-    programs.firefox = {
-      enable = true;
-      profiles.default = {
-        name = "Default";
-        extraConfig = ''
-          ${builtins.readFile "${inputs.firefox-gnome-theme}/configuration/user.js"}
-        '';
-
-        extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
-          bitwarden
-          enhancer-for-youtube
-          languagetool
-          old-reddit-redirect
-          private-relay
-          return-youtube-dislikes
-          reddit-enhancement-suite
-          tab-stash
-          stylus
-          ublock-origin
-          vimium
-        ];
-
-        settings = {
-          "browser.uidensity" = 0;
-          "gnomeTheme.activeTabContrast" = true;
-          "gnomeTheme.hideSingleTab" = false;
-          "gnomeTheme.hideWebrtcIndicator" = true;
-          "gnomeTheme.systemIcons" = true;
-          "gnomeTheme.spinner" = true;
-          "layers.acceleration.force-enabled" = true;
-          "identity.fxaccounts.account.device.name" = "${config.home.username}@${host}";
-          "browser.urlbar.oneOffSearches" = false;
-          "browser.search.hiddenOneOffs" = "Google,Yahoo,Bing,Amazon.com,Twitter,Wikipedia (en),YouTube,eBay";
-          "extensions.pocket.enabled" = false;
-          "browser.urlbar.suggest.engines" = false;
-          "browser.urlbar.suggest.openpage" = false;
-          "browser.urlbar.suggest.bookmark" = false;
-          "browser.urlbar.suggest.addons" = false;
-          "browser.urlbar.suggest.pocket" = false;
-          "browser.urlbar.suggest.topsites" = false;
-        };
-        # search = {
-        #   force = true;
-        #   default = "Kagi";
-        #   order = ["Kagi" "Youtube" "NixOS Options" "Nix Packages" "GitHub" "HackerNews"];
-        #
-        #   engines = {
-        #     "Bing".metaData.hidden = true;
-        #     "eBay".metaData.hidden = true;
-        #     "DuckDuckGo".metaData.hidden = true;
-        #     "Amazon.com".metaData.hidden = true;
-        #     "Wikipedia (en)".metaData.hidden = true;
-        #     "YouTube".metaata.hidden = true;
-        #     # "Kagi".metaData.hidden = true;
-        #     # "Nix Packages".metaData.hidden = true;
-        #     # "NixOS Options".metaData.hidden = true;
-        #     # "Home Manager".metaData.hidden = true;
-        #     # "SourceGraph".metaData.hidden = true;
-        #     # "GitHub".metaData.hidden = true;
-        #
-        #     "Kagi" = {
-        #       urls = [
-        #         {
-        #           template = "https://kagi.com/search";
-        #           params = [
-        #             {
-        #               name = "q";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "YouTube" = {
-        #       iconUpdateURL = "https://youtube.com/favicon.ico";
-        #       updateInterval = 24 * 60 * 60 * 1000;
-        #       definedAliases = ["@yt"];
-        #       urls = [
-        #         {
-        #           template = "https://www.youtube.com/results";
-        #           params = [
-        #             {
-        #               name = "search_query";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "Nix Packages" = {
-        #       icon = "https://nixos.org/_astro/flake-blue.Bf2X2kC4_Z1yqDoT.svg";
-        #       definedAliases = ["@np"];
-        #       urls = [
-        #         {
-        #           template = "https://search.nixos.org/packages";
-        #           params = [
-        #             {
-        #               name = "type";
-        #               value = "packages";
-        #             }
-        #             {
-        #               name = "query";
-        #               value = "{searchTerms}";
-        #             }
-        #             {
-        #               name = "channel";
-        #               value = "unstable";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "NixOS Options" = {
-        #       icon = "https://nixos.org/_astro/flake-blue.Bf2X2kC4_Z1yqDoT.svg";
-        #       definedAliases = ["@no"];
-        #       urls = [
-        #         {
-        #           template = "https://search.nixos.org/options";
-        #           params = [
-        #             {
-        #               name = "channel";
-        #               value = "unstable";
-        #             }
-        #             {
-        #               name = "query";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "SourceGraph" = {
-        #       iconUpdateURL = "https://sourcegraph.com/.assets/img/sourcegraph-mark.svg";
-        #       definedAliases = ["@sg"];
-        #
-        #       urls = [
-        #         {
-        #           template = "https://sourcegraph.com/search";
-        #           params = [
-        #             {
-        #               name = "q";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "GitHub" = {
-        #       iconUpdateURL = "https://github.com/favicon.ico";
-        #       updateInterval = 24 * 60 * 60 * 1000;
-        #       definedAliases = ["@gh"];
-        #
-        #       urls = [
-        #         {
-        #           template = "https://github.com/search";
-        #           params = [
-        #             {
-        #               name = "q";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #
-        #     "Home Manager" = {
-        #       # icon = "https://nixos.org/_astro/flake-blue.Bf2X2kC4_Z1yqDoT.svg";
-        #       definedAliases = ["@hm"];
-        #
-        #       url = [
-        #         {
-        #           template = "https://mipmip.github.io/home-manager-option-search/";
-        #           params = [
-        #             {
-        #               name = "query";
-        #               value = "{searchTerms}";
-        #             }
-        #           ];
-        #         }
-        #       ];
-        #     };
-        #   };
-        # };
-
-        userChrome = ''
-          @import "firefox-gnome-theme/userChrome.css";
-
-          :root {{
-          --gnome-browser-before-load-background:        rgb(30, 30, 46)};
-          --gnome-accent-bg:                             rgb(137, 180, 250);
-          --gnome-accent:                                rgb(116, 199, 236);
-          --gnome-toolbar-background:                    rgb(30, 30, 46);
-          --gnome-toolbar-color:                         rgb(205, 214, 244);
-          --gnome-toolbar-icon-fill:                     rgb(205, 214, 244);
-          --gnome-inactive-toolbar-color:                rgb(30, 30, 46);
-          --gnome-inactive-toolbar-border-color:         rgb(49, 50, 68);
-          --gnome-inactive-toolbar-icon-fill:            rgb(205, 214, 244);
-          --gnome-menu-background:                       rgb(24, 24, 37);
-          --gnome-headerbar-background:                  rgb(17, 17, 27);
-          --gnome-button-destructive-action-background:  rgb(237, 135, 150);
-          --gnome-entry-color:                           rgb(205, 214, 244);
-          --gnome-inactive-entry-color:                  rgb(205, 214, 244);
-          --gnome-switch-slider-background:              rgb(24, 24, 37);
-          --gnome-switch-active-slider-background:       rgb(116, 199, 236);
-          --gnome-inactive-tabbar-tab-background:        rgb(30, 30, 46);
-          --gnome-inactive-tabbar-tab-active-background: rgba(255,255,255,0.025);
-          --gnome-tabbar-tab-background:                 rgb(30, 30, 46);
-          --gnome-tabbar-tab-hover-background:           rgba(255,255,255,0.025);
-          --gnome-tabbar-tab-active-background:          rgba(255,255,255,0.075);
-          --gnome-tabbar-tab-active-hover-background:    rgba(255,255,255,0.100);
-          --gnome-tabbar-tab-active-background-contrast: rgba(255,255,255,0.125);
-          }}
-
-          @-moz-document url-prefix(about:home), url-prefix(about:newtab) {{
-          body{{
-          --newtab-background-color: #2A2A2E!important;
-          --newtab-border-primary-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-border-secondary-color: rgba(249, 249, 250, 0.1)!important;
-          --newtab-button-primary-color: #0060DF!important;
-          --newtab-button-secondary-color: #38383D!important;
-          --newtab-element-active-color: rgba(249, 249, 250, 0.2)!important;
-          --newtab-element-hover-color: rgba(249, 249, 250, 0.1)!important;
-          --newtab-icon-primary-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-icon-secondary-color: rgba(249, 249, 250, 0.4)!important;
-          --newtab-icon-tertiary-color: rgba(249, 249, 250, 0.4)!important;
-          --newtab-inner-box-shadow-color: rgba(249, 249, 250, 0.2)!important;
-          --newtab-link-primary-color: var(--gnome-accent)!important;
-          --newtab-link-secondary-color: #50BCB6!important;
-          --newtab-text-conditional-color: #F9F9FA!important;
-          --newtab-text-primary-color: var(--gnome-accent)!important;
-          --newtab-text-secondary-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-textbox-background-color: var(--gnome-toolbar-background)!important;
-          --newtab-textbox-border: var(--gnome-inactive-toolbar-border-color)!important;
-          --newtab-textbox-focus-color: #45A1FF!important;
-          --newtab-textbox-focus-boxshadow: 0 0 0 1px #45A1FF, 0 0 0 4px rgba(69, 161, 255, 0.3)!important;
-          --newtab-feed-button-background: #38383D!important;
-          --newtab-feed-button-text: #F9F9FA!important;
-          --newtab-feed-button-background-faded: rgba(56, 56, 61, 0.6)!important;
-          --newtab-feed-button-text-faded: rgba(249, 249, 250, 0)!important;
-          --newtab-feed-button-spinner: #D7D7DB!important;
-          --newtab-contextmenu-background-color: #4A4A4F!important;
-          --newtab-contextmenu-button-color: #2A2A2E!important;
-          --newtab-modal-color: #2A2A2E!important;
-          --newtab-overlay-color: rgba(12, 12, 13, 0.8)!important;
-          --newtab-section-header-text-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-section-navigation-text-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-section-active-contextmenu-color: #FFF!important;
-          --newtab-search-border-color: rgba(249, 249, 250, 0.2)!important;
-          --newtab-search-dropdown-color: #38383D!important;
-          --newtab-search-dropdown-header-color: #4A4A4F!important;
-          --newtab-search-header-background-color: rgba(42, 42, 46, 0.95)!important;
-          --newtab-search-icon-color: rgba(249, 249, 250, 0.6)!important;
-          --newtab-search-wordmark-color: #FFF!important;
-          --newtab-topsites-background-color: #38383D!important;
-          --newtab-topsites-icon-shadow: none!important;
-          --newtab-topsites-label-color: rgba(249, 249, 250, 0.8)!important;
-          --newtab-card-active-outline-color: var(--gnome-toolbar-icon-fill)!important;
-          --newtab-card-background-color: var(--gnome-toolbar-background)!important;
-          --newtab-card-hairline-color: rgba(249, 249, 250, 0.1)!important;
-          --newtab-card-placeholder-color: #4A4A4F!important;
-          --newtab-card-shadow: 0 1px 8px 0 rgba(12, 12, 13, 0.2)!important;
-          --newtab-snippets-background-color: #38383D!important;
-          --newtab-snippets-hairline-color: rgba(255, 255, 255, 0.1)!important;
-          --trailhead-header-text-color: rgba(255, 255, 255, 0.6)!important;
-          --trailhead-cards-background-color: rgba(12, 12, 13, 0.1)!important;
-          --trailhead-card-button-background-color: rgba(12, 12, 13, 0.3)!important;
-          --trailhead-card-button-background-hover-color: rgba(12, 12, 13, 0.5)!important;
-          --trailhead-card-button-background-active-color: rgba(12, 12, 13, 0.7)!important;
-        '';
-
-        userContent = ''
-          @import "firefox-gnome-theme/userContent.css;
-        '';
-      };
-    };
   };
+
 }

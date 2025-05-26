@@ -16,7 +16,6 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      trayscale
 
       foliate
       pavucontrol
