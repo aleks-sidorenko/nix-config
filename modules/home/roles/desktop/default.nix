@@ -57,9 +57,20 @@ in
         kdeconnect.enable = false;
       };
 
-      browsers.firefox.enable = mkForce false;
+      
 
-      desktops.addons.xdg.enable = false;
+      desktops {
+        hyprland = {
+          enable = true;
+          execOnceExtras = [
+            "${pkgs.trayscale}/bin/trayscale"
+          ];
+        };
+
+        addons.xdg.enable = false;
+      };
+
+      browsers.firefox.enable = mkForce false;
     };
 
     accounts = {

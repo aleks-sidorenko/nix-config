@@ -19,11 +19,6 @@ in
       roles = {
         common.enable = true;
 
-        /*
-          desktop.addons = {
-            nautilus.enable = false;
-          };
-        */
       };
 
       cli = {
@@ -33,6 +28,11 @@ in
           nix-ld.enable = true;
         };
       };
+
+      desktops = {
+        hyprland.enable = true;
+      };
+
 
       hardware = {
         audio.enable = true;

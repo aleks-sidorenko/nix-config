@@ -12,7 +12,6 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
-      # social = enabled;
     };
 
     user = {
@@ -24,10 +23,7 @@ with lib.${namespace};
 
     desktops = {
       hyprland = {
-        enable = true;
-        execOnceExtras = [
-          "${pkgs.trayscale}/bin/trayscale"
-        ];
+        enable = mkForce false; // TODO - enable once fixed        
       };
     };
 

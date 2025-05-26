@@ -9,15 +9,15 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.desktop.addons.xdg-portal;
+  cfg = config.${namespace}.desktops.addons.xdg-portal;
 in
 {
-  options.${namespace}.roles.desktop.addons.xdg-portal = with types; {
+  options.${namespace}.desktops.addons.xdg-portal = with types; {
     enable = mkBoolOpt false "Whether or not to add support for xdg portal.";
   };
 
   config = mkIf cfg.enable {
-    # TODO: move to homes
+    # TODO: move to home module
     xdg = {
       autostart.enable = true;
       portal = {

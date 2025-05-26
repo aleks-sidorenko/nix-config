@@ -8,16 +8,16 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.desktop.addons.gnome;
+  cfg = config.${namespace}.desktops.gnome;
 in
 {
-  options.${namespace}.roles.desktop.addons.gnome = with types; {
+  options.${namespace}.desktops.gnome = with types; {
     enable = mkBoolOpt false "Enable or disable the gnome DE.";
   };
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      roles.desktop.addons.nautilus.enable = true;
+      desktops.addons.nautilus.enable = true;
     };
 
     services = {

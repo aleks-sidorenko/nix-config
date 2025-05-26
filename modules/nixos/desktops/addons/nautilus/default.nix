@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.desktop.addons.nautilus;
+  cfg = config.${namespace}.desktops.addons.nautilus;
 in
 {
-  options.${namespace}.roles.desktop.addons.nautilus = with types; {
+  options.${namespace}.desktops.addons.nautilus = with types; {
     enable = mkBoolOpt false "Whether to enable the gnome file manager.";
   };
 
@@ -52,7 +52,8 @@ in
           remember-recent-files = false;
         };
         "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-          terminal = "kitty";
+          terminal = "ghostty";
+          new-tab = true;
         };
       };
     };
