@@ -23,15 +23,11 @@ in
 
     };
 
-    desktops.hyprland.enable = mkForce false; # TODO - enable once fixed
-
     security.sops.enable = mkForce false;
 
     services = {
       virtualisation.kvm = enabled;
     };
-
-    disks.impermanence = enabled;
 
   };
 

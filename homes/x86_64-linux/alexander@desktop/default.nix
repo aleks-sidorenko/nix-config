@@ -21,12 +21,7 @@ with lib.${namespace};
     };
 
     security.sops.enable = mkForce false;
-
-    desktops = {
-      hyprland = {
-        enable = mkForce false; # TODO - enable once fixed
-      };
-    };
+    
 
   };
 
