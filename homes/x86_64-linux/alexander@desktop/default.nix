@@ -22,7 +22,7 @@ with lib.${namespace};
 
     security.sops.enable = mkForce false;
 
-    /*
+    
       desktops = {
         hyprland = {
           enable = true;
@@ -31,7 +31,7 @@ with lib.${namespace};
           ];
         };
       };
-    */
+    
 
   };
 
