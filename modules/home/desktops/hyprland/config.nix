@@ -6,9 +6,17 @@
   ...
 }:
 with lib;
+#with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.hyprland;
   inherit (config.lib.stylix) colors;
+
+  monitors =
+    let
+      cfg = config.${namespace}.desktops.monitors;
+    in
+    lib.optionals cfg.enable cfg.devices;
+
 in
 {
   config = mkIf cfg.enable {
@@ -48,7 +56,21 @@ in
             force_default_wallpaper = 0;
           };
 
-        source = [ "${config.home.homeDirectory}/.config/hypr/monitors.conf" ];
+        monitor = (
+          map (
+            m:
+            "${m.name},${
+              if m.enabled then
+                "${toString m.width}x${toString m.height}@${toString m.refreshRate},${m.position},${m.scale}"
+              else
+                "disable"
+            }"
+          ) monitors
+        );
+
+        workspace = map (m: "name:${m.workspace},monitor:${m.name}") (
+          filter (m: m.enabled && m.workspace != null) monitors
+        );
 
         exec-once = [
           "dbus-update-activation-environment --systemd --all"
