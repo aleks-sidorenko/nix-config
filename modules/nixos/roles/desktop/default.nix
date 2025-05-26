@@ -22,7 +22,7 @@ in
       };
 
       cli = {
-        
+
         tools = {
           nh.enable = true;
           nix-ld.enable = true;
@@ -32,7 +32,6 @@ in
       desktops = {
         hyprland.enable = true;
       };
-
 
       hardware = {
         audio.enable = true;

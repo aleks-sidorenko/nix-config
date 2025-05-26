@@ -18,12 +18,12 @@ in
   ${namespace} = {
     roles = {
       desktop = {
-        enable = true;        
+        enable = true;
       };
 
     };
 
-    desktops.hyprland.enable = mkForce false; // TODO - enable once fixed
+    desktops.hyprland.enable = mkForce false; # TODO - enable once fixed
 
     security.sops.enable = mkForce false;
 

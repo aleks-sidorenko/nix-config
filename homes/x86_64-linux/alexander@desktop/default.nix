@@ -5,6 +5,7 @@
   namespace,
   ...
 }:
+with lib;
 with lib.${namespace};
 {
 
@@ -23,7 +24,7 @@ with lib.${namespace};
 
     desktops = {
       hyprland = {
-        enable = mkForce false; // TODO - enable once fixed        
+        enable = mkForce false; # TODO - enable once fixed
       };
     };
 

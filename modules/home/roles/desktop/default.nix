@@ -57,9 +57,7 @@ in
         kdeconnect.enable = false;
       };
 
-      
-
-      desktops {
+      desktops = {
         hyprland = {
           enable = true;
           execOnceExtras = [
