@@ -14,7 +14,7 @@ in
     enable = mkBoolOpt false "Enable SSH";
     authorizedKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (lib.fileContents ../../../home/security/ssh/id_ed25519.pub) ];
+      default = [ (builtins.readFile ../../../home/security/ssh/id_ed25519.pub) ];
       description = "List of SSH public keys to authorize";
     };
   };

@@ -8,6 +8,8 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
+  
+  publicKey = "id_ed25519.pub";
 in
 {
   options.${namespace}.security.ssh = with types; {
@@ -23,6 +25,7 @@ in
             };
             identityFile = lib.mkOption {
               type = lib.types.str;
+              default = "~/${sshDir}/${keyName}";
               description = "The path to the identity file for the SSH host.";
             };
           };
@@ -34,7 +37,7 @@ in
         {
           "gitlab-personal" = {
             hostname = "gitlab.com";
-            identityFile = "~/.ssh/id_ed25519";
+            identityFile = "~/${sshDir}/${keyName}";
           };
         }
       '';
@@ -52,5 +55,7 @@ in
         IdentityAgent "$SSH_AUTH_SOCK"
       '';
     };
+    
+    home.file.".ssh/${publicKey}".source = ./${publicKey};
   };
 }
