@@ -22,16 +22,14 @@ with lib.${namespace};
 
     security.sops.enable = mkForce false;
 
-    
-      desktops = {
-        hyprland = {
-          enable = true;
-          execOnceExtras = [
-            "${pkgs.trayscale}/bin/trayscale"
-          ];
-        };
+    desktops = {
+      hyprland = {
+        enable = true;
+        execOnceExtras = [
+          "${pkgs.trayscale}/bin/trayscale"
+        ];
       };
-    
+    };
 
   };
 

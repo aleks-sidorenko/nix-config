@@ -27,8 +27,7 @@ in
       };
 
       cli = {
-        shells.fish.enable = true;
-
+        
         tools = {
           nh.enable = true;
           nix-ld.enable = true;

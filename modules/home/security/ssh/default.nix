@@ -8,7 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
-  
+
   publicKey = "id_ed25519.pub";
 in
 {
@@ -55,7 +55,7 @@ in
         IdentityAgent "$SSH_AUTH_SOCK"
       '';
     };
-    
+
     home.file.".ssh/${publicKey}".source = ./${publicKey};
   };
 }
