@@ -19,7 +19,7 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       services.kdeconnect.enable = lib.mkForce false;
-      desktops.addons = {
+      desktops.gnome.addons = {
         gnome.enable = true;
       };
     };

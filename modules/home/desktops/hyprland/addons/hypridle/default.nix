@@ -7,10 +7,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.desktops.addons.hypridle;
+  cfg = config.${namespace}.desktops.hyprland.addons.hypridle;
 in
 {
-  options.${namespace}.desktops.addons.hypridle = with types; {
+  options.${namespace}.desktops.hyprland.addons.hypridle = with types; {
     enable = mkBoolOpt false "Whether to enable the hypridle";
   };
 

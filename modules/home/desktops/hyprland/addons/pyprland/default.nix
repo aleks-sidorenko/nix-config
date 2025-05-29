@@ -7,10 +7,10 @@
 }:
 with lib;
 let
-  cfg = config.${namespace}.desktops.addons.pyprland;
+  cfg = config.${namespace}.desktops.hyprland.addons.pyprland;
 in
 {
-  options.${namespace}.desktops.addons.pyprland = {
+  options.${namespace}.desktops.hyprland.addons.pyprland = {
     enable = mkEnableOption "Enable pyprland plugins for hyprland";
   };
 

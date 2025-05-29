@@ -6,10 +6,10 @@
 }:
 with lib;
 let
-  cfg = config.${namespace}.desktops.addons.gnome;
+  cfg = config.${namespace}.desktops.gnome.addons.gnome;
 in
 {
-  options.${namespace}.desktops.addons.gnome = {
+  options.${namespace}.desktops.gnome.addons.gnome = {
     enable = mkEnableOption "enable gnome extras to work with home-manager";
   };
 

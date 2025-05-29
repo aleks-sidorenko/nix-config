@@ -17,12 +17,12 @@ in
     enable = mkEnableOption "enable firefox browser";
   };
 
-  config = mkIf cfg.enable {    
+  config = mkIf cfg.enable {
     stylix.targets.firefox = {
-      enable = true; 
+      enable = true;
       profileNames = [ profileName ];
     };
-    
+
     programs.browserpass.enable = true;
     programs.firefox = {
       enable = true;
@@ -47,8 +47,8 @@ in
         };
         bookmarks = { };
         #extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
-          #ublock-origin
-          #browserpass
+        #ublock-origin
+        #browserpass
         #];
         bookmarks = { };
         settings = {

@@ -26,5 +26,37 @@
     };
   };
 
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  # Enable NVIDIA drivers
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware = {
+    nvidia = {
+      # Modesetting is required for Wayland
+      modesetting.enable = true;
+
+      # Enable power management (will impact performance but better battery life)
+      powerManagement.enable = true;
+
+      # Enable the proprietary NVIDIA drivers
+      package = config.boot.kernelPackages.nvidiaPackages.stable;
+
+      # Enable DRM kernel mode setting
+      open = true;
+
+      # Prime configuration for laptops with hybrid graphics
+      prime = {
+        offload.enable = false; # Set to true if you want to use NVIDIA Prime render offloading
+        # If you have a laptop with hybrid graphics, uncomment and adjust these:
+        # intelBusId = "PCI:0:2:0";
+        # nvidiaBusId = "PCI:1:0:0";
+      };
+    };
+
+    # Enable OpenGL
+    opengl = {
+      enable = true;
+    };
+
+    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  };
 }
