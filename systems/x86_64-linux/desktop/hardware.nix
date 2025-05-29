@@ -37,8 +37,8 @@
       # Enable power management (will impact performance but better battery life)
       powerManagement.enable = true;
 
-      # Enable the proprietary NVIDIA drivers
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      # Enable the proprietary NVIDIA drivers (legacy 390 version)
+      package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
 
       # Enable DRM kernel mode setting
       open = true;
