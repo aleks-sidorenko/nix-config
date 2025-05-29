@@ -26,19 +26,20 @@ with lib.${namespace};
       enable = true;
       devices = [
         {
+          name = "HDMI-A-1";
+          width = 1920;
+          height = 1080;
+          primary = true;
+          workspace = "2";
+        }
+        {
           name = "DVI-I-1";
           width = 1920;
           height = 1080;
           workspace = "1";
-          primary = true;
+          position = "auto-right";          
         }
-        {
-          name = "HDMI-A-1";
-          width = 1920;
-          height = 1080;
-          position = "auto-right";
-          workspace = "2";
-        }
+        
       ];
 
     };
