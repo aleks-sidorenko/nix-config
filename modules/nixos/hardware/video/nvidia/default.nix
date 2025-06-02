@@ -29,8 +29,11 @@ in
         # Power management (may help with stability)
         powerManagement.enable = true;
 
+        # Enable DRM KMS and configure memory management
         nvidiaSettings = true;
+        forceFullCompositionPipeline = true;
         open = false; # Use proprietary driver
+        powerManagement.finegrained = false; # Disable fine-grained power management for legacy driver        
       };
     };
 
@@ -40,13 +43,26 @@ in
       blacklistedKernelModules = ["nouveau"];
       
       # Ensure NVIDIA modules are loaded early in the boot process
-      kernelModules = [ "nvidia" "nvidia_drm" "nvidia_uvm" "nvidia_modeset" ];
+      kernelModules = [ "nvidia" "nvidia_drm" "nvidia_modeset" ];
       extraModulePackages = [ config.boot.kernelPackages.nvidiaPackages.legacy_390 ];
+
+      # Enable kernel mode setting and configure memory management
+      kernelParams = [ 
+        "nvidia-drm.modeset=1"
+        "nvidia-drm.fbdev=1"
+        "nvidia-uvm.use_rm_legacy_uvm=1"
+        "nvidia.NVreg_RegistryDwords=RMCtrl:0x00000001"
+      ];
     };
 
     environment.systemPackages = with pkgs; [
       config.boot.kernelPackages.nvidiaPackages.legacy_390.bin
     ];
+
+    # Create nvidia-uvm device on boot
+    services.udev.extraRules = ''
+      KERNEL=="nvidia_uvm", RUN+="${pkgs.runtimeShell} -c 'mknod -m 666 /dev/nvidia-uvm c $(grep nvidia-uvm /proc/devices | cut -d \  -f 1) 0'"
+    '';
 
   };
 
