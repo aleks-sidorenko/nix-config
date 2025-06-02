@@ -20,7 +20,6 @@ in
       desktop = {
         enable = true;
       };
-
     };
 
     security.sops.enable = mkForce false;
@@ -32,9 +31,13 @@ in
   };
 
   boot = {
-
     kernelPackages = pkgs.linuxPackages_latest;
+  };
 
+  # Allow unfree packages and accept NVIDIA license
+  nixpkgs.config = {
+    allowUnfree = true;
+    nvidia.acceptLicense = true;
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

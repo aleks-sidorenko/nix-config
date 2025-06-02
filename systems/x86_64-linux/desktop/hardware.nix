@@ -5,12 +5,20 @@
   config,
   lib,
   modulesPath,
+  pkgs,
+  namespace,
   ...
 }:
+with lib;
+with lib.${namespace};
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
+
+  ${namespace} = {
+    hardware.video.nvidia = enabled;
+  };
 
   boot = {
     initrd = {
@@ -27,11 +35,7 @@
   };
 
   hardware = {
-    # Enable OpenGL
-    opengl = {
-      enable = true;
-    };
-
     cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   };
+
 }

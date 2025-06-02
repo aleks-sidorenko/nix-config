@@ -156,6 +156,7 @@
     lib.mkFlake {
       channels-config = {
         allowUnfree = true;
+        nvidia.acceptLicense = true;
       };
 
       systems.modules.nixos = with inputs; [
