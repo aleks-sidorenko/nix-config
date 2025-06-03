@@ -17,7 +17,7 @@ with lib.${namespace};
   ];
 
   ${namespace} = {
-    hardware.video.nvidia = enabled;
+    hardware.video.nouveau = enabled;
   };
 
   boot = {

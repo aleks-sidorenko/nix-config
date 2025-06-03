@@ -33,21 +33,25 @@ in
         nvidiaSettings = true;
         forceFullCompositionPipeline = true;
         open = false; # Use proprietary driver
-        powerManagement.finegrained = false; # Disable fine-grained power management for legacy driver        
+        powerManagement.finegrained = false; # Disable fine-grained power management for legacy driver
       };
     };
 
     boot = {
       # Use older kernel https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/nvidia-x11/default.nix#L202
       kernelPackages = mkForce pkgs.linuxPackages_6_12;
-      blacklistedKernelModules = ["nouveau"];
-      
+      blacklistedKernelModules = [ "nouveau" ];
+
       # Ensure NVIDIA modules are loaded early in the boot process
-      kernelModules = [ "nvidia" "nvidia_drm" "nvidia_modeset" ];
+      kernelModules = [
+        "nvidia"
+        "nvidia_drm"
+        "nvidia_modeset"
+      ];
       extraModulePackages = [ config.boot.kernelPackages.nvidiaPackages.legacy_390 ];
 
       # Enable kernel mode setting and configure memory management
-      kernelParams = [ 
+      kernelParams = [
         "nvidia-drm.modeset=1"
         "nvidia-drm.fbdev=1"
         "nvidia-uvm.use_rm_legacy_uvm=1"
