@@ -17,11 +17,6 @@ in
   options.${namespace}.desktops.hyprland = with types; {
     enable = mkEnableOption "Enable Hyprland window manager";
     execOnceExtras = mkOpt (listOf str) [ ] "Extra programs to exec once";
-    terminal = mkOption {
-      type = types.str;
-      default = "ghostty";
-      description = "Default terminal to use in Hyprland";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -34,6 +29,7 @@ in
           waybar.enable = true;
           wlogout.enable = true;
           wlsunset.enable = true;
+          xdg.enable = true;
         };
         hyprland.addons = {
           pyprland.enable = true;

@@ -12,18 +12,21 @@ let
 in
 {
   options.${namespace}.desktops.gnome = with types; {
-    enable = mkBoolOpt false "Enable or disable the gnome DE.";
+    enable = mkBoolOpt false "Enable the GNOME desktop environment and its addons.";
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {
-      desktops.addons.nautilus.enable = true;
-    };
 
     services = {
+      gvfs.enable = true; # GNOME Virtual File System
+      udisks2.enable = true; # Disk management service
+      udev.packages = with pkgs; [ gnome-settings-daemon ];
       xserver = {
         enable = true;
-        displayManager.gdm.enable = true;
+        displayManager.gdm = {
+          enable = true;
+          wayland = true;
+        };
         desktopManager.gnome = {
           enable = true;
           extraGSettingsOverridePackages = with pkgs; [
@@ -33,7 +36,6 @@ in
       };
     };
 
-    services.udev.packages = with pkgs; [ gnome-settings-daemon ];
     programs.dconf.enable = true;
 
   };

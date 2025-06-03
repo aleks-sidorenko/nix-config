@@ -8,18 +8,19 @@
 with lib;
 let
   cfg = config.${namespace}.desktops.gnome;
-
+  terminalPkg = config.${namespace}.cli.terminals.terminal;
+  terminal = terminalPkg.pname;
 in
 {
   config = mkIf cfg.enable {
     dconf.settings = {
       "org/gnome/desktop/applications/terminal" = {
-        exec = "${pkgs.${cfg.terminal}}/bin/${cfg.terminal}";
+        exec = "${terminalPkg}/bin/${terminal}";
       };
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
         binding = "<Super>Return";
-        command = cfg.terminal;
+        command = terminal;
         name = "Open Terminal";
       };
 
@@ -28,7 +29,7 @@ in
       };
 
       "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-        terminal = cfg.terminal;
+        terminal = terminal;
       };
 
       "org/gnome/shell/extensions/search-light" = {

@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.addons.rofi;
+  terminal = config.${namespace}.cli.terminals.default.package;
   inherit (config.lib.stylix) colors;
 in
 {
@@ -21,7 +22,7 @@ in
     programs.rofi = {
       enable = true;
       package = cfg.package;
-      terminal = "${pkgs.foot}/bin/foot";
+      terminal = getExecPath terminal;
       extraConfig = {
         modi = "run,drun,window";
         show-icons = true;

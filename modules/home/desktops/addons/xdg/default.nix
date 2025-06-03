@@ -11,12 +11,12 @@ let
 in
 {
   options.${namespace}.desktops.addons.xdg = with types; {
-    enable = mkBoolOpt false "manage xdg config";
+    enable = mkBoolOpt false "Enable XDG config. This includes user directories, session variables, and MIME type associations.";
   };
 
   config = mkIf cfg.enable {
     home.sessionVariables = {
-      HISTFILE = lib.mkForce "${config.xdg.stateHome}/bash/history";
+      HISTFILE = lib.mkForce "${config.xdg.stateHome}/bash/history"; # TODO bash?
       GTK2_RC_FILES = lib.mkForce "${config.xdg.configHome}/gtk-2.0/gtkrc";
     };
 
@@ -75,6 +75,15 @@ in
         extraConfig = {
           XDG_SCREENSHOTS_DIR = "${config.xdg.userDirs.pictures}/Screenshots";
         };
+      };
+
+      autostart.enable = true;
+      portal = {
+        enable = true;
+        extraPortals = with pkgs; [
+          xdg-desktop-portal-gtk
+          xdg-desktop-portal-hyprland
+        ];
       };
     };
   };

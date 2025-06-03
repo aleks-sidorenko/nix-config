@@ -18,7 +18,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    
+
     programs.google-chrome = {
       enable = true;
       package = pkgs.google-chrome;

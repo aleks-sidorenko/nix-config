@@ -2,6 +2,7 @@
   config,
   lib,
   namespace,
+  pkgs,
   ...
 }:
 with lib;
@@ -11,10 +12,17 @@ let
 in
 {
   options.${namespace}.cli.terminals.alacritty = with types; {
-    enable = mkBoolOpt false "enable alacritty terminal emulator";
+    enable = mkEnableOption "Enable alacritty terminal emulator.";
+    default = mkBoolOpt false "Whether or not to use alacritty as the default terminal.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.terminals.default = mkIf cfg.default {
+      enable = true;
+      name = "alacritty";
+      package = pkgs.alacritty;
+    };
+
     programs.alacritty = {
       enable = true;
 

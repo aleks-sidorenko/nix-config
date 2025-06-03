@@ -29,7 +29,10 @@ in
       };
 
       cli = {
-        shells.fish.enable = true;
+        shells.fish = {
+          enable = true;
+          default = true;
+        };
       };
 
       disks = {

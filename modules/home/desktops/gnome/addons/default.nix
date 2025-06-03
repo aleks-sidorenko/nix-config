@@ -1,15 +1,16 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
 with lib;
 let
-  cfg = config.${namespace}.desktops.gnome.addons.gnome;
+  cfg = config.${namespace}.desktops.gnome.addons;
 in
 {
-  options.${namespace}.desktops.gnome.addons.gnome = {
+  options.${namespace}.desktops.gnome.addons = {
     enable = mkEnableOption "Enable the GNOME desktop environment addons and extras.";
   };
 
@@ -28,10 +29,7 @@ in
       pavucontrol
       pwvucontrol
       gnome-disk-utility
-      gnome-calulator
-      nautilus
-      nautilus-python # enable plugins
-      keymapp
+      gnome-calculator
 
     ];
   };

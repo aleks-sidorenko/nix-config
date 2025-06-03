@@ -30,8 +30,15 @@ in
       };
 
       cli = {
-        terminals.ghostty.enable = true;
-        shells.fish.enable = true;
+        shells.fish = {
+          enable = true;
+          default = true;
+        };
+        terminals.ghostty = {
+          enable = true;
+          default = true;
+        };
+
         editors.nvim.enable = true;
         tools.archivers.enable = true;
         tools.modern-unix.enable = true;

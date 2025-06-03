@@ -14,11 +14,6 @@ in
 
   options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
-    terminal = mkOption {
-      type = types.str;
-      default = "ghostty";
-      description = "Default terminal to use in GNOME";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -27,9 +22,10 @@ in
       desktops = {
         addons = {
           gtk.enable = true;
+          nautilus.enable = true;
         };
         gnome.addons = {
-          gnome.enable = true;
+          enable = true;
         };
       };
     };
@@ -89,8 +85,14 @@ in
     };
 
     home.sessionVariables = {
-      GSM_SKIP_SSH_AGENT_WORKAROUND = 1; # Skip workaround for SSH agent in GNOME
+      GSM_SKIP_SSH_AGENT_WORKAROUND = "1"; # Prevent clobbering SSH_AUTH_SOCK
     };
+
+    # Disable gnome-keyring ssh-agent
+    xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
+      ${lib.fileContents "${pkgs.gnome3.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
+      Hidden=true
+    '';
 
   };
 }

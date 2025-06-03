@@ -1,19 +1,28 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
 with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
-    enable = mkEnableOption "enable ghostty terminal emulator";
+    enable = mkEnableOption "Enable ghostty terminal emulator.";
+    default = mkBoolOpt false "Whether or not to use ghostty as the default terminal.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.terminals.default = mkIf cfg.default {
+      enable = true;
+      name = "ghostty";
+      package = pkgs.ghostty;
+    };
+
     programs.ghostty = {
       enable = true;
       enableFishIntegration = true;

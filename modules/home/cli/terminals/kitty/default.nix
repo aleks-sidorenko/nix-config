@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -11,10 +12,17 @@ let
 in
 {
   options.${namespace}.cli.terminals.kitty = with types; {
-    enable = mkBoolOpt false "enable kitty terminal emulator";
+    enable = mkBoolOpt false "Enable kitty terminal emulator.";
+    default = mkBoolOpt false "Whether or not to use kitty as the default terminal.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.terminals.default = mkIf cfg.default {
+      enable = true;
+      name = "kitty";
+      package = pkgs.kitty;
+    };
+
     programs.kitty = {
       enable = true;
 

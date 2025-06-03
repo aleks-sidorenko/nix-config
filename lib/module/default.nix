@@ -55,7 +55,25 @@ rec {
   ## ```
   ##
   #@ Type -> Any -> String
-  mkPackageOpt' = mkOpt types.package;
+  mkPackageOpt' = mkOpt' types.package;
+
+  ## Create a string NixOS module option.
+  ##
+  ## ```nix
+  ## lib.mkStringOpt "default-value" "Description of my option."
+  ## ```
+  ##
+  #@ Type -> Any -> String
+  mkStringOpt = mkOpt types.str;
+
+  ## Create a string NixOS module option without a description.
+  ##
+  ## ```nix
+  ## lib.mkStringOpt' "default-value"
+  ## ```
+  ##
+  #@ Type -> Any -> String
+  mkStringOpt' = mkOpt' types.str;
 
   enabled = {
     ## Quickly enable an option.

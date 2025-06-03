@@ -18,7 +18,6 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       desktops.addons.greetd.enable = true;
-      desktops.addons.xdg-portal.enable = true;
     };
 
     environment.sessionVariables = {
