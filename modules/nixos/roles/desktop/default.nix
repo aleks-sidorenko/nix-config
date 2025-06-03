@@ -30,13 +30,14 @@ in
       };
 
       desktops = {
-        hyprland.enable = true;
+        gnome.enable = true;
       };
 
       hardware = {
         audio.enable = true;
         bluetooth.enable = true;
         zsa.enable = true;
+        video.nouveau.enable = true;
       };
 
       services = {

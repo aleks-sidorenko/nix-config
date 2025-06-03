@@ -13,14 +13,24 @@ in
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.desktops.gnome = {
-    enable = mkEnableOption "enable gnome DE";
+    enable = mkEnableOption "Enable GNOME desktop environment";
+    terminal = mkOption {
+      type = types.str;
+      default = "ghostty";
+      description = "Default terminal to use in GNOME";
+    };
   };
 
   config = mkIf cfg.enable {
     ${namespace} = {
       services.kdeconnect.enable = lib.mkForce false;
-      desktops.gnome.addons = {
-        gnome.enable = true;
+      desktops = {
+        addons = {
+          gtk.enable = true;
+        };
+        gnome.addons = {
+          gnome.enable = true;
+        };
       };
     };
 
@@ -41,15 +51,6 @@ in
     ];
 
     dconf.settings = {
-      "org/gnome/desktop/applications/terminal" = {
-        exec = "${pkgs.foot}/bin/foot";
-      };
-
-      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-        binding = "<Super>Return";
-        command = "kitty";
-        name = "Open Terminal";
-      };
 
       "org/gnome/desktop/interface" = {
         enable-hot-corners = false;
@@ -81,21 +82,15 @@ in
         focus-mode = "sloppy";
       };
 
-      "org/gnome/desktop/wm/keybindings" = {
-        close = [ "<Super>q" ];
-      };
-
-      "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-        terminal = "wezterm";
-      };
-
       "org/gnome/shell/keybindings/toggle-application-view" = {
         "@as" = [ ];
       };
 
-      "org/gnome/shell/extensions/search-light" = {
-        shortcut-search = [ "<Super>b" ];
-      };
     };
+
+    home.sessionVariables = {
+      GSM_SKIP_SSH_AGENT_WORKAROUND = 1; # Skip workaround for SSH agent in GNOME
+    };
+
   };
 }

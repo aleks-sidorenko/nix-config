@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.addons.nautilus;
+  term = config.${namespace}.desktops.gnome.terminal;
 in
 {
   options.${namespace}.desktops.addons.nautilus = with types; {
@@ -52,7 +53,7 @@ in
           remember-recent-files = false;
         };
         "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-          terminal = "ghostty";
+          terminal = term;
           new-tab = true;
         };
       };

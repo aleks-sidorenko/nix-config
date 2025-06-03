@@ -26,14 +26,14 @@ in
       };
 
       desktops = {
-        hyprland = {
+        gnome = {
           enable = true;
         };
 
         addons.xdg.enable = false;
       };
 
-      browsers.firefox.enable = true;
+      browsers.chrome.enable = true;
     };
 
     accounts = {

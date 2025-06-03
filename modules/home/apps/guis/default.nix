@@ -18,20 +18,14 @@ in
     home.packages = with pkgs; [
 
       foliate
-      pavucontrol
-      pwvucontrol
 
       sushi
-      gnome-disk-utility
       totem
       gvfs
       loupe
 
-      nautilus
       ffmpegthumbnailer # thumbnails
-      nautilus-python # enable plugins
       gst_all_1.gst-libav # thumbnails
-
       keymapp
 
     ];

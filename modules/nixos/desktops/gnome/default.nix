@@ -26,14 +26,15 @@ in
         displayManager.gdm.enable = true;
         desktopManager.gnome = {
           enable = true;
-          extraGSettingsOverridePackages = [
-            pkgs.nautilus-open-any-terminal
+          extraGSettingsOverridePackages = with pkgs; [
+            nautilus-open-any-terminal
           ];
         };
       };
     };
 
-    services.udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
+    services.udev.packages = with pkgs; [ gnome-settings-daemon ];
     programs.dconf.enable = true;
+
   };
 }

@@ -14,7 +14,7 @@ let
 in
 {
   options.${namespace}.browsers.firefox = {
-    enable = mkEnableOption "enable firefox browser";
+    enable = mkEnableOption "Enable the Firefox browser.";
   };
 
   config = mkIf cfg.enable {
