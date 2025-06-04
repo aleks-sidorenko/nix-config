@@ -17,4 +17,13 @@ in
     package = mkPackageOpt' "The package to use for the default terminal.";
   };
 
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.name != null && cfg.package != null;
+        message = "Please specify a terminal name and package in ${namespace}.cli.terminals.default.";
+      }
+    ];
+  };
+
 }

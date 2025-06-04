@@ -18,4 +18,12 @@ in
     package = mkPackageOpt' "The package to use for the default shell.";
   };
 
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.name != null && cfg.package != null;
+        message = "Please specify a shell name and package in ${namespace}.cli.shells.default.";
+      }
+    ];
+  };
 }

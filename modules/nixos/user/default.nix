@@ -9,15 +9,14 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.user;
-  shell = config.${namespace}.cli.shells.default.name;
+  shell = config.${namespace}.cli.shells.default.package;
 in
 {
   options.${namespace}.user = with types; {
     name = mkOpt str "alexander" "The name of the user's account";
     initialPassword = mkOpt str "alexander" "The initial password to use";
     extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned.";
-    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";
-    shell = mkPackageOpt shell "The default shell package to use for the user.";
+    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";    
   };
 
   config = {
@@ -27,7 +26,7 @@ in
       inherit (cfg) name initialPassword;
       home = "/home/${cfg.name}";
       group = "users";
-      shell = cfg.shell;
+      shell = shell;
 
       # TODO: set in modules
       extraGroups = [
