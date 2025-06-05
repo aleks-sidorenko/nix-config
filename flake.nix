@@ -92,11 +92,6 @@
       flake = false;
     };
 
-    firefox-gnome-theme = {
-      url = "github:rafaelmardojai/firefox-gnome-theme";
-      flake = false;
-    };
-
     stylix.url = "github:danth/stylix";
     catppuccin.url = "github:catppuccin/nix";
 
@@ -133,6 +128,12 @@
       url = "github:declancm/maximize.nvim";
       flake = false;
     };
+
+    # firefox
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -155,6 +156,7 @@
     lib.mkFlake {
       channels-config = {
         allowUnfree = true;
+        nvidia.acceptLicense = true;
       };
 
       systems.modules.nixos = with inputs; [

@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.desktops.addons.hyprlock;
+  cfg = config.${namespace}.desktops.hyprland.addons.hyprlock;
 in
 {
-  options.${namespace}.desktops.addons.hyprlock = with types; {
+  options.${namespace}.desktops.hyprland.addons.hyprlock = with types; {
     enable = mkBoolOpt false "Whether to enable the hyprlock";
   };
 

@@ -20,15 +20,6 @@ with lib.${namespace};
       name = "alexander";
     };
 
-    desktops = {
-      hyprland = {
-        enable = true;
-        execOnceExtras = [
-          "${pkgs.trayscale}/bin/trayscale"
-        ];
-      };
-    };
-
   };
 
   home.stateVersion = "25.05";

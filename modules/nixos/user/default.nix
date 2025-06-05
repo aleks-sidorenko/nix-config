@@ -9,13 +9,14 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.user;
+  shell = config.${namespace}.cli.shells.default.package;
 in
 {
   options.${namespace}.user = with types; {
     name = mkOpt str "alexander" "The name of the user's account";
     initialPassword = mkOpt str "alexander" "The initial password to use";
     extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned.";
-    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";
+    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";    
   };
 
   config = {
@@ -25,7 +26,7 @@ in
       inherit (cfg) name initialPassword;
       home = "/home/${cfg.name}";
       group = "users";
-      shell = pkgs.fish; # Set Fish as default shell
+      shell = shell;
 
       # TODO: set in modules
       extraGroups = [

@@ -19,15 +19,9 @@ in
       roles = {
         common.enable = true;
 
-        /*
-          desktop.addons = {
-            nautilus.enable = false;
-          };
-        */
       };
 
       cli = {
-        shells.fish.enable = true;
 
         tools = {
           nh.enable = true;
@@ -35,10 +29,15 @@ in
         };
       };
 
+      desktops = {
+        gnome.enable = true;
+      };
+
       hardware = {
         audio.enable = true;
         bluetooth.enable = true;
         zsa.enable = true;
+        video.nouveau.enable = true;
       };
 
       services = {

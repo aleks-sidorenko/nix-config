@@ -1,16 +1,17 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
 with lib;
 let
-  cfg = config.${namespace}.desktops.addons.gnome;
+  cfg = config.${namespace}.desktops.gnome.addons;
 in
 {
-  options.${namespace}.desktops.addons.gnome = {
-    enable = mkEnableOption "enable gnome extras to work with home-manager";
+  options.${namespace}.desktops.gnome.addons = {
+    enable = mkEnableOption "Enable the GNOME desktop environment addons and extras.";
   };
 
   config = mkIf cfg.enable {
@@ -22,5 +23,14 @@ in
       ];
     };
     targets.genericLinux.enable = true;
+
+    home.packages = with pkgs; [
+
+      pavucontrol
+      pwvucontrol
+      gnome-disk-utility
+      gnome-calculator
+
+    ];
   };
 }

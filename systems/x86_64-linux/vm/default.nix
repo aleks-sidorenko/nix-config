@@ -11,7 +11,7 @@ let
 in
 {
   imports = [
-    ./hardware-configuration.nix
+    ./hardware.nix
     ./disks.nix
   ];
 

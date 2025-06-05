@@ -5,6 +5,7 @@
   namespace,
   ...
 }:
+with lib;
 with lib.${namespace};
 {
 
@@ -12,7 +13,6 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
-      # social = enabled;
     };
 
     user = {
@@ -22,16 +22,27 @@ with lib.${namespace};
 
     security.sops.enable = mkForce false;
 
-    /*
-      desktops = {
-        hyprland = {
-          enable = true;
-          execOnceExtras = [
-            "${pkgs.trayscale}/bin/trayscale"
-          ];
-        };
-      };
-    */
+    desktops.monitors = {
+      enable = true;
+      devices = [
+        {
+          name = "HDMI-A-1";
+          width = 1920;
+          height = 1080;
+          primary = true;
+          workspace = "2";
+        }
+        {
+          name = "DVI-I-1";
+          width = 1920;
+          height = 1080;
+          workspace = "1";
+          position = "auto-right";
+        }
+
+      ];
+
+    };
 
   };
 

@@ -14,11 +14,18 @@ let
 in
 {
   options.${namespace}.cli.shells.fish = with types; {
-    enable = mkBoolOpt false "Enable fish shell";
+    enable = mkEnableOption "Enable fish shell";
+    default = mkBoolOpt false "Whether or not to use fish as the default shell.";
   };
 
   config = mkIf cfg.enable {
-    stylix.targets.fish.enable = false; # TODO: why??
+    ${namespace}.cli.shells.default = mkIf cfg.default {
+      enable = true;
+      name = "fish";
+      package = pkgs.fish;
+    };
+
+    stylix.targets.fish.enable = true;
     programs.fish = {
       enable = true;
       interactiveShellInit = ''

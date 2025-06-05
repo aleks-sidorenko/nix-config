@@ -8,6 +8,7 @@
 with lib;
 let
   cfg = config.${namespace}.desktops.hyprland;
+  terminal = config.${namespace}.cli.terminals.default.package;
   laptop_lid_switch = pkgs.writeShellScriptBin "laptop_lid_switch" ''
     #!/usr/bin/env bash
 
@@ -64,17 +65,19 @@ in
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
       bind = [
-        "SUPER, Return, exec, ghostty"
-        "SUPER, B, exec, ${config.${namespace}.desktops.addons.rofi.package}/bin/rofi -show drun -mode drun"
+        "SUPER, Return, exec, ${terminal}"
+        "SUPER, B, exec, ${
+          getExecPath config.${namespace}.desktops.addons.rofi.package
+        } -show drun -mode drun"
         "SUPER, Q, killactive,"
         "SUPER, F, Fullscreen,0"
-        "SUPER, R, exec, ${resize}/bin/resize"
+        "SUPER, R, exec, ${getExecPath resize}"
         "SUPER, Space, togglefloating,"
-        "SUPER, V, exec, ${pkgs.pyprland}/bin/pypr toggle pwvucontrol"
-        "SUPER_SHIFT, T, exec, ${pkgs.pyprland}/bin/pypr toggle term"
-        ",XF86Launch5, exec,${pkgs.hyprlock}/bin/hyprlock"
-        ",XF86Launch4, exec,${pkgs.hyprlock}/bin/hyprlock"
-        "SUPER,backspace, exec,${pkgs.hyprlock}/bin/hyprlock"
+        "SUPER, V, exec, ${getExecPath pkgs.pyprland} toggle pwvucontrol"
+        "SUPER_SHIFT, T, exec, ${getExecPath pkgs.pyprland} toggle term"
+        ",XF86Launch5, exec, ${getExecPath pkgs.hyprlock}"
+        ",XF86Launch4, exec, ${getExecPath pkgs.hyprlock}"
+        "SUPER,backspace, exec, ${getExecPath pkgs.hyprlock}"
         "CTRL_SUPER,backspace, exec,wlogout --column-spacing 50 --row-spacing 50"
         ",Print, exec,grimblast --notify copysave area"
         "SHIFT, Print, exec,grimblast --notify copy active"
@@ -127,19 +130,19 @@ in
         "SUPERSHIFT,u, movetoworkspace,special"
       ];
       bindi = [
-        ",XF86MonBrightnessUp, exec, ${pkgs.brightnessctl}/bin/brightnessctl +5%"
-        ",XF86MonBrightnessDown, exec, ${pkgs.brightnessctl}/bin/brightnessctl -5%"
-        ",XF86AudioRaiseVolume, exec, ${pkgs.pamixer}/bin/pamixer -i 5"
-        ",XF86AudioLowerVolume, exec, ${pkgs.pamixer}/bin/pamixer -d 5"
-        ",XF86AudioMute, exec, ${pkgs.pamixer}/bin/pamixer --toggle-mute"
-        ",XF86AudioMicMute, exec, ${pkgs.pamixer}/bin/pamixer --default-source --toggle-mute"
+        ",XF86MonBrightnessUp, exec,  ${getExecPath pkgs.brightnessctl} +5%"
+        ",XF86MonBrightnessDown, exec,  ${getExecPath pkgs.brightnessctl} -5%"
+        ",XF86AudioRaiseVolume, exec,  ${getExecPath pkgs.pamixer} -i 5"
+        ",XF86AudioLowerVolume, exec,  ${getExecPath pkgs.pamixer} -d 5"
+        ",XF86AudioMute, exec,  ${getExecPath pkgs.pamixer} --toggle-mute"
+        ",XF86AudioMicMute, exec,  ${getExecPath pkgs.pamixer} --default-source --toggle-mute"
         ",XF86AudioNext, exec,playerctl next"
         ",XF86AudioPrev, exec,playerctl previous"
         ",XF86AudioPlay, exec,playerctl play-pause"
         ",XF86AudioStop, exec,playerctl stop"
       ];
       bindl = [
-        ",switch:Lid Switch, exec, ${laptop_lid_switch}/bin/laptop_lid_switch"
+        ",switch:Lid Switch, exec, ${getExecPath laptop_lid_switch}"
       ];
       binde = [
         "SUPERALT, h, resizeactive, -20 0"

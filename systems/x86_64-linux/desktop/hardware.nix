@@ -5,12 +5,20 @@
   config,
   lib,
   modulesPath,
+  pkgs,
+  namespace,
   ...
 }:
+with lib;
+with lib.${namespace};
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
+
+  ${namespace} = {
+    hardware.video.nouveau = enabled;
+  };
 
   boot = {
     initrd = {
@@ -26,5 +34,8 @@
     };
   };
 
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware = {
+    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  };
+
 }

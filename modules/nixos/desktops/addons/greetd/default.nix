@@ -6,10 +6,10 @@
 }:
 with lib;
 let
-  cfg = config.${namespace}.roles.desktop.addons.greetd;
+  cfg = config.${namespace}.desktops.addons.greetd;
 in
 {
-  options.${namespace}.roles.desktop.addons.greetd = {
+  options.${namespace}.desktops.addons.greetd = {
     enable = mkEnableOption "Enable login greeter";
   };
 

@@ -2,6 +2,7 @@
   config,
   lib,
   namespace,
+  pkgs,
   ...
 }:
 with lib;
@@ -11,10 +12,17 @@ let
 in
 {
   options.${namespace}.cli.shells.fish = with types; {
-    enable = mkBoolOpt false "Whether or not to enable fish shell on host level.";
+    enable = mkEnableOption "Whether or not to enable fish shell on host level.";
+    default = mkBoolOpt false "Whether or not to use fish as the default shell.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.shells.default = mkIf cfg.default {
+      enable = true;
+      name = "fish";
+      package = pkgs.fish;
+    };
+
     programs.fish = {
       enable = true;
       vendor = {

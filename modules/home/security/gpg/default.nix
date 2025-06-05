@@ -24,7 +24,7 @@ in
     };
     sshKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (lib.fileContents ./ssh-key-id) ];
+      default = [ (builtins.readFile ./ssh-key-id) ];
       description = "List of GPG key IDs that can be used as SSH keys";
     };
   };

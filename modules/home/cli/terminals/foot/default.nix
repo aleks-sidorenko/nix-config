@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -11,10 +12,17 @@ let
 in
 {
   options.${namespace}.cli.terminals.foot = with types; {
-    enable = mkBoolOpt false "enable foot terminal emulator";
+    enable = mkBoolOpt false "Enable foot terminal emulator.";
+    default = mkBoolOpt false "Whether or not to use foot as the default terminal.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.terminals.default = mkIf cfg.default {
+      enable = true;
+      name = "foot";
+      package = pkgs.foot;
+    };
+
     programs.foot = {
       enable = true;
 
