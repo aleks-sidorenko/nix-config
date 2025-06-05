@@ -26,6 +26,7 @@ in
 
       mimeApps = {
         enable = true;
+        # TODO - refactor assiciations, remove hardcoded ones, maybe move to where the app is defined
         associations.added = {
           "video/mp4" = [ "org.gnome.Totem.desktop" ];
           "video/quicktime" = [ "org.gnome.Totem.desktop" ];
@@ -36,6 +37,7 @@ in
           "image/jpg" = [ "org.gnome.Loupe.desktop" ];
           "image/jpeg" = [ "org.gnome.Loupe.desktop" ];
         };
+        # TODO - refactor, use browsers.default  or maybe move to where the app is defined
         defaultApplications = {
           "application/x-extension-htm" = "firefox";
           "application/x-extension-html" = "firefox";
@@ -80,10 +82,6 @@ in
       autostart.enable = true;
       portal = {
         enable = true;
-        extraPortals = with pkgs; [
-          xdg-desktop-portal-gtk
-          xdg-desktop-portal-hyprland
-        ];
       };
     };
   };

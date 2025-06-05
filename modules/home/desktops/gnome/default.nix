@@ -22,6 +22,7 @@ in
       desktops = {
         addons = {
           gtk.enable = true;
+          xdg.enable = true;
           nautilus.enable = true;
         };
         gnome.addons = {
@@ -29,6 +30,8 @@ in
         };
       };
     };
+
+    stylix.targets.gnome.enable = true; # Enable Stylix for GNOME
 
     home.packages = with pkgs; [
       gnome-tweaks
@@ -49,7 +52,10 @@ in
     dconf.settings = {
 
       "org/gnome/desktop/interface" = {
+
+        enable-animations = true;
         enable-hot-corners = false;
+
       };
 
       "org/gnome/shell" = {

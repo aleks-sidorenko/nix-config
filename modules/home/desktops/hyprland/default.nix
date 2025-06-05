@@ -1,4 +1,5 @@
 {
+  pkgs,
   inputs,
   config,
   lib,
@@ -39,9 +40,35 @@ in
         };
       };
     };
+
     nix.settings = {
       trusted-substituters = [ "https://hyprland.cachix.org" ];
       trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    };
+
+    xdg.portal = {
+      extraPortals = [ pkgs.xdg-desktop-portal-hyprland ];
+      config = {
+        common = {
+          default = mkForce [
+            "hyprland"
+            "gtk"
+          ];
+        };
+        hyprland = {
+          default = [
+            "hyprland"
+            "gtk"
+          ];
+          # Hyprland should handle these specific portals
+          "org.freedesktop.impl.portal.Screenshot" = [
+            "hyprland"
+          ];
+          "org.freedesktop.impl.portal.ScreenCast" = [
+            "hyprland"
+          ];
+        };
+      };
     };
   };
 }

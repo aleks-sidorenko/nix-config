@@ -38,6 +38,8 @@ in
       vimdiffAlias = true;
     };
 
+    stylix.targets.nixvim.enable = true; # Enable Stylix for Neovim
+
     xdg.desktopEntries = lib.optionalAttrs pkgs.stdenv.isLinux {
       neovim = {
         name = "Neovim";

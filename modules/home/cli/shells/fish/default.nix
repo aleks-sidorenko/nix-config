@@ -25,7 +25,9 @@ in
       package = pkgs.fish;
     };
 
-    stylix.targets.fish.enable = true;
+    # Styles
+    catppuccin.fish.enable = true;
+
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
