@@ -8,34 +8,44 @@
 with lib;
 let
   cfg = config.${namespace}.desktops.gnome;
-  terminalPkg = config.${namespace}.cli.terminals.default.package;
-  terminal = terminalPkg.pname;
+  terminal = config.${namespace}.cli.terminals.default.name;
 in
 {
   config = mkIf cfg.enable {
     dconf.settings = {
       "org/gnome/desktop/applications/terminal" = {
-        exec = "${lib.${namespace}.getExecPath terminalPkg}";
+        exec = terminal;
+      };
+
+      "org/gnome/shell/keybindings" = {
+        open-terminal = [
+          "<Ctrl><Alt>t"
+          "<Super>t"
+        ];
+      };
+
+      "org/gnome/shell/keybindings/toggle-application-view" = {
+        "@as" = [ ];
       };
 
       "org/gnome/settings-daemon/plugins/media-keys" = {
-        www = ["<Ctrl><Alt>w"];
+        www = [ "<Ctrl><Alt>w" ];
         custom-keybindings = [
-          "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0"
-          "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
         ];
       };
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-        binding = "<Super>t";
+        name = "Open Terminal (Ctrl+Alt+t)";
         command = terminal;
-        name = "Open terminal (Super+T)";
+        binding = "<Ctrl><Alt>t";
       };
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-        binding = "<Ctrl><Alt>t";
+        name = "Open Terminal (Super+t)";
         command = terminal;
-        name = "Open terminal (Ctrl+Alt+T)";
+        binding = "<Super>t";
       };
 
       "org/gnome/desktop/wm/keybindings" = {
@@ -46,8 +56,8 @@ in
         close = [ "<Super>q" ];
         cycle-group = [ "<Alt>F6" ];
         cycle-group-backward = [ "<Shift><Alt>F6" ];
-        cycle-panels = [ "<Control><Alt>Escape" ];
-        cycle-panels-backward = [ "<Shift><Control><Alt>Escape" ];
+        cycle-panels = [ "<Ctrl><Alt>Escape" ];
+        cycle-panels-backward = [ "<Shift><Ctrl><Alt>Escape" ];
         cycle-windows = [ "<Alt>Escape" ];
         cycle-windows-backward = [ "<Shift><Alt>Escape" ];
         lower = [ ];
@@ -60,19 +70,19 @@ in
         move-to-monitor-right = [ "<Super><Shift>Right" ];
         move-to-monitor-up = [ "<Super><Shift>Up" ];
         move-to-workspace-1 = [ "<Super><Shift>Home" ];
-        move-to-workspace-down = [ "<Control><Shift><Alt>Down" ];
+        move-to-workspace-down = [ "<Ctrl><Shift><Alt>Down" ];
         move-to-workspace-last = [ "<Super><Shift>End" ];
         move-to-workspace-left = [
           "<Super><Shift>Page_Up"
           "<Super><Shift><Alt>Left"
-          "<Control><Shift><Alt>Left"
+          "<Ctrl><Shift><Alt>Left"
         ];
         move-to-workspace-right = [
           "<Super><Shift>Page_Down"
           "<Super><Shift><Alt>Right"
-          "<Control><Shift><Alt>Right"
+          "<Ctrl><Shift><Alt>Right"
         ];
-        move-to-workspace-up = [ "<Control><Shift><Alt>Up" ];
+        move-to-workspace-up = [ "<Ctrl><Shift><Alt>Up" ];
         panel-run-dialog = [ "<Alt>F2" ];
         switch-applications = [
           "<Super>Tab"
@@ -100,22 +110,22 @@ in
           "<Shift><Super>space"
           "<Shift>XF86Keyboard"
         ];
-        switch-panels = [ "<Control><Alt>Tab" ];
-        switch-panels-backward = [ "<Shift><Control><Alt>Tab" ];
+        switch-panels = [ "<Ctrl><Alt>Tab" ];
+        switch-panels-backward = [ "<Shift><Ctrl><Alt>Tab" ];
         switch-to-workspace-1 = [ "<Super>Home" ];
-        switch-to-workspace-down = [ "<Control><Alt>Down" ];
+        switch-to-workspace-down = [ "<Ctrl><Alt>Down" ];
         switch-to-workspace-last = [ "<Super>End" ];
         switch-to-workspace-left = [
           "<Super>Page_Up"
           "<Super><Alt>Left"
-          "<Control><Alt>Left"
+          "<Ctrl><Alt>Left"
         ];
         switch-to-workspace-right = [
           "<Super>Page_Down"
           "<Super><Alt>Right"
-          "<Control><Alt>Right"
+          "<Ctrl><Alt>Right"
         ];
-        switch-to-workspace-up = [ "<Control><Alt>Up" ];
+        switch-to-workspace-up = [ "<Ctrl><Alt>Up" ];
         toggle-maximized = [ "<Alt>F10" ];
         unmaximize = [
           "<Super>Down"

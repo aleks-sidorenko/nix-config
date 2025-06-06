@@ -35,7 +35,7 @@ in
         command = shell;
         gtk-titlebar = false;
         gtk-tabs-location = "hidden";
-        gtk-single-instance = true;        
+        gtk-single-instance = true;
         window-padding-x = 6;
         window-padding-y = 6;
         copy-on-select = "clipboard";

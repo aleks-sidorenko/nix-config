@@ -58,6 +58,10 @@ in
 
       };
 
+      "org/gnome/desktop/wm/preferences" = {
+        focus-mode = "sloppy";
+      };
+
       "org/gnome/shell" = {
         disable-user-extensions = false;
 
@@ -73,6 +77,7 @@ in
           "search-light@icedman.github.com"
           "gsconnect@andyholmes.github.io"
           "caffeine@patapon.info"
+          "Vitals@CoreCoding.com"
         ];
       };
 
@@ -80,12 +85,8 @@ in
         legacy-tray-enabled = true;
       };
 
-      "org/gnome/desktop/wm/preferences" = {
-        focus-mode = "sloppy";
-      };
-
-      "org/gnome/shell/keybindings/toggle-application-view" = {
-        "@as" = [ ];
+      "org/gnome/shell/extensions/vitals" = {
+        hot-sensors = "['_memory_usage_', '__network-rx_max__', '_processor_usage_']";
       };
 
     };
