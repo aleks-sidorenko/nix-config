@@ -23,22 +23,8 @@ in
     };
 
     xdg.portal = {
-      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      config = {
-        common = {
-          # Let Hyprland be the primary portal implementation
-          default = [
-            "gtk"
-          ];
-          # GTK should handle these specific portals
-          "org.freedesktop.impl.portal.Secret" = [
-            "gtk"
-          ];
-          "org.freedesktop.impl.portal.Settings" = [
-            "gtk"
-          ];
-        };
-      };
+      extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+      configPackages = with pkgs; [ xdg-desktop-portal-gtk ];
     };
   };
 }

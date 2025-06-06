@@ -47,28 +47,8 @@ in
     };
 
     xdg.portal = {
-      extraPortals = [ pkgs.xdg-desktop-portal-hyprland ];
-      config = {
-        common = {
-          default = mkForce [
-            "hyprland"
-            "gtk"
-          ];
-        };
-        hyprland = {
-          default = [
-            "hyprland"
-            "gtk"
-          ];
-          # Hyprland should handle these specific portals
-          "org.freedesktop.impl.portal.Screenshot" = [
-            "hyprland"
-          ];
-          "org.freedesktop.impl.portal.ScreenCast" = [
-            "hyprland"
-          ];
-        };
-      };
+      extraPortals = with pkgs; [ xdg-desktop-portal-hyprland xdg-desktop-portal-gtk];
+      configPackages = with pkgs; [ xdg-desktop-portal-hyprland xdg-desktop-portal-gtk];
     };
   };
 }

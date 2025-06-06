@@ -31,11 +31,12 @@ in
       };
     };
 
+
     stylix.targets.gnome.enable = true; # Enable Stylix for GNOME
 
     home.packages = with pkgs; [
+      dconf-editor
       gnome-tweaks
-
       gnomeExtensions.user-themes
       gnomeExtensions.space-bar
       gnomeExtensions.hibernate-status-button
@@ -49,6 +50,7 @@ in
       gnomeExtensions.launch-new-instance
     ];
 
+  
     dconf.settings = {
 
       "org/gnome/desktop/interface" = {
@@ -101,5 +103,10 @@ in
       Hidden=true
     '';
 
+
+    xdg.portal = {  
+      extraPortals = with pkgs; [ xdg-desktop-portal-gtk xdg-desktop-portal-wlr ];
+      configPackages = with pkgs; [ xdg-desktop-portal-gtk xdg-desktop-portal-wlr ];
+    };
   };
 }
