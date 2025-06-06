@@ -24,6 +24,7 @@ in
       enable = true;
       cacheHome = config.home.homeDirectory + "/.local/cache";
 
+      configFile."mimeapps.list".force = true;
       mimeApps = {
         enable = true;
         # TODO - refactor assiciations, remove hardcoded ones, maybe move to where the app is defined

@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
+  shell = config.${namespace}.cli.shells.default.name;
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
@@ -29,15 +30,20 @@ in
 
       settings = {
         theme = "catppuccin-mocha";
-        font-family = "MonoLisa Nerd Font";
-        command = "fish";
-        gtk-titlebar = false;
+        font-family = "${config.stylix.fonts.monospace.name}";
         font-size = 14;
+        command = shell;
+        gtk-titlebar = false;
+        gtk-tabs-location = "hidden";
+        gtk-single-instance = true;        
         window-padding-x = 6;
         window-padding-y = 6;
         copy-on-select = "clipboard";
         cursor-style = "block";
         confirm-close-surface = false;
+        keybind = [
+          "ctrl+shift+plus=increase_font_size:1"
+        ];
       };
     };
   };

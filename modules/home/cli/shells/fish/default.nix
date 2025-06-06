@@ -26,6 +26,7 @@ in
     };
 
     # Styles
+    stylix.targets.fish.enable = true; # Enable Stylix
     catppuccin.fish.enable = true;
 
     programs.fish = {
