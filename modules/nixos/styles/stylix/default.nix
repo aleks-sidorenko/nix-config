@@ -10,42 +10,10 @@ let
 in
 {
   options.${namespace}.styles.stylix = {
-    enable = lib.mkEnableOption "Enable stylix";
+    enable = lib.mkEnableOption "Enable stylix theme management on the system level.";
   };
 
   config = lib.mkIf cfg.enable {
-    fonts = {
-      enableDefaultPackages = true;
-      fontconfig.enable = true;
-      fontDir.enable = true;
-
-      fontconfig = {
-        localConf = ''
-          <?xml version="1.0"?>
-          <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-          <fontconfig>
-              <alias binding="weak">
-                  <family>monospace</family>
-                  <prefer>
-                      <family>emoji</family>
-                  </prefer>
-              </alias>
-              <alias binding="weak">
-                  <family>sans-serif</family>
-                  <prefer>
-                      <family>emoji</family>
-                  </prefer>
-              </alias>
-              <alias binding="weak">
-                  <family>serif</family>
-                  <prefer>
-                      <family>emoji</family>
-                  </prefer>
-              </alias>
-          </fontconfig>
-        '';
-      };
-    };
 
     stylix = {
       enable = true;
@@ -53,7 +21,6 @@ in
       base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
       homeManagerIntegration.autoImport = false;
       homeManagerIntegration.followSystem = false;
-      targets.nixvim.enable = false;
 
       image = pkgs.${namespace}.wallpapers.earth;
 
@@ -70,19 +37,19 @@ in
           popups = 12;
         };
 
-        serif = {
-          name = "Source Serif";
-          package = pkgs.source-serif;
+        monospace = {
+          name = "FiraMono Nerd Font";
+          package = pkgs.nerd-fonts.fira-mono;
         };
 
         sansSerif = {
-          name = "Noto Sans";
-          package = pkgs.noto-fonts;
+          name = "Fira Sans";
+          package = pkgs.fira;
         };
 
-        monospace = {
-          package = pkgs.${namespace}.monolisa;
-          name = "MonoLisa Nerd Font";
+        serif = {
+          name = "Source Serif";
+          package = pkgs.source-serif;
         };
 
         emoji = {

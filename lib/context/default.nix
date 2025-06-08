@@ -36,7 +36,6 @@ rec {
     in
     hasAllAttr options config;
 
-
   # Combined check that returns a string for convenience
   getContext =
     config:

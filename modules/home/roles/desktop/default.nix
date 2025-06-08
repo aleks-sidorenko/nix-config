@@ -29,8 +29,6 @@ in
         gnome = {
           enable = true;
         };
-
-        addons.xdg.enable = false;
       };
 
       browsers.chrome.enable = true;

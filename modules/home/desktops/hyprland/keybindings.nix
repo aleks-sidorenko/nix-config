@@ -65,7 +65,8 @@ in
   config = mkIf cfg.enable {
     wayland.windowManager.hyprland.settings = {
       bind = [
-        "SUPER, Return, exec, ${terminal}"
+        "SUPER, T, exec, ${terminal}"
+        "ALTCTRL, T, exec, ${terminal}"
         "SUPER, B, exec, ${
           getExecPath config.${namespace}.desktops.addons.rofi.package
         } -show drun -mode drun"

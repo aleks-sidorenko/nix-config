@@ -16,28 +16,28 @@ in
   ];
 
   options.${namespace}.styles.stylix = {
-    enable = lib.mkEnableOption "Enable stylix";
+    enable = lib.mkEnableOption "Enable stylix style manager.";
   };
 
   config = lib.mkIf cfg.enable {
-    fonts.fontconfig.enable = true;
-    home.packages = with pkgs; [
-      nerd-fonts.symbols-only
-      open-sans
-      plemoljp
-    ];
 
-    # TODO: Possible to use stylix instead?
     catppuccin.flavor = "mocha";
-    catppuccin.fish.enable = true;
 
     stylix = {
       enable = true;
       autoEnable = true;
       base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
-      targets.nixvim.enable = false;
 
       image = pkgs.${namespace}.wallpapers.earth;
+
+      iconTheme = {
+        enable = true;
+        package = pkgs.catppuccin-papirus-folders.override {
+          flavor = "mocha";
+          accent = "lavender";
+        };
+        dark = "Papirus-Dark";
+      };
 
       cursor = {
         name = "Bibata-Modern-Classic";
@@ -52,19 +52,19 @@ in
           popups = 12;
         };
 
-        serif = {
-          name = "Source Serif";
-          package = pkgs.source-serif;
+        monospace = {
+          name = "FiraMono Nerd Font";
+          package = pkgs.nerd-fonts.fira-mono;
         };
 
         sansSerif = {
-          name = "Noto Sans";
-          package = pkgs.noto-fonts;
+          name = "Fira Sans";
+          package = pkgs.fira;
         };
 
-        monospace = {
-          package = pkgs.${namespace}.monolisa;
-          name = "MonoLisa Nerd Font";
+        serif = {
+          name = "Source Serif";
+          package = pkgs.source-serif;
         };
 
         emoji = {

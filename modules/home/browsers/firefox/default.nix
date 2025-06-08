@@ -8,16 +8,25 @@
   ...
 }:
 with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.browsers.firefox;
+  name = pkgs.firefox.pname;
   profileName = config.home.username or "default";
 in
 {
   options.${namespace}.browsers.firefox = {
     enable = mkEnableOption "Enable the Firefox browser.";
+    default = mkBoolOpt false "Whether or not to use Firefox as the default browser.";
   };
 
   config = mkIf cfg.enable {
+
+    ${namespace}.browsers.default = mkIf cfg.default {
+      enable = true;
+      name = name;
+    };
+
     stylix.targets.firefox = {
       enable = true;
       profileNames = [ profileName ];
@@ -169,11 +178,15 @@ in
     };
 
     xdg.mimeApps.defaultApplications = {
-      "text/html" = [ "firefox.desktop" ];
-      "text/xml" = [ "firefox.desktop" ];
-      "x-scheme-handler/http" = [ "firefox.desktop" ];
-      "x-scheme-handler/https" = [ "firefox.desktop" ];
+      "text/html" = [ "${name}.desktop" ];
+      "text/xml" = [ "${name}.desktop" ];
+      "x-scheme-handler/http" = [ "${name}.desktop" ];
+      "x-scheme-handler/https" = [ "${name}.desktop" ];
     };
+
+    home.packages = with pkgs; [
+      firefox
+    ];
   };
 
 }
