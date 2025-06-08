@@ -47,6 +47,7 @@ in
       gnomeExtensions.gsconnect
       gnomeExtensions.caffeine
       gnomeExtensions.launch-new-instance
+      gnomeExtensions.vitals
     ];
 
     dconf.settings = {
@@ -64,6 +65,17 @@ in
 
       "org/gnome/shell" = {
         disable-user-extensions = false;
+
+        favorite-apps =
+          let
+          in
+          [ "org.gnome.Nautilus.desktop" ]
+          ++
+            optional config.${namespace}.browsers.default.enable
+              "${config.${namespace}.browsers.default.name}.desktop"
+          ++
+            optional config.${namespace}.cli.terminals.default.enable
+              "${config.${namespace}.cli.terminals.default.name}.desktop";
 
         enabled-extensions = [
           "user-theme@gnome-shell-extensions.gcampax.github.com"
@@ -86,7 +98,16 @@ in
       };
 
       "org/gnome/shell/extensions/vitals" = {
-        hot-sensors = "['_memory_usage_', '__network-rx_max__', '_processor_usage_']";
+        show-temperature = true; # CPU/GPU temp
+        show-voltage = false; # Disable voltage (usually irrelevant)
+        show-fan = true; # Fan speed (if supported)
+        show-memory = true; # RAM usage
+        show-processor = true; # CPU usage
+        show-storage = true; # Disk usage
+        hot-sensors = [ "CPU" ]; # Which temps to show (e.g., "CPU", "GPU")
+        position-in-panel = "right"; # "left", "center", "right"
+        refresh-time = 2; # Update interval (seconds)
+
       };
 
     };

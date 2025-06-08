@@ -8,7 +8,7 @@
 with lib;
 let
   cfg = config.${namespace}.desktops.gnome;
-  terminal = config.${namespace}.cli.terminals.default.name;  
+  terminal = config.${namespace}.cli.terminals.default.name;
 in
 {
   config = mkIf cfg.enable {
