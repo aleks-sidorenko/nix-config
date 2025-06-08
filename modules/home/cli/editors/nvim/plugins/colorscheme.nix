@@ -95,13 +95,13 @@ in
     '';
 
     highlight = with colors; {
-      IndentBlanklineIndent1 = {
-        fg = line;
-        bg = null;
-      };
       IndentBlanklineContextChar = {
         fg = grey;
         bg = null;
+      };
+      IndentBlanklineContextStart = {
+        fg = null;
+        bg = one_bg2;
       };
       IndentBlanklineChar = {
         fg = line;
