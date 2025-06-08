@@ -219,15 +219,19 @@ in
       indent-blankline = {
         enable = true;
         settings = {
+          indent = {
+            highlight = ["IndentBlanklineIndent"];
+            char = "│";
+          };
           whitespace = {
-            highlight = [
-              "IndentBlanklineSpaceChar"
-              "IndentBlanklineSpaceCharBlankline"
-            ];
+            highlight = ["IndentBlanklineSpaceChar"];
+            remove_blankline_trail = false;
           };
           scope = {
+            enabled = true;
             show_start = false;
             show_end = false;
+            highlight = ["IndentBlanklineContextChar"];
           };
           exclude = {
             filetypes = [
