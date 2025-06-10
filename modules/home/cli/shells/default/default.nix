@@ -25,5 +25,9 @@ in
         message = "Please specify a shell name and package in ${namespace}.cli.shells.default.";
       }
     ];
+
+    home.sessionVariables = {
+      SHELL = cfg.name;
+    };
   };
 }

@@ -244,7 +244,6 @@ in
         };
       };
 
-
       spectre = {
         enable = true;
       };

@@ -24,6 +24,11 @@ in
         message = "Please specify a terminal name and package in ${namespace}.cli.terminals.default.";
       }
     ];
+
+    home.sessionVariables = {
+      TERM = cfg.name;
+      TERMINAL = cfg.name;
+    };
   };
 
 }

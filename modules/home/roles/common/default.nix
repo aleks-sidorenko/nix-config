@@ -39,7 +39,11 @@ in
           default = true;
         };
 
-        editors.nvim.enable = true;
+        editors.nvim = {
+          enable = true;
+          default = true;
+        };
+
         tools.archivers.enable = true;
         tools.modern-unix.enable = true;
         tools.network-tools.enable = true;

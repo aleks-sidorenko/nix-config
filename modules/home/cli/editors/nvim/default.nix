@@ -18,10 +18,17 @@ in
   ] ++ lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.cli.editors.nvim = with types; {
-    enable = mkBoolOpt false "enable neovim editor";
+    enable = mkBoolOpt false "Enable neovim editor.";
+    default = mkBoolOpt false "Whether or not to use neovim as the default shell.";
   };
 
   config = mkIf cfg.enable {
+
+    ${namespace}.cli.editors.default = mkIf cfg.default {
+      enable = true;
+      name = "nvim";
+    };
+
     programs.neovim = {
       viAlias = true;
       vimAlias = true;
