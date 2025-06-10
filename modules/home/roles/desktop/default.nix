@@ -31,7 +31,15 @@ in
         };
       };
 
-      browsers.chrome.enable = true;
+      media = {
+        enable = true;
+      };
+
+      browsers.chrome = {
+        enable = true;
+        default = true;
+      };
+
     };
 
     accounts = {

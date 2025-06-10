@@ -10,6 +10,18 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.cli.editors.default;
 
+  mimeTypes = [
+    "text/*"
+    "text/plain"
+
+    "application/x-zerosize"
+
+    "application/x-shellscript"
+    "application/x-perl"
+    "application/json"
+
+  ];
+
 in
 {
   options.${namespace}.cli.editors.default = with types; {
@@ -18,17 +30,19 @@ in
 
   };
 
-  config = mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = cfg.name != null;
-        message = "Please specify a editor name and package in ${namespace}.cli.editors.default.";
-      }
-    ];
+  config =
+    mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = cfg.name != null;
+          message = "Please specify a editor name in ${namespace}.cli.editors.default.";
+        }
+      ];
 
-    home.sessionVariables = {
-      VISUAL = cfg.name;
-      EDITOR = cfg;
-    };
-  };
+      home.sessionVariables = {
+        VISUAL = cfg.name;
+        EDITOR = cfg;
+      };
+    }
+    // withMimeAssociations config cfg.name mimeTypes;
 }

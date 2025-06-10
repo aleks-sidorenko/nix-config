@@ -9,7 +9,19 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.browsers.default;
-  name = pkgs.firefox.pname;
+
+  # List of MIME types for browser associations
+  mimeTypes = [
+    "application/x-extension-htm"
+    "application/x-extension-html"
+    "application/x-extension-shtml"
+    "application/xhtml+xml"
+    "application/x-extension-xhtml"
+    "application/x-extension-xht"
+    "application/pdf"
+    "x-scheme-handler/http"
+    "x-scheme-handler/https"
+  ];
 
 in
 {
@@ -18,12 +30,15 @@ in
     name = mkStringOpt' "The name of the default browser to use.";
   };
 
-  config = mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = cfg.name != null;
-        message = "Please specify a browser name in ${namespace}.browsers.default.";
-      }
-    ];
-  };
+  config =
+    mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = cfg.name != null;
+          message = "Please specify a browser name in ${namespace}.browsers.default.";
+        }
+      ];
+    }
+    // withMimeAssociations cfg.name mimeTypes;
+
 }

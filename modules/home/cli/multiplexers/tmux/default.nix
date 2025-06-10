@@ -23,10 +23,16 @@ let
 in
 {
   options.${namespace}.cli.multiplexers.tmux = with types; {
-    enable = mkBoolOpt false "enable tmux multiplexer";
+    enable = mkEnableOption "Whether or not to enable the tmux multiplexer.";
   };
 
   config = mkIf cfg.enable {
+
+    ${namespace}.cli.multiplexers.default = mkIf cfg.default {
+      enable = true;
+      name = "tmux";
+    };
+
     home.packages = with pkgs; [
       sesh
       lsof
