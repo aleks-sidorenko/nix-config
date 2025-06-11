@@ -61,6 +61,7 @@ in
 {
   options.${namespace}.cli.multiplexers.zellij = with types; {
     enable = mkEnableOption "Enable zellij multiplexer.";
+    default = mkBoolOpt false "Whether or not to use zellij as the default multiplexer.";
   };
 
   config = mkIf cfg.enable {

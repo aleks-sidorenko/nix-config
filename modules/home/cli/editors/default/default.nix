@@ -30,19 +30,19 @@ in
 
   };
 
-  config =
-    mkIf cfg.enable {
-      assertions = [
-        {
-          assertion = cfg.name != null;
-          message = "Please specify a editor name in ${namespace}.cli.editors.default.";
-        }
-      ];
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.name != null;
+        message = "Please specify a editor name in ${namespace}.cli.editors.default.";
+      }
+    ];
 
-      home.sessionVariables = {
-        VISUAL = cfg.name;
-        EDITOR = cfg;
-      };
-    }
-    // withMimeAssociations config cfg.name mimeTypes;
+    ${namespace}.desktops.addons.xdg.associations = mkMimeAssociations cfg.name mimeTypes;
+
+    home.sessionVariables = {
+      VISUAL = cfg.name;
+      EDITOR = cfg.name;
+    };
+  };
 }

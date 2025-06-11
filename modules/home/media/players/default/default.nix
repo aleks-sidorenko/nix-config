@@ -38,14 +38,15 @@ in
     name = mkStringOpt' "The name of the default media player to use.";
   };
 
-  config =
-    mkIf cfg.enable {
-      assertions = [
-        {
-          assertion = cfg.name != null;
-          message = "Please specify a media player name in ${namespace}.media.players.default.";
-        }
-      ];
-    }
-    // withMimeAssociations config cfg.name mimeTypes;
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.name != null;
+        message = "Please specify a media player name in ${namespace}.media.players.default.";
+      }
+    ];
+
+    ${namespace}.desktops.addons.xdg.associations = mkMimeAssociations cfg.name mimeTypes;
+  };
+
 }

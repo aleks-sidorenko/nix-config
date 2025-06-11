@@ -30,15 +30,15 @@ in
     name = mkStringOpt' "The name of the default browser to use.";
   };
 
-  config =
-    mkIf cfg.enable {
-      assertions = [
-        {
-          assertion = cfg.name != null;
-          message = "Please specify a browser name in ${namespace}.browsers.default.";
-        }
-      ];
-    }
-    // withMimeAssociations cfg.name mimeTypes;
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.name != null;
+        message = "Please specify a browser name in ${namespace}.browsers.default.";
+      }
+    ];
+
+    ${namespace}.desktops.addons.xdg.associations = mkMimeAssociations cfg.name mimeTypes;
+  };
 
 }

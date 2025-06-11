@@ -19,6 +19,7 @@ in
       roles = {
         common.enable = true;
         development.enable = true;
+        media.enable = true;
       };
 
       services = {
@@ -29,10 +30,6 @@ in
         gnome = {
           enable = true;
         };
-      };
-
-      media = {
-        enable = true;
       };
 
       browsers.chrome = {
