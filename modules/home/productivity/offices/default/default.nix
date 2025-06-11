@@ -1,17 +1,20 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.desktops.addons.xdg;
+  cfg = config.${namespace}.productivity.offices.default;
 
-  writer = [ "libreoffice-writer.desktop" ]; # TODO - use media.offices.default.writer
-  spreadsheet = [ "libreoffice-calc.desktop" ]; # TODO - use media.offices.default.calc
-  slidedeck = [ "libreoffice-impress.desktop" ]; # TODO - use media.offices.default.impress
+  # TODO - fix this once office is configured properly
+
+  writer = [ "libreoffice-writer.desktop" ]; # TODO - cfg.writer
+  spreadsheet = [ "libreoffice-calc.desktop" ]; # TODO - cfg.calc
+  slidedeck = [ "libreoffice-impress.desktop" ]; # TODO - cfg.impress
 
   # Extensive list of associations here:
   # https://github.com/iggut/GamiNiX/blob/8070528de419703e13b4d234ef39f05966a7fafb/system/desktop/home-main.nix#L77
@@ -78,54 +81,24 @@ let
 
 in
 {
-  options.${namespace}.desktops.addons.xdg = with types; {
-    enable = mkBoolOpt false "Enable XDG config. This includes user directories, session variables, and MIME type associations.";
-    associations = mkOption {
-      type = attrsOf (listOf str);
-      default = { };
-      description = "MIME type associations to add";
-    };
-    removals = mkOption {
-      type = attrsOf (listOf str);
-      default = { };
-      description = "MIME type associations to remove";
-    };
+  options.${namespace}.productivity.offices.default = with types; {
+    enable = mkEnableOption "Whether or not to enable the default office.";
+    name = mkStringOpt' "The name of the default office to use.";
+    writer = mkStringOpt' "The name of the default office writer app to use.";
+    spreadsheet = mkStringOpt' "The name of the default office spreadsheet app to use.";
+    draw = mkStringOpt' "The name of the default office draw app to use.";
+    math = mkStringOpt' "The name of the default office math app to use.";
   };
 
   config = mkIf cfg.enable {
-    home.sessionVariables = {
-      GTK2_RC_FILES = lib.mkForce "${config.xdg.configHome}/gtk-2.0/gtkrc";
-    };
+    assertions = [
+      {
+        assertion = cfg.name != null;
+        message = "Please specify a office name in ${namespace}.productivity.offices.default.";
+      }
+    ];
 
-    xdg = {
-      enable = true;
-      cacheHome = config.home.homeDirectory + "/.local/cache";
-
-      configFile."mimeapps.list".force = true;
-
-      mimeApps = {
-        enable = true;
-
-        associations = {
-          added = cfg.associations;
-          removed = cfg.removals;
-        };
-        defaultApplications = cfg.associations;
-
-      };
-
-      userDirs = {
-        enable = true;
-        createDirectories = true;
-        extraConfig = {
-          XDG_SCREENSHOTS_DIR = "${config.xdg.userDirs.pictures}/Screenshots";
-        };
-      };
-
-      autostart.enable = true;
-      portal = {
-        enable = true;
-      };
-    };
+    ${namespace}.desktops.addons.xdg.associations = mkMimeAssociations cfg.name { }; # TODO
   };
+
 }

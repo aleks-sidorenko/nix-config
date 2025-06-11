@@ -9,7 +9,19 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.browsers.default;
-  name = pkgs.firefox.pname;
+
+  # List of MIME types for browser associations
+  mimeTypes = [
+    "application/x-extension-htm"
+    "application/x-extension-html"
+    "application/x-extension-shtml"
+    "application/xhtml+xml"
+    "application/x-extension-xhtml"
+    "application/x-extension-xht"
+    "application/pdf"
+    "x-scheme-handler/http"
+    "x-scheme-handler/https"
+  ];
 
 in
 {
@@ -25,5 +37,8 @@ in
         message = "Please specify a browser name in ${namespace}.browsers.default.";
       }
     ];
+
+    ${namespace}.desktops.addons.xdg.associations = mkMimeAssociations cfg.name mimeTypes;
   };
+
 }

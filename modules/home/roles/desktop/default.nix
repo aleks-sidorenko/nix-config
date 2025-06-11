@@ -19,6 +19,7 @@ in
       roles = {
         common.enable = true;
         development.enable = true;
+        media.enable = true;
       };
 
       services = {
@@ -31,7 +32,11 @@ in
         };
       };
 
-      browsers.chrome.enable = true;
+      browsers.chrome = {
+        enable = true;
+        default = true;
+      };
+
     };
 
     accounts = {

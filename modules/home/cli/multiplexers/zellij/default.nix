@@ -60,10 +60,16 @@ let
 in
 {
   options.${namespace}.cli.multiplexers.zellij = with types; {
-    enable = mkBoolOpt false "enable zellij multiplexer";
+    enable = mkEnableOption "Enable zellij multiplexer.";
+    default = mkBoolOpt false "Whether or not to use zellij as the default multiplexer.";
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.cli.multiplexers.default = mkIf cfg.default {
+      enable = true;
+      name = "zellij";
+    };
+
     home.packages = [
       pkgs.tmate
       sesh
