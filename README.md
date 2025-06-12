@@ -116,4 +116,5 @@ Some features of my config:
 - 8bitbuddhist config, snowfall based https://github.com/8bitbuddhist/nix-configuration
 - Misterio77 config https://github.com/Misterio77/nix-config
 - EmergentMind config https://github.com/EmergentMind/nix-config
+- Nice nixvim config https://github.com/dc-tec/nixvim
 

@@ -1,3 +1,4 @@
+# TODO - consider using https://github.com/dc-tec/nixvim?tab=readme-ov-file
 {
   pkgs,
   lib,

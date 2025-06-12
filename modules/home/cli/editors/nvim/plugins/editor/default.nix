@@ -219,12 +219,6 @@ in
       indent-blankline = {
         enable = true;
         settings = {
-          whitespace = {
-            highlight = [
-              "IndentBlanklineSpaceChar"
-              "IndentBlanklineSpaceCharBlankline"
-            ];
-          };
           scope = {
             show_start = false;
             show_end = false;

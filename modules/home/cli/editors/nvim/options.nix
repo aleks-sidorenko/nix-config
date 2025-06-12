@@ -1,9 +1,5 @@
 {
   programs.nixvim = {
-    globals = {
-      mapleader = " ";
-      maplocalleader = ",";
-    };
 
     opts = {
       sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions";
