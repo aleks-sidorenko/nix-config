@@ -1,10 +1,10 @@
-# TODO - consider using https://github.com/dc-tec/nixvim?tab=readme-ov-file
 {
   pkgs,
   lib,
   inputs,
   config,
   namespace,
+  system,
   ...
 }:
 with lib;
@@ -12,11 +12,15 @@ with lib.${namespace};
 with inputs;
 let
   cfg = config.${namespace}.cli.editors.nvim;
+
+  nvim' = inputs.self.packages.${system}.nvim;
+
+  nvim = nvim'.extend {
+    viAlias = lib.mkForce true;
+    vimAlias = lib.mkForce true;    
+  };
 in
 {
-  imports = [
-    nixvim.homeManagerModules.nixvim
-  ] ++ lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.cli.editors.nvim = with types; {
     enable = mkBoolOpt false "Enable neovim editor.";
@@ -30,25 +34,18 @@ in
       name = "nvim";
     };
 
-    programs.neovim = {
-      viAlias = true;
-      vimAlias = true;
-      defaultEditor = true;
-    };
+    # If I want to explose minimal versions of this to different systems, there is .extend.appstream
+    # https://github.com/nix-community/nixvim/blob/05331006/docs/platforms/standalone.md#extending-an-existing-configuration
+    home.packages = [
+      nvim
+    ];
 
-    programs.nixvim = {
-      enable = true;
-      extraPlugins = with pkgs.vimPlugins; [ plenary-nvim ];
-      plugins.web-devicons.enable = true;
-      defaultEditor = true;
-      viAlias = true;
-      vimAlias = true;
-      vimdiffAlias = true;
-    };
+    # Covered with nixvim.vimdiffAlias
+    home.shellAliases.vimdiff = "nvim -d";
 
     stylix.targets.nixvim.enable = true; # Enable Stylix for Neovim
 
-    xdg.desktopEntries = lib.optionalAttrs pkgs.stdenv.isLinux {
+    xdg.desktopEntries = lib.optionalAttrs config.${namespace}.desktops.addons.xdg.enable {
       neovim = {
         name = "Neovim";
         genericName = "editor";
@@ -59,7 +56,6 @@ in
           "text/plain"
           "text/english"
           "text/x-makefile"
-          "text/x-c++hdr"
           "text/x-tex"
           "application/x-shellscript"
         ];

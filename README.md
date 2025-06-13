@@ -118,3 +118,9 @@ Some features of my config:
 - EmergentMind config https://github.com/EmergentMind/nix-config
 - Nice nixvim config https://github.com/dc-tec/nixvim
 
+### Resources
+
+- https://snowfall.org/guides/lib/modules/
+- https://nixos.wiki/wiki/NixOS_modules
+- https://nix.dev/tutorials/module-system/deep-dive
+- https://nixos.asia/en/nix-modules
