@@ -17,7 +17,7 @@ let
 
   nvim = nvim'.extend {
     viAlias = lib.mkForce true;
-    vimAlias = lib.mkForce true;    
+    vimAlias = lib.mkForce true;
   };
 in
 {

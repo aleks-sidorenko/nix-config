@@ -24,24 +24,18 @@ keys:
 
     
 creation_rules:
-   
   - path_regex: modules/nixos/secrets.ya?ml$
     key_groups:
-    - gpg:
-      - *alexander
-      age:
-      - *desktop
-      
-
-#  - path_regex: modules/nixos/services/secrets.ya?ml$
-#    key_groups:
-#    - gpg:
-#      - *alexander
+      - pgp:
+          - *alexander
+        age:
+          - *desktop
+    
 
   - path_regex: modules/home/secrets.ya?ml$
     key_groups:
-    - gpg:
-      - *alexander
-      age:
-      - *desktop
-     
+      - pgp:
+          - *alexander
+        age:
+          - *desktop
+

@@ -10,11 +10,14 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.user;
   shell = config.${namespace}.cli.shells.default.package;
+  initialPassword = cfg.initialPassword or cf.name;
+  hashedPasswordFile = cfg.hashedPasswordFile or config.sops.secrets."user-${cfg.name}-password".path;
 in
 {
   options.${namespace}.user = with types; {
     name = mkOpt str "alexander" "The name of the user's account";
-    initialPassword = mkOpt str "alexander" "The initial password to use";
+    initialPassword = mkOpt' str "The initial password to use";
+    hashedPasswordFile = mkOpt' (nullOr str) "The path to the hashed password file";
     extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned.";
     extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";
   };
@@ -23,10 +26,15 @@ in
     users.mutableUsers = false;
     users.users.${cfg.name} = {
       isNormalUser = true;
-      inherit (cfg) name initialPassword;
+      inherit (cfg) name;
       home = "/home/${cfg.name}";
       group = "users";
       shell = shell;
+
+      #
+      inherit (cfg) initialPassword;
+      # Use hashedPasswordFile if present, otherwise use initialPassword
+      hashedPasswordFile = lib.mkIf (cfg.hashedPasswordFile != null) cfg.hashedPasswordFile;
 
       # TODO: set in modules
       extraGroups = [
@@ -48,5 +56,9 @@ in
       useUserPackages = true;
     };
 
+    sops.secrets."user-${cfg.name}-password" = {
+      sopsFile = ../secrets.yaml;
+      neededForUsers = true;
+    };
   };
 }
