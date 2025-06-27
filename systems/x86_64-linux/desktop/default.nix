@@ -22,8 +22,6 @@ in
       };
     };
 
-    security.sops.enable = mkForce false;
-
     services = {
       virtualisation.kvm = enabled;
     };

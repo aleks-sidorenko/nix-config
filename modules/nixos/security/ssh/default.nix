@@ -8,10 +8,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
-
-  # Sops needs acess to the keys before the persist dirs are even mounted; so
-  # just persisting the keys won't work, we must point at /persist
-  hasOptinPersistence = config.${namespace}.disks.impermanence.enable;
 in
 {
   options.${namespace}.security.ssh = with types; {
@@ -43,7 +39,7 @@ in
 
       hostKeys = [
         {
-          path = persistentPath "/etc/ssh/ssh_host_ed25519_key";
+          path = persistentPath config "/etc/ssh/ssh_host_ed25519_key";
           type = "ed25519";
         }
       ];

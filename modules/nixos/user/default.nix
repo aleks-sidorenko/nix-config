@@ -10,16 +10,16 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.user;
   shell = config.${namespace}.cli.shells.default.package;
-  initialPassword = cfg.initialPassword or cf.name;
+  initialPassword = cfg.initialPassword or cfg.name;
   hashedPasswordFile = cfg.hashedPasswordFile or config.sops.secrets."user-${cfg.name}-password".path;
 in
 {
   options.${namespace}.user = with types; {
     name = mkOpt str "alexander" "The name of the user's account";
-    initialPassword = mkOpt' str "The initial password to use";
-    hashedPasswordFile = mkOpt' (nullOr str) "The path to the hashed password file";
+    initialPassword = mkOpt (nullOr str) null "The initial password to use";
+    hashedPasswordFile = mkOpt (nullOr str) null "The path to the hashed password file";
     extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned.";
-    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";
+    extraOptions = mkOpt attrs { } "Extra options passed to users.users.<n>";
   };
 
   config = {
@@ -31,10 +31,9 @@ in
       group = "users";
       shell = shell;
 
-      #
-      inherit (cfg) initialPassword;
-      # Use hashedPasswordFile if present, otherwise use initialPassword
-      hashedPasswordFile = lib.mkIf (cfg.hashedPasswordFile != null) cfg.hashedPasswordFile;
+      # Set either hashedPasswordFile or initialPassword, but not both
+      initialPassword = mkIf (hashedPasswordFile == null) initialPassword;
+      hashedPasswordFile = mkIf (hashedPasswordFile != null) hashedPasswordFile;
 
       # TODO: set in modules
       extraGroups = [
