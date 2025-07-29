@@ -24,6 +24,7 @@ pkgs.mkShell {
     ssh-to-age
     gnupg
     age
+    mkpasswd
 
   ];
 }

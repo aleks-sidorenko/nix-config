@@ -63,7 +63,7 @@ in
     };
 
     # TODO - split to modules
-    environment.persistence."/persist" = {
+    environment.persistence.${persistentRoot} = {
       hideMounts = true;
       directories = [
         "/.cache/nix/"

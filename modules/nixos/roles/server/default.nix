@@ -28,7 +28,6 @@ in
 
       user = {
         name = "nixos";
-        initialPassword = "nixos";
       };
     };
 
