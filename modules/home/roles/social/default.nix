@@ -17,8 +17,7 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       apps = {
-        discord.enable = true;
-        shotwell.enable = true;
+        discord.enable = true;        
       };
     };
 

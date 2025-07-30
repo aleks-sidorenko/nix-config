@@ -7,10 +7,10 @@
 }:
 with lib;
 let
-  cfg = config.${namespace}.apps.shotwell;
+  cfg = config.${namespace}.media.shotwell;
 in
 {
-  options.${namespace}.apps.shotwell = {
+  options.${namespace}.media.shotwell = {
     enable = mkEnableOption "Enable shotwell program";
   };
 

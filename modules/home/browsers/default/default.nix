@@ -19,6 +19,8 @@ let
     "application/x-extension-xhtml"
     "application/x-extension-xht"
     "application/pdf"
+    "text/html"
+    "text/xml"
     "x-scheme-handler/http"
     "x-scheme-handler/https"
   ];

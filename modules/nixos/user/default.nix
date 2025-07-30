@@ -11,15 +11,16 @@ let
   cfg = config.${namespace}.user;
   shell = config.${namespace}.cli.shells.default.package;
   initialPassword = cfg.initialPassword or cfg.name;
-  
+
   # Use SOPS path only if SOPS is enabled and no explicit hashedPasswordFile is set
   sopsEnabled = config.${namespace}.security.sops.enable;
-  hashedPasswordFile = 
-    if cfg.hashedPasswordFile != null 
-    then cfg.hashedPasswordFile 
-    else if sopsEnabled 
-    then config.sops.secrets."user-${cfg.name}-password".path
-    else null;
+  hashedPasswordFile =
+    if cfg.hashedPasswordFile != null then
+      cfg.hashedPasswordFile
+    else if sopsEnabled then
+      config.sops.secrets."user-${cfg.name}-password".path
+    else
+      null;
 in
 {
   options.${namespace}.user = with types; {
