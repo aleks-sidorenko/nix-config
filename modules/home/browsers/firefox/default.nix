@@ -1,10 +1,10 @@
-{
-  inputs,
+{  
   lib,
   host,
   pkgs,
   config,
   namespace,
+  inputs,
   ...
 }:
 with lib;
@@ -13,6 +13,7 @@ let
   cfg = config.${namespace}.browsers.firefox;
   name = pkgs.firefox.pname;
   profileName = config.home.username or "default";
+  plugins = inputs.firefox-addons.packages.${pkgs.system};
 in
 {
   options.${namespace}.browsers.firefox = {
@@ -55,10 +56,10 @@ in
           };
         };
         bookmarks = { };
-        #extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
-        #ublock-origin
-        #browserpass
-        #];
+        extensions.packages = with plugins; [
+          ublock-origin
+          browserpass
+        ];
         bookmarks = { };
         settings = {
           "browser.startup.homepage" = "about:home";
@@ -175,13 +176,6 @@ in
           };
         };
       };
-    };
-
-    xdg.mimeApps.defaultApplications = {
-      "text/html" = [ "${name}.desktop" ];
-      "text/xml" = [ "${name}.desktop" ];
-      "x-scheme-handler/http" = [ "${name}.desktop" ];
-      "x-scheme-handler/https" = [ "${name}.desktop" ];
     };
 
     home.packages = with pkgs; [

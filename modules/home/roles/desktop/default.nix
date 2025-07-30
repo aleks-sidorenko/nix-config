@@ -20,6 +20,7 @@ in
         common.enable = true;
         development.enable = true;
         media.enable = true;
+        mobile.enable = true;
       };
 
       services = {
@@ -32,9 +33,15 @@ in
         };
       };
 
-      browsers.chrome = {
-        enable = true;
-        default = true;
+      browsers = {
+        chrome = {
+          enable = true;
+          default = true;
+        };
+        firefox = {
+          enable = true;
+          default = false;
+        };
       };
 
     };
@@ -60,21 +67,18 @@ in
 
     # TODO: move this to somewhere
     home.packages = with pkgs; [
+      
+      brightnessctl # for brightness control
+      xdg-utils # for xdg-open
+      wl-clipboard # for clipboard
+      clipse # for clipboard
+      pamixer # for volume control
+      playerctl # for media control
 
-      mplayer
-      mtpfs
-      jmtpfs
-      brightnessctl
-      xdg-utils
-      wl-clipboard
-      clipse
-      pamixer
-      playerctl
-
-      grimblast
-      slurp
-      sway-contrib.grimshot
-      pkgs.satty
+      grimblast # for screenshots
+      slurp # for screenshots
+      sway-contrib.grimshot # for screenshots
+      satty # for brightness control
     ];
   };
 }

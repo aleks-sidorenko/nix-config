@@ -19,6 +19,7 @@ in
   config = mkIf cfg.enable {
     ${namespace}.media = {
       players.vlc = enabled;
+      shotwell = enabled;
     };
   };
 }
