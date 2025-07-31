@@ -13,6 +13,12 @@ let
   cfg = config.${namespace}.browsers.chrome;
   name = pkgs.google-chrome.pname;
   profileName = config.home.username or "default";
+  passCfg = config.${namespace}.security.pass;
+
+  extensionIds = {
+    ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
+    browserpass = "naepdomgkenhinolocfifgehidddafch";
+  };
 in
 {
   options.${namespace}.browsers.chrome = {
@@ -27,18 +33,33 @@ in
       name = name;
     };
 
+    programs.browserpass.enable = mkIf passCfg.enable true;
+
     programs.google-chrome = {
       enable = true;
       package = pkgs.google-chrome;
+      commandLineArgs = [
+        "--enable-wayland-ime"
+        "--ozone-platform=wayland"
+        "--enable-logging=stderr"
+        "--v=1"
+      ];
+
+      /*
+        extensions = [
+          # uBlock Origin
+          { id = extensionIds.ublock-origin; }
+          # Browserpass (conditional on pass being enabled)
+        ] ++ lib.optionals passCfg.enable [
+          { id = extensionIds.browserpass; }
+        ];
+      */
     };
 
     xdg.mimeApps.defaultApplications = {
       "x-scheme-handler/chrome" = [ "${name}.desktop" ];
     };
-
-    home.packages = with pkgs; [
-      google-chrome
-    ];
+    
   };
 
 }

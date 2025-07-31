@@ -17,9 +17,9 @@ in
   };
 
   config = mkIf cfg.enable {
-     home.packages = with pkgs; [
+    home.packages = with pkgs; [
       mtpfs # for android
-      jmtpfs # for android 
+      jmtpfs # for android
     ];
   };
 }

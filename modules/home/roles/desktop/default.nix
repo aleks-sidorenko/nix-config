@@ -67,7 +67,7 @@ in
 
     # TODO: move this to somewhere
     home.packages = with pkgs; [
-      
+
       brightnessctl # for brightness control
       xdg-utils # for xdg-open
       wl-clipboard # for clipboard

@@ -9,7 +9,7 @@ let
   cfg = config.${namespace}.roles.development;
 in
 {
-  # TODO: split by areas: backend, frontend, mobile, desktop, devops,etc.  
+  # TODO: split by areas: backend, frontend, mobile, desktop, devops,etc.
   options.${namespace}.roles.development = {
     enable = mkEnableOption "Enable development configuration";
   };

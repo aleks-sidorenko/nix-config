@@ -1,4 +1,4 @@
-{  
+{
   lib,
   host,
   pkgs,
@@ -14,6 +14,7 @@ let
   name = pkgs.firefox.pname;
   profileName = config.home.username or "default";
   plugins = inputs.firefox-addons.packages.${pkgs.system};
+  passCfg = config.${namespace}.security.pass;
 in
 {
   options.${namespace}.browsers.firefox = {
@@ -33,7 +34,8 @@ in
       profileNames = [ profileName ];
     };
 
-    programs.browserpass.enable = true;
+    programs.browserpass.enable = mkIf passCfg.enable true;
+
     programs.firefox = {
       enable = true;
       profiles.${profileName} = {
@@ -58,7 +60,7 @@ in
         bookmarks = { };
         extensions.packages = with plugins; [
           ublock-origin
-          browserpass
+          (mkIf passCfg.enable browserpass)
         ];
         bookmarks = { };
         settings = {
