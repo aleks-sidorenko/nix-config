@@ -27,6 +27,7 @@ in
         gpg.enable = true;
         ssh.enable = true;
         sops.enable = true;
+        pass.enable = true;
       };
 
       cli = {

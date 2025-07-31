@@ -17,20 +17,18 @@ in
     enable = mkBoolOpt false "Whether to enable pass for password management.";
   };
 
-  
   config = mkIf cfg.enable {
     programs.password-store = {
       enable = true;
       settings = {
         PASSWORD_STORE_DIR = "$HOME/.password-store";
       };
-      package = pkgs.pass.withExtensions (p: [p.pass-otp]);
+      package = pkgs.pass.withExtensions (p: [ p.pass-otp ]);
     };
 
     services.pass-secret-service = {
       enable = true;
       storePath = "${home}/.password-store";
-      extraArgs = ["-e${config.programs.password-store.package}/bin/pass"];
     };
   };
 }
