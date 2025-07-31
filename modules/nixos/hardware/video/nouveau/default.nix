@@ -23,7 +23,17 @@ in
       graphics = {
         enable = true;
         enable32Bit = true;
-        extraPackages = with pkgs; [ mesa ];
+        extraPackages = with pkgs; [ 
+          mesa 
+          libvdpau
+          libva-vdpau-driver
+          vdpauinfo
+        ];
+        extraPackages32 = with pkgs.pkgsi686Linux; [
+          mesa
+          libvdpau
+          libva-vdpau-driver
+        ];
       };
     };
 
@@ -58,7 +68,10 @@ in
     environment.systemPackages = with pkgs; [
       mesa # Open source 3D graphics library
       libva # Video acceleration
+      libvdpau # VDPAU library for hardware video decoding
+      libva-vdpau-driver # VDPAU driver for VA-API
       libvdpau-va-gl # VDPAU backend for VA API
+      vdpauinfo # VDPAU testing utility
       xorg.xrandr # For monitor configuration
       vulkan-tools # Vulkan utilities
       vulkan-loader # Vulkan loader
@@ -66,11 +79,12 @@ in
       mesa-demos # OpenGL demos and tools
     ];
 
-    # Hyprland environment variables
+    # Environment variables for Nouveau + VDPAU
     environment.sessionVariables = {
       WLR_NO_HARDWARE_CURSORS = mkForce "1"; # Avoid cursor issues
       GBM_BACKEND = "nouveau-drm"; # Use Nouveau's DRM backend
       LIBVA_DRIVER_NAME = "nouveau"; # VA-API acceleration
+      VDPAU_DRIVER = "nouveau"; # VDPAU acceleration via nouveau driver
     };
   };
 }
