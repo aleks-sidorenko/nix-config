@@ -21,9 +21,16 @@ in
               type = types.str;
               example = "HDMI-1";
             };
+            vendor = mkOption {
+              type = types.str;
+              default = "";
+              example = "Dell";
+              description = "Monitor vendor/manufacturer name";
+            };
             model = mkOption {
               type = types.str;
-              example = "Dell U2414H";
+              example = "U2414H";
+              description = "Monitor model name (without vendor)";
             };
             primary = mkOption {
               type = types.bool;

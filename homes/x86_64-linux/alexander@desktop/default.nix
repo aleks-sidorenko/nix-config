@@ -27,19 +27,26 @@ with lib.${namespace};
       devices = [
         {
           name = "DVI-D-1";
-          model = "Samsung SyncMaster PX2370";
+          vendor = "Samsung";
+          model = "SyncMaster PX2370";
           width = 1920;
           height = 1080;
+          refreshRate = 60;
           primary = true;
+          position = "0";
+          scale = "1";
           workspace = "1";
         }
         {
           name = "HDMI-1";
-          model = "Dell U2414H";
+          vendor = "Dell";
+          model = "U2414H";
           width = 1920;
           height = 1080;
+          refreshRate = 60;
+          position = "1920";
+          scale = "1";
           workspace = "1";
-          position = "auto-right";
         }
 
       ];
