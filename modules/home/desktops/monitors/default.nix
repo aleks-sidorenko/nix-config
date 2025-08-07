@@ -19,7 +19,18 @@ in
           options = {
             name = mkOption {
               type = types.str;
-              example = "DP-1";
+              example = "HDMI-1";
+            };
+            vendor = mkOption {
+              type = types.str;
+              default = "";
+              example = "Dell";
+              description = "Monitor vendor/manufacturer name";
+            };
+            model = mkOption {
+              type = types.str;
+              example = "U2414H";
+              description = "Monitor model name (without vendor)";
             };
             primary = mkOption {
               type = types.bool;

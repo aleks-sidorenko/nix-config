@@ -50,6 +50,7 @@ in
       gnomeExtensions.vitals
     ];
 
+    # Configure GNOME display settings via dconf
     dconf.settings = {
 
       "org/gnome/desktop/interface" = {
