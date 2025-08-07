@@ -26,14 +26,16 @@ with lib.${namespace};
       enable = true;
       devices = [
         {
-          name = "HDMI-A-1";
+          name = "DVI-D-1";
+          model = "Samsung SyncMaster PX2370";
           width = 1920;
           height = 1080;
           primary = true;
-          workspace = "2";
+          workspace = "1";
         }
         {
-          name = "DVI-I-1";
+          name = "HDMI-1";
+          model = "Dell U2414H";
           width = 1920;
           height = 1080;
           workspace = "1";

@@ -19,7 +19,11 @@ in
           options = {
             name = mkOption {
               type = types.str;
-              example = "DP-1";
+              example = "HDMI-1";
+            };
+            model = mkOption {
+              type = types.str;
+              example = "Dell U2414H";
             };
             primary = mkOption {
               type = types.bool;

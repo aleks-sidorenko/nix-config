@@ -16,30 +16,36 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Enable the correct legacy driver branch
-    services.xserver.videoDrivers = [ "nvidiaLegacy390" ];
+    # Enable modern NVIDIA drivers for GTX 1650
+    services.xserver.videoDrivers = [ "nvidia" ];
 
     hardware = {
       graphics.enable = true;
 
       nvidia = {
-        package = config.boot.kernelPackages.nvidiaPackages.legacy_390;
+        package = config.boot.kernelPackages.nvidiaPackages.stable;
         modesetting.enable = true;
 
-        # Power management (may help with stability)
+        # Power management for modern cards
         powerManagement.enable = true;
+        powerManagement.finegrained = false;
 
-        # Enable DRM KMS and configure memory management
+        # Enable nvidia-settings and modern features
         nvidiaSettings = true;
+        
+        # Use proprietary driver (open source drivers not mature enough yet)
+        open = false;
+        
+        # Enable hardware acceleration and video decode
+        nvidiaPersistenced = true;
+        
+        # Force composition pipeline for better display detection
         forceFullCompositionPipeline = true;
-        open = false; # Use proprietary driver
-        powerManagement.finegrained = false; # Disable fine-grained power management for legacy driver
       };
     };
 
     boot = {
-      # Use older kernel https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/nvidia-x11/default.nix#L202
-      kernelPackages = mkForce pkgs.linuxPackages_6_12;
+      
       blacklistedKernelModules = [ "nouveau" ];
 
       # Ensure NVIDIA modules are loaded early in the boot process
@@ -47,21 +53,43 @@ in
         "nvidia"
         "nvidia_drm"
         "nvidia_modeset"
+        "nvidia_uvm"
       ];
-      extraModulePackages = [ config.boot.kernelPackages.nvidiaPackages.legacy_390 ];
+      
+      # Load nvidia modules in initrd for early display
+      initrd.kernelModules = [
+        "nvidia"
+        "nvidia_drm"
+        "nvidia_modeset"
+      ];
+      extraModulePackages = [ config.boot.kernelPackages.nvidiaPackages.stable ];
 
-      # Enable kernel mode setting and configure memory management
+      # Enable kernel mode setting and modern features for GTX 1650
       kernelParams = [
         "nvidia-drm.modeset=1"
         "nvidia-drm.fbdev=1"
-        "nvidia-uvm.use_rm_legacy_uvm=1"
-        "nvidia.NVreg_RegistryDwords=RMCtrl:0x00000001"
+        # Enable hardware video acceleration
+        "nvidia.NVreg_EnableGpuFirmware=1"
+        # Improve display detection and stability
+        "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+        "nvidia.NVreg_UsePageAttributeTable=1"
       ];
     };
 
     environment.systemPackages = with pkgs; [
-      config.boot.kernelPackages.nvidiaPackages.legacy_390.bin
+      config.boot.kernelPackages.nvidiaPackages.stable.bin
+      # Additional NVIDIA utilities
+      nvtopPackages.nvidia
     ];
+
+    # Environment variables for Nvidia + Wayland compatibility
+    environment.sessionVariables = {
+      # Enable Wayland support for Nvidia
+      GBM_BACKEND = "nvidia-drm";
+      __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+      # Improve Wayland compatibility
+      WLR_NO_HARDWARE_CURSORS = "1";
+    };
 
     # Create nvidia-uvm device on boot
     services.udev.extraRules = ''

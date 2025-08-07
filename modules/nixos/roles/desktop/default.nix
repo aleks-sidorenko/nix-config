@@ -37,7 +37,7 @@ in
         audio.enable = true;
         bluetooth.enable = true;
         zsa.enable = true;
-        video.nouveau.enable = true;
+        video.nvidia.enable = true;
       };
 
       services = {
