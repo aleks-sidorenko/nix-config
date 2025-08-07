@@ -6,10 +6,9 @@
   ...
 }:
 with lib;
-with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.gnome;  
-  terminal = getExecPath config.${namespace}.cli.terminals.default.package;
+  terminal = lib.${namespace}.getExecPath config.${namespace}.cli.terminals.default.package;
 in
 {
   config = mkIf cfg.enable {
