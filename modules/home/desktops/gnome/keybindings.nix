@@ -6,9 +6,10 @@
   ...
 }:
 with lib;
+with lib.${namespace};
 let
-  cfg = config.${namespace}.desktops.gnome;
-  terminal = config.${namespace}.cli.terminals.default.name;
+  cfg = config.${namespace}.desktops.gnome;  
+  terminal = getExecPath config.${namespace}.cli.terminals.default.package;
 in
 {
   config = mkIf cfg.enable {
@@ -18,10 +19,7 @@ in
       };
 
       "org/gnome/shell/keybindings" = {
-        open-terminal = [
-          "<Ctrl><Alt>t"
-          "<Super>t"
-        ];
+        open-terminal = [ ];
       };
 
       "org/gnome/shell/keybindings/toggle-application-view" = {
@@ -29,20 +27,13 @@ in
       };
 
       "org/gnome/settings-daemon/plugins/media-keys" = {
-        www = [ "<Ctrl><Alt>w" ];
+        www = [ "<Super>w" ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
         ];
       };
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-        name = "Open Terminal (Ctrl+Alt+t)";
-        command = terminal;
-        binding = "<Ctrl><Alt>t";
-      };
-
-      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
         name = "Open Terminal (Super+t)";
         command = terminal;
         binding = "<Super>t";
@@ -131,10 +122,6 @@ in
           "<Super>Down"
           "<Alt>F5"
         ];
-      };
-
-      "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-        terminal = terminal;
       };
 
       "org/gnome/shell/extensions/search-light" = {
