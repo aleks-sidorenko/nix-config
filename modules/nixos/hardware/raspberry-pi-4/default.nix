@@ -17,7 +17,7 @@ in
 
   config = mkIf cfg.enable {
     boot = {
-      kernelPackages = (import <nixpkgs-rpi4> { }).linuxPackages_rpi5;
+      kernelPackages = pkgs.linuxPackages_rpi4;
       kernelParams = [
         "cgroup_memory=1"
         "cgroup_enable=cpuset"

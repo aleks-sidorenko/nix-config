@@ -22,8 +22,13 @@ in
         common.enable = true;
       };
 
+      system = {
+        locale.timeZone = lib.mkDefault "UTC";        
+      };
+
       services = {
-        tailscale.enable = true;
+        # TODO: add vpn support
+        # tailscale.enable = true;
       };
 
       user = {
@@ -41,14 +46,15 @@ in
         # Print the URL instead on servers
         variables.BROWSER = "echo";
       }
-      // lib.optionalAttrs (lib.versionAtLeast (lib.versions.majorMinor lib.version) "24.05") {
+      // optionalAttrs (versionAtLeast (versions.majorMinor version) "24.05") {
         # Don't install the /lib/ld-linux.so.2 and /lib64/ld-linux-x86-64.so.2
         # stubs. Server users should know what they are doing.
-        stub-ld.enable = lib.mkDefault false;
+        stub-ld.enable = mkDefault false;
       };
 
     security = {
       sudo = {
+        # Don't require a password for the wheel group
         wheelNeedsPassword = false;
         # Only allow members of the wheel group to execute sudo by setting the executable’s permissions accordingly. This prevents users that are not members of wheel from exploiting vulnerabilities in sudo such as CVE-2021-3156.
         execWheelOnly = true;
@@ -61,18 +67,14 @@ in
 
     # Notice this also disables --help for some commands such es nixos-rebuild
     documentation = {
-      enable = lib.mkDefault false;
-      info.enable = lib.mkDefault false;
-      man.enable = lib.mkDefault false;
-      nixos.enable = lib.mkDefault false;
+      enable = mkDefault false;
+      info.enable = mkDefault false;
+      man.enable = mkDefault false;
+      nixos.enable = mkDefault false;
     };
 
-    # No need for fonts on a server
-    fonts.fontconfig.enable = lib.mkDefault false;
-
-    # UTC everywhere!
-    time.timeZone = lib.mkDefault "UTC";
-
+   
+  
     systemd = {
       services.NetworkManager-wait-online.enable = false;
       network.wait-online.enable = false;

@@ -28,17 +28,13 @@ in
           nix-ld.enable = true;
         };
       };
+      
+      styles.stylix.enable = true;
 
       desktops = {
         gnome.enable = true;
       };
-
-      hardware = {
-        audio.enable = true;
-        bluetooth.enable = true;
-        zsa.enable = true;
-        video.nvidia.enable = true;
-      };
+      
 
       services = {
         # TODO impl

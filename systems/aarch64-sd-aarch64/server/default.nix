@@ -26,7 +26,8 @@ with lib.${namespace};
 
     hardware.raspberry-pi-4 = enabled;
 
-    boot.impermanence.enable = lib.mkForce false;
+    # Disable GRUB for Raspberry Pi - it uses different boot loader
+    disks.boot.enable = lib.mkForce false;
   };
 
   sdImage.compressImage = false;
