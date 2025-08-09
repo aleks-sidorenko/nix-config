@@ -13,7 +13,8 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/sdc";
+          device = "/dev/mmcblk0"; # built-in eMMC, 32GB
+          encrypted = false;
           boot = {
             size = "512M";
           };
@@ -25,7 +26,7 @@ with lib.${namespace};
             }
             {
               name = "swap";
-              swapfile.size = "36G";
+              swapfile.size = "8G";
             }
             {
               name = "nix";
@@ -45,7 +46,8 @@ with lib.${namespace};
 
         };
         data = {
-          device = "/dev/nvme0n1";
+          device = "/dev/sda"; # NVMe 500GB
+          encrypted = false;
           subvolumes = [
             {
               name = "home";
