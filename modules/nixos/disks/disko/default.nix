@@ -53,6 +53,38 @@ let
     in
     foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.subvolumes;
 
+  mkBtrfsContent = disk: {
+    type = "btrfs";
+    extraArgs = [
+      "-f" # force overwrite
+      "-L ${disk.name}" # label we use later on in postCreateHook
+    ];
+    # Create snapshot regardless of if impermanence is enabled
+    # This way we can enable impermanence later on if we want
+    postCreateHook =
+      let
+        subvols = lib.filter (sv: sv.createBlankSnapshot) disk.subvolumes;
+        snapshotCommands = map (
+          subvol:
+          let
+            name = subvol.name;
+          in
+          ''
+            echo "Creating blank snapshot of ${subvolume name}"
+            btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
+          ''
+        ) subvols;
+      in
+      optionalString (builtins.length subvols > 0) ''
+        mkdir -p /tmp
+        MNTPOINT=$(mktemp -d)
+        mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
+        trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
+        ${concatStringsSep "\n" snapshotCommands}
+      '';
+    subvolumes = mkSubvolumes disk;
+  };
+
   mkLuksPartition = disk: {
     encryped = {
       size = "100%";
@@ -69,38 +101,16 @@ let
         };
         # Subvolumes must set a mountpoint in order to be mounted,
         # unless their parent is mounted
-        content = {
-          type = "btrfs";
-          extraArgs = [
-            "-f" # force overwrite
-            "-L ${disk.name}" # label we use later on in postCreateHook
-          ];
-          # Create snapshot regardless of if impermanence is enabled
-          # This way we can enable impermanence later on if we want
-          postCreateHook =
-            let
-              subvols = lib.filter (sv: sv.createBlankSnapshot) disk.subvolumes;
-              snapshotCommands = map (
-                subvol:
-                let
-                  name = subvol.name;
-                in
-                ''
-                  echo "Creating blank snapshot of ${subvolume name}"
-                  btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
-                ''
-              ) subvols;
-            in
-            optionalString (builtins.length subvols > 0) ''
-              mkdir -p /tmp
-              MNTPOINT=$(mktemp -d)
-              mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
-              trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
-              ${concatStringsSep "\n" snapshotCommands}
-            '';
-          subvolumes = mkSubvolumes disk;
-        };
+        content = mkBtrfsContent disk;
       };
+    };
+  };
+
+  mkBtrfsPartition = disk: {
+    btrfs = {
+      size = "100%";
+      label = disk.name;
+      content = mkBtrfsContent disk;
     };
   };
 
@@ -110,7 +120,7 @@ let
     name = disk.name;
     content = {
       type = "gpt";
-      partitions = mkBootPartition disk // mkLuksPartition disk;
+      partitions = mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -126,6 +136,11 @@ in
             type = types.str;
             description = "The device path for the disk (e.g., '/dev/sda')";
           };
+          encrypted = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Whether to use LUKS encryption for the partition";
+          };
           boot = mkOption {
             type = types.nullOr (submodule {
               options = {
@@ -137,7 +152,7 @@ in
               };
             });
             default = null;
-            description = "Swapfile configuration for this subvolume";
+            description = "Boot partition configuration";
           };
           subvolumes = mkOption {
             type = types.listOf (submodule {

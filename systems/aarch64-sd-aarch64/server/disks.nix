@@ -14,7 +14,6 @@ with lib.${namespace};
       disks = {
         root = {
           device = "/dev/sdc";
-          encrypted = true;
           boot = {
             size = "512M";
           };
@@ -47,7 +46,6 @@ with lib.${namespace};
         };
         data = {
           device = "/dev/nvme0n1";
-          encrypted = true;
           subvolumes = [
             {
               name = "home";
