@@ -18,11 +18,11 @@
 keys:
   - &users:
     - &alexander 07E36E87C0270E464DB4D663B423D1630A58837C
-    
+
   - &hosts:
     - &desktop age1kjlpt0mu072vqk8txgkfs7yvehkvk0kysawyqvy96zcqmf49wgkq3hlsag
+    - &server age1qap92qp262npfhtqwwccu7jaxmjfyc22aeqwu5fv2kft828eaypqjzxx86
 
-    
 creation_rules:
   - path_regex: modules/nixos/secrets.ya?ml$
     key_groups:
@@ -30,7 +30,7 @@ creation_rules:
           - *alexander
         age:
           - *desktop
-    
+          - *server
 
   - path_regex: modules/home/secrets.ya?ml$
     key_groups:
@@ -38,4 +38,3 @@ creation_rules:
           - *alexander
         age:
           - *desktop
-
