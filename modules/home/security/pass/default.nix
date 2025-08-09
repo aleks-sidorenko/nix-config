@@ -23,7 +23,7 @@ in
       settings = {
         PASSWORD_STORE_DIR = "$HOME/.password-store";
       };
-      package = pkgs.pass.withExtensions (p: [ p.pass-otp ]);
+      package = pkgs.pass.withExtensions (p: [ p.pass-otp p.pass-file p.pass-import ]);
     };
 
     services.pass-secret-service = {
