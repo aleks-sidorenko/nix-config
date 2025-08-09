@@ -25,27 +25,32 @@ in
       ];
       supportedFilesystems = [ "btrfs" ];
 
-      initrd.kernelModules = [
-        "zstd"
-        "btrfs"
-      ];
-      initrd.availableKernelModules = [
-        # Allows early (earlier) modesetting for the Raspberry Pi
-        "vc4"
-        "bcm2835_dma"
-        "i2c_bcm2835"
-        "uas"
-        "pcie-brcmstb"
-        "reset-raspberrypi"
-
-        # Maybe needed for SSD boot?
-        "usb_storage"
-        "xhci_pci"
-        "usbhid"
-        "uas"
-      ];
+      initrd = {
+        kernelModules = [
+          "zstd"
+          "btrfs"
+        ];
+        availableKernelModules = [
+          "xhci_pci"
+        ];
+      };
     };
 
-    hardware.enableRedistributableFirmware = true;
+    # Raspberry Pi 4 specific firmware mount
+    # Mount the boot partition (labeled "boot" by disko) as /firmware for Pi firmware access
+    fileSystems."/firmware" = {
+      device = "/dev/disk/by-label/boot";
+      fsType = "vfat";
+      options = [ "defaults" ];
+      neededForBoot = true;
+    };
+
+    hardware = {
+      enableRedistributableFirmware = true;
+      raspberry-pi."4" = {
+        i2c1.enable = true;
+        fkms-3d.enable = true;
+      };
+    };
   };
 }
