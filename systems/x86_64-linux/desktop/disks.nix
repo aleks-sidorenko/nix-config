@@ -18,7 +18,7 @@ with lib.${namespace};
           boot = {
             size = "512M";
           };
-          subvolumes = [
+          content = [
             {
               name = "root";
               mountpoint = "/";
@@ -48,7 +48,7 @@ with lib.${namespace};
         data = {
           device = "/dev/nvme0n1";
           encrypted = true;
-          subvolumes = [
+          content = [
             {
               name = "home";
               mountOptions = [

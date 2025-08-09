@@ -16,9 +16,9 @@ with lib.${namespace};
           device = "/dev/mmcblk0"; # built-in eMMC, 32GB
           encrypted = false;
           boot = {
-            size = "512M";
+            size = "256M";
           };
-          subvolumes = [
+          content = [
             {
               name = "root";
               mountpoint = "/";
@@ -41,14 +41,12 @@ with lib.${namespace};
                 "noatime"
               ];
             }
-
           ];
-
         };
         data = {
           device = "/dev/sda"; # NVMe 500GB
           encrypted = false;
-          subvolumes = [
+          content = [
             {
               name = "home";
               mountOptions = [

@@ -51,7 +51,7 @@ let
           };
       };
     in
-    foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.subvolumes;
+    foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.content;
 
   mkBtrfsContent = disk: {
     type = "btrfs";
@@ -63,7 +63,7 @@ let
     # This way we can enable impermanence later on if we want
     postCreateHook =
       let
-        subvols = lib.filter (sv: sv.createBlankSnapshot) disk.subvolumes;
+        subvols = lib.filter (sv: sv.createBlankSnapshot) disk.content;
         snapshotCommands = map (
           subvol:
           let
@@ -87,6 +87,7 @@ let
 
   mkLuksPartition = disk: {
     encryped = {
+      priority = 100;
       size = "100%";
       label = encryped disk.name;
       content = {
@@ -108,11 +109,14 @@ let
 
   mkBtrfsPartition = disk: {
     btrfs = {
+      priority = 100;
       size = "100%";
       label = disk.name;
       content = mkBtrfsContent disk;
     };
   };
+
+
 
   mkDisk = disk: {
     inherit (disk) device;
@@ -120,7 +124,8 @@ let
     name = disk.name;
     content = {
       type = "gpt";
-      partitions = mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+      partitions = mkBootPartition disk 
+        // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -154,7 +159,7 @@ in
             default = null;
             description = "Boot partition configuration";
           };
-          subvolumes = mkOption {
+          content = mkOption {
             type = types.listOf (submodule {
               options = {
                 name = mkOption {
@@ -201,6 +206,7 @@ in
             default = [ ];
             description = "List of btrfs subvolumes to create";
           };
+
         };
       });
       default = { };
@@ -223,7 +229,7 @@ in
     # Set neededForBoot for all subvolumes that require it
     fileSystems =
       let
-        allSubvolumes = lib.flatten (map (disk: disk.subvolumes) (builtins.attrValues cfg.disks));
+        allSubvolumes = lib.flatten (map (disk: disk.content) (builtins.attrValues cfg.disks));
         bootSubvolumes = builtins.filter (subvol: subvol.neededForBoot) allSubvolumes;
       in
       lib.listToAttrs (
