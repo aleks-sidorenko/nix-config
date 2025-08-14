@@ -16,6 +16,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+
+    ${namespace}.user.extraGroups = [
+      "kvm"
+      "libvirtd"
+    ];
+
     environment.systemPackages = with pkgs; [
       libguestfs
       win-virtio

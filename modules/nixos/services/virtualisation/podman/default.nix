@@ -14,6 +14,11 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    ${namespace}.user.extraGroups = [
+      "podman"
+    ];
+
     virtualisation = {
       podman = {
         enable = true;
