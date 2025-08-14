@@ -49,10 +49,6 @@ in
           hibernation.enable = true;
         };
       };
-      
-      user = {
-        name = "alexander";
-      };
 
       user = {      
         # we need this for desktop
@@ -62,7 +58,6 @@ in
           "video"
         ];    
       };
-
-      
+    };
   };
 }

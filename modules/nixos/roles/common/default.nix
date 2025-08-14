@@ -40,7 +40,10 @@ in
         impermanence.enable = true;
       };
 
-      styles.stylix.enable = true;
+      user = {
+        name = "alexander";
+      };
+      
 
     };
 

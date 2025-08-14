@@ -46,11 +46,7 @@ in
     };
 
     hardware = {
-      enableRedistributableFirmware = true;
-      raspberry-pi."4" = {
-        i2c1.enable = true;
-        fkms-3d.enable = true;
-      };
+      enableRedistributableFirmware = true;      
     };
   };
 }
