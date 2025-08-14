@@ -46,16 +46,10 @@ in
 
       # TODO: set in modules
       extraGroups = [
-        "wheel"
-        "audio"
-        "sound"
-        "video"
+        "wheel"        
         "networkmanager"
         "input"
         "tty"
-        "podman"
-        "kvm"
-        "libvirtd"
       ] ++ cfg.extraGroups;
     } // cfg.extraOptions;
 
