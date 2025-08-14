@@ -21,6 +21,10 @@
     nixos-hardware = {
       url = "github:nixos/nixos-hardware";
     };
+    
+    # Duplicate nixpkgs input is expected here: we want to align with upstream
+    # to avoid cache misses leading to kernel compiles
+    raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -33,8 +37,8 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
 
     disko = {
-      url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/disko";
     };
 
     nixos-facter-modules = {
@@ -166,9 +170,15 @@
         impermanence.nixosModules.impermanence
         sops-nix.nixosModules.sops
       ];
-      # Add modules to a specific system.
+      
+      # hosts specific modules
       systems.hosts."minimal".modules = with inputs; [
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+      ];
+
+      systems.hosts."server".modules = with inputs; [
+        nixos-hardware.nixosModules.raspberry-pi-4
+        "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-new-kernel.nix"
       ];
 
       overlays = with inputs; [

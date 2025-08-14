@@ -12,7 +12,7 @@ with lib.${namespace};
     disks.disko = {
       enable = true;
       disks = {
-        root = {
+        system = {
           device = "/dev/sdc";
           encrypted = true;
           boot = {

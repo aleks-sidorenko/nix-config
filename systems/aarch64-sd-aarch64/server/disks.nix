@@ -12,22 +12,19 @@ with lib.${namespace};
     disks.disko = {
       enable = true;
       disks = {
-        root = {
+        system = {
           device = "/dev/mmcblk0"; # built-in eMMC, 32GB
           encrypted = false;
           boot = {
-            size = "256M";
+            size = "128M";
+            label = "FIRMWARE";
           };
           content = [
             {
               name = "root";
               mountpoint = "/";
               createBlankSnapshot = true;
-            }
-            {
-              name = "swap";
-              swapfile.size = "8G";
-            }
+            }            
             {
               name = "nix";
             }
@@ -41,12 +38,10 @@ with lib.${namespace};
                 "noatime"
               ];
             }
-          ];
-        };
-        data = {
-          device = "/dev/sda"; # NVMe 500GB
-          encrypted = false;
-          content = [
+            {
+              name = "swap";
+              swapfile.size = "4G";
+            }
             {
               name = "home";
               mountOptions = [
@@ -55,6 +50,12 @@ with lib.${namespace};
                 "noatime"
               ];
             }
+          ];
+        };
+        data = {
+          device = "/dev/sda"; # NVMe 500GB
+          encrypted = false;
+          content = [            
             {
               name = "persist";
               neededForBoot = true;

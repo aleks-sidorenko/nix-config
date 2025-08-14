@@ -15,13 +15,23 @@ in
     enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 
+  # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi
+  # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   config = mkIf cfg.enable {
+    ${namespace}.system.boot.enable = mkForce false;
+      
     boot = {
+      loader = {
+        grub.enable = mkForce false;
+        generic-extlinux-compatible.enable = true;
+      };
+
       kernelPackages = pkgs.linuxPackages_rpi4;
       kernelParams = [
         "cgroup_memory=1"
         "cgroup_enable=cpuset"
         "cgroup_enable=memory"
+        "cma=64M"
       ];
       supportedFilesystems = [ "btrfs" ];
 
@@ -36,17 +46,17 @@ in
       };
     };
 
-    # Raspberry Pi 4 specific firmware mount
-    # Mount the boot partition (labeled "boot" by disko) as /firmware for Pi firmware access
-    fileSystems."/firmware" = {
-      device = "/dev/disk/by-label/boot";
-      fsType = "vfat";
-      options = [ "defaults" ];
-      neededForBoot = true;
-    };
-
+    
     hardware = {
       enableRedistributableFirmware = true;      
+      firmware = [ pkgs.wireless-regdb ];
+      
+      raspberry-pi."4" = {
+        fkms-3d.enable = false;
+      };
+      graphics.enable = false;
     };
+
+    sdImage.compressImage = false;
   };
 }

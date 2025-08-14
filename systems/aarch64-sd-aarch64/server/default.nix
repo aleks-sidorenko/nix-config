@@ -14,23 +14,15 @@ with lib.${namespace};
     })
   ];
 
-  imports = with inputs.nixos-hardware.nixosModules; [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    raspberry-pi-4
-  ];
-
   ${namespace} = {
     roles = {
       server = enabled;
     };
 
     hardware.raspberry-pi-4 = enabled;
-
-    # Disable GRUB for Raspberry Pi - it uses different boot loader
-    disks.boot.enable = lib.mkForce false;
+    
   };
 
-  sdImage.compressImage = false;
 
   # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";

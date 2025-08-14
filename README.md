@@ -124,3 +124,4 @@ Some features of my config:
 - https://nixos.wiki/wiki/NixOS_modules
 - https://nix.dev/tutorials/module-system/deep-dive
 - https://nixos.asia/en/nix-modules
+- https://github.com/nvmd/nixos-raspberrypi/

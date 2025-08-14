@@ -20,18 +20,19 @@ let
     disk:
 
     optionalAttrs (disk.boot != null) {
-      ESP = {
+      boot = {
         priority = 1;
-        name = "ESP";
-        label = "boot";
+        name = "boot";
+        label = disk.boot.label;
         size = disk.boot.size;
         type = "EF00";
+        device = "/dev/disk/by-label/${disk.boot.label}";
         content = {
           type = "filesystem";
-          extraArgs = [ "-nESP" ];
+          extraArgs = [ "-n${disk.boot.label}" ];
           format = "vfat";
           mountpoint = "/boot";
-          mountOptions = [ "defaults" ];
+          mountOptions = [ "umask=0077" ];
         };
       };
     };
@@ -86,8 +87,7 @@ let
   };
 
   mkLuksPartition = disk: {
-    encryped = {
-      priority = 100;
+    encryped = {      
       size = "100%";
       label = encryped disk.name;
       content = {
@@ -108,14 +108,12 @@ let
   };
 
   mkBtrfsPartition = disk: {
-    btrfs = {
-      priority = 100;
+    btrfs = {      
       size = "100%";
       label = disk.name;
       content = mkBtrfsContent disk;
     };
   };
-
 
 
   mkDisk = disk: {
@@ -154,6 +152,11 @@ in
                   default = "512M";
                   description = "Size of the boot partition (e.g., '512M')";
                 };
+                label = mkOption {
+                  type = types.str;
+                  default = "ESP";
+                  description = "Label for the boot partition";
+                };                
               };
             });
             default = null;
@@ -207,6 +210,8 @@ in
             description = "List of btrfs subvolumes to create";
           };
 
+
+
         };
       });
       default = { };
@@ -226,7 +231,7 @@ in
       disk = lib.mapAttrs (name: disk: mkDisk (disk // { inherit name; })) cfg.disks;
     };
 
-    # Set neededForBoot for all subvolumes that require it
+    # Set neededForBoot for all content's subvolumes that require it
     fileSystems =
       let
         allSubvolumes = lib.flatten (map (disk: disk.content) (builtins.attrValues cfg.disks));
