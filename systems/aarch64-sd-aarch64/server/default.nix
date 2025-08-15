@@ -20,9 +20,8 @@ with lib.${namespace};
     };
 
     hardware.raspberry-pi-4 = enabled;
-    
-  };
 
+  };
 
   # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";

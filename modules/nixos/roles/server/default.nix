@@ -23,15 +23,14 @@ in
       };
 
       system = {
-        locale.timeZone = lib.mkDefault "UTC";        
+        locale.timeZone = lib.mkDefault "UTC";
       };
 
       services = {
         # TODO: add vpn support
         # tailscale.enable = true;
       };
-      
-      
+
     };
 
     environment =
@@ -71,8 +70,6 @@ in
       nixos.enable = mkDefault false;
     };
 
-   
-  
     systemd = {
       services.NetworkManager-wait-online.enable = false;
       network.wait-online.enable = false;

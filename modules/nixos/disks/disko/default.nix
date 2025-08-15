@@ -87,7 +87,7 @@ let
   };
 
   mkLuksPartition = disk: {
-    encryped = {      
+    encryped = {
       size = "100%";
       label = encryped disk.name;
       content = {
@@ -108,13 +108,12 @@ let
   };
 
   mkBtrfsPartition = disk: {
-    btrfs = {      
+    btrfs = {
       size = "100%";
       label = disk.name;
       content = mkBtrfsContent disk;
     };
   };
-
 
   mkDisk = disk: {
     inherit (disk) device;
@@ -122,8 +121,8 @@ let
     name = disk.name;
     content = {
       type = "gpt";
-      partitions = mkBootPartition disk 
-        // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+      partitions =
+        mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -156,7 +155,7 @@ in
                   type = types.str;
                   default = "ESP";
                   description = "Label for the boot partition";
-                };                
+                };
               };
             });
             default = null;
@@ -209,8 +208,6 @@ in
             default = [ ];
             description = "List of btrfs subvolumes to create";
           };
-
-
 
         };
       });

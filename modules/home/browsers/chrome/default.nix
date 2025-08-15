@@ -59,7 +59,7 @@ in
     xdg.mimeApps.defaultApplications = {
       "x-scheme-handler/chrome" = [ "${name}.desktop" ];
     };
-    
+
   };
 
 }

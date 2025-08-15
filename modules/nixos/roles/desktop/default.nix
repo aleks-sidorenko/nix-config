@@ -28,13 +28,12 @@ in
           nix-ld.enable = true;
         };
       };
-      
+
       styles.stylix.enable = true;
 
       desktops = {
         gnome.enable = true;
       };
-      
 
       services = {
         # TODO impl
@@ -50,13 +49,13 @@ in
         };
       };
 
-      user = {      
+      user = {
         # we need this for desktop
         extraGroups = [
           "audio"
           "sound"
           "video"
-        ];    
+        ];
       };
     };
   };

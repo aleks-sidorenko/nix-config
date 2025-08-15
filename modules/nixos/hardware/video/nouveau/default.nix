@@ -23,8 +23,8 @@ in
       graphics = {
         enable = true;
         enable32Bit = true;
-        extraPackages = with pkgs; [ 
-          mesa 
+        extraPackages = with pkgs; [
+          mesa
           libvdpau
           libva-vdpau-driver
           vdpauinfo

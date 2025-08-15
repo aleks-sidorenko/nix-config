@@ -12,8 +12,8 @@ with lib.${namespace};
     disks.disko = {
       enable = true;
       disks = {
-        system = {
-          device = "/dev/mmcblk0"; # built-in eMMC, 32GB
+        root = {
+          device = "/dev/mmcblk1"; # built-in eMMC, 32GB
           encrypted = false;
           boot = {
             size = "128M";
@@ -24,7 +24,7 @@ with lib.${namespace};
               name = "root";
               mountpoint = "/";
               createBlankSnapshot = true;
-            }            
+            }
             {
               name = "nix";
             }
@@ -55,7 +55,7 @@ with lib.${namespace};
         data = {
           device = "/dev/sda"; # NVMe 500GB
           encrypted = false;
-          content = [            
+          content = [
             {
               name = "persist";
               neededForBoot = true;

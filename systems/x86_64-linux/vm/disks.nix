@@ -12,12 +12,12 @@ with lib.${namespace};
     disks.disko = {
       enable = true;
       disks = {
-        system = {
+        root = {
           device = "/dev/sda";
           boot = {
             size = "512M";
           };
-          subvolumes = [
+          content = [
             {
               name = "root";
               mountpoint = "/";

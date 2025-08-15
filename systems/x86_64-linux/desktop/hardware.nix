@@ -16,13 +16,13 @@ with lib.${namespace};
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  ${namespace} = {    
+  ${namespace} = {
     hardware = {
-        audio.enable = true;
-        bluetooth.enable = true;
-        zsa.enable = true;
-        video.nvidia.enable = true;
-      };
+      audio.enable = true;
+      bluetooth.enable = true;
+      zsa.enable = true;
+      video.nvidia.enable = true;
+    };
   };
 
   boot = {

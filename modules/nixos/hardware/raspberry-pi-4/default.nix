@@ -19,7 +19,7 @@ in
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   config = mkIf cfg.enable {
     ${namespace}.disks.boot.enable = mkForce false;
-      
+
     boot = {
       loader = {
         grub.enable = mkForce false;
@@ -46,11 +46,10 @@ in
       };
     };
 
-    
     hardware = {
-      enableRedistributableFirmware = true;      
+      enableRedistributableFirmware = true;
       firmware = [ pkgs.wireless-regdb ];
-      
+
       raspberry-pi."4" = {
         fkms-3d.enable = false;
       };
