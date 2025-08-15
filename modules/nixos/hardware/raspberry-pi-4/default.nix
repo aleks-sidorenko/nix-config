@@ -18,7 +18,7 @@ in
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi
   # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
   config = mkIf cfg.enable {
-    ${namespace}.system.boot.enable = mkForce false;
+    ${namespace}.disks.boot.enable = mkForce false;
       
     boot = {
       loader = {
@@ -26,7 +26,7 @@ in
         generic-extlinux-compatible.enable = true;
       };
 
-      kernelPackages = pkgs.linuxPackages_rpi4;
+      kernelPackages = mkForce pkgs.linuxPackages_rpi4;
       kernelParams = [
         "cgroup_memory=1"
         "cgroup_enable=cpuset"

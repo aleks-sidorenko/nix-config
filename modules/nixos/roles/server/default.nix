@@ -30,10 +30,8 @@ in
         # TODO: add vpn support
         # tailscale.enable = true;
       };
-
-      user = {
-        name = "nixos";
-      };
+      
+      
     };
 
     environment =
