@@ -52,10 +52,20 @@ in
 
       raspberry-pi."4" = {
         fkms-3d.enable = false;
+        leds = {
+          eth.disable = true;
+          act.disable = true;
+          pwr.disable = false;
+        };
       };
+
       graphics.enable = false;
     };
 
-    sdImage.compressImage = false;
+    environment.systemPackages = with pkgs; [
+        libraspberrypi
+        raspberrypi-eeprom
+    ];
+
   };
 }

@@ -8,11 +8,16 @@
 with lib;
 with lib.${namespace};
 {
+  imports = [    
+    ./disks.nix
+  ];
   nixpkgs.overlays = [
     (final: super: {
       makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
     })
   ];
+
+  # Example: https://github.com/Stunkymonkey/nixos/tree/master/machines/serverless
 
   ${namespace} = {
     roles = {

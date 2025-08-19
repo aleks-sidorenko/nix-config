@@ -13,11 +13,12 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/mmcblk1"; # built-in eMMC, 32GB
-          encrypted = false;
+          device = "/dev/disk/by-id/usb-Seagate_Expansion_2HC015KJ-0:0"; # TODO
+          encrypted = false;          
           boot = {
-            size = "128M";
-            label = "FIRMWARE";
+            size = "512M";
+            label = "ESP";
+            bios = true; # for grub MBR
           };
           content = [
             {
@@ -43,6 +44,10 @@ with lib.${namespace};
               swapfile.size = "4G";
             }
             {
+              name = "persist";
+              neededForBoot = true;
+            }
+            {
               name = "home";
               mountOptions = [
                 "subvol=home"
@@ -51,19 +56,8 @@ with lib.${namespace};
               ];
             }
           ];
-        };
-        data = {
-          device = "/dev/sda"; # NVMe 500GB
-          encrypted = false;
-          content = [
-            {
-              name = "persist";
-              neededForBoot = true;
-            }
-          ];
-        };
+        };        
       };
-
     };
   };
 }

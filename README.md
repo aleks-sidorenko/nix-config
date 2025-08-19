@@ -1,3 +1,18 @@
+## 🚀 Features
+
+Some features of my config:
+
+- Structured with **snowfall** 
+- Declarative disk layout with **disko**
+- **Custom** live ISO for installing NixOS, including SD image for Rasbperry PI
+- **Styling** with stylix
+- **Opt-in persistance** through impermanence + blank snapshot
+- **Encrypted BTRFS partition**
+- **sops-nix** for secrets management
+- Different environments like **hyprland** and **gnome**
+- Custom **Neovim** setup declaratively using **nixvim**
+- Homelab all configured in nix.
+
 
 ## 💽 Usage
 
@@ -68,20 +83,6 @@ deploy .#server --hostname server --ssh-user nixos --skip-checks
 
 ```
 
-## 🚀 Features
-
-Some features of my config:
-
-- Structured to allow multiple **NixOS configurations**, including **desktop**, **laptop** and **homelab**
-- **Custom** live ISO for installing NixOS
-- **Styling** with stylix
-- **Opt-in persistance** through impermanence + blank snapshot
-- **Encrypted BTRFS partition**
-- **sops-nix** for secrets management
-- Different environments like **hyprland** and **gnome**
-- Custom **Neovim** setup declaratively using **nixvim**
-- Homelab all configured in nix.
-
 ## 🏠 Configurations
 
 
@@ -117,6 +118,7 @@ Some features of my config:
 - Misterio77 config https://github.com/Misterio77/nix-config
 - EmergentMind config https://github.com/EmergentMind/nix-config
 - Nice nixvim config https://github.com/dc-tec/nixvim
+- Rasbperry PI 4 https://github.com/Stunkymonkey/nixos
 
 ### Resources
 
@@ -124,4 +126,7 @@ Some features of my config:
 - https://nixos.wiki/wiki/NixOS_modules
 - https://nix.dev/tutorials/module-system/deep-dive
 - https://nixos.asia/en/nix-modules
-- https://github.com/nvmd/nixos-raspberrypi/
+- https://github.com/Stunkymonkey/nixos
+- https://github.com/nix-community/nixos-anywhere/
+- https://github.com/nix-community/disko
+- https://github.com/Mic92/sops-nix

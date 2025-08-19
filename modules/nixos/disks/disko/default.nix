@@ -18,24 +18,33 @@ let
 
   mkBootPartition =
     disk:
-
-    optionalAttrs (disk.boot != null) {
-      boot = {
-        priority = 1;
-        name = "boot";
-        label = disk.boot.label;
-        size = disk.boot.size;
-        type = "EF00";
-        device = "/dev/disk/by-label/${disk.boot.label}";
-        content = {
-          type = "filesystem";
-          extraArgs = [ "-n${disk.boot.label}" ];
-          format = "vfat";
-          mountpoint = "/boot";
-          mountOptions = [ "umask=0077" ];
+    (
+      optionalAttrs (disk.boot != null && disk.boot.bios) {
+        MBR = {
+          priority = 1; # Needs to be first partition         
+          size = "1M";
+          type = "EF02"; # for grub MBR
         };
-      };
-    };
+      }
+    ) //
+    (
+      optionalAttrs (disk.boot != null) {
+        ESP = {
+          priority = 2;
+          name = "ESP";
+          label = disk.boot.label;
+          size = disk.boot.size;
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            extraArgs = [ "-n${disk.boot.label}" ];
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = [ "umask=0077" ];
+          };
+        };
+      }
+    );
 
   mkSubvolumes =
     disk:
@@ -155,6 +164,11 @@ in
                   type = types.str;
                   default = "ESP";
                   description = "Label for the boot partition";
+                };
+                bios = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Whether to create a BIOS Boot (EF02) partition for legacy BIOS on GPT";
                 };
               };
             });
