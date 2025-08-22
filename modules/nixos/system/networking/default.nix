@@ -13,7 +13,7 @@ in
 {
   options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networkmanager";     
-    domains = mkOpt (types.listOf types.str) [ "local", "sidorenko.me" ] "Domains to search for";
+    domains = mkOpt (types.listOf types.str) [ "local" "sidorenko.me" ] "Domains to search for";
   };
 
   config = mkIf cfg.enable {

@@ -3,6 +3,7 @@
   config,
   lib,
   namespace,
+  inputs,
   ...
 }:
 with lib;
@@ -15,56 +16,31 @@ in
     enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 
-  # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi
-  # https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_4
+  imports = lib.optionals cfg.enable (with inputs.nixos-raspberrypi.nixosModules; [
+      # Hardware configuration
+      raspberry-pi-4.base
+      # raspberry-pi-4.display-vc4
+      # raspberry-pi-4.bluetooth
+  ]);
+
   config = mkIf cfg.enable {
     ${namespace}.disks.boot.enable = mkForce false;
 
-    boot = {
-      loader = {
-        grub.enable = mkForce false;
-        generic-extlinux-compatible.enable = true;
-      };
+    
 
-      kernelPackages = mkForce pkgs.linuxPackages_rpi4;
-      kernelParams = [
-        "cgroup_memory=1"
-        "cgroup_enable=cpuset"
-        "cgroup_enable=memory"
-        "cma=64M"
-      ];
-      supportedFilesystems = [ "btrfs" ];
 
-      initrd = {
-        kernelModules = [
-          "zstd"
-          "btrfs"
-        ];
-        availableKernelModules = [
-          "xhci_pci"
-        ];
-      };
-    };
-
-    hardware = {
-      enableRedistributableFirmware = true;
-      firmware = [ pkgs.wireless-regdb ];
-
-      raspberry-pi."4" = {
-        fkms-3d.enable = false;
-        leds = {
-          eth.disable = true;
-          act.disable = true;
-          pwr.disable = false;
-        };
-      };
-
-      graphics.enable = false;
-    };
-
-    environment.systemPackages = with pkgs; [
-        libraspberrypi
-        raspberrypi-eeprom
+    # ========================================================================
+    # SYSTEM METADATA
+    # ========================================================================
+    # System identification tags for the Raspberry Pi
+    # These tags help identify the system variant and configuration
+    # Following the nixos-raspberrypi project conventions
+    system.nixos.tags = let
+      cfg = config.boot.loader.raspberryPi;
+    in [
+      "raspberry-pi-${cfg.variant}" # e.g., "raspberry-pi-4"
+      cfg.bootloader # Bootloader type
+      config.boot.kernelPackages.kernel.version # Kernel version
     ];
 
   };

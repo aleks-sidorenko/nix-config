@@ -21,10 +21,10 @@
     nixos-hardware = {
       url = "github:nixos/nixos-hardware";
     };
-
-    # Duplicate nixpkgs input is expected here: we want to align with upstream
-    # to avoid cache misses leading to kernel compiles
-    raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
+    
+    nixos-raspberrypi = {
+      url = "github:nvmd/nixos-raspberrypi/main";
+    };
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -176,8 +176,11 @@
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
       ];
 
-      systems.hosts."server".modules = with inputs; [
-        nixos-hardware.nixosModules.raspberry-pi-4
+      systems.hosts."server".modules = with inputs.nixos-raspberrypi.nixosModules; [
+        # Hardware configuration
+        raspberry-pi-4.base
+        # raspberry-pi-4.display-vc4
+        # raspberry-pi-4.bluetooth
       ];
 
       overlays = with inputs; [

@@ -13,12 +13,12 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/disk/by-id/usb-Seagate_Expansion_2HC015KJ-0:0"; # TODO
+          device = "/dev/disk/by-id/usb-Argon_Forty_000000001023-0:0";
           encrypted = false;          
           boot = {
-            size = "512M";
-            label = "ESP";
-            bios = true; # for grub MBR
+            size = "512M";            
+            label = "FIRMWARE";
+            mountpoint = "/boot/firmware";
           };
           content = [
             {
