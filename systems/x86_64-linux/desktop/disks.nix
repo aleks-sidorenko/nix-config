@@ -13,7 +13,7 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/sdc";
+          device = "/dev/disk/by-id/wwn-0x50026b7282f324da";
           encrypted = true;
           boot = {
             size = "512M";
@@ -46,7 +46,7 @@ with lib.${namespace};
 
         };
         data = {
-          device = "/dev/nvme0n1";
+          device = "/dev/disk/by-id/nvme-CT2000P3SSD8_2402E88D8EEC";
           encrypted = true;
           content = [
             {
