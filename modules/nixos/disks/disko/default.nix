@@ -21,8 +21,7 @@ let
     (
       optionalAttrs (disk.boot != null) {
         boot = {
-          priority = 1;
-          name = "boot";
+          priority = 1;          
           label = "boot";
           size = disk.boot.size;
           type = "EF00";

@@ -16,13 +16,6 @@ in
     enable = mkEnableOption "Enable The raspberry-pi-4 config";
   };
 
-  imports = lib.optionals cfg.enable (with inputs.nixos-raspberrypi.nixosModules; [
-      # Hardware configuration
-      raspberry-pi-4.base
-      # raspberry-pi-4.display-vc4
-      # raspberry-pi-4.bluetooth
-  ]);
-
   config = mkIf cfg.enable {
     ${namespace}.disks.boot.enable = mkForce false;
 
