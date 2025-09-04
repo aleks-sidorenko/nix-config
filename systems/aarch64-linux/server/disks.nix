@@ -18,7 +18,7 @@ with lib.${namespace};
           boot = {
             size = "512M";            
             label = "FIRMWARE";
-            # mountpoint = "/boot/firmware";
+            mountpoint = "/boot/firmware";
           };
           content = [
             {

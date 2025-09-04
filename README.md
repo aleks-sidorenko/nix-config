@@ -6,7 +6,7 @@ Some features of my config:
 - Declarative disk layout with **disko**
 - **Custom** live ISO for installing NixOS, including SD image for Rasbperry PI
 - **Styling** with stylix
-- **Opt-in persistance** through impermanence + blank snapshot
+- **Opt-in persistance** through **impermanence** + blank snapshot
 - **Encrypted BTRFS partition**
 - **sops-nix** for secrets management
 - Different environments like **hyprland** and **gnome**
@@ -22,12 +22,14 @@ Some features of my config:
 export GITHUB_USER=aleks-sidorenko
 export NIX_CONFIG_REPO_NAME=nix-config
 export FLAKE_DIR=$HOME/.nix-config
+
 ```
 
 #### Enabled SSH
+You should be able to ssh to target host
 #### VM
 VM is provisioned via Vagrant and has SSH enabled already with keys copied from GitHub.
-```
+```bash
 vagrant up
 vagrant ssh-config >> .ssh.config
 ```
@@ -41,6 +43,8 @@ In my case I can copy them from GitHub.
 
 
 ### Install
+
+
 
 To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
 

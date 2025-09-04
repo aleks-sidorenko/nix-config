@@ -21,10 +21,7 @@
     nixos-hardware = {
       url = "github:nixos/nixos-hardware";
     };
-    
-    nixos-raspberrypi = {
-      url = "github:nvmd/nixos-raspberrypi/main";
-    };
+        
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -163,25 +160,29 @@
         nvidia.acceptLicense = true;
       };
 
-      systems.modules.nixos = with inputs; [
-        stylix.nixosModules.stylix
-        home-manager.nixosModules.home-manager
-        disko.nixosModules.disko
-        impermanence.nixosModules.impermanence
-        sops-nix.nixosModules.sops
-      ];
-
-      # hosts specific modules
-      systems.hosts."minimal".modules = with inputs; [
-        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-      ];
-
-      systems.hosts."server".modules = with inputs.nixos-raspberrypi.nixosModules; [
-        # Hardware configuration
-        raspberry-pi-4.base
-        # raspberry-pi-4.display-vc4
-        # raspberry-pi-4.bluetooth
-      ];
+      systems = { 
+        modules.nixos = with inputs; [
+          stylix.nixosModules.stylix
+          home-manager.nixosModules.home-manager
+          disko.nixosModules.disko
+          impermanence.nixosModules.impermanence
+          sops-nix.nixosModules.sops
+        ];
+        hosts = {
+          # hosts specific modules
+          server = {
+            modules = with inputs.nixos-hardware.nixosModules; [
+              raspberry-pi-4
+            ];            
+          };
+          minimal = {
+            modules = with inputs; [
+              "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            ];
+          };
+        };
+      };      
+            
 
       overlays = with inputs; [
         nixgl.overlay

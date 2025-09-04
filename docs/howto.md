@@ -52,15 +52,21 @@
     
 
 * Install using `nixos-anywhere`
-    * `nix run github:nix-community/nixos-anywhere -- --flake '.#$hostname' $username@$hostname`
-
+    * ```bash
+        nix run github:nix-community/nixos-anywhere -- \
+            --disko-mode disko \
+            --disk-encryption-keys /tmp/disk.key /tmp/disk.key \
+            --extra-files "$KEYSDIR" \
+            --flake '.#$hostname' \
+            $username@$hostname`
+        ```    
 
 ### Rasbperry PI 4 Model B
 
 * Prerequisites
 * Links
-    * https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md
-    * https://github.com/nvmd/nixos-raspberrypi
+    * https://github.com/Stunkymonkey/nixos/tree/master/machines/serverle
+    * https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md    
     * https://github.com/NeilDarach/nix-config/blob/master/hosts/yellow
     * https://codeberg.org/kotatsuyaki/rpi4-usb-uefi-nixos-config
     * https://carlosvaz.com/posts/nixos-on-raspberry-pi-4-with-uefi-and-zfs/
