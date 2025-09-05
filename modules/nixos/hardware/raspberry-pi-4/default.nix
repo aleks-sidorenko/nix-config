@@ -4,6 +4,7 @@
   lib,
   namespace,
   inputs,
+  options,
   ...
 }:
 with lib;
@@ -28,7 +29,7 @@ in
     };
 
     # Only configure hardware.raspberry-pi if the nixos-hardware module is available
-    hardware = mkIf (lib.hasAttr "raspberry-pi" options.hardware) {
+    hardware = lib.optionalAttrs (options.hardware ? raspberry-pi) {
       raspberry-pi."4" = {
         apply-overlays-dtmerge.enable = true;
         deviceTree.enable = true;

@@ -171,7 +171,7 @@
         hosts = {
           # hosts specific modules
           
-          server = {
+          desktop = {
             modules = with inputs.nixos-hardware.nixosModules; [
               common-cpu-intel
             ];            
