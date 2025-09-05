@@ -170,6 +170,13 @@
         ];
         hosts = {
           # hosts specific modules
+          
+          server = {
+            modules = with inputs.nixos-hardware.nixosModules; [
+              common-cpu-intel
+            ];            
+          };
+          
           server = {
             modules = with inputs.nixos-hardware.nixosModules; [
               raspberry-pi-4

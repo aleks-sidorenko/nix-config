@@ -8,12 +8,18 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.networking;
-  impermanenceCfg = config.${namespace}.disks.impermanence;
+  impermanenceCfg = config.${namespace}.disks.impermanence;  
+  localIp = last: "10.0.0.${toString last}";
+  staticIp = host: last: { "${localIp last}" = ["${host}" "${host}.${cfg.domains.local}"]; };
 in
 {
   options.${namespace}.system.networking = with types; {
-    enable = mkBoolOpt false "Enable networkmanager";     
-    domains = mkOpt (types.listOf types.str) [ "local" "sidorenko.me" ] "Domains to search for";
+    enable = mkBoolOpt false "Enable networking";     
+    domains = {
+      local = mkOpt str "local" "Local domain for intranet resolution";
+      public = mkOpt str "sidorenko.me" "Public domain to search for";
+    };
+    
   };
 
   config = mkIf cfg.enable {
@@ -25,7 +31,8 @@ in
       # Disable wireless networking since it conflicts with the networkmanager
       wireless.enable = false;
 
-      search = cfg.domains;
+      search = [ cfg.domains.local cfg.domains.public ];
+      hosts = (staticIp "server" 40);
 
       firewall = {
         enable = false; # TODO: enable firewall        

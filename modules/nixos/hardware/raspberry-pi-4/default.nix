@@ -19,8 +19,19 @@ in
   config = mkIf cfg.enable {
     ${namespace}.disks.boot.enable = mkForce false;
     
-    hardware = {
+    boot = {      
+      # Switch to a compatible bootloader
+      loader = {
+        grub.enable = lib.mkForce false;
+        generic-extlinux-compatible.enable = lib.mkForce true;
+      };
+    };
+
+    # Only configure hardware.raspberry-pi if the nixos-hardware module is available
+    hardware = mkIf (lib.hasAttr "raspberry-pi" options.hardware) {
       raspberry-pi."4" = {
+        apply-overlays-dtmerge.enable = true;
+        deviceTree.enable = true;
         leds = {
           eth.disable = true;
           act.disable = true;
