@@ -5,92 +5,43 @@
 default:
     @just --list
 
-# Bootstrap NixOS on a remote host with nixos-anywhere
-bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
-    @echo "🚀 Bootstrapping NixOS for {{username}}@{{hostname}}..."
-    @echo "🔐 Step 1: Setting up secrets and SSH keys..."
-    @keysdir_output=$(./scripts/secrets.sh "{{hostname}}" 2>&1 | tee /dev/stderr | tail -1); \
-    keysdir=$$(echo "$$keysdir_output" | grep "^KEYSDIR=" | cut -d= -f2); \
-    if [ -z "$$keysdir" ]; then \
-        echo "❌ Failed to get keys directory from secrets.sh"; \
-        exit 1; \
-    fi; \
-    echo "🚀 Step 2: Running nixos-anywhere..."; \
-    if [ -n "{{disk_password}}" ]; then \
-        echo "🔒 Using disk encryption"; \
-        ./scripts/deploy.sh "$$keysdir" "{{username}}" "{{hostname}}" "{{disk_password}}" {{nixos_anywhere_opts}}; \
-    else \
-        echo "🔓 No disk encryption"; \
-        ./scripts/deploy.sh "$$keysdir" "{{username}}" "{{hostname}}" {{nixos_anywhere_opts}}; \
-    fi
-
-# Bootstrap without disk encryption (explicit)
-bootstrap-plain hostname username="$USER" *nixos_anywhere_opts="":
-    @echo "🚀 Bootstrapping NixOS for {{username}}@{{hostname}} (no encryption)..."
-    just bootstrap {{hostname}} {{username}} "" {{nixos_anywhere_opts}}
-
-# Bootstrap with disk encryption (interactive password prompt)
-bootstrap-encrypted hostname username="$USER" *nixos_anywhere_opts="":
-    @echo "🚀 Bootstrapping NixOS for {{username}}@{{hostname}} (with encryption)..."
-    @echo -n "Enter disk encryption password: "
-    @read -s disk_password && \
-    just bootstrap {{hostname}} {{username}} "$$disk_password" {{nixos_anywhere_opts}}
-
-# Bootstrap with build on remote (faster for slow local machines)
-bootstrap-remote hostname username="$USER" disk_password="":
-    @echo "🚀 Bootstrapping NixOS for {{username}}@{{hostname}} (build on remote)..."
-    just bootstrap {{hostname}} {{username}} "{{disk_password}}" --build-on-remote
-
-# Bootstrap with only disko phase (partition and format disks only)
-bootstrap-disko-only hostname username="$USER" disk_password="":
-    @echo "🚀 Running disko phase only for {{username}}@{{hostname}}..."
-    just bootstrap {{hostname}} {{username}} "{{disk_password}}" --phases disko
-
-# Bootstrap with only install phase (install NixOS, assumes disks are already prepared)
-bootstrap-install-only hostname username="$USER":
-    @echo "🚀 Running install phase only for {{username}}@{{hostname}}..."
-    just bootstrap {{hostname}} {{username}} "" --phases install
-
-# Bootstrap with build on remote and disko only
-bootstrap-remote-disko hostname username="$USER" disk_password="":
-    @echo "🚀 Running disko phase only for {{username}}@{{hostname}} (build on remote)..."
-    just bootstrap {{hostname}} {{username}} "{{disk_password}}" --build-on-remote --phases disko
-
-# Bootstrap with build on remote and install only
-bootstrap-remote-install hostname username="$USER":
-    @echo "🚀 Running install phase only for {{username}}@{{hostname}} (build on remote)..."
-    just bootstrap {{hostname}} {{username}} "" --build-on-remote --phases install
-
-# Bootstrap with custom phases (e.g., just kexec,disko or disko,install)
-bootstrap-phases hostname username="$USER" disk_password="" phases="disko,install":
-    @echo "🚀 Bootstrapping NixOS for {{username}}@{{hostname}} with phases: {{phases}}..."
-    @if echo "{{phases}}" | grep -q "disko"; then \
-        echo "🔒 Disko phase detected - disk encryption password will be used if provided"; \
-        just bootstrap {{hostname}} {{username}} "{{disk_password}}" --phases {{phases}}; \
-    else \
-        echo "ℹ️  No disko phase - disk encryption password not needed"; \
-        just bootstrap {{hostname}} {{username}} "" --phases {{phases}}; \
-    fi
 
 # Prepare secrets and SSH keys only (Step 1 of bootstrap process)
-bootstrap-secrets hostname force="":
+bootstrap-secrets hostname disk_password="":
     @echo "🔐 Preparing secrets and SSH keys for {{hostname}}..."
-    @if [ "{{force}}" = "--force" ]; then \
-        ./scripts/secrets.sh "{{hostname}}" --force; \
-    else \
-        ./scripts/secrets.sh "{{hostname}}"; \
-    fi
-
-# Run nixos-anywhere only with existing keys directory (Step 2 of bootstrap process)
-bootstrap-deploy keysdir hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
-    @echo "🚀 Deploying NixOS for {{username}}@{{hostname}} with prepared keys..."
     @if [ -n "{{disk_password}}" ]; then \
-        echo "🔒 Using disk encryption"; \
-        ./scripts/deploy.sh "{{keysdir}}" "{{username}}" "{{hostname}}" "{{disk_password}}" {{nixos_anywhere_opts}}; \
+        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
     else \
-        echo "🔓 No disk encryption"; \
-        ./scripts/deploy.sh "{{keysdir}}" "{{username}}" "{{hostname}}" {{nixos_anywhere_opts}}; \
+        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" | tail -1); \
+    fi; \
+    echo "✅ Keys directory: $KEYSDIR"; \
+    echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
+
+# Deploy using existing keys directory (Step 2 of bootstrap process)  
+bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *nixos_anywhere_opts="":
+    @echo "🚀 Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
+    @if [ -z "{{keysdir}}" ]; then \
+        echo "❌ No keysdir provided and KEYSDIR environment variable not set"; \
+        echo "💡 Run 'just bootstrap-secrets <hostname>' first, or provide keysdir explicitly"; \
+        exit 1; \
     fi
+    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{nixos_anywhere_opts}}
+
+# Complete bootstrap process (secrets + deploy in one command)
+bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
+    @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
+    @if [ -n "$KEYSDIR" ]; then \
+        echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
+    elif [ -n "{{disk_password}}" ]; then \
+        echo "🔐 Generating secrets with disk password..."; \
+        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+    else \
+        echo "🔐 Generating secrets..."; \
+        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" | tail -1); \
+    fi; \
+    echo "✅ Keys directory: $KEYSDIR"; \
+    echo "🚀 Proceeding with deployment..."; \
+    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{nixos_anywhere_opts}}
 
 # Build and switch to a new generation locally (for testing)
 build-local:
@@ -250,22 +201,27 @@ bootstrap-validate:
 bootstrap-help:
     @echo "🚀 Bootstrap Script Help:"
     @echo ""
-    @echo "Two-Step Bootstrap Process:"
-    @echo "  The bootstrap process is now split into two steps for better control:"
-    @echo "  1. Secrets preparation (secrets.sh) - Sets up SSH keys and age keys"
-    @echo "  2. NixOS deployment (deploy.sh) - Runs nixos-anywhere"
+    @echo "Bootstrap Options:"
+    @echo "  1. Complete bootstrap (recommended): just bootstrap <hostname> [username] [disk_password] [options...]"
+    @echo "  2. Two-step process for advanced control:"
+    @echo "     Step 1: just bootstrap-secrets <hostname> [disk_password]"
+    @echo "     Step 2: export KEYSDIR=<path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
     @echo ""
-    @echo "Usage: just bootstrap <hostname> [username] [disk_password] [nixos_anywhere_options...]"
+    @echo "Usage:"
+    @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [nixos_anywhere_options...]"
+    @echo "  Step 1:   just bootstrap-secrets <hostname> [disk_password]"
+    @echo "  Step 2:   just bootstrap-deploy <hostname> [username] [keysdir] [nixos_anywhere_options...]"
     @echo ""
     @echo "Parameters:"
     @echo "  hostname                - Target hostname or IP address (required)"
-    @echo "  username                - Target user (optional, defaults to current user: $USER)"
-    @echo "  disk_password           - Disk encryption password (optional, only used for disko phase)"
-    @echo "  nixos_anywhere_options  - Additional options to pass to nixos-anywhere"
+    @echo "  username                - Target user for SSH connection (optional, defaults to current user)"
+    @echo "  keysdir                 - Keys directory from step 1 (optional, uses KEYSDIR env var if not provided)"
+    @echo "  disk_password           - Disk encryption password (optional, only for step 1)"
+    @echo "  nixos_anywhere_options  - Additional options to pass to nixos-anywhere (step 2)"
     @echo ""
     @echo "Environment variables:"
-    @echo "  NIXOS_ANYWHERE_OPTS     - Additional options to pass to nixos-anywhere"
-    @echo "  AUTO_APPROVE            - Skip interactive SOPS update confirmation"
+    @echo "  AUTO_APPROVE            - Skip interactive SOPS update confirmation (step 1)"
+    @echo "  KEYSDIR                 - Keys directory set by bootstrap-secrets (step 1)"
     @echo ""
     @echo "Prerequisites:"
     @echo "  • SSH access to target host with passwordless sudo"
@@ -273,30 +229,28 @@ bootstrap-help:
     @echo "  • Target host configuration exists in flake"
     @echo ""
     @echo "Basic examples:"
-    @echo "  just bootstrap myserver                                    # No encryption, current user"
-    @echo "  just bootstrap myserver alexander                          # No encryption, specified user"
-    @echo "  just bootstrap myserver alexander MyPassword123            # With LUKS encryption"
+    @echo "  just bootstrap myserver                                    # Complete bootstrap with current user"
+    @echo "  just bootstrap myserver alexander                          # Complete bootstrap with specific user"
+    @echo "  just bootstrap myserver alexander MyPassword123            # Complete bootstrap with disk encryption"
+    @echo "  export KEYSDIR=/tmp/keysXXX && just bootstrap myserver     # Use existing keys directory"
+    @echo ""
+    @echo "Two-step examples:"
+    @echo "  just bootstrap-secrets myserver                            # Step 1: Prepare secrets"
+    @echo "  export KEYSDIR=/tmp/keysXXX                                # Export the path from step 1"
+    @echo "  just bootstrap-deploy myserver alexander                   # Step 2: Deploy using KEYSDIR"
     @echo ""
     @echo "Examples with nixos-anywhere options:"
-    @echo "  just bootstrap myserver alexander '' --build-on-remote    # Build on target host"
-    @echo "  just bootstrap myserver alexander '' --phases disko       # Only partition disks"
-    @echo "  just bootstrap myserver alexander '' --build-on-remote --phases disko"
-    @echo "  NIXOS_ANYWHERE_OPTS='--debug' just bootstrap myserver     # Using environment variable"
+    @echo "  just bootstrap myserver alexander --build-on-remote        # Complete bootstrap with options"
+    @echo "  just bootstrap myserver alexander --phases disko           # Complete bootstrap, disko phase only"
+    @echo "  export KEYSDIR=/tmp/keysXXX                                # For two-step process"
+    @echo "  just bootstrap-deploy myserver alexander --build-on-remote # Two-step: deploy with options"
     @echo ""
-    @echo "Convenient recipes:"
-    @echo "  just bootstrap-plain myserver                              # Explicit no encryption"
-    @echo "  just bootstrap-encrypted myserver                          # Interactive password prompt"
-    @echo "  just bootstrap-remote myserver                             # Build on remote host"
-    @echo "  just bootstrap-disko-only myserver                         # Only run disko phase"
-    @echo "  just bootstrap-install-only myserver                       # Only run install phase (no encryption needed)"
-    @echo "  just bootstrap-remote-disko myserver                       # Remote build + disko only"
-    @echo "  just bootstrap-remote-install myserver                     # Remote build + install only"
-    @echo "  just bootstrap-phases myserver '' '' 'kexec,disko'         # Custom phases (password auto-detected)"
-    @echo ""
-    @echo "Two-step process recipes:"
-    @echo "  just bootstrap-secrets myserver                            # Step 1: Prepare secrets only"
-    @echo "  just bootstrap-secrets myserver --force                    # Force regenerate keys"
-    @echo "  just bootstrap-deploy /tmp/keysXXX alexander myserver      # Step 2: Deploy with existing keys"
+    @echo "Complete bootstrap recipes:"
+    @echo "  just bootstrap myserver                                    # Complete process with current user"
+    @echo "  just bootstrap myserver alexander                          # Complete process with specific user"
+    @echo "  just bootstrap myserver alexander mypassword               # Complete process with disk encryption"
+    @echo "  export KEYSDIR=/tmp/keysXXX && just bootstrap myserver     # Use existing keys, skip secrets generation"
+    @echo "  just bootstrap myserver alexander mypassword --build-on-remote # Complete with options"
     @echo ""
     @echo "Common nixos-anywhere options:"
     @echo "  --build-on-remote       - Build the system on the target host"
@@ -314,12 +268,15 @@ bootstrap-help:
     @echo ""
     @echo "Manual two-step process:"
     @echo "  ./scripts/secrets.sh myserver                              # Returns KEYSDIR=/tmp/keysXXX"
-    @echo "  ./scripts/deploy.sh /tmp/keysXXX alexander myserver      # Deploy using prepared keys"
+    @echo "  ./scripts/secrets.sh myserver --disk-password mypassword   # With disk password"
+    @echo "  ./scripts/deploy.sh alexander myserver /tmp/keysXXX        # Deploy using prepared keys"
+    @echo "  ./scripts/deploy.sh alexander myserver /tmp/keysXXX --build-on-remote  # With extra options"
     @echo ""
     @echo "Scripts structure:"
     @echo "  scripts/common.sh       - Shared utilities and logging functions"
-    @echo "  scripts/secrets.sh      - SSH keys and secrets preparation"
-    @echo "  scripts/deploy.sh    - NixOS deployment with nixos-anywhere"
+    @echo "  scripts/secrets.sh      - SSH keys and secrets preparation (supports --disk-password)"
+    @echo "  scripts/deploy.sh       - NixOS deployment with nixos-anywhere"
+    
 
 # Show all hosts that can be bootstrapped
 bootstrap-targets:

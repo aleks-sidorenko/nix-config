@@ -28,11 +28,11 @@ in
       };
     };
 
+    
     # Only configure hardware.raspberry-pi if the nixos-hardware module is available
     hardware = lib.optionalAttrs (options.hardware ? raspberry-pi) {
       raspberry-pi."4" = {
         apply-overlays-dtmerge.enable = true;
-        deviceTree.enable = true;
         leds = {
           eth.disable = true;
           act.disable = true;

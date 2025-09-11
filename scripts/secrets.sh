@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Secrets setup script for NixOS deployment
-# Usage: ./secrets.sh <hostname> [--force]
+# Usage: ./secrets.sh <hostname> [--disk-password <password>]
 # Environment variables:
 #   AUTO_APPROVE: Skip interactive SOPS update confirmation (set to any value)
 
@@ -40,9 +40,9 @@ check_prerequisites() {
 # Function to validate parameters
 validate_parameters() {
     if [[ $# -lt 1 ]]; then
-        log_error "Usage: $0 <hostname> [--force]"
+        log_error "Usage: $0 <hostname> [--disk-password <password>]"
         log_error "  hostname: Target hostname or IP address"
-        log_error "  --force: Force regeneration of SSH keys even if they exist"
+        log_error "  --disk-password <password>: Use specified password for disk encryption (optional)"
         log_error ""
         log_error "Environment variables:"
         log_error "  AUTO_APPROVE: Skip interactive SOPS update confirmation (set to any value)"
@@ -61,25 +61,24 @@ validate_parameters() {
     check_hostname_reachable "$hostname"
 }
 
-# Function to setup SSH host keys (generate new or retrieve existing from pass)
+# Function to setup SSH host keys (retrieve existing from pass or generate new if none exist)
 # Returns: "new" if keys were newly generated, "existing" if retrieved from pass
 setup_ssh_keys() {
     local keysdir="$1"
     local hostname="$2"
-    local force_new="$3"
     
     log_info "Setting up SSH host keys for $hostname..."
     
-    local ssh_keys_dir="$keysdir/etc/ssh"
+    local ssh_keys_dir="$keysdir/extra/etc/ssh"
     
-    # Create etc/ssh directory structure so keys end up in /etc/ssh on target
+    # Create extra/etc/ssh directory structure so keys end up in /etc/ssh on target
     mkdir -p "$ssh_keys_dir"
     cd "$ssh_keys_dir"
     
     local pass_key_root="Infra/Host/$hostname/ssh"
     
-    # Check if SSH keys already exist in pass and not forcing new keys
-    if [[ "$force_new" != "true" ]] && pass file get "$pass_key_root/$SSH_PRIVATE_KEY_NAME" >/dev/null 2>&1 && pass file get "$pass_key_root/$SSH_PUBLIC_KEY_NAME" >/dev/null 2>&1; then
+    # Check if SSH keys already exist in pass
+    if pass file get "$pass_key_root/$SSH_PRIVATE_KEY_NAME" >/dev/null 2>&1 && pass file get "$pass_key_root/$SSH_PUBLIC_KEY_NAME" >/dev/null 2>&1; then
         log_info "Found existing SSH keys in pass, retrieving them..."
         
         # Retrieve existing keys from pass
@@ -103,11 +102,7 @@ setup_ssh_keys() {
         
         echo "existing"
     else
-        if [[ "$force_new" == "true" ]]; then
-            log_info "Forcing generation of new SSH keys..."
-        else
-            log_info "No existing SSH keys found in pass, generating new ones..."
-        fi
+        log_info "No existing SSH keys found in pass, generating new ones..."
         
         # Generate SSH key pair
         ssh-keygen -t ed25519 -f "$ssh_keys_dir/$SSH_PRIVATE_KEY_NAME" -C "root@$hostname" -N ""
@@ -155,7 +150,7 @@ setup_age_keys() {
     local keysdir="$1"
     local hostname="$2"
     local keys_are_new="$3"
-    local ssh_keys_dir="$keysdir/etc/ssh"
+    local ssh_keys_dir="$keysdir/extra/etc/ssh"
     
     log_info "Generating age keys and updating SOPS..."
     
@@ -194,10 +189,73 @@ setup_age_keys() {
     log_success "Age keys setup completed"
 }
 
-# Function to setup all secrets (SSH keys, backup, and age keys)
+# Function to setup disk encryption password for disko
+setup_disk_password() {
+    local keysdir="$1"
+    local hostname="$2"
+    local disk_password="$3"
+    
+    log_info "Setting up disk encryption password for $hostname..."
+    
+    local disk_key_file="$keysdir/disk.key"
+    local pass_key_path="Infra/Host/$hostname/disk"
+    
+    # Validate password
+    if [[ -z "$disk_password" ]]; then
+        log_error "Disk password cannot be empty"
+        exit 1
+    fi
+    
+    # Check if disk password already exists in pass
+    if pass get "$pass_key_path" >/dev/null 2>&1; then
+        log_info "Found existing disk password in pass, using it..."
+        
+        # Retrieve existing password from pass and write to disk.key
+        if ! pass get "$pass_key_path" > "$disk_key_file"; then
+            log_error "Failed to retrieve disk password from pass"
+            exit 1
+        fi
+        
+        log_success "Existing disk password retrieved from pass and written to disk.key"
+    else
+        log_info "No existing disk password in pass, using provided password and backing up..."
+        
+        # Write provided password to disk.key file
+        echo -n "$disk_password" > "$disk_key_file"
+        
+        if [[ ! -f "$disk_key_file" ]]; then
+            log_error "Failed to create disk password file"
+            exit 1
+        fi
+        
+        log_success "Disk password written to file successfully"
+        
+        # Backup disk password to pass
+        log_info "Backing up disk password with pass..."
+        
+        if ! echo -n "$disk_password" | pass insert -f "$pass_key_path"; then
+            log_error "Failed to backup disk password with pass"
+            exit 1
+        fi
+        
+        # Push to git if possible
+        if pass git push 2>/dev/null; then
+            log_success "Disk password backed up and pushed to git"
+        else
+            log_warning "Disk password backed up but failed to push to git"
+        fi
+    fi
+    
+    # Set proper permissions (read-only for owner)
+    chmod 600 "$disk_key_file"
+    
+    log_success "Disk password setup completed"
+}
+
+# Function to setup all secrets (SSH keys, backup, age keys, and optionally disk password)
 setup_secrets() {
     local hostname="$1"
-    local force_new="$2"
+    local disk_password="$2"
     
     log_info "Setting up secrets for $hostname..."
     
@@ -209,10 +267,15 @@ setup_secrets() {
     
     # Setup SSH keys (generate new or retrieve existing, backup if newly generated)
     local keys_status
-    keys_status=$(setup_ssh_keys "$keysdir" "$hostname" "$force_new")
+    keys_status=$(setup_ssh_keys "$keysdir" "$hostname")
     
     # Setup age keys and SOPS
     setup_age_keys "$keysdir" "$hostname" "$keys_status"
+    
+    # Setup disk password if provided
+    if [[ -n "$disk_password" ]]; then
+        setup_disk_password "$keysdir" "$hostname" "$disk_password"
+    fi
     
     log_success "Secrets setup completed"
     echo "$keysdir"
@@ -227,13 +290,27 @@ cleanup() {
 # Main function
 main() {
     local hostname="$1"
-    local force_new="false"
+    local disk_password=""
     
-    # Check for --force flag
-    if [[ "${2:-}" == "--force" ]]; then
-        force_new="true"
-        log_info "Force mode enabled - will regenerate SSH keys even if they exist"
-    fi
+    # Parse command line arguments
+    shift # Remove hostname from arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --disk-password)
+                if [[ $# -lt 2 ]] || [[ "$2" == --* ]]; then
+                    log_error "--disk-password requires a password argument"
+                    exit 1
+                fi
+                disk_password="$2"
+                log_info "Disk password provided"
+                shift 2
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+    done
     
     log_info "Setting up secrets for $hostname..."
     
@@ -245,16 +322,19 @@ main() {
     # Check prerequisites
     check_prerequisites "$hostname"
     
-    # Setup all secrets (SSH keys, backup, and age keys)
-    keysdir=$(setup_secrets "$hostname" "$force_new")
+    # Setup all secrets (SSH keys, backup, age keys, and optionally disk password)
+    keysdir=$(setup_secrets "$hostname" "$disk_password")
     
     log_success "Secrets setup completed successfully!"
     log_info "Keys directory: $keysdir"
+    if [[ -n "$disk_password" ]]; then
+        log_info "Disk encryption password available at: $keysdir/disk.key"
+    fi
     log_info "You can now run deploy.sh with this keys directory"
     
     # Don't cleanup on success - return the keysdir for deploy.sh to use
     trap - EXIT
-    echo "KEYSDIR=$keysdir"
+    echo "$keysdir"
 }
 
 # Script entry point
