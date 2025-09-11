@@ -92,6 +92,9 @@ let
       content = {
         type = "luks";
         inherit (disk) name;
+        # passwordFile used during nixos-anywhere installation only
+        # For runtime boot decryption, system will use FIDO2 device or prompt for password
+        passwordFile = "/tmp/disk.key";
         settings = {
           allowDiscards = true;
           crypttabExtraOpts = [

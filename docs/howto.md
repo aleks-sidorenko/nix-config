@@ -1,3 +1,5 @@
+# TODO - move everything to `justfile` & `scripts/`
+
 # HOW TO
 ## Add new secret to SOPS
 ### User password for `$username`
@@ -52,6 +54,10 @@
     
 
 * Install using `nixos-anywhere`
+    * Use the bootstrap script:
+        * With encryption: `./scripts/deploy.sh <username> <hostname> <disk_password>`
+        * Without encryption: `./scripts/deploy.sh <username> <hostname>`
+    * Alternatively, manual installation:
     * ```bash
         nix run github:nix-community/nixos-anywhere -- \
             --disko-mode disko \
@@ -59,7 +65,12 @@
             --extra-files "$KEYSDIR" \
             --flake '.#$hostname' \
             $username@$hostname`
-        ```    
+        ```
+
+* Post-installation FIDO2 setup (optional)
+    * After successful installation, you can set up a FIDO2 hardware token for automatic unlocking
+    * SSH to the new system and run: `systemd-cryptenroll --fido2-device=auto /dev/disk/by-label/<device_name>`
+    * The system is already configured with `fido2-device=auto` in the LUKS settings
 
 ### Rasbperry PI 4 Model B
 
