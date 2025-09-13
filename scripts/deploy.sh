@@ -104,6 +104,8 @@ run_deployment() {
         cmd+=("${nixos_anywhere_opts[@]}")
     fi
     
+    export SHELL=$(which bash)
+
     # Add the target
     cmd+=("$username@$hostname")
     

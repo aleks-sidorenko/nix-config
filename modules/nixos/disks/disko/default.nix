@@ -21,15 +21,35 @@ let
     (
       optionalAttrs (disk.boot != null) {
         boot = {
-          priority = 1;          
+          priority = 2;          
           label = "boot";
           size = disk.boot.size;
           type = "EF00";
           content = {
             type = "filesystem";
-            extraArgs = [ "-n${disk.boot.label}" ];
+            extraArgs = [ "-nESP" ];
             format = "vfat";
-            mountpoint = disk.boot.mountpoint;
+            mountpoint = "/boot";
+            mountOptions = [ "umask=0077" ];
+          };
+        };
+      }
+    );
+
+  mkFirmwarePartition =
+    disk:
+    (
+      optionalAttrs (disk.firmware != null) {
+        firmware = {
+          priority = 1;
+          label = "firmware";
+          size = disk.firmware.size;
+          type = "0700";  # Microsoft basic data
+          content = {
+            type = "filesystem";
+            extraArgs = [ "-nFIRMWARE" ];
+            format = "vfat";
+            mountpoint = "/boot/firmware";
             mountOptions = [ "umask=0077" ];
           };
         };
@@ -124,7 +144,7 @@ let
     content = {
       type = "gpt";
       partitions =
-        mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+        mkFirmwarePartition disk // mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -145,6 +165,21 @@ in
             default = false;
             description = "Whether to use LUKS encryption for the partition";
           };
+          
+          firmware = mkOption {
+            type = types.nullOr (submodule {
+              options = {
+                size = mkOption {
+                  type = types.str;
+                  default = "512M";
+                  description = "Size of the firmware partition (e.g., '512M')";
+                };
+              };
+            });
+            default = null;
+            description = "Firmware partition configuration";
+          };
+
           boot = mkOption {
             type = types.nullOr (submodule {
               options = {
@@ -153,21 +188,12 @@ in
                   default = "512M";
                   description = "Size of the boot partition (e.g., '512M')";
                 };                
-                label = mkOption {
-                  type = types.str;
-                  default = "ESP";
-                  description = "Filesystem label for the boot partition (used with mkfs.vfat -n)";
-                };
-                mountpoint = mkOption {
-                  type = types.str;
-                  default = "/boot";
-                  description = "Mountpoint for the boot partition";
-                };
               };
             });
             default = null;
             description = "Boot partition configuration";
           };
+          
           content = mkOption {
             type = types.listOf (submodule {
               options = {
