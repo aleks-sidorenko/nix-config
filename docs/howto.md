@@ -11,8 +11,8 @@
 * Add this hash to sops
     * `sops updatekeys ./modules/nixos/secrets.yaml` as `user-${username}-password`
 
-## Install remotely using `nixos-anywhere`
-### Phisical or virtual host x86-64
+## Bootstrap/Install remotely using `nixos-anywhere`
+### Common
 * Prerequisites
     * Target host/ip is assigned to `$hostname`
         * `export hostname=<your-host>`
@@ -28,44 +28,20 @@
 * Configure ssh to target host
     * Copy your id `ssh-copy-id $username@$hostname`
     * `ssh $username$hostname` should work    
-* Genereate new ssh key for target host (on source host):
-    * `KEYSDIR=$(mktemp -d)`
-    * `cd $KEYSDIR`
-    * `ssh-keygen -t ed25519 -f ssh_host_ed25519_key -C root@$hostname`
-* Backup the ssh keys with `pass`
-    * `pass file add $KEYSDIR/ssh_host_ed25519_key Infra/Host/$hostname/ssh`
-    * `pass file add $KEYSDIR/ssh_host_ed25519_key.pub Infra/Host/$hostname/ssh`
-    * `pass git push`
-* Copy ssh key to target host
-    * `scp -i ssh_host_ed25519_key* $username@$hostname:/etc/ssh/`
-* Remove the keys from source host
-    * `cd $FLAKE_DIR`
-    * `rm -rf $KEYSDIR`
-* Remove entries of target host from `.ssh/known_hosts`
-    * `ssh-keygen -R $hostname`
-    * `ssh $username@$hostname` - get updated target host key
 
-* Generate age keys
-    * `nix-shell -p ssh-to-age --run 'cat ssh_host_ed25519_key.pub | ssh-to-age'`
-    *  Add the age key as a host entry in the `$FLAKE_DIR/.sops.yaml` file.
+* Configure secrets 
+    * `just bootstrap-secrets $hostname`
+    * `export KEYSDIR=/tmp/tmp.xxxxxxxxx`
+
+* Update secrets    
+    *  Add the age key as a host entry for `$hostname` in the `$FLAKE_DIR/.sops.yaml` file.
     * Update the secrets with new key added
     `sops updatekeys ./modules/nixos/secrets.yaml`
     * Do this for every secret file
     
-
 * Install using `nixos-anywhere`
-    * Use the bootstrap script:
-        * With encryption: `./scripts/deploy.sh <username> <hostname> <disk_password>`
-        * Without encryption: `./scripts/deploy.sh <username> <hostname>`
-    * Alternatively, manual installation:
-    * ```bash
-        nix run github:nix-community/nixos-anywhere -- \
-            --disko-mode disko \
-            --disk-encryption-keys /tmp/disk.key /tmp/disk.key \
-            --extra-files "$KEYSDIR" \
-            --flake '.#$hostname' \
-            $username@$hostname`
-        ```
+    * `just bootstrap-deploy $hostname $username $KEYSDIR --build-on remote --phases disko`
+    * `just bootstrap-deploy $hostname $username $KEYSDIR --build-on remote --phases install`
 
 * Post-installation FIDO2 setup (optional)
     * After successful installation, you can set up a FIDO2 hardware token for automatic unlocking
@@ -75,6 +51,16 @@
 ### Rasbperry PI 4 Model B
 
 * Prerequisites
+    * (Prepare RPI bootloader) [https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md#prepare-bootloader-on-raspberry-pi-5]
+        * Update bootloader
+        * Change boot order
+* (Install)[#common]
+* Post-install
+    * Copy firmware to /boot/firmware 
+    `sudo cp -R /boot/firmware/* /mnt/boot/firmware/`
+    * Shutdown RPI
+    * Remove SD-card
+    
 * Links
     * https://github.com/Stunkymonkey/nixos/tree/master/machines/serverle
     * https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md    
@@ -84,3 +70,10 @@
     
     
 
+### VM
+
+VM is provisioned via Vagrant and has SSH enabled already with keys copied from GitHub.
+```bash
+vagrant up
+vagrant ssh-config >> .ssh.config
+```

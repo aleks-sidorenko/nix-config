@@ -23,69 +23,32 @@ export GITHUB_USER=aleks-sidorenko
 export NIX_CONFIG_REPO_NAME=nix-config
 export FLAKE_DIR=$HOME/.nix-config
 
-```
-
-#### Enabled SSH
-You should be able to ssh to target host
-#### VM
-VM is provisioned via Vagrant and has SSH enabled already with keys copied from GitHub.
-```bash
-vagrant up
-vagrant ssh-config >> .ssh.config
-```
-#### Non-VM
-You will need to be able to SSH to the target machine from where this command will be run. Load nix installer ISO if
-no OS on the device. You need to copy ssh keys onto the target machine 
-```bash
-mkdir -p ~/.ssh && curl https://github.com/$GITHUB_USER.keys > ~/.ssh/authorized_keys
-```
-In my case I can copy them from GitHub.
-
-
-### Install
-
-
-
-To install NixOS on any of my devices I now use [nixos-anywhere](https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md).
-
-```bash
 git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
 cd $FLAKE_DIR
 
-nix develop
-
-nixos-anywhere --flake '.#desktop' nixos@192.168.1.8 # Replace with your IP
 ```
-
-After building it you can copy the ISO from the `result` folder to your USB.
-Then run `nix_installer`, which will then ask you which host you would like to install.
-
-### Building
-
-To build my config for a specific host you can do something like:
-
+### Deploy/update
+#### Locally
 ```bash
-git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
-cd $FLAKE_DIR
-
-nix develop
-
 # To build system configuration (uses hostname to build flake)
 nh os switch
 
 # To build user configuration (uses hostname and username to build flake)
 nh home switch
+```
 
-# Build ISO in result/ folder
-c
-
+### Remotely
+```bash
 # Deploy config to VM (using SSH)
 deploy .#vm --hostname vm --ssh-opts="-p 2222" --skip-checks
 
 # Deploy config to server (using SSH)
 deploy .#server --hostname server --ssh-user nixos --skip-checks
-
 ```
+
+### Bootstrap
+(Bootstrap)[./docs/howto.md]
+
 
 ## 🏠 Configurations
 
