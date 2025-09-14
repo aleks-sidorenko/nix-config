@@ -36,25 +36,6 @@ let
       }
     );
 
-  mkFirmwarePartition =
-    disk:
-    (
-      optionalAttrs (disk.firmware != null) {
-        firmware = {
-          priority = 1;
-          label = "firmware";
-          size = disk.firmware.size;
-          type = "0700";  # Microsoft basic data
-          content = {
-            type = "filesystem";
-            extraArgs = [ "-nFIRMWARE" ];
-            format = "vfat";
-            mountpoint = "/boot/firmware";
-            mountOptions = [ "umask=0077" ];
-          };
-        };
-      }
-    );
 
   mkSubvolumes =
     disk:
@@ -144,7 +125,7 @@ let
     content = {
       type = "gpt";
       partitions =
-        mkFirmwarePartition disk // mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+        mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -166,19 +147,6 @@ in
             description = "Whether to use LUKS encryption for the partition";
           };
           
-          firmware = mkOption {
-            type = types.nullOr (submodule {
-              options = {
-                size = mkOption {
-                  type = types.str;
-                  default = "512M";
-                  description = "Size of the firmware partition (e.g., '512M')";
-                };
-              };
-            });
-            default = null;
-            description = "Firmware partition configuration";
-          };
 
           boot = mkOption {
             type = types.nullOr (submodule {

@@ -42,7 +42,8 @@ validate_parameters() {
     fi
     
     # Check for required SSH keys
-    local ssh_dir="$keysdir/extra/etc/ssh"
+    local ssh_dir="$keysdir/extra/persist/etc/ssh"
+    
     if [[ ! -f "$ssh_dir/ssh_host_ed25519_key" ]] || [[ ! -f "$ssh_dir/ssh_host_ed25519_key.pub" ]]; then
         log_error "SSH host keys not found in $ssh_dir"
         log_error "The keys directory appears to be invalid or incomplete"
@@ -104,7 +105,7 @@ run_deployment() {
         cmd+=("${nixos_anywhere_opts[@]}")
     fi
     
-    export SHELL=$(which bash)
+    SHELL=$(which bash)
 
     # Add the target
     cmd+=("$username@$hostname")

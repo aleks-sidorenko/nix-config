@@ -69,7 +69,7 @@ setup_ssh_keys() {
     
     log_info "Setting up SSH host keys for $hostname..."
     
-    local ssh_keys_dir="$keysdir/extra/etc/ssh"
+    local ssh_keys_dir="$keysdir/extra/persist/etc/ssh"
     
     # Create extra/etc/ssh directory structure so keys end up in /etc/ssh on target
     mkdir -p "$ssh_keys_dir"
@@ -150,7 +150,7 @@ setup_age_keys() {
     local keysdir="$1"
     local hostname="$2"
     local keys_are_new="$3"
-    local ssh_keys_dir="$keysdir/extra/etc/ssh"
+    local ssh_keys_dir="$keysdir/extra/persist/etc/ssh"
     
     log_info "Generating age keys and updating SOPS..."
     

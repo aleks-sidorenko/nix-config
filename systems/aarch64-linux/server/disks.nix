@@ -15,9 +15,6 @@ with lib.${namespace};
         root = {
           device = "/dev/disk/by-id/usb-Argon_Forty_000000001023-0:0";
           encrypted = false;          
-          firmware = {
-            size = "512M";
-          };
           boot = {
             size = "512M";                        
           };
