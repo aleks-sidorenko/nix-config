@@ -6,7 +6,6 @@
   ...
 }:
 with lib;
-with lib.${namespace};
 with types;
 let
   cfg = config.${namespace}.disks.disko;
@@ -21,13 +20,13 @@ let
     (
       optionalAttrs (disk.boot != null) {
         boot = {
-          priority = 2;          
-          label = "boot";
+          priority = 1;
+          label = disk.boot.name;
           size = disk.boot.size;
           type = "EF00";
           content = {
             type = "filesystem";
-            extraArgs = [ "-nboot" ];
+            extraArgs = [ "-n${disk.boot.name}" ];
             format = "vfat";
             mountpoint = "/boot";
             mountOptions = [ "umask=0077" ];
@@ -151,6 +150,11 @@ in
           boot = mkOption {
             type = types.nullOr (submodule {
               options = {
+                name = mkOption {
+                  type = types.str;
+                  default = lib.${namespace}.disks.boot;
+                  description = "Name of the boot partition";
+                };
                 size = mkOption {
                   type = types.str;
                   default = "512M";

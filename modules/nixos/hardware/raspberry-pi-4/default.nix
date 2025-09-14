@@ -18,15 +18,10 @@ in
   };
 
   config = mkIf cfg.enable {
-    ${namespace}.disks.boot.enable = mkForce false;
+    
     
     boot= { 
-      loader = {
-        efi.canTouchEfiVariables = true;    
-        systemd-boot.enable = true;
-        grub.enable = mkForce false;
-      }; 
-
+      
       kernelPackages = pkgs.linuxPackages_latest;
 
       kernelParams = [

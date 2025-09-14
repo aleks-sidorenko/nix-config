@@ -16,7 +16,7 @@ in
 
   config = mkIf cfg.enable {
     sops = {
-      age.sshKeyPaths = [ (persistentPath config "/etc/ssh/ssh_host_ed25519_key") ];
+      age.sshKeyPaths = [ (persistence.path config "/etc/ssh/ssh_host_ed25519_key") ];
     };
   };
 
