@@ -17,24 +17,25 @@ let
   mountpoint = subvol: if subvol.mountpoint != null then subvol.mountpoint else "/${subvol.name}";
 
   mkBootPartition =
-    disk:
-
-    optionalAttrs (disk.boot != null) {
-      ESP = {
-        priority = 1;
-        name = "ESP";
-        label = "boot";
-        size = disk.boot.size;
-        type = "EF00";
-        content = {
-          type = "filesystem";
-          extraArgs = [ "-nESP" ];
-          format = "vfat";
-          mountpoint = "/boot";
-          mountOptions = [ "defaults" ];
+    disk:    
+    (
+      optionalAttrs (disk.boot != null) {
+        boot = {
+          priority = 2;          
+          label = "boot";
+          size = disk.boot.size;
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            extraArgs = [ "-nboot" ];
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = [ "umask=0077" ];
+          };
         };
-      };
-    };
+      }
+    );
+
 
   mkSubvolumes =
     disk:
@@ -51,7 +52,39 @@ let
           };
       };
     in
-    foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.subvolumes;
+    foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.content;
+
+  mkBtrfsContent = disk: {
+    type = "btrfs";
+    extraArgs = [
+      "-f" # force overwrite
+      "-L ${disk.name}" # label we use later on in postCreateHook
+    ];
+    # Create snapshot regardless of if impermanence is enabled
+    # This way we can enable impermanence later on if we want
+    postCreateHook =
+      let
+        subvols = lib.filter (sv: sv.createBlankSnapshot) disk.content;
+        snapshotCommands = map (
+          subvol:
+          let
+            name = subvol.name;
+          in
+          ''
+            echo "Creating blank snapshot of ${subvolume name}"
+            btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
+          ''
+        ) subvols;
+      in
+      optionalString (builtins.length subvols > 0) ''
+        mkdir -p /tmp
+        MNTPOINT=$(mktemp -d)
+        mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
+        trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
+        ${concatStringsSep "\n" snapshotCommands}
+      '';
+    subvolumes = mkSubvolumes disk;
+  };
 
   mkLuksPartition = disk: {
     encryped = {
@@ -60,6 +93,9 @@ let
       content = {
         type = "luks";
         inherit (disk) name;
+        # passwordFile used during nixos-anywhere installation only
+        # For runtime boot decryption, system will use FIDO2 device or prompt for password
+        passwordFile = "/tmp/disk.key";
         settings = {
           allowDiscards = true;
           crypttabExtraOpts = [
@@ -69,38 +105,16 @@ let
         };
         # Subvolumes must set a mountpoint in order to be mounted,
         # unless their parent is mounted
-        content = {
-          type = "btrfs";
-          extraArgs = [
-            "-f" # force overwrite
-            "-L ${disk.name}" # label we use later on in postCreateHook
-          ];
-          # Create snapshot regardless of if impermanence is enabled
-          # This way we can enable impermanence later on if we want
-          postCreateHook =
-            let
-              subvols = lib.filter (sv: sv.createBlankSnapshot) disk.subvolumes;
-              snapshotCommands = map (
-                subvol:
-                let
-                  name = subvol.name;
-                in
-                ''
-                  echo "Creating blank snapshot of ${subvolume name}"
-                  btrfs subvolume snapshot -r "$MNTPOINT/${subvolume name}" "$MNTPOINT/${subvolume (blank name)}"
-                ''
-              ) subvols;
-            in
-            optionalString (builtins.length subvols > 0) ''
-              mkdir -p /tmp
-              MNTPOINT=$(mktemp -d)
-              mount -t btrfs /dev/disk/by-label/${disk.name} "$MNTPOINT"
-              trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
-              ${concatStringsSep "\n" snapshotCommands}
-            '';
-          subvolumes = mkSubvolumes disk;
-        };
+        content = mkBtrfsContent disk;
       };
+    };
+  };
+
+  mkBtrfsPartition = disk: {
+    btrfs = {
+      size = "100%";
+      label = disk.name;
+      content = mkBtrfsContent disk;
     };
   };
 
@@ -110,7 +124,8 @@ let
     name = disk.name;
     content = {
       type = "gpt";
-      partitions = mkBootPartition disk // mkLuksPartition disk;
+      partitions =
+        mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
     };
   };
 
@@ -126,6 +141,13 @@ in
             type = types.str;
             description = "The device path for the disk (e.g., '/dev/sda')";
           };
+          encrypted = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Whether to use LUKS encryption for the partition";
+          };
+          
+
           boot = mkOption {
             type = types.nullOr (submodule {
               options = {
@@ -133,13 +155,14 @@ in
                   type = types.str;
                   default = "512M";
                   description = "Size of the boot partition (e.g., '512M')";
-                };
+                };                
               };
             });
             default = null;
-            description = "Swapfile configuration for this subvolume";
+            description = "Boot partition configuration";
           };
-          subvolumes = mkOption {
+          
+          content = mkOption {
             type = types.listOf (submodule {
               options = {
                 name = mkOption {
@@ -186,6 +209,7 @@ in
             default = [ ];
             description = "List of btrfs subvolumes to create";
           };
+
         };
       });
       default = { };
@@ -205,10 +229,10 @@ in
       disk = lib.mapAttrs (name: disk: mkDisk (disk // { inherit name; })) cfg.disks;
     };
 
-    # Set neededForBoot for all subvolumes that require it
+    # Set neededForBoot for all content's subvolumes that require it
     fileSystems =
       let
-        allSubvolumes = lib.flatten (map (disk: disk.subvolumes) (builtins.attrValues cfg.disks));
+        allSubvolumes = lib.flatten (map (disk: disk.content) (builtins.attrValues cfg.disks));
         bootSubvolumes = builtins.filter (subvol: subvol.neededForBoot) allSubvolumes;
       in
       lib.listToAttrs (

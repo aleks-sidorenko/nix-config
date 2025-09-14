@@ -18,11 +18,11 @@ in
     # Create GNOME monitors.xml configuration file from monitors module
     home.file = mkIf config.${namespace}.desktops.monitors.enable {
       ".config/monitors.xml" = {
-        text = 
+        text =
           let
             monitorsCfg = config.${namespace}.desktops.monitors;
             allMonitors = monitorsCfg.devices;
-            
+
             generateMonitorXML = monitor: ''
               <output name="${monitor.name}">
                 ${if monitor.vendor != "" then ''<vendor>${monitor.vendor}</vendor>'' else ""}
@@ -37,7 +37,7 @@ in
                 <enabled>${if monitor.enabled then "yes" else "no"}</enabled>
               </output>
             '';
-            
+
             layoutXML = ''
               <monitors version="2">
                 <configuration>

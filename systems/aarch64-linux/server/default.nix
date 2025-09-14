@@ -8,16 +8,16 @@
 with lib;
 with lib.${namespace};
 {
+  imports = [    
+    ./disks.nix
+  ];
   nixpkgs.overlays = [
     (final: super: {
       makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
     })
   ];
 
-  imports = with inputs.nixos-hardware.nixosModules; [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    raspberry-pi-4
-  ];
+  # Example: https://github.com/Stunkymonkey/nixos/tree/master/machines/serverless
 
   ${namespace} = {
     roles = {
@@ -26,10 +26,7 @@ with lib.${namespace};
 
     hardware.raspberry-pi-4 = enabled;
 
-    boot.impermanence.enable = lib.mkForce false;
   };
-
-  sdImage.compressImage = false;
 
   # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";

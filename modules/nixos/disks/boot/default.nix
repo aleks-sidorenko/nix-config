@@ -16,7 +16,7 @@ in
   options.${namespace}.disks.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting.";
     secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
-    device = mkOpt str "root" "The boot device name";
+    device = mkOpt str "root" "The root device name";
     debug = mkBoolOpt false "Enable debug mode";
   };
 

@@ -32,20 +32,20 @@ in
 
         # Enable nvidia-settings and modern features
         nvidiaSettings = true;
-        
+
         # Use proprietary driver (open source drivers not mature enough yet)
         open = false;
-        
+
         # Enable hardware acceleration and video decode
         nvidiaPersistenced = true;
-        
+
         # Force composition pipeline for better display detection
         forceFullCompositionPipeline = true;
       };
     };
 
     boot = {
-      
+
       blacklistedKernelModules = [ "nouveau" ];
 
       # Ensure NVIDIA modules are loaded early in the boot process
@@ -55,7 +55,7 @@ in
         "nvidia_modeset"
         "nvidia_uvm"
       ];
-      
+
       # Load nvidia modules in initrd for early display
       initrd.kernelModules = [
         "nvidia"

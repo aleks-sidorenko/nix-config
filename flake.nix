@@ -21,6 +21,7 @@
     nixos-hardware = {
       url = "github:nixos/nixos-hardware";
     };
+        
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -33,8 +34,8 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
 
     disko = {
-      url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/disko";
     };
 
     nixos-facter-modules = {
@@ -159,17 +160,31 @@
         nvidia.acceptLicense = true;
       };
 
-      systems.modules.nixos = with inputs; [
-        stylix.nixosModules.stylix
-        home-manager.nixosModules.home-manager
-        disko.nixosModules.disko
-        impermanence.nixosModules.impermanence
-        sops-nix.nixosModules.sops
-      ];
-      # Add modules to a specific system.
-      systems.hosts."minimal".modules = with inputs; [
-        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-      ];
+      systems = { 
+        modules.nixos = with inputs; [
+          stylix.nixosModules.stylix
+          home-manager.nixosModules.home-manager
+          disko.nixosModules.disko
+          impermanence.nixosModules.impermanence
+          sops-nix.nixosModules.sops
+        ];
+        hosts = {
+          # hosts specific modules
+          
+          desktop = {
+            modules = with inputs.nixos-hardware.nixosModules; [
+              common-cpu-intel
+            ];            
+          };
+                    
+          minimal = {
+            modules = with inputs; [
+              "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            ];
+          };
+        };
+      };      
+            
 
       overlays = with inputs; [
         nixgl.overlay

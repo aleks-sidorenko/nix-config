@@ -3,6 +3,8 @@
   config,
   lib,
   namespace,
+  inputs,
+  options,
   ...
 }:
 with lib;
@@ -16,36 +18,41 @@ in
   };
 
   config = mkIf cfg.enable {
-    boot = {
-      kernelPackages = (import <nixpkgs-rpi4> { }).linuxPackages_rpi5;
-      kernelParams = [
-        "cgroup_memory=1"
-        "cgroup_enable=cpuset"
-        "cgroup_enable=memory"
-      ];
-      supportedFilesystems = [ "btrfs" ];
+    ${namespace}.disks.boot.enable = mkForce false;
+    
+    boot= { 
+      loader = {
+        efi.canTouchEfiVariables = true;    
+        systemd-boot.enable = true;
+        grub.enable = mkForce false;
+      }; 
 
-      initrd.kernelModules = [
-        "zstd"
-        "btrfs"
+      kernelPackages = pkgs.linuxPackages_latest;
+
+      kernelParams = [
+        "console=ttyS0,115200n8" "console=ttyAMA0,115200n8" "console=tty0" "cma=64M"
       ];
+
       initrd.availableKernelModules = [
         # Allows early (earlier) modesetting for the Raspberry Pi
         "vc4"
         "bcm2835_dma"
         "i2c_bcm2835"
-        "uas"
-        "pcie-brcmstb"
-        "reset-raspberrypi"
-
+        
         # Maybe needed for SSD boot?
         "usb_storage"
         "xhci_pci"
         "usbhid"
         "uas"
       ];
-    };
 
-    hardware.enableRedistributableFirmware = true;
+      supportedFilesystems = [ "btrfs" ];
+    };
+    powerManagement.cpuFreqGovernor = "ondemand";
+    
+    environment.systemPackages = with pkgs; [
+      libraspberrypi
+      raspberrypi-eeprom
+    ];
   };
 }

@@ -13,20 +13,16 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/disk/by-id/wwn-0x50026b7282f324da";
-          encrypted = true;
+          device = "/dev/disk/by-id/usb-Argon_Forty_000000001023-0:0";
+          encrypted = false;          
           boot = {
-            size = "512M";
+            size = "512M";                        
           };
           content = [
             {
               name = "root";
               mountpoint = "/";
               createBlankSnapshot = true;
-            }
-            {
-              name = "swap";
-              swapfile.size = "36G";
             }
             {
               name = "nix";
@@ -41,14 +37,14 @@ with lib.${namespace};
                 "noatime"
               ];
             }
-
-          ];
-
-        };
-        data = {
-          device = "/dev/disk/by-id/nvme-CT2000P3SSD8_2402E88D8EEC";
-          encrypted = true;
-          content = [
+            {
+              name = "swap";
+              swapfile.size = "4G";
+            }
+            {
+              name = "persist";
+              neededForBoot = true;
+            }
             {
               name = "home";
               mountOptions = [
@@ -57,14 +53,9 @@ with lib.${namespace};
                 "noatime"
               ];
             }
-            {
-              name = "persist";
-              neededForBoot = true;
-            }
           ];
-        };
+        };        
       };
-
     };
   };
 }

@@ -46,7 +46,7 @@ in
 
       # TODO: set in modules
       extraGroups = [
-        "wheel"        
+        "wheel"
         "networkmanager"
         "input"
         "tty"

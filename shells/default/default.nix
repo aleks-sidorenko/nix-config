@@ -25,6 +25,7 @@ pkgs.mkShell {
     gnupg
     age
     mkpasswd
+    just
 
   ];
 }

@@ -29,15 +29,10 @@ in
         };
       };
 
+      styles.stylix.enable = true;
+
       desktops = {
         gnome.enable = true;
-      };
-
-      hardware = {
-        audio.enable = true;
-        bluetooth.enable = true;
-        zsa.enable = true;
-        video.nvidia.enable = true;
       };
 
       services = {
@@ -53,20 +48,15 @@ in
           hibernation.enable = true;
         };
       };
-      
-      user = {
-        name = "alexander";
-      };
 
-      user = {      
+      user = {
         # we need this for desktop
         extraGroups = [
           "audio"
           "sound"
           "video"
-        ];    
+        ];
       };
-
-      
+    };
   };
 }

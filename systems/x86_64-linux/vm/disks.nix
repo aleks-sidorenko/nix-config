@@ -17,7 +17,7 @@ with lib.${namespace};
           boot = {
             size = "512M";
           };
-          subvolumes = [
+          content = [
             {
               name = "root";
               mountpoint = "/";
