@@ -21,7 +21,9 @@ in
     ${namespace}.disks.boot.enable = mkForce false;
     
     boot.loader = {
-      efi.canTouchEfiVariables = true;      
+      efi.canTouchEfiVariables = true;    
+      systemd-boot.enable = true;
+      generic-extlinux-compatible.enable = mkForce false;
     };
       
 

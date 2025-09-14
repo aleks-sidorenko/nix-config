@@ -43,6 +43,13 @@ bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
     echo "🚀 Proceeding with deployment..."; \
     ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{nixos_anywhere_opts}}
 
+# Bootstrap Raspberry Pi firmware via SSH
+bootstrap-rpi-firmware hostname username="$USER":
+    @echo "🥧 Bootstrapping Raspberry Pi firmware on {{username}}@{{hostname}}..."
+    @echo "📡 Connecting via SSH and executing firmware installation script..."
+    ssh {{username}}@{{hostname}} 'bash -s' < scripts/rpi/firmware.sh
+    @echo "✅ Raspberry Pi firmware bootstrap completed!"
+
 # Build and switch to a new generation locally (for testing)
 build-local:
     @echo "🔨 Building local configuration..."
