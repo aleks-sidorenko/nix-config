@@ -176,12 +176,7 @@
               common-cpu-intel
             ];            
           };
-          
-          server = {
-            modules = with inputs.nixos-hardware.nixosModules; [
-              raspberry-pi-4
-            ];            
-          };
+                    
           minimal = {
             modules = with inputs; [
               "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"

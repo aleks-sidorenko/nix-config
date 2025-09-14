@@ -20,24 +20,35 @@ in
   config = mkIf cfg.enable {
     ${namespace}.disks.boot.enable = mkForce false;
     
-    boot.loader = {
-      efi.canTouchEfiVariables = true;    
-      systemd-boot.enable = true;
-      generic-extlinux-compatible.enable = mkForce false;
-    };
-      
+    boot= { 
+      loader = {
+        efi.canTouchEfiVariables = true;    
+        systemd-boot.enable = true;
+        grub.enable = mkForce false;
+      }; 
 
-    # Only configure hardware.raspberry-pi if the nixos-hardware module is available
-    hardware = lib.optionalAttrs (options.hardware ? raspberry-pi) {
-            
-      raspberry-pi."4" = {        
-        leds = {
-          eth.disable = true;
-          act.disable = true;
-          pwr.disable = false;
-        };        
-      };
+      kernelPackages = pkgs.linuxPackages_latest;
+
+      kernelParams = [
+        "console=ttyS0,115200n8" "console=ttyAMA0,115200n8" "console=tty0" "cma=64M"
+      ];
+
+      initrd.availableKernelModules = [
+        # Allows early (earlier) modesetting for the Raspberry Pi
+        "vc4"
+        "bcm2835_dma"
+        "i2c_bcm2835"
+        
+        # Maybe needed for SSD boot?
+        "usb_storage"
+        "xhci_pci"
+        "usbhid"
+        "uas"
+      ];
+
+      supportedFilesystems = [ "btrfs" ];
     };
+    powerManagement.cpuFreqGovernor = "ondemand";
     
     environment.systemPackages = with pkgs; [
       libraspberrypi

@@ -56,16 +56,14 @@
         * Change boot order
 * (Install)[#common]
 * Post-install
-    * Copy firmware to /boot/firmware 
-    `sudo cp -R /boot/firmware/* /mnt/boot/firmware/`
-    * Shutdown RPI
-    * Remove SD-card
-    
+    * `just bootstrap-rpi-firmware $hostname`
+
 * Links
+    * https://codeberg.org/kotatsuyaki/rpi4-usb-uefi-nixos-config
+    * https://github.com/pftf/RPi4
     * https://github.com/Stunkymonkey/nixos/tree/master/machines/serverle
     * https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md    
     * https://github.com/NeilDarach/nix-config/blob/master/hosts/yellow
-    * https://codeberg.org/kotatsuyaki/rpi4-usb-uefi-nixos-config
     * https://carlosvaz.com/posts/nixos-on-raspberry-pi-4-with-uefi-and-zfs/
     
     

@@ -27,7 +27,7 @@ let
           type = "EF00";
           content = {
             type = "filesystem";
-            extraArgs = [ "-nESP" ];
+            extraArgs = [ "-nboot" ];
             format = "vfat";
             mountpoint = "/boot";
             mountOptions = [ "umask=0077" ];
