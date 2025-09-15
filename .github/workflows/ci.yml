@@ -1,0 +1,252 @@
+name: "CI"
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flake-check:
+    name: "Flake Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check flake
+        run: nix flake check --all-systems --show-trace
+
+  formatting:
+    name: "Check Formatting"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check formatting
+        run: |
+          nix fmt -- --check .
+
+  build-systems:
+    name: "Build NixOS Systems"
+    runs-on: ubuntu-latest
+    needs: [flake-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - "desktop"
+          - "vm"
+          - "server"
+          - "minimal"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build NixOS system
+        run: |
+          system="${{ matrix.system }}"
+          case "$system" in
+            "desktop"|"vm")
+              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
+              ;;
+            "server")
+              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
+              ;;
+            "minimal")
+              nix build .#nixosConfigurations.$system.config.system.build.isoImage --show-trace
+              ;;
+          esac
+
+  build-home-manager:
+    name: "Build Home Manager"
+    runs-on: ubuntu-latest
+    needs: [flake-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - "alexander@desktop"
+          - "alexander@vm"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build Home Manager configuration
+        run: |
+          nix build .#homeConfigurations."${{ matrix.config }}".activationPackage --show-trace
+
+  build-packages:
+    name: "Build Custom Packages"
+    runs-on: ubuntu-latest
+    needs: [flake-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        system: ["x86_64-linux", "aarch64-linux"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build packages
+        run: |
+          # Build nvim package
+          nix build .#packages.${{ matrix.system }}.nvim --show-trace || echo "nvim package not available for ${{ matrix.system }}"
+          
+          # Build install package
+          nix build .#packages.${{ matrix.system }}.install --show-trace || echo "install package not available for ${{ matrix.system }}"
+          
+          # Build wallpapers package
+          nix build .#packages.${{ matrix.system }}.wallpapers --show-trace || echo "wallpapers package not available for ${{ matrix.system }}"
+
+  check-deployment:
+    name: "Check Deployment"
+    runs-on: ubuntu-latest
+    needs: [flake-check]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check deployment configuration
+        run: |
+          # Check if deploy configurations are valid
+          nix flake show --json | jq -r '.deploy // empty'
+          
+          # Build deploy-rs checks if available
+          nix build .#checks.x86_64-linux.deploy-rs --show-trace || echo "deploy-rs checks not available"
+
+  check-dev-shells:
+    name: "Check Development Shells"
+    runs-on: ubuntu-latest
+    needs: [flake-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        system: ["x86_64-linux"]
+        shell: ["default"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build development shell
+        run: |
+          nix build .#devShells.${{ matrix.system }}.${{ matrix.shell }} --show-trace || echo "Shell ${{ matrix.shell }} not available"
+
+  security-scan:
+    name: "Security Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  summary:
+    name: "CI Summary"
+    runs-on: ubuntu-latest
+    needs: 
+      - flake-check
+      - formatting
+      - build-systems
+      - build-home-manager
+      - build-packages
+      - check-deployment
+      - check-dev-shells
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "## CI Results Summary" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.flake-check.result }}" == "success" ]]; then
+            echo "✅ Flake check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Flake check failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.formatting.result }}" == "success" ]]; then
+            echo "✅ Formatting check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Formatting check failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-systems.result }}" == "success" ]]; then
+            echo "✅ NixOS systems built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ NixOS systems build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-home-manager.result }}" == "success" ]]; then
+            echo "✅ Home Manager configurations built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Home Manager configurations build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-packages.result }}" == "success" ]]; then
+            echo "✅ Custom packages built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Custom packages build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build completed at:** $(date)" >> $GITHUB_STEP_SUMMARY

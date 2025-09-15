@@ -1,0 +1,93 @@
+name: "Build and Cache"
+
+on:
+  push:
+    branches: [ "master", "main" ]
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'systems/**'
+      - 'homes/**'
+      - 'modules/**'
+      - 'packages/**'
+  schedule:
+    # Rebuild cache daily at 01:00 UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-cache:
+    name: "Build Popular Configs"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - type: "nixos"
+            name: "desktop"
+            attr: "nixosConfigurations.desktop.config.system.build.toplevel"
+          - type: "nixos" 
+            name: "vm"
+            attr: "nixosConfigurations.vm.config.system.build.toplevel"
+          - type: "home"
+            name: "alexander@desktop"
+            attr: 'homeConfigurations."alexander@desktop".activationPackage'
+          - type: "home"
+            name: "alexander@vm"
+            attr: 'homeConfigurations."alexander@vm".activationPackage'
+          - type: "package"
+            name: "nvim"
+            attr: "packages.x86_64-linux.nvim"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build ${{ matrix.config.type }} configuration - ${{ matrix.config.name }}
+        run: |
+          echo "Building: ${{ matrix.config.attr }}"
+          nix build .#${{ matrix.config.attr }} --show-trace
+          
+          # Store build info
+          echo "## ${{ matrix.config.type }}: ${{ matrix.config.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully built ${{ matrix.config.attr }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Get output size
+        run: |
+          if [ -L result ]; then
+            size=$(du -sh result | cut -f1)
+            echo "Build size: $size" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  build-iso:
+    name: "Build Install ISO"
+    runs-on: ubuntu-latest
+    # Only build ISO on manual trigger or schedule to save resources
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build ISO
+        run: |
+          nix build .#nixosConfigurations.minimal.config.system.build.isoImage --show-trace
+          
+          echo "## Install ISO" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully built minimal install ISO" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -L result ]; then
+            size=$(du -sh result | cut -f1)
+            echo "ISO size: $size" >> $GITHUB_STEP_SUMMARY
+          fi
