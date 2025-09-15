@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "alexander" # Replace with your GitHub username
+    assignees:
+      - "alexander" # Replace with your GitHub username
+    labels:
+      - "dependencies"
+      - "github-actions"
+    
+  # Monitor Nix flake inputs (limited support, but helps track some)
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday" 
+      time: "02:00"
+    open-pull-requests-limit: 2

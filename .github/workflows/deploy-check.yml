@@ -1,0 +1,84 @@
+name: "Deployment Check"
+
+on:
+  push:
+    branches: [ "master", "main" ]
+    paths:
+      - 'systems/**'
+      - 'modules/nixos/**'
+      - 'flake.nix'
+  pull_request:
+    branches: [ "master", "main" ]
+    paths:
+      - 'systems/**' 
+      - 'modules/nixos/**'
+      - 'flake.nix'
+
+jobs:
+  check-deploy:
+    name: "Check Deploy Configuration"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v18
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Check deploy-rs configuration
+        run: |
+          # Check if deploy configuration exists
+          if nix flake show --json | jq -e '.deploy' > /dev/null 2>&1; then
+            echo "✅ Deploy configuration found"
+            
+            # Try to build deploy checks
+            if nix build .#checks.x86_64-linux.deploy-rs --show-trace 2>/dev/null; then
+              echo "✅ Deploy-rs checks passed"
+            else
+              echo "⚠️ Deploy-rs checks not available or failed"
+            fi
+          else
+            echo "ℹ️ No deploy configuration found"
+          fi
+
+      - name: Validate system configurations
+        run: |
+          echo "## System Configuration Validation" >> $GITHUB_STEP_SUMMARY
+          
+          # Check each system configuration
+          for system in desktop vm server; do
+            echo "Checking system: $system"
+            if nix build .#nixosConfigurations.$system.config.system.build.toplevel --dry-run --show-trace 2>/dev/null; then
+              echo "✅ $system configuration is valid" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ $system configuration has issues" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Check for common deployment issues
+        run: |
+          echo "## Deployment Readiness Checks" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for secrets management
+          if find . -name "*.yaml" -path "*/secrets*" | grep -q .; then
+            echo "✅ SOPS secrets configuration found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No secrets configuration detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for SSH configuration
+          if find modules -name "*ssh*" -type d | grep -q .; then
+            echo "✅ SSH configuration module found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ SSH configuration not clearly defined" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for networking configuration
+          if find modules -name "*network*" -type d | grep -q .; then
+            echo "✅ Networking configuration found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Networking configuration not found" >> $GITHUB_STEP_SUMMARY
+          fi

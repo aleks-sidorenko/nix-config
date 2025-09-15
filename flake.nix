@@ -21,7 +21,6 @@
     nixos-hardware = {
       url = "github:nixos/nixos-hardware";
     };
-        
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -160,7 +159,7 @@
         nvidia.acceptLicense = true;
       };
 
-      systems = { 
+      systems = {
         modules.nixos = with inputs; [
           stylix.nixosModules.stylix
           home-manager.nixosModules.home-manager
@@ -170,21 +169,20 @@
         ];
         hosts = {
           # hosts specific modules
-          
+
           desktop = {
             modules = with inputs.nixos-hardware.nixosModules; [
               common-cpu-intel
-            ];            
+            ];
           };
-                    
+
           minimal = {
             modules = with inputs; [
               "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             ];
           };
         };
-      };      
-            
+      };
 
       overlays = with inputs; [
         nixgl.overlay

@@ -14,9 +14,9 @@ with lib.${namespace};
       disks = {
         root = {
           device = "/dev/disk/by-id/usb-Argon_Forty_000000001023-0:0";
-          encrypted = false;          
+          encrypted = false;
           boot = {
-            size = "512M";                        
+            size = "512M";
           };
           content = [
             {
@@ -54,7 +54,7 @@ with lib.${namespace};
               ];
             }
           ];
-        };        
+        };
       };
     };
   };

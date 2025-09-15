@@ -18,14 +18,16 @@ in
   };
 
   config = mkIf cfg.enable {
-    
-    
-    boot= { 
-      
+
+    boot = {
+
       kernelPackages = pkgs.linuxPackages_latest;
 
       kernelParams = [
-        "console=ttyS0,115200n8" "console=ttyAMA0,115200n8" "console=tty0" "cma=64M"
+        "console=ttyS0,115200n8"
+        "console=ttyAMA0,115200n8"
+        "console=tty0"
+        "cma=64M"
       ];
 
       initrd.availableKernelModules = [
@@ -33,7 +35,7 @@ in
         "vc4"
         "bcm2835_dma"
         "i2c_bcm2835"
-        
+
         # Maybe needed for SSD boot?
         "usb_storage"
         "xhci_pci"
@@ -44,7 +46,7 @@ in
       supportedFilesystems = [ "btrfs" ];
     };
     powerManagement.cpuFreqGovernor = "ondemand";
-    
+
     environment.systemPackages = with pkgs; [
       libraspberrypi
       raspberrypi-eeprom

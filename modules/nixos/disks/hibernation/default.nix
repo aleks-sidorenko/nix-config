@@ -8,8 +8,8 @@
 with lib;
 with lib.${namespace};
 let
-  
-  cfg = config.${namespace}.disks.hibernation;  
+
+  cfg = config.${namespace}.disks.hibernation;
 in
 {
   options.${namespace}.disks.hibernation = {

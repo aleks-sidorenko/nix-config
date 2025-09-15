@@ -16,25 +16,22 @@ let
   mountpoint = subvol: if subvol.mountpoint != null then subvol.mountpoint else "/${subvol.name}";
 
   mkBootPartition =
-    disk:    
-    (
-      optionalAttrs (disk.boot != null) {
-        boot = {
-          priority = 1;
-          label = disk.boot.name;
-          size = disk.boot.size;
-          type = "EF00";
-          content = {
-            type = "filesystem";
-            extraArgs = [ "-n${disk.boot.name}" ];
-            format = "vfat";
-            mountpoint = "/boot";
-            mountOptions = [ "umask=0077" ];
-          };
+    disk:
+    (optionalAttrs (disk.boot != null) {
+      boot = {
+        priority = 1;
+        label = disk.boot.name;
+        size = disk.boot.size;
+        type = "EF00";
+        content = {
+          type = "filesystem";
+          extraArgs = [ "-n${disk.boot.name}" ];
+          format = "vfat";
+          mountpoint = "/boot";
+          mountOptions = [ "umask=0077" ];
         };
-      }
-    );
-
+      };
+    });
 
   mkSubvolumes =
     disk:
@@ -145,7 +142,6 @@ in
             default = false;
             description = "Whether to use LUKS encryption for the partition";
           };
-          
 
           boot = mkOption {
             type = types.nullOr (submodule {
@@ -159,13 +155,13 @@ in
                   type = types.str;
                   default = "512M";
                   description = "Size of the boot partition (e.g., '512M')";
-                };                
+                };
               };
             });
             default = null;
             description = "Boot partition configuration";
           };
-          
+
           content = mkOption {
             type = types.listOf (submodule {
               options = {

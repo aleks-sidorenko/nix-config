@@ -1,3 +1,7 @@
+[![CI](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml)
+[![Update Dependencies](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml)
+[![Deploy Check](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml)
+
 ## 🚀 Features
 
 Some features of my config:
@@ -12,6 +16,7 @@ Some features of my config:
 - Different environments like **hyprland** and **gnome**
 - Custom **Neovim** setup declaratively using **nixvim**
 - Homelab all configured in nix.
+- **Automated CI/CD** with GitHub Actions for testing and validation
 
 
 ## 💽 Usage
@@ -47,7 +52,7 @@ deploy .#server --hostname server --ssh-user nixos --skip-checks
 ```
 
 ### Bootstrap
-(Bootstrap)[./docs/howto.md]
+[Bootstrap](./docs/howto.md)
 
 
 ## 🏠 Configurations

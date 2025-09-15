@@ -33,7 +33,7 @@ in
 {
   options.${namespace}.disks.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
-    device = mkStringOpt disks.root "The root device name";    
+    device = mkStringOpt disks.root "The root device name";
   };
 
   config = mkIf cfg.enable {
