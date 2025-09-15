@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.disks.impermanence;
-  device = cfg.bootDevice;
+  device = cfg.device;
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
@@ -33,7 +33,7 @@ in
 {
   options.${namespace}.disks.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
-    bootDevice = mkOpt str config.${namespace}.disks.boot.device "The boot device to use";
+    device = mkStringOpt disks.root "The root device name";    
   };
 
   config = mkIf cfg.enable {
@@ -63,7 +63,7 @@ in
     };
 
     # TODO - split to modules
-    environment.persistence.${persistentRoot} = {
+    environment.persistence.${persistence.root} = {
       hideMounts = true;
       directories = [
         "/.cache/nix/"

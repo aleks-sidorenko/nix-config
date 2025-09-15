@@ -1,4 +1,3 @@
-# TODO - move to nixos/disks/
 {
   config,
   lib,
@@ -14,9 +13,7 @@ let
 in
 {
   options.${namespace}.disks.boot = with types; {
-    enable = mkBoolOpt false "Whether or not to enable booting.";
-    secureBoot = mkBoolOpt false "Whether or not to enable secure boot.";
-    device = mkOpt str "root" "The root device name";
+    enable = mkBoolOpt false "Whether or not to enable booting.";     
     debug = mkBoolOpt false "Enable debug mode";
   };
 
@@ -28,19 +25,14 @@ in
         efitools
         efivar
         fwupd
-      ]
-      ++ lib.optionals cfg.secureBoot [ sbctl ];
+      ];
 
     boot = {
 
-      loader = {
-        # systemd-boot fails https://github.com/NixOS/nixpkgs/issues/45032
-        grub = {
-          enable = true;
-          devices = [ "nodev" ];
-          efiSupport = true;
-        };
+      loader = {        
         efi.canTouchEfiVariables = true;
+        systemd-boot.enable = true;
+        grub.enable = mkForce false;
       };
 
       initrd = {
@@ -53,7 +45,6 @@ in
       consoleLogLevel = if cfg.debug then 7 else 4;
 
     };
-
-    # services.fwupd.enable = true;
+    
   };
 }

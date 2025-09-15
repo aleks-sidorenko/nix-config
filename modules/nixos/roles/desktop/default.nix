@@ -43,10 +43,8 @@ in
         # virtualisation.podman.enable = true;
       };
 
-      disks = {
-        boot = {
-          hibernation.enable = true;
-        };
+      disks = {        
+        hibernation.enable = true;
       };
 
       user = {
