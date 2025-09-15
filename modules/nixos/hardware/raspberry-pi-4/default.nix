@@ -21,6 +21,7 @@ in
 
     boot = {
 
+      # Needed for pftf/RPi4 firmware to work
       kernelPackages = pkgs.linuxPackages_latest;
 
       kernelParams = [
@@ -45,6 +46,7 @@ in
 
       supportedFilesystems = [ "btrfs" ];
     };
+
     powerManagement.cpuFreqGovernor = "ondemand";
 
     environment.systemPackages = with pkgs; [

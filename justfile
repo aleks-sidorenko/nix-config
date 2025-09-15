@@ -44,10 +44,12 @@ bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
     ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{nixos_anywhere_opts}}
 
 # Bootstrap Raspberry Pi firmware via SSH
-bootstrap-rpi-firmware hostname username="$USER":
+bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version="v1.42":
     @echo "🥧 Bootstrapping Raspberry Pi firmware on {{username}}@{{hostname}}..."
-    @echo "📡 Connecting via SSH and executing firmware installation script..."
-    ssh {{username}}@{{hostname}} 'bash -s' < scripts/rpi/firmware.sh
+    @echo "📡 Target directory: {{target_dir}}"
+    @echo "📦 Firmware version: {{version}}"
+    @echo "🔗 Connecting via SSH and executing firmware installation script..."
+    ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/rpi/firmware.sh
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
 
 # Build and switch to a new generation locally (for testing)
@@ -202,6 +204,7 @@ bootstrap-validate:
     shellcheck scripts/common.sh
     shellcheck scripts/secrets.sh
     shellcheck scripts/deploy.sh
+    shellcheck scripts/rpi/firmware.sh
     @echo "✅ Bootstrap scripts validation passed"
 
 # Show bootstrap script help
@@ -213,6 +216,7 @@ bootstrap-help:
     @echo "  2. Two-step process for advanced control:"
     @echo "     Step 1: just bootstrap-secrets <hostname> [disk_password]"
     @echo "     Step 2: export KEYSDIR=<path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
+    @echo "  3. Raspberry Pi firmware only: just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]"
     @echo ""
     @echo "Usage:"
     @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [nixos_anywhere_options...]"
@@ -240,6 +244,11 @@ bootstrap-help:
     @echo "  just bootstrap myserver alexander                          # Complete bootstrap with specific user"
     @echo "  just bootstrap myserver alexander MyPassword123            # Complete bootstrap with disk encryption"
     @echo "  export KEYSDIR=/tmp/keysXXX && just bootstrap myserver     # Use existing keys directory"
+    @echo ""
+    @echo "Raspberry Pi firmware examples:"
+    @echo "  just bootstrap-rpi-firmware myrpi                          # Install firmware with defaults"
+    @echo "  just bootstrap-rpi-firmware myrpi pi /boot v1.50           # Custom user, target dir, and version"
+    @echo "  just bootstrap-rpi-firmware 192.168.1.100 root             # Custom user, default dir and version"
     @echo ""
     @echo "Two-step examples:"
     @echo "  just bootstrap-secrets myserver                            # Step 1: Prepare secrets"
