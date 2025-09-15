@@ -15,7 +15,6 @@ rec {
   # Example: getExecPath pkgs.hello -> "/nix/store/...-hello/bin/hello"
   getExecPath = package: "${package}/bin/${package.pname}";
 
-  
   persistence = {
     # Returns the root path for persistent storage
     # This is used for opt-in persistence, where directories can be mounted to /persist
@@ -30,7 +29,7 @@ rec {
       in
       "${lib.optionalString cfg.enable persistence.root}${path}";
   };
-  
+
   disks = {
     boot = "boot";
     root = "root";

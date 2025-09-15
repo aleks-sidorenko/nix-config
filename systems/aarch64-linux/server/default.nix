@@ -8,7 +8,7 @@
 with lib;
 with lib.${namespace};
 {
-  imports = [    
+  imports = [
     ./disks.nix
   ];
   nixpkgs.overlays = [

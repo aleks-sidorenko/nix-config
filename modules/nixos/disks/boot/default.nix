@@ -13,23 +13,21 @@ let
 in
 {
   options.${namespace}.disks.boot = with types; {
-    enable = mkBoolOpt false "Whether or not to enable booting.";     
+    enable = mkBoolOpt false "Whether or not to enable booting.";
     debug = mkBoolOpt false "Enable debug mode";
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages =
-      with pkgs;
-      [
-        efibootmgr
-        efitools
-        efivar
-        fwupd
-      ];
+    environment.systemPackages = with pkgs; [
+      efibootmgr
+      efitools
+      efivar
+      fwupd
+    ];
 
     boot = {
 
-      loader = {        
+      loader = {
         efi.canTouchEfiVariables = true;
         systemd-boot.enable = true;
         grub.enable = mkForce false;
@@ -45,6 +43,6 @@ in
       consoleLogLevel = if cfg.debug then 7 else 4;
 
     };
-    
+
   };
 }
