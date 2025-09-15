@@ -46,7 +46,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v18
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Build ${{ matrix.config.type }} configuration - ${{ matrix.config.name }}
         run: |
@@ -78,7 +78,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v18
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Build ISO
         run: |
