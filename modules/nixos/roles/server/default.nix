@@ -29,6 +29,12 @@ in
       services = {
         # TODO: add vpn support
         # tailscale.enable = true;
+        media = {
+          minidlna = {
+            enable = true;
+            directories = [ "V,/media/Videos" ];
+          };
+        };
       };
 
     };

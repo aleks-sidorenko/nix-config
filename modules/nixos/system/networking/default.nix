@@ -8,7 +8,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.networking;
-  impermanenceCfg = config.${namespace}.disks.impermanence;
   localIp = last: "10.0.0.${toString last}";
   staticIp = host: last: {
     "${localIp last}" = [
@@ -47,8 +46,10 @@ in
       };
     };
 
-    environment.persistence."/persist".directories = mkIf impermanenceCfg.enable [
-      "/etc/NetworkManager/system-connections"
-    ];
+    environment.persistence.${persistence.root}.directories =
+      mkIf config.${namespace}.disks.impermanence.enable
+        [
+          "/etc/NetworkManager/system-connections"
+        ];
   };
 }
