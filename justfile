@@ -18,17 +18,17 @@ bootstrap-secrets hostname disk_password="":
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
 
 # Deploy using existing keys directory (Step 2 of bootstrap process)  
-bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *nixos_anywhere_opts="":
+bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts="":
     @echo "🚀 Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
     @if [ -z "{{keysdir}}" ]; then \
         echo "❌ No keysdir provided and KEYSDIR environment variable not set"; \
         echo "💡 Run 'just bootstrap-secrets <hostname>' first, or provide keysdir explicitly"; \
         exit 1; \
     fi
-    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{nixos_anywhere_opts}}
+    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{extra_opts}}
 
 # Complete bootstrap process (secrets + deploy in one command)
-bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
+bootstrap hostname username="$USER" disk_password="" *extra_opts="":
     @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
     @if [ -n "$KEYSDIR" ]; then \
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
@@ -41,7 +41,7 @@ bootstrap hostname username="$USER" disk_password="" *nixos_anywhere_opts="":
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "🚀 Proceeding with deployment..."; \
-    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{nixos_anywhere_opts}}
+    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{extra_opts}}
 
 # Bootstrap Raspberry Pi firmware via SSH
 bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version="v1.42":
@@ -51,6 +51,18 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
     @echo "🔗 Connecting via SSH and executing firmware installation script..."
     ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/rpi/firmware.sh
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
+
+# Deploy to a specific host using deploy-rs
+# Usage:
+#   just deploy hostname                     # Deploy with local build
+#   just deploy hostname true                # Deploy with remote build
+#   just deploy hostname false --dry-run     # Local build with dry-run
+#   just deploy hostname true --verbose      # Remote build with verbose output
+deploy hostname *extra_opts="":
+    @echo "🚢 Deploying to {{hostname}}..."
+    SHELL=$(which bash)
+    deploy .#{{hostname}} --hostname {{hostname}} --skip-checks {{extra_opts}}; \
+    
 
 # Build and switch to a new generation locally (for testing)
 build-local:
@@ -88,11 +100,6 @@ list-configs:
 list-homes:
     @echo "🏠 Available home-manager configurations:"
     @nix eval --json .#homeConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
-
-# Deploy to a specific host using nixos-rebuild
-deploy hostname:
-    @echo "🚢 Deploying to {{hostname}}..."
-    nixos-rebuild switch --flake .#{{hostname}} --target-host {{hostname}} --use-remote-sudo
 
 # Install packages temporarily for testing
 shell packages:
@@ -219,16 +226,16 @@ bootstrap-help:
     @echo "  3. Raspberry Pi firmware only: just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]"
     @echo ""
     @echo "Usage:"
-    @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [nixos_anywhere_options...]"
+    @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [extra_opts...]"
     @echo "  Step 1:   just bootstrap-secrets <hostname> [disk_password]"
-    @echo "  Step 2:   just bootstrap-deploy <hostname> [username] [keysdir] [nixos_anywhere_options...]"
+    @echo "  Step 2:   just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]"
     @echo ""
     @echo "Parameters:"
     @echo "  hostname                - Target hostname or IP address (required)"
     @echo "  username                - Target user for SSH connection (optional, defaults to current user)"
     @echo "  keysdir                 - Keys directory from step 1 (optional, uses KEYSDIR env var if not provided)"
     @echo "  disk_password           - Disk encryption password (optional, only for step 1)"
-    @echo "  nixos_anywhere_options  - Additional options to pass to nixos-anywhere (step 2)"
+    @echo "  extra_opts              - Additional options to pass to nixos-anywhere (step 2)"
     @echo ""
     @echo "Environment variables:"
     @echo "  AUTO_APPROVE            - Skip interactive SOPS update confirmation (step 1)"

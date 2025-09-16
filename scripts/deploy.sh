@@ -80,7 +80,7 @@ run_deployment() {
     local hostname="$2"
     local keysdir="$3"
     shift 3  # Remove the first 3 arguments
-    local nixos_anywhere_opts=("$@")  # Remaining arguments are nixos-anywhere options
+    local extra_opts=("$@")  # Remaining arguments are nixos-anywhere options
     
     log_info "Starting NixOS deployment to $username@$hostname..."
     log_info "Keys directory: $keysdir"
@@ -100,9 +100,9 @@ run_deployment() {
     fi
     
     # Add any extra options passed to this script
-    if [[ ${#nixos_anywhere_opts[@]} -gt 0 ]]; then
-        log_info "Additional nixos-anywhere options: ${nixos_anywhere_opts[*]}"
-        cmd+=("${nixos_anywhere_opts[@]}")
+    if [[ ${#extra_opts[@]} -gt 0 ]]; then
+        log_info "Additional nixos-anywhere options: ${extra_opts[*]}"
+        cmd+=("${extra_opts[@]}")
     fi
     
     SHELL=$(which bash)
@@ -137,7 +137,7 @@ main() {
     local keysdir="$3"
 
     shift 3
-    local nixos_anywhere_opts=("$@")
+    local extra_opts=("$@")
     
     log_info "Starting NixOS deployment using nixos-anywhere..."
     log_info "Target: $username@$hostname"
@@ -153,7 +153,7 @@ main() {
     check_ssh_connectivity "$username" "$hostname"
     
     # Run the deployment
-    run_deployment "$username" "$hostname" "$keysdir" "${nixos_anywhere_opts[@]}"
+    run_deployment "$username" "$hostname" "$keysdir" "${extra_opts[@]}"
     
     log_success "Deployment process completed successfully!"
 }

@@ -30,9 +30,22 @@ in
         # TODO: add vpn support
         # tailscale.enable = true;
         media = {
+          qbittorrent = {
+            enable = true;
+            categories = [
+              "Videos"
+              "Audio"
+              "Books"
+              "Software"
+              "Other"
+            ];
+            downloadPath = "/data/torrents";
+          };
           minidlna = {
             enable = true;
-            directories = [ "V,/media/Videos" ];
+            directories = [
+              "V,${config.${namespace}.services.media.qbittorrent.downloadPath}/Videos"
+            ];
           };
         };
       };

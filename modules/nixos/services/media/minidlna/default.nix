@@ -45,6 +45,10 @@ in
 
     strictDlna = mkOpt types.bool false "Strictly adhere to DLNA standards";
 
+    user = mkOpt types.str "minidlna" "User to run MiniDLNA as";
+
+    group = mkOpt types.str config.${namespace}.services.media.group "Group to run minidlna as";
+
   };
 
   config =
@@ -60,9 +64,11 @@ in
           inotify = "yes";
           enable_tivo = "no";
           wide_links = "no";
+          # Ensure read-only access
+          root_container = "B";
         };
       };
-
+     
       # Open firewall ports
       networking.firewall = {
         allowedTCPPorts = [
@@ -72,16 +78,16 @@ in
         allowedUDPPorts = [ 1900 ];
       };
 
-      users.users.minidlna = {
+
+      users.users.${cfg.user} = {
+        group = mkForce cfg.group;
         extraGroups = [
           "users"
-          "wheel"
         ]; # so minidlna can access the files.
+        description = "MiniDLNA daemon user";
       };
 
-      # Ensure the media directories exist
-      systemd.tmpfiles.rules = map (dir: "d ${dir} 0755 minidlna minidlna -") dirs;
+      
+    };
 
-    }
-    // (persistence.persistentDirectories config dirs);
 }
