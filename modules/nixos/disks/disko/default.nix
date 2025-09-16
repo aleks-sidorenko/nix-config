@@ -148,7 +148,7 @@ in
               options = {
                 name = mkOption {
                   type = types.str;
-                  default = lib.${namespace}.disks.boot;
+                  default = lib.${namespace}.defaults.disks.boot;
                   description = "Name of the boot partition";
                 };
                 size = mkOption {

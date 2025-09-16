@@ -19,34 +19,42 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-    services.openssh = {
-      enable = true;
+  config =
+    mkIf cfg.enable {
+      services.openssh = {
+        enable = true;
 
-      settings = {
-        # Harden
-        PasswordAuthentication = false;
-        PermitRootLogin = "no";
+        settings = {
+          # Harden
+          PasswordAuthentication = false;
+          PermitRootLogin = "no";
 
-        # Automatically remove stale sockets
-        StreamLocalBindUnlink = "yes";
-        # Allow forwarding ports to everywhere
-        GatewayPorts = "clientspecified";
-        # Let WAYLAND_DISPLAY be forwarded
-        AcceptEnv = "WAYLAND_DISPLAY";
-        X11Forwarding = true;
+          # Automatically remove stale sockets
+          StreamLocalBindUnlink = "yes";
+          # Allow forwarding ports to everywhere
+          GatewayPorts = "clientspecified";
+          # Let WAYLAND_DISPLAY be forwarded
+          AcceptEnv = "WAYLAND_DISPLAY";
+          X11Forwarding = true;
+        };
+
+        hostKeys = [
+          {
+            path = persistence.getPath config "/etc/ssh/ssh_host_ed25519_key";
+            type = "ed25519";
+          }
+        ];
       };
 
-      hostKeys = [
-        {
-          path = persistence.path config "/etc/ssh/ssh_host_ed25519_key";
-          type = "ed25519";
-        }
-      ];
-    };
+      users.users = {
+        ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
+      };
+    }
+    // (persistence.persistentFiles config [
+      "/etc/ssh/ssh_host_ed25519_key"
+      "/etc/ssh/ssh_host_ed25519_key.pub"
+      "/etc/ssh/ssh_host_rsa_key"
+      "/etc/ssh/ssh_host_rsa_key.pub"
+    ]);
 
-    users.users = {
-      ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
-    };
-  };
 }

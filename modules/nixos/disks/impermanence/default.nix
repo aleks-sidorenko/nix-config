@@ -33,7 +33,8 @@ in
 {
   options.${namespace}.disks.impermanence = with types; {
     enable = mkBoolOpt false "Enable impermanence";
-    device = mkStringOpt disks.root "The root device name";
+    root = mkStringOpt defaults.persistence.root "The root path for persistent storage";
+    device = mkStringOpt defaults.disks.root "The root device name";
   };
 
   config = mkIf cfg.enable {
@@ -62,8 +63,7 @@ in
       };
     };
 
-    # TODO - split to modules
-    environment.persistence.${persistence.root} = {
+    environment.persistence.${cfg.root} = {
       hideMounts = true;
       directories = [
         "/.cache/nix/"
@@ -74,10 +74,6 @@ in
       ];
       files = [
         "/etc/machine-id"
-        "/etc/ssh/ssh_host_ed25519_key"
-        "/etc/ssh/ssh_host_ed25519_key.pub"
-        "/etc/ssh/ssh_host_rsa_key"
-        "/etc/ssh/ssh_host_rsa_key.pub"
       ];
     };
   };

@@ -47,43 +47,41 @@ in
 
   };
 
-  config = mkIf cfg.enable {
-    services.minidlna = {
-      enable = true;
-      settings = {
-        media_dir = cfg.directories;
-        friendly_name = cfg.friendlyName;
-        port = cfg.port;
-        announce_interval = cfg.announceInterval;
-        strict_dlna = if cfg.strictDlna then "yes" else "no";
-        inotify = "yes";
-        enable_tivo = "no";
-        wide_links = "no";
+  config =
+    mkIf cfg.enable {
+      services.minidlna = {
+        enable = true;
+        settings = {
+          media_dir = cfg.directories;
+          friendly_name = cfg.friendlyName;
+          port = cfg.port;
+          announce_interval = cfg.announceInterval;
+          strict_dlna = if cfg.strictDlna then "yes" else "no";
+          inotify = "yes";
+          enable_tivo = "no";
+          wide_links = "no";
+        };
       };
-    };
 
-    # Open firewall ports
-    networking.firewall = {
-      allowedTCPPorts = [
-        cfg.port
-        1900
-      ];
-      allowedUDPPorts = [ 1900 ];
-    };
+      # Open firewall ports
+      networking.firewall = {
+        allowedTCPPorts = [
+          cfg.port
+          1900
+        ];
+        allowedUDPPorts = [ 1900 ];
+      };
 
-    users.users.minidlna = {
-      extraGroups = [
-        "users"
-        "wheel"
-      ]; # so minidlna can access the files.
-    };
+      users.users.minidlna = {
+        extraGroups = [
+          "users"
+          "wheel"
+        ]; # so minidlna can access the files.
+      };
 
-    # Ensure the media directories exist
-    systemd.tmpfiles.rules = map (dir: "d ${dir} 0755 minidlna minidlna -") dirs;
+      # Ensure the media directories exist
+      systemd.tmpfiles.rules = map (dir: "d ${dir} 0755 minidlna minidlna -") dirs;
 
-    # Add media directories to impermanence if enabled
-    environment.persistence.${persistence.root}.directories =
-      mkIf config.${namespace}.disks.impermanence.enable
-        dirs;
-  };
+    }
+    // (persistence.persistentDirectories config dirs);
 }
