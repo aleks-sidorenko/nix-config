@@ -52,97 +52,94 @@ in
     package = mkOpt types.package pkgs.qbittorrent-nox "qBittorrent package to use";
   };
 
-  config = mkIf cfg.enable (
-    {
+  config = mkIf cfg.enable {
 
-      users.users.${cfg.user} = {
-        isSystemUser = true;
-        group = mkForce cfg.group;
-        extraGroups = [ "users" ];
-        home = cfg.homeDir;
-        createHome = true;
-        description = "qBittorrent daemon user";
+    users.users.${cfg.user} = {
+      isSystemUser = true;
+      group = mkForce cfg.group;
+      extraGroups = [ "users" ];
+      home = cfg.homeDir;
+      createHome = true;
+      description = "qBittorrent daemon user";
+    };
+
+    # Create systemd service for qBittorrent
+    systemd.services.qbittorrent = {
+      description = "qBittorrent daemon";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        Type = "exec";
+        User = cfg.user;
+        Group = cfg.group;
+        ExecStart = "${cfg.package}/bin/qbittorrent-nox --webui-port=${toString cfg.port}";
+        Restart = "on-failure";
+        RestartSec = "5s";
+
+        # Security settings
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        ReadWritePaths = [
+          cfg.homeDir
+          cfg.downloadPath
+        ];
+
+        # Network restrictions
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+        ];
+
+        # Capabilities
+        CapabilityBoundingSet = "";
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        SystemCallArchitectures = "native";
+        SystemCallFilter = [
+          "@system-service"
+          "~@privileged"
+        ];
       };
 
-      # Create systemd service for qBittorrent
-      systemd.services.qbittorrent = {
-        description = "qBittorrent daemon";
-        after = [ "network.target" ];
-        wantedBy = [ "multi-user.target" ];
+      preStart = ''
+        # Ensure download directories exist
+        ${lib.concatMapStringsSep "\n" (category: ''
+          mkdir -p "${cfg.downloadPath}/${category}"                    
+        '') cfg.categories}
 
-        serviceConfig = {
-          Type = "exec";
-          User = cfg.user;
-          Group = cfg.group;
-          ExecStart = "${cfg.package}/bin/qbittorrent-nox --webui-port=${toString cfg.port}";
-          Restart = "on-failure";
-          RestartSec = "5s";
+        # Ensure config directory exists
+        mkdir -p ${cfg.homeDir}
+      '';
+    };
 
-          # Security settings
-          NoNewPrivileges = true;
-          PrivateTmp = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          ReadWritePaths = [
-            cfg.homeDir
-            cfg.downloadPath
-          ];
+    # Open firewall ports
+    networking.firewall = {
+      allowedTCPPorts = [ cfg.port ];
+    };
 
-          # Network restrictions
-          RestrictAddressFamilies = [
-            "AF_INET"
-            "AF_INET6"
-          ];
+    # Ensure the media directories exist and have correct permissions
+    systemd.tmpfiles.rules =
+      [
+        "d ${cfg.downloadPath} 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.homeDir} 0755 ${cfg.user} ${cfg.group} -"
+      ]
+      ++ map (
+        category: "d ${cfg.downloadPath}/${category} 0755 ${cfg.user} ${cfg.group} -"
+      ) cfg.categories;
 
-          # Capabilities
-          CapabilityBoundingSet = "";
-          LockPersonality = true;
-          MemoryDenyWriteExecute = true;
-          RestrictNamespaces = true;
-          RestrictRealtime = true;
-          RestrictSUIDSGID = true;
-          SystemCallArchitectures = "native";
-          SystemCallFilter = [
-            "@system-service"
-            "~@privileged"
-          ];
-        };
+    # Add qBittorrent package to system packages
+    environment.systemPackages = [ cfg.package ];
 
-        preStart = ''
-          # Ensure download directories exist with correct permissions
-          ${lib.concatMapStringsSep "\n" (category: ''
-            mkdir -p "${cfg.downloadPath}/${category}"
-            chown ${cfg.user}:${cfg.group} "${cfg.downloadPath}/${category}"
-            chmod 755 "${cfg.downloadPath}/${category}"
-          '') cfg.categories}
-
-          # Ensure config directory exists
-          mkdir -p ${cfg.homeDir}/.config/qBittorrent
-          chown -R ${cfg.user}:${cfg.group} ${cfg.homeDir}
-        '';
-      };
-
-      # Open firewall ports
-      networking.firewall = {
-        allowedTCPPorts = [ cfg.port ];
-      };
-
-      # Ensure the media directories exist and have correct permissions
-      systemd.tmpfiles.rules =
-        [
-          "d ${cfg.downloadPath} 0755 ${cfg.user} ${cfg.group} -"
-        ]
-        ++ map (
-          category: "d ${cfg.downloadPath}/${category} 0755 ${cfg.user} ${cfg.group} -"
-        ) cfg.categories;
-
-      # Add qBittorrent package to system packages
-      environment.systemPackages = [ cfg.package ];
-
-    }
-    // (persistence.persistentDirectories config [
+    environment.persistence.${persistence.getRoot config}.directories = [
       cfg.homeDir
       cfg.downloadPath
-    ])
-  );
+    ];
+
+  };
 }

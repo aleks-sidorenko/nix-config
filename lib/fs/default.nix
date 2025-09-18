@@ -17,6 +17,9 @@ rec {
 
   persistence = {
 
+    # Returns the root path for persistent storage
+    getRoot = config: config.${namespace}.disks.impermanence.root;
+
     # Returns the path to a persistent directory based on whether opt-in persistence is enabled
     getPath =
       config: path:
@@ -24,30 +27,6 @@ rec {
         cfg = config.${namespace}.disks.impermanence;
       in
       "${lib.optionalString cfg.enable cfg.root}${path}";
-
-    # Helper function to manage persistent directories for impermanence
-    # Takes config and a list of directories and adds them to environment.persistence
-    # if impermanence is enabled
-    persistentDirectories =
-      config: directories:
-      let
-        cfg = config.${namespace}.disks.impermanence;
-      in
-      lib.mkIf cfg.enable {
-        environment.persistence.${cfg.root}.directories = directories;
-      };
-
-    # Helper function to manage persistent files for impermanence
-    # Takes config and a list of files and adds them to environment.persistence
-    # if impermanence is enabled
-    persistentFiles =
-      config: files:
-      let
-        cfg = config.${namespace}.disks.impermanence;
-      in
-      lib.mkIf cfg.enable {
-        environment.persistence.${cfg.root}.files = files;
-      };
 
   };
 

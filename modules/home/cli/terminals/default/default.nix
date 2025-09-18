@@ -15,6 +15,7 @@ in
     enable = mkEnableOption "Whether or not to enable the default terminal configuration.";
     name = mkStringOpt' "The name of the default terminal to use.";
     package = mkPackageOpt' "The package to use for the default terminal.";
+    sshTerm = mkStringOpt "xterm-256color" "The terminal to use for SSH.";
   };
 
   config = mkIf cfg.enable {
@@ -27,7 +28,6 @@ in
 
     home.sessionVariables = {
       TERM = cfg.name;
-      TERMINAL = cfg.name;
     };
   };
 

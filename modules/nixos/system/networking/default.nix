@@ -26,30 +26,28 @@ in
 
   };
 
-  config = mkIf cfg.enable (
-    {
-      networking = {
-        # Enable NetworkManager to manage the network interfaces
-        useDHCP = mkDefault true;
-        # Enable NetworkManager to manage the network interfaces
-        networkmanager.enable = true;
-        # Disable wireless networking since it conflicts with the networkmanager
-        wireless.enable = false;
+  config = mkIf cfg.enable {
+    networking = {
+      # Enable NetworkManager to manage the network interfaces
+      useDHCP = mkDefault true;
+      # Enable NetworkManager to manage the network interfaces
+      networkmanager.enable = true;
+      # Disable wireless networking since it conflicts with the networkmanager
+      wireless.enable = false;
 
-        search = mkForce [
-          cfg.domains.local
-          cfg.domains.public
-        ];
-        hosts = mkForce (staticIp "server" 40);
+      search = mkForce [
+        cfg.domains.local
+        cfg.domains.public
+      ];
+      hosts = mkForce (staticIp "server" 40);
 
-        firewall = {
-          enable = false; # TODO: enable firewall
-        };
+      firewall = {
+        enable = false; # TODO: enable firewall
       };
-
-    }
-    // (persistence.persistentDirectories config [
+    };
+    environment.persistence.${persistence.getRoot config}.directories = [
       "/etc/NetworkManager/system-connections"
-    ])
-  );
+    ];
+  };
+
 }

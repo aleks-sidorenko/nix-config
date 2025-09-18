@@ -105,8 +105,6 @@ run_deployment() {
         cmd+=("${extra_opts[@]}")
     fi
     
-    SHELL=$(which bash)
-
     # Add the target
     cmd+=("$username@$hostname")
     

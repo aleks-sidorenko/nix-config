@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   namespace,
   ...
 }:
@@ -27,7 +26,8 @@ in
     ];
 
     home.sessionVariables = {
-      SHELL = cfg.name;
+      # SHELL = cfg.name; - this doesn't work for ssh & sudo to root user
+      SHELL = getExecPath cfg.package;
     };
   };
 }
