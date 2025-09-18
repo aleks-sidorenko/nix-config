@@ -41,7 +41,7 @@ in
       };
 
       user = {
-        enable = true;        
+        enable = true;
       };
 
     };

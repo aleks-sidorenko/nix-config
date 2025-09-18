@@ -19,8 +19,8 @@ in
     };
   };
 
-  config =
-    mkIf cfg.enable {
+  config = mkIf cfg.enable (
+    {
       services.openssh = {
         enable = true;
 
@@ -55,6 +55,7 @@ in
       "/etc/ssh/ssh_host_ed25519_key.pub"
       "/etc/ssh/ssh_host_rsa_key"
       "/etc/ssh/ssh_host_rsa_key.pub"
-    ]);
+    ])
+  );
 
 }

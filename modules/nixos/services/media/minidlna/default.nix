@@ -51,43 +51,40 @@ in
 
   };
 
-  config =
-    mkIf cfg.enable {
-      services.minidlna = {
-        enable = true;
-        settings = {
-          media_dir = cfg.directories;
-          friendly_name = cfg.friendlyName;
-          port = cfg.port;
-          announce_interval = cfg.announceInterval;
-          strict_dlna = if cfg.strictDlna then "yes" else "no";
-          inotify = "yes";
-          enable_tivo = "no";
-          wide_links = "no";
-          # Ensure read-only access
-          root_container = "B";
-        };
+  config = mkIf cfg.enable {
+    services.minidlna = {
+      enable = true;
+      settings = {
+        media_dir = cfg.directories;
+        friendly_name = cfg.friendlyName;
+        port = cfg.port;
+        announce_interval = cfg.announceInterval;
+        strict_dlna = if cfg.strictDlna then "yes" else "no";
+        inotify = "yes";
+        enable_tivo = "no";
+        wide_links = "no";
+        # Ensure read-only access
+        root_container = "B";
       };
-     
-      # Open firewall ports
-      networking.firewall = {
-        allowedTCPPorts = [
-          cfg.port
-          1900
-        ];
-        allowedUDPPorts = [ 1900 ];
-      };
-
-
-      users.users.${cfg.user} = {
-        group = mkForce cfg.group;
-        extraGroups = [
-          "users"
-        ]; # so minidlna can access the files.
-        description = "MiniDLNA daemon user";
-      };
-
-      
     };
+
+    # Open firewall ports
+    networking.firewall = {
+      allowedTCPPorts = [
+        cfg.port
+        1900
+      ];
+      allowedUDPPorts = [ 1900 ];
+    };
+
+    users.users.${cfg.user} = {
+      group = mkForce cfg.group;
+      extraGroups = [
+        "users"
+      ]; # so minidlna can access the files.
+      description = "MiniDLNA daemon user";
+    };
+
+  };
 
 }

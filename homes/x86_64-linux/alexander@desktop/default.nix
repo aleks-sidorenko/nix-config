@@ -16,7 +16,7 @@ with lib.${namespace};
     };
 
     user = {
-      enable = true;      
+      enable = true;
     };
 
     security.sops.enable = mkForce false;

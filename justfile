@@ -54,13 +54,12 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
 
 # Deploy to a specific host using deploy-rs
 # Usage:
-#   just deploy hostname                     # Deploy with local build
-#   just deploy hostname true                # Deploy with remote build
-#   just deploy hostname false --dry-run     # Local build with dry-run
-#   just deploy hostname true --verbose      # Remote build with verbose output
+#   just deploy hostname                            # Deploy with local build
+#   just deploy hostname --remote-build             # Deploy with remote build
+#   just deploy hostname --dry-run                  # Local build with dry-run
+#   just deploy hostname --remote-build  --verbose  # Remote build with verbose output
 deploy hostname *extra_opts="":
-    @echo "🚢 Deploying to {{hostname}}..."
-    SHELL=$(which bash)
+    @echo "🚢 Deploying to {{hostname}}..."    
     deploy .#{{hostname}} --hostname {{hostname}} --skip-checks {{extra_opts}}; \
     
 

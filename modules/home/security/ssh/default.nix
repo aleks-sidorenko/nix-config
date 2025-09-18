@@ -53,6 +53,9 @@ in
       extraConfig = ''
         # Use GPG agent for SSH
         IdentityAgent "$SSH_AUTH_SOCK"
+
+        # Don't send environment variables (including SHELL) to SSH server
+        SendEnv -SHELL
       '';
     };
 
