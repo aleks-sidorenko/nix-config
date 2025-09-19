@@ -39,7 +39,11 @@ in
 
     friendlyName = mkOpt types.str "Media Server" "Friendly name for the media server";
 
-    port = mkOpt types.port 8200 "Port for the MiniDLNA web interface";
+    webPort = mkOpt types.port defaults.ports.dlna.web "Port for the MiniDLNA web interface";
+
+    discoveryPort =
+      mkOpt types.port defaults.ports.dlna.discovery
+        "Port for DLNA/UPnP discovery (SSDP)";
 
     announceInterval = mkOpt types.int 60 "Announce interval in seconds";
 
@@ -57,7 +61,7 @@ in
       settings = {
         media_dir = cfg.directories;
         friendly_name = cfg.friendlyName;
-        port = cfg.port;
+        port = cfg.webPort;
         announce_interval = cfg.announceInterval;
         strict_dlna = if cfg.strictDlna then "yes" else "no";
         inotify = "yes";
@@ -71,10 +75,12 @@ in
     # Open firewall ports
     networking.firewall = {
       allowedTCPPorts = [
-        cfg.port
-        1900
+        cfg.webPort # Web interface
+        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
       ];
-      allowedUDPPorts = [ 1900 ];
+      allowedUDPPorts = [
+        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
+      ];
     };
 
     users.users.${cfg.user} = {

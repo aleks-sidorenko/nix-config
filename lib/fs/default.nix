@@ -18,10 +18,10 @@ rec {
   persistence = {
 
     # Returns the root path for persistent storage
-    getRoot = config: config.${namespace}.disks.impermanence.root;
+    root = config: config.${namespace}.disks.impermanence.root;
 
     # Returns the path to a persistent directory based on whether opt-in persistence is enabled
-    getPath =
+    path =
       config: path:
       let
         cfg = config.${namespace}.disks.impermanence;

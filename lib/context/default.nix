@@ -20,7 +20,8 @@ rec {
       ];
 
     in
-    hasAllAttr options config;
+    # Only return true if we have home-manager options but NOT NixOS options
+    hasAllAttr options config && !(isNixOS config);
 
   # Function to check for system context
   isNixOS =
@@ -39,19 +40,22 @@ rec {
   # Combined check that returns a string for convenience
   getContext =
     config:
-    if isHomeManager config then
-      "home"
-    else if isNixOS config then
+    # Check NixOS first to be explicit about priority, even though isHomeManager now handles this
+    if isNixOS config then
       "nixos"
+    else if isHomeManager config then
+      "home"
     else
       "unknown";
 
   userName =
     config:
-    let
-      cfg = homeConfig config;
-    in
-    cfg.home.username;
+    if isHomeManager config then
+      config.home.username
+    else if isNixOS config then
+      config.${namespace}.user.name
+    else
+      throw "Failed to get user name for this context";
 
   homeDir =
     config:

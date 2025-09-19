@@ -57,7 +57,7 @@ in
 
         setEnv TERM="${config.${namespace}.cli.terminals.default.sshTerm}"
         setEnv SHELL="${config.${namespace}.cli.shells.default.name}"
-        
+
       '';
     };
 

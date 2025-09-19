@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.roles.server = {
-    enable = mkEnableOption "Enable server configuration";
+    enable = mkEnableOption "Enable server role.";
   };
 
   config = mkIf cfg.enable {
@@ -24,30 +24,6 @@ in
 
       system = {
         locale.timeZone = lib.mkDefault "UTC";
-      };
-
-      services = {
-        # TODO: add vpn support
-        # tailscale.enable = true;
-        media = {
-          qbittorrent = {
-            enable = true;
-            categories = [
-              "Videos"
-              "Audio"
-              "Books"
-              "Software"
-              "Other"
-            ];
-            downloadPath = "/data/torrents";
-          };
-          minidlna = {
-            enable = true;
-            directories = [
-              "V,${config.${namespace}.services.media.qbittorrent.downloadPath}/Videos"
-            ];
-          };
-        };
       };
 
     };

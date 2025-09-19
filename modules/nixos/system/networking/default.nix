@@ -45,7 +45,7 @@ in
         enable = false; # TODO: enable firewall
       };
     };
-    environment.persistence.${persistence.getRoot config}.directories = [
+    environment.persistence.${persistence.root config}.directories = [
       "/etc/NetworkManager/system-connections"
     ];
   };

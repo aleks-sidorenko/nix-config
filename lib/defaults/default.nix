@@ -22,6 +22,27 @@ rec {
       boot = "boot";
       root = "root";
     };
+
+    ports = {
+      dlna = {
+        web = 8200;
+        discovery = 1900;
+      };
+      jellyfin = {
+        web = 8096;
+        discovery = 7359;
+      };
+      qbittorrent = {
+        web = 8080;
+        torrent = 17348;
+      };
+      radarr = {
+        web = 7878;
+      };
+      sonarr = {
+        web = 8989;
+      };
+    };
   };
 
 }

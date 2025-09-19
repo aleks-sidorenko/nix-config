@@ -42,7 +42,7 @@ in
 
       hostKeys = [
         {
-          path = persistence.getPath config "/etc/ssh/ssh_host_ed25519_key";
+          path = persistence.path config "/etc/ssh/ssh_host_ed25519_key";
           type = "ed25519";
         }
       ];
@@ -52,7 +52,7 @@ in
       ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     };
 
-    environment.persistence.${persistence.getRoot config}.files = [
+    environment.persistence.${persistence.root config}.files = [
       "/etc/ssh/ssh_host_ed25519_key"
       "/etc/ssh/ssh_host_ed25519_key.pub"
       "/etc/ssh/ssh_host_rsa_key"
