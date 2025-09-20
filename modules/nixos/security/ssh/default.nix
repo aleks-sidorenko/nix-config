@@ -32,9 +32,12 @@ in
         StreamLocalBindUnlink = "yes";
         # Allow forwarding ports to everywhere
         GatewayPorts = "clientspecified";
-        # Let WAYLAND_DISPLAY be forwarded
-        AcceptEnv = "WAYLAND_DISPLAY";
-        X11Forwarding = true;
+
+        # Accept following environment variables
+        # AcceptEnv = "";
+
+        # Disable all client-sent environment variables
+        PermitUserEnvironment = "no";
       };
 
       hostKeys = [
@@ -48,5 +51,12 @@ in
     users.users = {
       ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     };
+
+    environment.persistence.${persistence.root config}.files = [
+      "/etc/ssh/ssh_host_ed25519_key"
+      "/etc/ssh/ssh_host_ed25519_key.pub"
+      "/etc/ssh/ssh_host_rsa_key"
+      "/etc/ssh/ssh_host_rsa_key.pub"
+    ];
   };
 }

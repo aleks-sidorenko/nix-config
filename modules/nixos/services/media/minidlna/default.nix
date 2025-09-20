@@ -1,0 +1,96 @@
+{
+  config,
+  lib,
+  namespace,
+  ...
+}:
+with lib;
+with lib.${namespace};
+let
+  cfg = config.${namespace}.services.media.minidlna;
+  dirs = map (
+    dir:
+    let
+      parts = lib.splitString "," dir;
+      dirPath = lib.last parts;
+    in
+    dirPath
+  ) cfg.directories;
+in
+{
+  options.${namespace}.services.media.minidlna = {
+    enable = mkEnableOption "Enable MiniDLNA media server";
+
+    directories = mkOption {
+      type = (types.listOf types.str);
+      # "A" for audio    (eg. media_dir=A,/var/lib/minidlna/music)
+      # "P" for pictures (eg. media_dir=P,/var/lib/minidlna/pictures)
+      # "V" for video    (eg. media_dir=V,/var/lib/minidlna/videos)
+      # "PV" for pictures and video (eg. media_dir=PV,/var/lib/minidlna/digital_camera)
+      example = [
+        "A,/media/Music"
+        "P,/media/Pictures"
+        "V,/media/Videos"
+        "PV,/media/DigitalCamera"
+      ];
+      default = [ ];
+      description = "List of directories to serve media from";
+    };
+
+    friendlyName = mkOpt types.str "Media Server" "Friendly name for the media server";
+
+    webPort = mkOpt types.port defaults.ports.dlna.web "Port for the MiniDLNA web interface";
+
+    discoveryPort =
+      mkOpt types.port defaults.ports.dlna.discovery
+        "Port for DLNA/UPnP discovery (SSDP)";
+
+    announceInterval = mkOpt types.int 60 "Announce interval in seconds";
+
+    strictDlna = mkOpt types.bool false "Strictly adhere to DLNA standards";
+
+    user = mkOpt types.str "minidlna" "User to run MiniDLNA as";
+
+    group = mkOpt types.str config.${namespace}.services.media.group "Group to run minidlna as";
+
+  };
+
+  config = mkIf cfg.enable {
+    services.minidlna = {
+      enable = true;
+      settings = {
+        media_dir = cfg.directories;
+        friendly_name = cfg.friendlyName;
+        port = cfg.webPort;
+        announce_interval = cfg.announceInterval;
+        strict_dlna = if cfg.strictDlna then "yes" else "no";
+        inotify = "yes";
+        enable_tivo = "no";
+        wide_links = "no";
+        # Ensure read-only access
+        root_container = "B";
+      };
+    };
+
+    # Open firewall ports
+    networking.firewall = {
+      allowedTCPPorts = [
+        cfg.webPort # Web interface
+        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
+      ];
+      allowedUDPPorts = [
+        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
+      ];
+    };
+
+    users.users.${cfg.user} = {
+      group = mkForce cfg.group;
+      extraGroups = [
+        "users"
+      ]; # so minidlna can access the files.
+      description = "MiniDLNA daemon user";
+    };
+
+  };
+
+}

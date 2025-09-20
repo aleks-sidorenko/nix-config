@@ -22,6 +22,7 @@ with lib.${namespace};
   ${namespace} = {
     roles = {
       server = enabled;
+      media-server = enabled;
     };
 
     hardware.raspberry-pi-4 = enabled;

@@ -48,7 +48,7 @@ nh home switch
 deploy .#vm --hostname vm --ssh-opts="-p 2222" --skip-checks
 
 # Deploy config to server (using SSH)
-deploy .#server --hostname server --ssh-user nixos --skip-checks
+deploy .#server --hostname server  --skip-checks
 ```
 
 ### Bootstrap

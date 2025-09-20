@@ -16,10 +16,9 @@ rec {
   getExecPath = package: "${package}/bin/${package.pname}";
 
   persistence = {
+
     # Returns the root path for persistent storage
-    # This is used for opt-in persistence, where directories can be mounted to /persist
-    # This path is used to store files that should persist across reboots
-    root = "/persist";
+    root = config: config.${namespace}.disks.impermanence.root;
 
     # Returns the path to a persistent directory based on whether opt-in persistence is enabled
     path =
@@ -27,11 +26,8 @@ rec {
       let
         cfg = config.${namespace}.disks.impermanence;
       in
-      "${lib.optionalString cfg.enable persistence.root}${path}";
+      "${lib.optionalString cfg.enable cfg.root}${path}";
+
   };
 
-  disks = {
-    boot = "boot";
-    root = "root";
-  };
 }

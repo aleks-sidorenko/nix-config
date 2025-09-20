@@ -8,7 +8,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.networking;
-  impermanenceCfg = config.${namespace}.disks.impermanence;
   localIp = last: "10.0.0.${toString last}";
   staticIp = host: last: {
     "${localIp last}" = [
@@ -36,19 +35,19 @@ in
       # Disable wireless networking since it conflicts with the networkmanager
       wireless.enable = false;
 
-      search = [
+      search = mkForce [
         cfg.domains.local
         cfg.domains.public
       ];
-      hosts = (staticIp "server" 40);
+      hosts = mkForce (staticIp "server" 40);
 
       firewall = {
         enable = false; # TODO: enable firewall
       };
     };
-
-    environment.persistence."/persist".directories = mkIf impermanenceCfg.enable [
+    environment.persistence.${persistence.root config}.directories = [
       "/etc/NetworkManager/system-connections"
     ];
   };
+
 }

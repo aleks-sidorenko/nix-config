@@ -41,7 +41,7 @@ in
       };
 
       user = {
-        name = "alexander";
+        enable = true;
       };
 
     };
