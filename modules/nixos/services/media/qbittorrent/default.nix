@@ -66,7 +66,7 @@ let
     Session\QueueingSystemEnabled=false
     Session\SSL\Port=30088
     Session\SubcategoriesEnabled=true
-    Session\Tags=Best, Comedy, Kids
+    Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
     Session\UseCategoryPathsInManualMode=true
     Session\Interface=
     Session\InterfaceAddress=0.0.0.0
@@ -149,6 +149,17 @@ in
         "Port for BitTorrent protocol (incoming connections)";
 
     downloadPath = mkOpt types.str "/data/torrents" "Base download path for qBittorrent";
+
+    tags = mkOption {
+      type = types.listOf types.str;
+      default = [ "Action" "Comedy" "Drama" "Horror" "Thriller" "Sci-Fi" "Documentary" "Animation", "Family", "Kids" ];
+      example = [ "Action" "Comedy" "Drama" "Horror" "Thriller" "Sci-Fi" "Documentary" "Animation" ];
+      description = ''
+        List of tags for qBittorrent torrents. These tags can be used to organize and filter torrents.
+        Tags are comma-separated in the qBittorrent configuration.
+        Default includes most popular movie/TV genres.
+      '';
+    };
 
     package = mkOpt types.package pkgs.qbittorrent-nox "qBittorrent package to use";
   };
