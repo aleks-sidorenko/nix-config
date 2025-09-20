@@ -68,9 +68,13 @@ let
     Session\SubcategoriesEnabled=true
     Session\Tags=Best, Comedy, Kids
     Session\UseCategoryPathsInManualMode=true
-
-    [Core]
-    AutoDeleteAddedTorrentFile=IfAdded
+    Session\Interface=
+    Session\InterfaceAddress=0.0.0.0
+    Session\InterfaceName=
+    Session\AddExtensionToIncompleteFiles=false
+    Session\Encryption=1
+    Session\ForceProxy=false
+    Session\ProxyType=-1
 
     [Meta]
     MigrationVersion=8
@@ -83,6 +87,15 @@ let
     WebUI\Username=${userName}
     Downloads\OnFinish\Enabled=true
     Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"
+    Connection\PortRangeMin=${toString cfg.torrentPort}
+    Connection\UPnP=false
+    Connection\UseUPnPForWebUI=false
+    Advanced\AnonymousMode=false
+    Advanced\IgnoreLimitsLAN=true
+    Advanced\IncludeOverhead=false
+    Advanced\osCache=true
+    Advanced\OutgoingPortsMax=0
+    Advanced\OutgoingPortsMin=0
 
     [RSS]
     AutoDownloader\DownloadRepacks=true
@@ -163,11 +176,10 @@ in
         Type = "exec";
         User = cfg.user;
         Group = cfg.group;
-        ExecStart = "${cfg.package}/bin/qbittorrent-nox --webui-port=${toString cfg.webPort}";
+        ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=${toString cfg.webPort}";
         Restart = "on-failure";
         RestartSec = "5s";
-
-        # Security settings
+                        
         NoNewPrivileges = true;
         PrivateTmp = true;
         ProtectSystem = "strict";
@@ -177,22 +189,29 @@ in
           cfg.downloadPath          
         ];
 
-        # Network restrictions
+        # Network restrictions - Allow common address families
         RestrictAddressFamilies = [
           "AF_INET"
-          "AF_INET6"
+          "AF_INET6" 
+          "AF_UNIX"
+          "AF_NETLINK"
         ];
 
-        # Capabilities
-        CapabilityBoundingSet = "";
+        # Capabilities - Allow basic network capabilities
+        CapabilityBoundingSet = [
+          "CAP_NET_BIND_SERVICE"
+        ];
         LockPersonality = true;
+        
         MemoryDenyWriteExecute = true;
         RestrictNamespaces = true;
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
         SystemCallArchitectures = "native";
+        # Relaxed system call filter
         SystemCallFilter = [
           "@system-service"
+          "@network-io"
           "~@privileged"
         ];
       };
@@ -202,10 +221,7 @@ in
         # Copy configuration files with proper ownership
         cp ${qbittorrentConfig} ${configDir}/qBittorrent.conf
         cp ${categoriesJson} ${configDir}/categories.json
-        
-        # Set proper ownership
-        chown ${cfg.user}:${cfg.group} ${configDir}/qBittorrent.conf
-        chown ${cfg.user}:${cfg.group} ${configDir}/categories.json                
+                
       '';
 
     };
@@ -238,7 +254,7 @@ in
       ) cfg.categories;
 
     # Add qBittorrent package to system packages
-    environment.systemPackages = [ cfg.package ];
+    environment.systemPackages = [ pkgs.qbittorrent-nox ];
 
     environment.persistence.${persistence.root config}.directories = [
       cfg.homeDir

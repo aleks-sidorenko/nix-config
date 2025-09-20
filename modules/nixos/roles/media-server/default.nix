@@ -71,7 +71,7 @@ in
           };
 
           minidlna = {
-            enable = false;
+            enable = true;
             directories = [
               "V,${dirs.dowloadPath categories.movies}"
               "V,${dirs.dowloadPath categories.series}"
