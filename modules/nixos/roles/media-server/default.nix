@@ -58,7 +58,7 @@ in
           };
 
           radarr = {
-            enable = false;
+            enable = true;
             downloadDir = dirs.dowloadPath categories.movies;
             mediaDir = dirs.mediaPath categories.movies;
           };
@@ -80,6 +80,14 @@ in
         };
       };
 
+    };
+
+    boot.kernel.sysctl = {
+
+      # Default is usually 8192, increase to handle large media libraries
+      "fs.inotify.max_user_watches" = 524288;
+      # Also increase max instances if needed
+      "fs.inotify.max_user_instances" = 256;
     };
 
   };

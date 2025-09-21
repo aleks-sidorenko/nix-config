@@ -152,8 +152,28 @@ in
 
     tags = mkOption {
       type = types.listOf types.str;
-      default = [ "Action" "Comedy" "Drama" "Horror" "Thriller" "Sci-Fi" "Documentary" "Animation", "Family", "Kids" ];
-      example = [ "Action" "Comedy" "Drama" "Horror" "Thriller" "Sci-Fi" "Documentary" "Animation" ];
+      default = [
+        "Action"
+        "Comedy"
+        "Drama"
+        "Horror"
+        "Thriller"
+        "Sci-Fi"
+        "Documentary"
+        "Animation"
+        "Family"
+        "Kids"
+      ];
+      example = [
+        "Action"
+        "Comedy"
+        "Drama"
+        "Horror"
+        "Thriller"
+        "Sci-Fi"
+        "Documentary"
+        "Animation"
+      ];
       description = ''
         List of tags for qBittorrent torrents. These tags can be used to organize and filter torrents.
         Tags are comma-separated in the qBittorrent configuration.
@@ -190,20 +210,20 @@ in
         ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=${toString cfg.webPort}";
         Restart = "on-failure";
         RestartSec = "5s";
-                        
+
         NoNewPrivileges = true;
         PrivateTmp = true;
         ProtectSystem = "strict";
         ProtectHome = true;
         ReadWritePaths = [
           cfg.homeDir
-          cfg.downloadPath          
+          cfg.downloadPath
         ];
 
         # Network restrictions - Allow common address families
         RestrictAddressFamilies = [
           "AF_INET"
-          "AF_INET6" 
+          "AF_INET6"
           "AF_UNIX"
           "AF_NETLINK"
         ];
@@ -213,7 +233,7 @@ in
           "CAP_NET_BIND_SERVICE"
         ];
         LockPersonality = true;
-        
+
         MemoryDenyWriteExecute = true;
         RestrictNamespaces = true;
         RestrictRealtime = true;
@@ -228,7 +248,7 @@ in
       };
 
       preStart = ''
-        
+
         # Copy configuration files with proper ownership
         cp ${qbittorrentConfig} ${configDir}/qBittorrent.conf
         cp ${categoriesJson} ${configDir}/categories.json

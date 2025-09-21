@@ -20,15 +20,13 @@ in
 
     dataDir = mkOpt types.str "/var/lib/sonarr" "Directory where Sonarr stores its data";
 
-    downloadDir = mkOpt types.str "/data/torrents" "Directory where downloads are stored";
+    downloadDir = mkOpt types.str "/data/torrents/Series" "Directory where downloads are stored";
 
-    mediaDir = mkOpt types.str "/data/media/tv" "Directory where TV series files are stored";
+    mediaDir = mkOpt types.str "/data/media/Series" "Directory where TV series files are stored";
 
     package = mkOpt types.package pkgs.sonarr "Sonarr package to use";
 
     webPort = mkOpt types.port defaults.ports.sonarr.web "Port for the Sonarr web interface";
-
-    openFirewall = mkBoolOpt false "Open firewall for Sonarr port";
   };
 
   config = mkIf cfg.enable {
@@ -73,14 +71,18 @@ in
           cfg.mediaDir
         ];
 
-        # Network restrictions
+        # Network restrictions - Allow common address families
         RestrictAddressFamilies = [
           "AF_INET"
           "AF_INET6"
+          "AF_UNIX"
+          "AF_NETLINK"
         ];
 
-        # Capabilities
-        CapabilityBoundingSet = "";
+        # Capabilities - Allow basic network capabilities
+        CapabilityBoundingSet = [
+          "CAP_NET_BIND_SERVICE"
+        ];
         LockPersonality = true;
         MemoryDenyWriteExecute = true;
         RestrictNamespaces = true;
@@ -89,6 +91,7 @@ in
         SystemCallArchitectures = "native";
         SystemCallFilter = [
           "@system-service"
+          "@network-io"
           "~@privileged"
         ];
       };
@@ -99,8 +102,7 @@ in
       };
     };
 
-    # Open firewall port if requested
-    networking.firewall = mkIf cfg.openFirewall {
+    networking.firewall = {
       allowedTCPPorts = [ cfg.webPort ];
     };
 
