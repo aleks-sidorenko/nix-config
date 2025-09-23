@@ -41,67 +41,6 @@ let
     ${pkgs.systemd}/bin/systemd-cat -t qbittorrent echo "Download completed: $TORRENT_NAME"
   '';
 
-  # qBittorrent configuration template
-  qbittorrentConfig = pkgs.writeText "qBittorrent.conf" ''
-    [Application]
-    FileLogger\Age=1
-    FileLogger\AgeType=1
-    FileLogger\Backup=true
-    FileLogger\DeleteOld=true
-    FileLogger\Enabled=true
-    FileLogger\MaxSizeBytes=66560
-    FileLogger\Path=${logsDir}
-
-    [AutoRun]
-    enabled=true
-
-    [BitTorrent]
-    Session\DefaultSavePath=${cfg.downloadPath}
-    Session\DisableAutoTMMByDefault=false
-    Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
-    Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
-    Session\ExcludedFileNames=
-    Session\GlobalUPSpeedLimit=200
-    Session\Port=${toString cfg.torrentPort}
-    Session\QueueingSystemEnabled=false
-    Session\SSL\Port=30088
-    Session\SubcategoriesEnabled=true
-    Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
-    Session\UseCategoryPathsInManualMode=true
-    Session\Interface=
-    Session\InterfaceAddress=0.0.0.0
-    Session\InterfaceName=
-    Session\AddExtensionToIncompleteFiles=false
-    Session\Encryption=1
-    Session\ForceProxy=false
-    Session\ProxyType=-1
-
-    [Meta]
-    MigrationVersion=8
-
-    [Preferences]
-    General\Locale=en
-    MailNotification\req_auth=true
-    WebUI\AuthSubnetWhitelist=@Invalid()
-    WebUI\Password_PBKDF2="@ByteArray(xkVo9KYx/eCPQcIvc/JRYg==:ZyXmvUlrDL6ebMsZxdvsCA1d6dmgQSjhAn2RVEx6ZDCVwuG3o/QZ9jE2eL/XwcO4+yDSJBVhrFvp58kwmhVgsA==)"
-    WebUI\Username=${userName}
-    Downloads\OnFinish\Enabled=true
-    Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"
-    Connection\PortRangeMin=${toString cfg.torrentPort}
-    Connection\UPnP=false
-    Connection\UseUPnPForWebUI=false
-    Advanced\AnonymousMode=false
-    Advanced\IgnoreLimitsLAN=true
-    Advanced\IncludeOverhead=false
-    Advanced\osCache=true
-    Advanced\OutgoingPortsMax=0
-    Advanced\OutgoingPortsMin=0
-
-    [RSS]
-    AutoDownloader\DownloadRepacks=true
-    AutoDownloader\SmartEpisodeFilter=s(\\d+)e(\\d+), (\\d+)x(\\d+), "(\\d{4}[.\\-]\\d{1,2}[.\\-]\\d{1,2})", "(\\d{1,2}[.\\-]\\d{1,2}[.\\-]\\d{4})"
-  '';
-
   # Generate categories.json from cfg.categories
   categoriesJson = pkgs.writeText "categories.json" (
     builtins.toJSON (
@@ -185,6 +124,79 @@ in
   };
 
   config = mkIf cfg.enable {
+    # SOPS secret for qBittorrent password
+    sops.secrets."service-qbittorrent-${userName}-password" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
+
+    # SOPS template for qBittorrent configuration with secret substitution
+    sops.templates."qbittorrent.conf" = {
+      content = ''
+        [Application]
+        FileLogger\Age=1
+        FileLogger\AgeType=1
+        FileLogger\Backup=true
+        FileLogger\DeleteOld=true
+        FileLogger\Enabled=true
+        FileLogger\MaxSizeBytes=66560
+        FileLogger\Path=${logsDir}
+
+        [AutoRun]
+        enabled=true
+
+        [BitTorrent]
+        Session\DefaultSavePath=${cfg.downloadPath}
+        Session\DisableAutoTMMByDefault=false
+        Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
+        Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
+        Session\ExcludedFileNames=
+        Session\GlobalUPSpeedLimit=200
+        Session\Port=${toString cfg.torrentPort}
+        Session\QueueingSystemEnabled=false
+        Session\SSL\Port=30088
+        Session\SubcategoriesEnabled=true
+        Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
+        Session\UseCategoryPathsInManualMode=true
+        Session\Interface=
+        Session\InterfaceAddress=0.0.0.0
+        Session\InterfaceName=
+        Session\AddExtensionToIncompleteFiles=false
+        Session\Encryption=1
+        Session\ForceProxy=false
+        Session\ProxyType=-1
+
+        [Meta]
+        MigrationVersion=8
+
+        [Preferences]
+        General\Locale=en
+        MailNotification\req_auth=true
+        WebUI\AuthSubnetWhitelist=@Invalid()
+        WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
+        WebUI\Username=${userName}
+        Downloads\OnFinish\Enabled=true
+        Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"
+        Connection\PortRangeMin=${toString cfg.torrentPort}
+        Connection\UPnP=false
+        Connection\UseUPnPForWebUI=false
+        Advanced\AnonymousMode=false
+        Advanced\IgnoreLimitsLAN=true
+        Advanced\IncludeOverhead=false
+        Advanced\osCache=true
+        Advanced\OutgoingPortsMax=0
+        Advanced\OutgoingPortsMin=0
+
+        [RSS]
+        AutoDownloader\DownloadRepacks=true
+        AutoDownloader\SmartEpisodeFilter=s(\\d+)e(\\d+), (\\d+)x(\\d+), "(\\d{4}[.\\-]\\d{1,2}[.\\-]\\d{1,2})", "(\\d{1,2}[.\\-]\\d{1,2}[.\\-]\\d{4})"
+      '';
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
 
     users.users.${cfg.user} = {
       isSystemUser = true;
@@ -248,11 +260,9 @@ in
       };
 
       preStart = ''
-
         # Copy configuration files with proper ownership
-        cp ${qbittorrentConfig} ${configDir}/qBittorrent.conf
+        cp ${config.sops.templates."qbittorrent.conf".path} ${configDir}/qBittorrent.conf
         cp ${categoriesJson} ${configDir}/categories.json
-                
       '';
 
     };

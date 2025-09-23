@@ -58,7 +58,7 @@ in
           };
 
           radarr = {
-            enable = true;
+            enable = false;
             downloadDir = dirs.dowloadPath categories.movies;
             mediaDir = dirs.mediaPath categories.movies;
           };
