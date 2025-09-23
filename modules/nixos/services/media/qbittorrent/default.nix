@@ -125,11 +125,23 @@ in
 
   config = mkIf cfg.enable {
     # SOPS secret for qBittorrent password
+    sops.secrets."service-qbittorrent-${userName}-password-pbkdf2" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
+    
     sops.secrets."service-qbittorrent-${userName}-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
       group = cfg.group;
       mode = "0400";
+    };
+
+    ${namespace}.services.media.qbittorrent = {
+      userName = userName;
+      password = config.sops.secrets."service-qbittorrent-${userName}-password";
     };
 
     # SOPS template for qBittorrent configuration with secret substitution
@@ -175,7 +187,7 @@ in
         General\Locale=en
         MailNotification\req_auth=true
         WebUI\AuthSubnetWhitelist=@Invalid()
-        WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
+        WebUI\Password_PBKDF2="${config.sops.secrets."service-qbittorrent-${userName}-password-pbkdf2"}"
         WebUI\Username=${userName}
         Downloads\OnFinish\Enabled=true
         Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"

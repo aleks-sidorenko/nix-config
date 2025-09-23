@@ -60,7 +60,11 @@ in
           radarr = {
             enable = false;
             downloadDir = dirs.dowloadPath categories.movies;
-            mediaDir = dirs.mediaPath categories.movies;
+            torrent = {
+              enable = true;              
+              category = categories.movies;         
+              inherit (config.${namespace}.services.media.qbittorrent) userName password;              
+            };
           };
 
           sonarr = {

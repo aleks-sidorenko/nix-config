@@ -9,6 +9,68 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.radarr;
+  
+  # Function to create Radarr API requests
+  mkRadarrRequest = { method, path, data ? null, description ? "" }: ''
+    echo "${if description != "" then description else "Making ${method} request to ${path}"}"
+    curl -sS -X ${method} \
+      -H "X-Api-Key: $API_KEY" \
+      -H "Content-Type: application/json" \
+      ${if data != null then "-d '${builtins.toJSON data}'" else ""} \
+      "http://localhost:${toString cfg.webPort}${path}" || echo "Failed: ${description}"
+  '';
+
+  # Media management configuration for hardlinks
+  mediaManagementConfig = {
+    autoUnmonitorPreviouslyDownloadedMovies = false;
+    recycleBin = "";
+    recycleBinCleanupDays = 7;
+    downloadPropersAndRepacks = "preferAndUpgrade";
+    createEmptyMovieFolders = false;
+    deleteEmptyFolders = false;
+    fileDate = "none";
+    rescanAfterRefresh = "always";
+    autoRenameFolders = false;
+    pathsDefaultStatic = false;
+    setPermissionsLinux = false;
+    chmodFolder = "755";
+    chownGroup = "";
+    skipFreeSpaceCheckWhenImporting = false;
+    minimumFreeSpaceWhenImporting = 100;
+    copyUsingHardlinks = cfg.torrent.useHardlinks;
+    importExtraFiles = false;
+    extraFileExtensions = "srt,nfo";
+    enableMediaInfo = true;
+  };
+
+  # Simple torrent client configuration  
+  torrentClientConfig = {
+    enable = true;
+    protocol = "torrent";
+    priority = 1;
+    removeCompletedDownloads = false;
+    removeFailedDownloads = false;
+    name = cfg.torrent.implementation;
+    implementation = cfg.torrent.implementation;    
+    configContract = "${cfg.torrent.implementation}Settings";
+    infoLink = "https://wiki.servarr.com/radarr/supported#${cfg.torrent.name}";
+    fields = [
+      { name = "host"; value = cfg.torrent.host; }
+      { name = "port"; value = cfg.torrent.port; }
+      { name = "useSsl"; value = false; }
+      { name = "urlBase"; value = cfg.torrent.urlBase; }
+      { name = "username"; value = cfg.torrent.username; }
+      { name = "password"; value = cfg.torrent.password; }
+      { name = "movieCategory"; value = cfg.torrent.category; }
+      { name = "recentMoviePriority"; value = 0; }
+      { name = "olderMoviePriority"; value = 0; }
+      { name = "initialState"; value = 0; }
+      { name = "sequentialOrder"; value = false; }
+      { name = "firstAndLast"; value = false; }
+    ];
+    tags = [];
+  };
+
 in
 {
   options.${namespace}.services.media.radarr = {
@@ -22,15 +84,110 @@ in
 
     downloadDir = mkOpt types.str "/data/torrents/Movies" "Directory where downloads are stored";
 
-    mediaDir = mkOpt types.str "/data/media/Movies" "Directory where movie files are stored";
-
     package = mkOpt types.package pkgs.radarr "Radarr package to use";
 
     webPort = mkOpt types.port defaults.ports.radarr.web "Port for the Radarr web interface";
 
+    config = {
+      logLevel = mkOption {
+        type = types.enum [ "info" "debug" "trace" "warn" "error" ];
+        default = "info";
+        description = "Log level for Radarr";
+      };
+
+      bindAddress = mkOption {
+        type = types.str;
+        default = "*";
+        description = "Bind address for Radarr web interface";
+      };
+
+      instanceName = mkOption {
+        type = types.str;
+        default = "Radarr";
+        description = "Instance name for Radarr";
+      };
+    };
+
+    torrent = {
+      enable = mkEnableOption "Enable torrent client integration";
+
+      name = mkOption {
+        type = types.enum [ "qbittorrent" "transmission" "deluge" ];
+        default = "qbittorrent";
+        description = "Display name for the torrent client";
+      };
+
+      implementation = mkOption {
+        type = types.str;
+        default = "QBittorrent";
+        description = "Implementation name for the torrent client";
+      };
+
+      category = mkOpt types.str "Movies" "Category name for torrent client to organize movie downloads";
+
+      useHardlinks = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Use hardlinks instead of copying files, allowing torrents to continue seeding";
+      };
+
+      host = mkOpt types.str "localhost" "Torrent client host";
+
+      port = mkOption {
+        type = types.port;
+        default = 8080;
+        description = "Torrent client web interface port";
+      };
+
+      urlBase = mkOption {
+        type = types.str;
+        default = "";
+        description = "URL base path for the torrent client (auto-detected if not specified)";
+      };
+
+      username = mkOpt types.str "" "Username for torrent client authentication";
+
+      password = mkOpt types.str "" "Password for torrent client authentication";
+    };
+
   };
 
   config = mkIf cfg.enable {
+    # SOPS secret for Radarr API key
+    sops.secrets."service-radarr-api-key" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
+
+    # SOPS template for Radarr configuration with secret substitution
+    sops.templates."radarr-config.xml" = {
+      content = ''
+        <Config>
+          <BindAddress>${cfg.config.bindAddress}</BindAddress>
+          <Port>${toString cfg.webPort}</Port>
+          <ApiKey>${config.sops.secrets."service-radarr-api-key"}</ApiKey>
+          <AuthenticationMethod>External</AuthenticationMethod>
+          <LogLevel>${cfg.config.logLevel}</LogLevel>
+          <AnalyticsEnabled>False</AnalyticsEnabled>
+          <LogDbEnabled>False</LogDbEnabled>
+          <InstanceName>${cfg.config.instanceName}</InstanceName>
+          <!-- <SslPort>9898</SslPort> -->
+          <!-- <EnableSsl>False</EnableSsl> -->
+          <!-- <LaunchBrowser>True</LaunchBrowser> -->
+          <!-- <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired> -->
+          <!-- <Branch>master</Branch> -->
+          <!-- <SslCertPath></SslCertPath> -->
+          <!-- <SslCertPassword></SslCertPassword> -->
+          <!-- <UrlBase></UrlBase> -->
+        </Config>
+      '';
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
+
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = mkForce cfg.group;
@@ -50,21 +207,93 @@ in
       dataDir = cfg.dataDir;
     };
 
+    # Add preStart script to copy SOPS-generated configuration
+    systemd.services.radarr = {
+      preStart = ''
+        echo "Copying Radarr configuration XML with secrets..."        
+        cp ${config.sops.templates."radarr-config.xml".path} ${cfg.dataDir}/config.xml        
+        echo "Radarr configuration XML with secrets copied successfully"
+      '';
+    };
+
+    # Configure Radarr with torrent client integration and hardlinks
+    systemd.services.radarr-config = mkIf cfg.torrent.enable {
+      description = "Configure Radarr for torrent integration and hardlinks";
+      after = [ "radarr.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = with pkgs; [ curl jq ];
+      
+      serviceConfig = {
+        Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.group;
+        RemainAfterExit = true;
+      };
+
+      script = ''
+        # Wait for Radarr to be ready
+        echo "Waiting for Radarr to be available..."
+        until curl -f "http://localhost:${toString cfg.webPort}/api/v3/system/status" >/dev/null 2>&1; do
+          sleep 5
+        done
+
+        # Read API key from SOPS secret
+        API_KEY=$(cat ${config.sops.secrets."service-radarr-api-key".path})
+        echo "Configuring Radarr with API key from SOPS"
+
+        # Configure media management settings for hardlinks
+        ${lib.optionalString cfg.torrent.useHardlinks (mkRadarrRequest {
+          method = "PUT";
+          path = "/api/v3/config/mediamanagement";
+          data = mediaManagementConfig;
+          description = "Configuring media management for hardlinks";
+        })}
+
+        # Configure download client
+        ${mkRadarrRequest {
+          method = "POST";
+          path = "/api/v3/downloadclient";
+          data = torrentClientConfig;
+          description = "Adding torrent download client";
+        }}
+
+        echo "Radarr configuration completed successfully"
+      '';
+    };
+
     # Ensure directories exist and have correct permissions
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       "d ${cfg.downloadDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.mediaDir} 0755 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Radarr package to system packages
     environment.systemPackages = [ cfg.package ];
 
+    # Configure filesystem attributes for hardlinks support
+    assertions = lib.optionals cfg.torrent.useHardlinks [
+      {
+        assertion = cfg.torrent.enable;
+        message = "Hardlinks require torrent integration to be enabled";
+      }
+    ];
+
+    
     # Persistence for important directories
     environment.persistence.${persistence.root config}.directories = [
       cfg.dataDir
       cfg.downloadDir
-      cfg.mediaDir
+    ];
+
+    # Warning message about hardlinks setup
+    warnings = lib.optionals (cfg.torrent.enable && cfg.torrent.useHardlinks) [
+      ''
+        Radarr hardlinks are enabled. Ensure that:
+        1. Download directory (${cfg.downloadDir}) and media directories are on the same filesystem
+        2. Torrent client category "${cfg.torrent.category}" matches the configured category
+        3. Configure media library paths in Radarr web interface after setup
+        4. After enabling, configure the torrent client in Radarr web interface manually if API configuration fails
+      ''
     ];
   };
 }
