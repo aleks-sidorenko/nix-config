@@ -65,6 +65,9 @@ in
               category = categories.movies;
               inherit (config.${namespace}.services.media.qbittorrent) userName password;
             };
+            indexers = {
+              yts = enabled;              
+            };
           };
 
           minidlna = {
