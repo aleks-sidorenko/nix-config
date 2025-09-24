@@ -58,7 +58,7 @@ in
           };
 
           radarr = {
-            enable = true;
+            enable = false;
             downloadDir = dirs.dowloadPath categories.movies;
             torrent = {
               enable = true;

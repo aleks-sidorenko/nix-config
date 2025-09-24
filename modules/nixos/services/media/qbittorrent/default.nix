@@ -197,7 +197,7 @@ in
         WebUI\AuthSubnetWhitelist=${subnet}
         WebUI\AuthSubnetWhitelistEnabled=true
         WebUI\LocalHostAuth=false
-        WebUI\Password_PBKDF2="$(cat ${config.sops.secrets."service-qbittorrent-${userName}-password".path})"
+        WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
         WebUI\Username=${userName}
         Downloads\OnFinish\Enabled=true
         Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"
