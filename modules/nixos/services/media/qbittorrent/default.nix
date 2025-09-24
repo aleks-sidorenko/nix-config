@@ -121,6 +121,18 @@ in
     };
 
     package = mkOpt types.package pkgs.qbittorrent-nox "qBittorrent package to use";
+
+    userName = mkOption {
+      type = types.str;
+      readOnly = true;
+      description = "Username for qBittorrent web interface authentication";
+    };
+
+    password = mkOption {
+      type = types.path;
+      readOnly = true;
+      description = "Password secret path for qBittorrent web interface authentication";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -131,7 +143,7 @@ in
       group = cfg.group;
       mode = "0400";
     };
-    
+
     sops.secrets."service-qbittorrent-${userName}-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
@@ -141,7 +153,7 @@ in
 
     ${namespace}.services.media.qbittorrent = {
       userName = userName;
-      password = config.sops.secrets."service-qbittorrent-${userName}-password";
+      password = config.sops.secrets."service-qbittorrent-${userName}-password".path;
     };
 
     # SOPS template for qBittorrent configuration with secret substitution
@@ -187,6 +199,10 @@ in
         General\Locale=en
         MailNotification\req_auth=true
         WebUI\AuthSubnetWhitelist=@Invalid()
+
+        WebUI\AuthSubnetWhitelist=10.0.0.0/24
+        WebUI\AuthSubnetWhitelistEnabled=true
+        WebUI\LocalHostAuth=false
         WebUI\Password_PBKDF2="${config.sops.secrets."service-qbittorrent-${userName}-password-pbkdf2"}"
         WebUI\Username=${userName}
         Downloads\OnFinish\Enabled=true

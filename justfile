@@ -60,7 +60,7 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
 #   just deploy hostname --remote-build  --verbose  # Remote build with verbose output
 deploy hostname *extra_opts="":
     @echo "🚢 Deploying to {{hostname}}..."    
-    deploy .#{{hostname}} --hostname {{hostname}} --skip-checks {{extra_opts}}; \
+    deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
     
 
 # Build and switch to a new generation locally (for testing)

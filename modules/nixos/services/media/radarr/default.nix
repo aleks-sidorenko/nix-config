@@ -9,16 +9,23 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.radarr;
-  
+
   # Function to create Radarr API requests
-  mkRadarrRequest = { method, path, data ? null, description ? "" }: ''
-    echo "${if description != "" then description else "Making ${method} request to ${path}"}"
-    curl -sS -X ${method} \
-      -H "X-Api-Key: $API_KEY" \
-      -H "Content-Type: application/json" \
-      ${if data != null then "-d '${builtins.toJSON data}'" else ""} \
-      "http://localhost:${toString cfg.webPort}${path}" || echo "Failed: ${description}"
-  '';
+  mkRadarrRequest =
+    {
+      method,
+      path,
+      data ? null,
+      description ? "",
+    }:
+    ''
+      echo "${if description != "" then description else "Making ${method} request to ${path}"}"
+      curl -sS -X ${method} \
+        -H "X-Api-Key: $API_KEY" \
+        -H "Content-Type: application/json" \
+        ${if data != null then "-d '${builtins.toJSON data}'" else ""} \
+        "http://localhost:${toString cfg.webPort}${path}" || echo "Failed: ${description}"
+    '';
 
   # Media management configuration for hardlinks
   mediaManagementConfig = {
@@ -43,7 +50,7 @@ let
     enableMediaInfo = true;
   };
 
-  # Simple torrent client configuration  
+  # Simple torrent client configuration
   torrentClientConfig = {
     enable = true;
     protocol = "torrent";
@@ -51,24 +58,60 @@ let
     removeCompletedDownloads = false;
     removeFailedDownloads = false;
     name = cfg.torrent.implementation;
-    implementation = cfg.torrent.implementation;    
+    implementation = cfg.torrent.implementation;
     configContract = "${cfg.torrent.implementation}Settings";
     infoLink = "https://wiki.servarr.com/radarr/supported#${cfg.torrent.name}";
     fields = [
-      { name = "host"; value = cfg.torrent.host; }
-      { name = "port"; value = cfg.torrent.port; }
-      { name = "useSsl"; value = false; }
-      { name = "urlBase"; value = cfg.torrent.urlBase; }
-      { name = "username"; value = cfg.torrent.username; }
-      { name = "password"; value = cfg.torrent.password; }
-      { name = "movieCategory"; value = cfg.torrent.category; }
-      { name = "recentMoviePriority"; value = 0; }
-      { name = "olderMoviePriority"; value = 0; }
-      { name = "initialState"; value = 0; }
-      { name = "sequentialOrder"; value = false; }
-      { name = "firstAndLast"; value = false; }
+      {
+        name = "host";
+        value = cfg.torrent.host;
+      }
+      {
+        name = "port";
+        value = cfg.torrent.port;
+      }
+      {
+        name = "useSsl";
+        value = false;
+      }
+      {
+        name = "urlBase";
+        value = cfg.torrent.urlBase;
+      }
+      {
+        name = "username";
+        value = cfg.torrent.userName;
+      }
+      {
+        name = "password";
+        value = builtins.readFile cfg.torrent.password;
+      }
+      {
+        name = "movieCategory";
+        value = cfg.torrent.category;
+      }
+      {
+        name = "recentMoviePriority";
+        value = 0;
+      }
+      {
+        name = "olderMoviePriority";
+        value = 0;
+      }
+      {
+        name = "initialState";
+        value = 0;
+      }
+      {
+        name = "sequentialOrder";
+        value = false;
+      }
+      {
+        name = "firstAndLast";
+        value = false;
+      }
     ];
-    tags = [];
+    tags = [ ];
   };
 
 in
@@ -90,7 +133,13 @@ in
 
     config = {
       logLevel = mkOption {
-        type = types.enum [ "info" "debug" "trace" "warn" "error" ];
+        type = types.enum [
+          "info"
+          "debug"
+          "trace"
+          "warn"
+          "error"
+        ];
         default = "info";
         description = "Log level for Radarr";
       };
@@ -112,7 +161,11 @@ in
       enable = mkEnableOption "Enable torrent client integration";
 
       name = mkOption {
-        type = types.enum [ "qbittorrent" "transmission" "deluge" ];
+        type = types.enum [
+          "qbittorrent"
+          "transmission"
+          "deluge"
+        ];
         default = "qbittorrent";
         description = "Display name for the torrent client";
       };
@@ -145,9 +198,13 @@ in
         description = "URL base path for the torrent client (auto-detected if not specified)";
       };
 
-      username = mkOpt types.str "" "Username for torrent client authentication";
+      userName = mkOpt types.str "" "Username for torrent client authentication";
 
-      password = mkOpt types.str "" "Password for torrent client authentication";
+      password = mkOption {
+        type = types.path;
+        readOnly = true;
+        description = "Password secret path for torrent client authentication";
+      };
     };
 
   };
@@ -221,8 +278,11 @@ in
       description = "Configure Radarr for torrent integration and hardlinks";
       after = [ "radarr.service" ];
       wantedBy = [ "multi-user.target" ];
-      path = with pkgs; [ curl jq ];
-      
+      path = with pkgs; [
+        curl
+        jq
+      ];
+
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
@@ -278,7 +338,6 @@ in
       }
     ];
 
-    
     # Persistence for important directories
     environment.persistence.${persistence.root config}.directories = [
       cfg.dataDir

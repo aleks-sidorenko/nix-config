@@ -23,6 +23,19 @@ rec {
       root = "root";
     };
 
+    network = {
+      subnet = "10.0.0.0/24";
+      hosts = {
+        router = "10.0.0.1";
+        server = "10.0.0.40";
+        tv = "10.0.0.30";
+      };
+      domains = {
+        local = "local";
+        public = "sidorenko.me";
+      };
+    };
+
     ports = {
       dlna = {
         web = 8200;

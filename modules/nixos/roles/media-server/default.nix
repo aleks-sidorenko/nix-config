@@ -58,12 +58,12 @@ in
           };
 
           radarr = {
-            enable = false;
+            enable = true;
             downloadDir = dirs.dowloadPath categories.movies;
             torrent = {
-              enable = true;              
-              category = categories.movies;         
-              inherit (config.${namespace}.services.media.qbittorrent) userName password;              
+              enable = true;
+              category = categories.movies;
+              inherit (config.${namespace}.services.media.qbittorrent) userName password;
             };
           };
 
