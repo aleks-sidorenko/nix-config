@@ -128,10 +128,8 @@ in
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       # Create root directories
-      "d ${downloadRoot} 0755 ${cfg.user} ${cfg.group} -"
       "d ${mediaRoot} 0755 ${cfg.user} ${cfg.group} -"
       # Create category-specific directories
-      "d ${cfg.downloadPath} 0755 ${cfg.user} ${cfg.group} -"
       "d ${cfg.mediaPath} 0755 ${cfg.user} ${cfg.group} -"
     ];
 

@@ -10,7 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.prowlarr;
   userName = lib.${namespace}.userName config;
-
+  
 in
 {
   options.${namespace}.services.media.prowlarr = {
@@ -20,7 +20,7 @@ in
 
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run Prowlarr as";
 
-    dataDir = mkOpt types.str "/var/lib/prowlarr" "Directory where Prowlarr stores its data";
+    dataDir = mkOpt types.str "/var/lib/private/prowlarr" "Directory where Prowlarr stores its data";
 
     package = mkOpt types.package pkgs.prowlarr "Prowlarr package to use";
 
@@ -101,17 +101,17 @@ in
       description = "Prowlarr indexer manager user";
     };
 
+    
+    
     services.prowlarr = {
       enable = cfg.enable;
-      package = cfg.package;
-      user = cfg.user;
-      group = cfg.group;
+      package = cfg.package;      
       settings.server.port = cfg.webPort;
       openFirewall = true;
-      dataDir = cfg.dataDir;
+      # TODO: enable once https://github.com/NixOS/nixpkgs/issues/445983 is fixed
+      # dataDir = cfg.dataDir;
     };
 
-    # Add preStart script to copy SOPS-generated configuration
     systemd.services.prowlarr = {
       preStart = ''
         echo "Copying Prowlarr configuration XML with secrets..."        
@@ -119,12 +119,7 @@ in
         echo "Prowlarr configuration XML with secrets copied successfully"
       '';
     };
-
-    # Ensure directories exist and have correct permissions
-    systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-    ];
-
+    
     # Add Prowlarr package to system packages
     environment.systemPackages = [ cfg.package ];
 

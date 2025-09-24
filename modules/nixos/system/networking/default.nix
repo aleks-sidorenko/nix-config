@@ -29,7 +29,7 @@ in
       wireless.enable = false;
 
       # Set the domain to the local domain
-      domain = mkDefault cfg.domains.local;
+      domain = mkForce cfg.domains.local;
 
       search = mkForce [
         cfg.domains.local
