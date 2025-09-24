@@ -58,16 +58,8 @@ in
 
           radarr = {
             enable = true;
-            downloadRoot = dirs.downloadRoot;
-            mediaRoot = dirs.mediaRoot;
-            torrent = {
-              enable = true;
-              category = categories.movies;
-              inherit (config.${namespace}.services.media.qbittorrent) userName password;
-            };
-            indexers = {
-              yts = enabled;              
-            };
+            downloadPath = dirs.downloadPath categories.movies;
+            mediaPath = dirs.mediaPath categories.movies;
           };
 
           minidlna = {

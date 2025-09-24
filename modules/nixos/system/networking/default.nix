@@ -28,6 +28,9 @@ in
       # Disable wireless networking since it conflicts with the networkmanager
       wireless.enable = false;
 
+      # Set the domain to the local domain
+      domain = mkDefault cfg.domains.local;
+
       search = mkForce [
         cfg.domains.local
         cfg.domains.public
