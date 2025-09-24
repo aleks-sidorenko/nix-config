@@ -53,6 +53,9 @@ rec {
         sonarr = {
           web = 8989;
         };
+        prowlarr = {
+          web = 9696;
+        };
       };
     };
   };

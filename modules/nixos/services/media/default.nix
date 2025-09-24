@@ -13,7 +13,8 @@ let
     || config.${namespace}.services.media.qbittorrent.enable
     || config.${namespace}.services.media.jellyfin.enable
     || config.${namespace}.services.media.radarr.enable
-    || config.${namespace}.services.media.sonarr.enable;
+    || config.${namespace}.services.media.sonarr.enable
+    || config.${namespace}.services.media.prowlarr.enable;
 
 in
 {

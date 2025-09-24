@@ -62,6 +62,10 @@ in
             mediaPath = dirs.mediaPath categories.movies;
           };
 
+          prowlarr = {
+            enable = true;
+          };
+
           minidlna = {
             enable = true;
             directories = [
