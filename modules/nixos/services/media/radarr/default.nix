@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.radarr;
+  userName = lib.${namespace}.userName config;
   # Local paths that include the category
   mediaPath = "${cfg.mediaRoot}/${cfg.torrent.category}";
   downloadPath = "${cfg.downloadRoot}/${cfg.torrent.category}";
@@ -22,16 +23,23 @@ let
       description ? "",
     }:
     ''
-      echo "${if description != "" then description else "Making ${method} request to ${path}"}"
+      echo "${if description != "" then description else "Making ${method} request to ${path}"}" >&2
       curl -sS -X ${method} \
         -H "X-Api-Key: $API_KEY" \
         -H "Content-Type: application/json" \
         ${if data != null then "-d '${builtins.toJSON data}'" else ""} \
-        "http://localhost:${toString cfg.webPort}${path}" || echo "Failed: ${description}"
+        "http://localhost:${toString cfg.webPort}${path}" || { echo "Failed: ${description}" >&2; exit 1; }
     '';
+
+  # Hardcoded entity IDs to avoid recreation issues
+  mediaManagementId = 1;
+  rootFolderId = 1;
+  downloadClientId = 1;
+
 
   # Media management configuration for hardlinks
   mediaManagementConfig = {
+    id = mediaManagementId;
     autoUnmonitorPreviouslyDownloadedMovies = false;
     recycleBin = "";
     recycleBinCleanupDays = 7;
@@ -50,13 +58,12 @@ let
     copyUsingHardlinks = cfg.torrent.useHardlinks;
     importExtraFiles = false;
     extraFileExtensions = "srt,nfo";
-    enableMediaInfo = true;
-    renameMovies = true;
-    movieFolderFormat = "{Movie Title} ({Release Year})";
+    enableMediaInfo = true;    
   };
 
   # Root folder configuration
   rootFolderConfig = {
+    id = rootFolderId;
     path = mediaPath;
     accessible = true;
     unmappedFolders = [ ];
@@ -64,6 +71,7 @@ let
 
   # Simple torrent client configuration
   torrentClientConfig = {
+    id = downloadClientId;
     enable = true;
     protocol = "torrent";
     priority = 1;
@@ -322,62 +330,38 @@ in
         # Configure media management settings for hardlinks
         ${lib.optionalString cfg.torrent.useHardlinks (mkRadarrRequest {
           method = "PUT";
-          path = "/api/v3/config/mediamanagement";
+          path = "/api/v3/config/mediamanagement/${toString mediaManagementId}";
           data = mediaManagementConfig;
-          description = "Configuring media management for hardlinks";
+          description = "Updating media management configuration for hardlinks";
         })}
 
-        # Configure root folder - check if exists first
-        echo "Checking for existing root folders..."
-        EXISTING_FOLDERS=$(${mkRadarrRequest {
-          method = "GET";
-          path = "/api/v3/rootfolder";
-          description = "Getting existing root folders";
-        }})
-        
-        # Check if our root folder already exists by path
-        FOLDER_EXISTS=$(echo "$EXISTING_FOLDERS" | jq -r --arg path "${mediaPath}" '.[] | select(.path == $path) | .id' 2>/dev/null || echo "")
-        
-        if [ -n "$FOLDER_EXISTS" ]; then
-          echo "Root folder '${mediaPath}' already exists with ID: $FOLDER_EXISTS"
-        else
-          echo "Adding root folder '${mediaPath}'..."
-          ${mkRadarrRequest {
-            method = "POST";
-            path = "/api/v3/rootfolder";
-            data = rootFolderConfig;
-            description = "Adding root folder for movies";
-          }}
-        fi
-
-        # Configure download client - check if exists first, remove if necessary
-        echo "Checking for existing download clients..."
-        EXISTING_CLIENTS=$(${mkRadarrRequest {
-          method = "GET";
-          path = "/api/v3/downloadclient";
-          description = "Getting existing download clients";
-        }})
-        
-        # Check if our client already exists by name
-        CLIENT_EXISTS=$(echo "$EXISTING_CLIENTS" | jq -r --arg name "${cfg.torrent.implementation}" '.[] | select(.name == $name) | .id' 2>/dev/null || echo "")
-        
-        if [ -n "$CLIENT_EXISTS" ]; then
-          echo "Download client '${cfg.torrent.implementation}' already exists with ID: $CLIENT_EXISTS"
-          echo "Removing existing client before adding new configuration..."
-          ${mkRadarrRequest {
-            method = "DELETE";
-            path = "/api/v3/downloadclient/$CLIENT_EXISTS";
-            description = "Removing existing download client";
-          }}
-        fi
-        
-        # Add the download client
+        # Configure root folder - always POST with hardcoded ID
+        echo "Configuring root folder with hardcoded ID..."
         ${mkRadarrRequest {
           method = "POST";
-          path = "/api/v3/downloadclient";
-          data = torrentClientConfig;
-          description = "Adding torrent download client";
+          path = "/api/v3/rootfolder";
+          data = rootFolderConfig;
+          description = "Creating/updating root folder for movies";
         }}
+
+        # Configure download client - try to update first, create if doesn't exist
+        echo "Updating download client configuration..."
+        if ${mkRadarrRequest {
+          method = "PUT";
+          path = "/api/v3/downloadclient/${toString downloadClientId}";
+          data = torrentClientConfig;
+          description = "Updating download client configuration";
+        }} 2>/dev/null; then
+          echo "Download client updated successfully"
+        else
+          echo "Download client doesn't exist, creating new one..."
+          ${mkRadarrRequest {
+            method = "POST";
+            path = "/api/v3/downloadclient";
+            data = torrentClientConfig;
+            description = "Creating torrent download client";
+          }}
+        fi
 
         echo "Radarr configuration completed successfully"
       '';

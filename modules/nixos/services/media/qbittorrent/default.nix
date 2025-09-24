@@ -175,7 +175,7 @@ in
         Session\ExcludedFileNames=
         Session\GlobalUPSpeedLimit=200
         Session\Port=${toString cfg.torrentPort}
-        Session\QueueingSystemEnabled=false
+        Session\QueueingSystemEnabled=true
         Session\SSL\Port=30088
         Session\SubcategoriesEnabled=true
         Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
