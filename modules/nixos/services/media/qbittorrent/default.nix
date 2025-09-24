@@ -12,6 +12,7 @@ let
   configDir = "${cfg.homeDir}/.config/qBittorrent";
   logsDir = "${cfg.homeDir}/.local/share/qBittorrent/logs";
   userName = lib.${namespace}.userName config;
+  subnet = defaults.network.subnet;
 
   # Default categories for qBittorrent with subcategories
   defaultCategories = [
@@ -81,10 +82,10 @@ in
 
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run qBittorrent as";
 
-    webPort = mkOpt types.port defaults.ports.qbittorrent.web "Port for the qBittorrent web interface";
+    webPort = mkOpt types.port defaults.network.ports.qbittorrent.web "Port for the qBittorrent web interface";
 
     torrentPort =
-      mkOpt types.port defaults.ports.qbittorrent.torrent
+      mkOpt types.port defaults.network.ports.qbittorrent.torrent
         "Port for BitTorrent protocol (incoming connections)";
 
     downloadPath = mkOpt types.str "/data/torrents" "Base download path for qBittorrent";
@@ -129,21 +130,14 @@ in
     };
 
     password = mkOption {
-      type = types.path;
+      type = types.str;
       readOnly = true;
-      description = "Password secret path for qBittorrent web interface authentication";
+      description = "Password for qBittorrent web interface authentication";
     };
   };
 
   config = mkIf cfg.enable {
     # SOPS secret for qBittorrent password
-    sops.secrets."service-qbittorrent-${userName}-password-pbkdf2" = {
-      sopsFile = ../../../secrets.yaml;
-      owner = cfg.user;
-      group = cfg.group;
-      mode = "0400";
-    };
-
     sops.secrets."service-qbittorrent-${userName}-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
@@ -153,7 +147,7 @@ in
 
     ${namespace}.services.media.qbittorrent = {
       userName = userName;
-      password = config.sops.secrets."service-qbittorrent-${userName}-password".path;
+      password = ""; # we allow local clients to connect without a password
     };
 
     # SOPS template for qBittorrent configuration with secret substitution
@@ -200,10 +194,10 @@ in
         MailNotification\req_auth=true
         WebUI\AuthSubnetWhitelist=@Invalid()
 
-        WebUI\AuthSubnetWhitelist=10.0.0.0/24
+        WebUI\AuthSubnetWhitelist=${subnet}
         WebUI\AuthSubnetWhitelistEnabled=true
         WebUI\LocalHostAuth=false
-        WebUI\Password_PBKDF2="${config.sops.secrets."service-qbittorrent-${userName}-password-pbkdf2"}"
+        WebUI\Password_PBKDF2="$(cat ${config.sops.secrets."service-qbittorrent-${userName}-password".path})"
         WebUI\Username=${userName}
         Downloads\OnFinish\Enabled=true
         Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"

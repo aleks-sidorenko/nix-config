@@ -84,7 +84,7 @@ let
       }
       {
         name = "password";
-        value = builtins.readFile cfg.torrent.password;
+        value = cfg.torrent.password;
       }
       {
         name = "movieCategory";
@@ -129,7 +129,7 @@ in
 
     package = mkOpt types.package pkgs.radarr "Radarr package to use";
 
-    webPort = mkOpt types.port defaults.ports.radarr.web "Port for the Radarr web interface";
+    webPort = mkOpt types.port defaults.network.ports.radarr.web "Port for the Radarr web interface";
 
     config = {
       logLevel = mkOption {
@@ -200,11 +200,8 @@ in
 
       userName = mkOpt types.str "" "Username for torrent client authentication";
 
-      password = mkOption {
-        type = types.path;
-        readOnly = true;
-        description = "Password secret path for torrent client authentication";
-      };
+      password = mkOpt types.str "" "Password for torrent client authentication";
+        
     };
 
   };
@@ -224,7 +221,7 @@ in
         <Config>
           <BindAddress>${cfg.config.bindAddress}</BindAddress>
           <Port>${toString cfg.webPort}</Port>
-          <ApiKey>${config.sops.secrets."service-radarr-api-key"}</ApiKey>
+          <ApiKey>$(cat ${config.sops.secrets."service-radarr-api-key".path})</ApiKey>
           <AuthenticationMethod>External</AuthenticationMethod>
           <LogLevel>${cfg.config.logLevel}</LogLevel>
           <AnalyticsEnabled>False</AnalyticsEnabled>
