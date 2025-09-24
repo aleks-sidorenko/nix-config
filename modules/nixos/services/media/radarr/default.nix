@@ -59,7 +59,6 @@ let
   rootFolderConfig = {
     path = mediaPath;
     accessible = true;
-    freeSpace = 0;
     unmappedFolders = [ ];
   };
 
@@ -105,15 +104,15 @@ let
       }
       {
         name = "recentMoviePriority";
-        value = 0;
+        value = 1;
       }
       {
         name = "olderMoviePriority";
-        value = 0;
+        value = 1;
       }
       {
         name = "initialState";
-        value = 0;
+        value = 1;
       }
       {
         name = "sequentialOrder";
@@ -328,15 +327,51 @@ in
           description = "Configuring media management for hardlinks";
         })}
 
-        # Configure root folder
-        ${mkRadarrRequest {
-          method = "POST";
+        # Configure root folder - check if exists first
+        echo "Checking for existing root folders..."
+        EXISTING_FOLDERS=$(${mkRadarrRequest {
+          method = "GET";
           path = "/api/v3/rootfolder";
-          data = rootFolderConfig;
-          description = "Adding root folder for movies";
-        }}
+          description = "Getting existing root folders";
+        }})
+        
+        # Check if our root folder already exists by path
+        FOLDER_EXISTS=$(echo "$EXISTING_FOLDERS" | jq -r --arg path "${mediaPath}" '.[] | select(.path == $path) | .id' 2>/dev/null || echo "")
+        
+        if [ -n "$FOLDER_EXISTS" ]; then
+          echo "Root folder '${mediaPath}' already exists with ID: $FOLDER_EXISTS"
+        else
+          echo "Adding root folder '${mediaPath}'..."
+          ${mkRadarrRequest {
+            method = "POST";
+            path = "/api/v3/rootfolder";
+            data = rootFolderConfig;
+            description = "Adding root folder for movies";
+          }}
+        fi
 
-        # Configure download client
+        # Configure download client - check if exists first, remove if necessary
+        echo "Checking for existing download clients..."
+        EXISTING_CLIENTS=$(${mkRadarrRequest {
+          method = "GET";
+          path = "/api/v3/downloadclient";
+          description = "Getting existing download clients";
+        }})
+        
+        # Check if our client already exists by name
+        CLIENT_EXISTS=$(echo "$EXISTING_CLIENTS" | jq -r --arg name "${cfg.torrent.implementation}" '.[] | select(.name == $name) | .id' 2>/dev/null || echo "")
+        
+        if [ -n "$CLIENT_EXISTS" ]; then
+          echo "Download client '${cfg.torrent.implementation}' already exists with ID: $CLIENT_EXISTS"
+          echo "Removing existing client before adding new configuration..."
+          ${mkRadarrRequest {
+            method = "DELETE";
+            path = "/api/v3/downloadclient/$CLIENT_EXISTS";
+            description = "Removing existing download client";
+          }}
+        fi
+        
+        # Add the download client
         ${mkRadarrRequest {
           method = "POST";
           path = "/api/v3/downloadclient";
