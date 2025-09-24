@@ -82,7 +82,9 @@ in
 
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run qBittorrent as";
 
-    webPort = mkOpt types.port defaults.network.ports.qbittorrent.web "Port for the qBittorrent web interface";
+    webPort =
+      mkOpt types.port defaults.network.ports.qbittorrent.web
+        "Port for the qBittorrent web interface";
 
     torrentPort =
       mkOpt types.port defaults.network.ports.qbittorrent.torrent

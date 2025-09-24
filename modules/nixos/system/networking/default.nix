@@ -7,7 +7,7 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.system.networking;  
+  cfg = config.${namespace}.system.networking;
 in
 {
   options.${namespace}.system.networking = with types; {
@@ -32,10 +32,15 @@ in
         cfg.domains.local
         cfg.domains.public
       ];
-      hosts = mkForce (lib.mapAttrs' (host: ip: lib.nameValuePair ip [
-        host
-        "${host}.${cfg.domains.local}"
-      ]) defaults.network.hosts);
+      hosts = mkForce (
+        lib.mapAttrs' (
+          host: ip:
+          lib.nameValuePair ip [
+            host
+            "${host}.${cfg.domains.local}"
+          ]
+        ) defaults.network.hosts
+      );
 
       firewall = {
         enable = false; # TODO: enable firewall

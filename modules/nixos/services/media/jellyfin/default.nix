@@ -32,7 +32,9 @@ in
 
     webPort = mkOpt types.port 8096 "Port for the Jellyfin web interface";
 
-    discoveryPort = mkOpt types.port defaults.network.ports.jellyfin.discovery "Port for Jellyfin discovery";
+    discoveryPort =
+      mkOpt types.port defaults.network.ports.jellyfin.discovery
+        "Port for Jellyfin discovery";
   };
 
   config = mkIf cfg.enable {

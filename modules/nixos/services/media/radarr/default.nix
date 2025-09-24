@@ -9,6 +9,9 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.radarr;
+  # Local paths that include the category
+  mediaPath = "${cfg.mediaRoot}/${cfg.torrent.category}";
+  downloadPath = "${cfg.downloadRoot}/${cfg.torrent.category}";
 
   # Function to create Radarr API requests
   mkRadarrRequest =
@@ -48,6 +51,16 @@ let
     importExtraFiles = false;
     extraFileExtensions = "srt,nfo";
     enableMediaInfo = true;
+    renameMovies = true;
+    movieFolderFormat = "{Movie Title} ({Release Year})";
+  };
+
+  # Root folder configuration
+  rootFolderConfig = {
+    path = mediaPath;
+    accessible = true;
+    freeSpace = 0;
+    unmappedFolders = [ ];
   };
 
   # Simple torrent client configuration
@@ -125,7 +138,9 @@ in
 
     dataDir = mkOpt types.str "/var/lib/radarr" "Directory where Radarr stores its data";
 
-    downloadDir = mkOpt types.str "/data/torrents/Movies" "Directory where downloads are stored";
+    downloadRoot = mkOpt types.str "/data/torrents" "Root directory for downloads";
+
+    mediaRoot = mkOpt types.str "/data/media" "Root directory for media storage";
 
     package = mkOpt types.package pkgs.radarr "Radarr package to use";
 
@@ -201,7 +216,7 @@ in
       userName = mkOpt types.str "" "Username for torrent client authentication";
 
       password = mkOpt types.str "" "Password for torrent client authentication";
-        
+
     };
 
   };
@@ -221,7 +236,7 @@ in
         <Config>
           <BindAddress>${cfg.config.bindAddress}</BindAddress>
           <Port>${toString cfg.webPort}</Port>
-          <ApiKey>$(cat ${config.sops.secrets."service-radarr-api-key".path})</ApiKey>
+          <ApiKey>${config.sops.placeholder."service-radarr-api-key"}</ApiKey>
           <AuthenticationMethod>External</AuthenticationMethod>
           <LogLevel>${cfg.config.logLevel}</LogLevel>
           <AnalyticsEnabled>False</AnalyticsEnabled>
@@ -288,15 +303,22 @@ in
       };
 
       script = ''
-        # Wait for Radarr to be ready
-        echo "Waiting for Radarr to be available..."
-        until curl -f "http://localhost:${toString cfg.webPort}/api/v3/system/status" >/dev/null 2>&1; do
-          sleep 5
-        done
-
-        # Read API key from SOPS secret
+        # Read API key from SOPS secret first
         API_KEY=$(cat ${config.sops.secrets."service-radarr-api-key".path})
         echo "Configuring Radarr with API key from SOPS"
+
+        # Wait for Radarr to be ready using mkRadarrRequest
+        echo "Waiting for Radarr to be available..."
+        until ${
+          mkRadarrRequest {
+            method = "GET";
+            path = "/api/v3/system/status";
+            description = "Checking Radarr system status";
+          }
+        } >/dev/null 2>&1; do
+          sleep 5
+          echo "Radarr not available yet, retrying..."
+        done
 
         # Configure media management settings for hardlinks
         ${lib.optionalString cfg.torrent.useHardlinks (mkRadarrRequest {
@@ -305,6 +327,14 @@ in
           data = mediaManagementConfig;
           description = "Configuring media management for hardlinks";
         })}
+
+        # Configure root folder
+        ${mkRadarrRequest {
+          method = "POST";
+          path = "/api/v3/rootfolder";
+          data = rootFolderConfig;
+          description = "Adding root folder for movies";
+        }}
 
         # Configure download client
         ${mkRadarrRequest {
@@ -321,7 +351,12 @@ in
     # Ensure directories exist and have correct permissions
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.downloadDir} 0755 ${cfg.user} ${cfg.group} -"
+      # Create root directories
+      "d ${cfg.downloadRoot} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.mediaRoot} 0755 ${cfg.user} ${cfg.group} -"
+      # Create category-specific directories
+      "d ${downloadPath} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${mediaPath} 0755 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Radarr package to system packages
@@ -338,18 +373,8 @@ in
     # Persistence for important directories
     environment.persistence.${persistence.root config}.directories = [
       cfg.dataDir
-      cfg.downloadDir
+      mediaPath
     ];
 
-    # Warning message about hardlinks setup
-    warnings = lib.optionals (cfg.torrent.enable && cfg.torrent.useHardlinks) [
-      ''
-        Radarr hardlinks are enabled. Ensure that:
-        1. Download directory (${cfg.downloadDir}) and media directories are on the same filesystem
-        2. Torrent client category "${cfg.torrent.category}" matches the configured category
-        3. Configure media library paths in Radarr web interface after setup
-        4. After enabling, configure the torrent client in Radarr web interface manually if API configuration fails
-      ''
-    ];
   };
 }

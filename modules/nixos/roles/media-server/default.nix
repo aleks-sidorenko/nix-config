@@ -27,10 +27,9 @@ let
 
   dirs = rec {
     downloadRoot = "/data/torrents";
-    media = "/data/media";
-
-    dowloadPath = category: "${dirs.downloadRoot}/${category}";
-    mediaPath = category: "${dirs.media}/${category}";
+    mediaRoot = "/data/media";
+    downloadPath = category: "${downloadRoot}/${category}";
+    mediaPath = category: "${mediaRoot}/${category}";
   };
 in
 {
@@ -53,13 +52,14 @@ in
 
           jellyfin = {
             enable = false;
-            mediaDir = dirs.media;
+            mediaDir = dirs.mediaRoot;
 
           };
 
           radarr = {
-            enable = false;
-            downloadDir = dirs.dowloadPath categories.movies;
+            enable = true;
+            downloadRoot = dirs.downloadRoot;
+            mediaRoot = dirs.mediaRoot;
             torrent = {
               enable = true;
               category = categories.movies;
@@ -67,18 +67,11 @@ in
             };
           };
 
-          sonarr = {
-            enable = false;
-            downloadDir = dirs.dowloadPath categories.series;
-            mediaDir = dirs.mediaPath categories.series;
-
-          };
-
           minidlna = {
             enable = true;
             directories = [
-              "V,${dirs.dowloadPath categories.movies}"
-              "V,${dirs.dowloadPath categories.series}"
+              "V,${dirs.downloadPath categories.movies}"
+              "V,${dirs.downloadPath categories.series}"
             ];
           };
         };
