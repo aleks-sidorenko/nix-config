@@ -10,7 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.prowlarr;
   userName = lib.${namespace}.userName config;
-  
+
 in
 {
   options.${namespace}.services.media.prowlarr = {
@@ -24,7 +24,9 @@ in
 
     package = mkOpt types.package pkgs.prowlarr "Prowlarr package to use";
 
-    webPort = mkOpt types.port defaults.network.ports.prowlarr.web "Port for the Prowlarr web interface";
+    webPort =
+      mkOpt types.port defaults.network.ports.prowlarr.web
+        "Port for the Prowlarr web interface";
 
     config = {
       logLevel = mkOption {
@@ -101,11 +103,9 @@ in
       description = "Prowlarr indexer manager user";
     };
 
-    
-    
     services.prowlarr = {
       enable = cfg.enable;
-      package = cfg.package;      
+      package = cfg.package;
       settings.server.port = cfg.webPort;
       openFirewall = true;
       # TODO: enable once https://github.com/NixOS/nixpkgs/issues/445983 is fixed
@@ -119,7 +119,7 @@ in
         echo "Prowlarr configuration XML with secrets copied successfully"
       '';
     };
-    
+
     # Add Prowlarr package to system packages
     environment.systemPackages = [ cfg.package ];
 

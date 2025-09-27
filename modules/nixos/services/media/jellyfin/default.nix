@@ -131,6 +131,6 @@ in
 
     # Add Jellyfin package to system packages
     environment.systemPackages = [ cfg.package ];
-    
+
   };
 }

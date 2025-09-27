@@ -26,8 +26,9 @@ let
   };
 
   dirs = rec {
-    downloadRoot = "/data/torrents";
-    mediaRoot = "/data/media";
+    root = "/data";
+    downloadRoot = "${root}/torrents";
+    mediaRoot = "${root}/media";
     downloadPath = category: "${downloadRoot}/${category}";
     mediaPath = category: "${mediaRoot}/${category}";
   };
@@ -38,6 +39,14 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    # Alert if downloadRoot and mediaRoot are not in the same parent directory
+    assertions = [
+      {
+        assertion = (dirOf dirs.downloadRoot) == (dirOf dirs.mediaRoot);
+        message = "downloadRoot (${dirs.downloadRoot}) and mediaRoot (${dirs.mediaRoot}) must be in the same parent directory. Currently: downloadRoot parent is '${dirOf dirs.downloadRoot}', mediaRoot parent is '${dirOf dirs.mediaRoot}'.";
+      }
+    ];
 
     ${namespace} = {
 
@@ -78,10 +87,7 @@ in
 
     };
 
-    environment.persistence.${persistence.root config}.directories = [
-      dirs.downloadRoot
-      dirs.mediaRoot
-    ];
+    environment.persistence.${persistence.root config}.directories = [ dirs.root ];
 
     boot.kernel.sysctl = {
 

@@ -135,6 +135,6 @@ in
 
     # Add Radarr package to system packages
     environment.systemPackages = [ cfg.package ];
-    
+
   };
 }

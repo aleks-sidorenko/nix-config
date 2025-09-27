@@ -320,7 +320,6 @@ in
 
     # Add qBittorrent package to system packages
     environment.systemPackages = [ pkgs.qbittorrent-nox ];
-    
 
   };
 }
