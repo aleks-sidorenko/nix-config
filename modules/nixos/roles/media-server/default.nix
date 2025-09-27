@@ -87,7 +87,9 @@ in
 
     };
 
-    environment.persistence.${persistence.root config}.directories = [ dirs.root ];
+    environment.persistence.${persistence.root config}.directories = [      
+      dirs.root      
+    ];
 
     boot.kernel.sysctl = {
 

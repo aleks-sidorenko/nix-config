@@ -180,6 +180,7 @@ in
         Session\SubcategoriesEnabled=true
         Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
         Session\UseCategoryPathsInManualMode=true
+        Session\TorrentContentLayout=Subfolder
         Session\Interface=
         Session\InterfaceAddress=0.0.0.0
         Session\InterfaceName=
