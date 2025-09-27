@@ -320,11 +320,7 @@ in
 
     # Add qBittorrent package to system packages
     environment.systemPackages = [ pkgs.qbittorrent-nox ];
-
-    environment.persistence.${persistence.root config}.directories = [
-      cfg.homeDir
-      cfg.downloadPath
-    ];
+    
 
   };
 }

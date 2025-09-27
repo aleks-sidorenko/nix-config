@@ -131,14 +131,6 @@ in
 
     # Add Jellyfin package to system packages
     environment.systemPackages = [ cfg.package ];
-
-    # Persistence for important directories
-    environment.persistence.${persistence.root config}.directories = [
-      cfg.dataDir
-      cfg.configDir
-      cfg.cacheDir
-      cfg.logDir
-      cfg.mediaDir
-    ];
+    
   };
 }

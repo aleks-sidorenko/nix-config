@@ -78,6 +78,11 @@ in
 
     };
 
+    environment.persistence.${persistence.root config}.directories = [
+      dirs.downloadRoot
+      dirs.mediaRoot
+    ];
+
     boot.kernel.sysctl = {
 
       # Default is usually 8192, increase to handle large media libraries
