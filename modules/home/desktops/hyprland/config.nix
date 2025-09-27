@@ -30,6 +30,7 @@ in
       settings = {
         input = {
           kb_layout = config.${namespace}.system.locale.layout;
+          kb_options = config.${namespace}.system.locale.layoutOptions;
           touchpad = {
             disable_while_typing = false;
           };
