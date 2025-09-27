@@ -128,9 +128,9 @@ in
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       # Create root directories
-      "d ${mediaRoot} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${mediaRoot} 0775 ${cfg.user} ${cfg.group} -"
       # Create category-specific directories
-      "d ${cfg.mediaPath} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.mediaPath} 0775 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Radarr package to system packages

@@ -18,8 +18,7 @@ in
   options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
     locale = mkOpt str "en_US.UTF-8" "The system locale.";
-    layout = mkOpt str "us,ua,ru" "The keyboard layouts (comma-separated).";
-    layoutOptions = mkOpt str "grp:lwin_toggle" "Keyboard layout switching options.";
+    layout = mkOpt str "us" "The default keyboard layout.";
     timeZone = mkOpt str "Europe/Kyiv" "The system time-zone.";
   };
 
@@ -46,11 +45,10 @@ in
       xkb = {
         layout = "${layout}";
         variant = "";
-        options = "${cfg.layoutOptions}";
       };
     };
 
-    # Configure console keymap - use first layout for console
-    console.keyMap = lib.mkDefault (lib.head (lib.splitString "," layout));
+    # Configure console keymap
+    console.keyMap = "${layout}";
   };
 }

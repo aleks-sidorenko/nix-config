@@ -73,7 +73,7 @@ in
         "SUPER, Q, killactive,"
         "SUPER, F, Fullscreen,0"
         "SUPER, R, exec, ${getExecPath resize}"
-        "SUPER_SHIFT, Space, togglefloating,"
+        "SUPER, Space, togglefloating,"
         "SUPER, V, exec, ${getExecPath pkgs.pyprland} toggle pwvucontrol"
         "SUPER_SHIFT, T, exec, ${getExecPath pkgs.pyprland} toggle term"
         ",XF86Launch5, exec, ${getExecPath pkgs.hyprlock}"
