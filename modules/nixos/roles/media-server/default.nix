@@ -78,8 +78,8 @@ in
           minidlna = {
             enable = true;
             directories = [
-              "V,${dirs.downloadPath categories.movies}"
-              "V,${dirs.downloadPath categories.series}"
+              "V,${dirs.mediaPath categories.movies}"
+              "V,${dirs.mediaPath categories.series}"
             ];
           };
         };
