@@ -62,7 +62,6 @@ in
           jellyfin = {
             enable = false;
             mediaDir = dirs.mediaRoot;
-
           };
 
           radarr = {
@@ -87,8 +86,8 @@ in
 
     };
 
-    environment.persistence.${persistence.root config}.directories = [      
-      dirs.root      
+    environment.persistence.${persistence.root config}.directories = [
+      dirs.root
     ];
 
     boot.kernel.sysctl = {

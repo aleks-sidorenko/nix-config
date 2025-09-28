@@ -23,23 +23,56 @@ let
     "Other"
   ];
 
+  torrentScriptVars =
+    # bash
+    ''
+      export QB_NAME=''${1}          # Torrent Name
+      export QB_CATEGORY=''${2}      # Category
+      export QB_TAGS=''${3}          # Tags (separated by comma)
+      export QB_CONTENT_PATH=''${4}  # Content Path (same as root path for multifile torrent)
+      export QB_ROOT_PATH=''${5}     # Root path (first torrent subdirectory path)
+      export QB_SAVE_PATH=''${6}     # Save Path
+      export QB_NUM_FILES=''${7}     # Numbe of files
+      export QB_NUM_BYTES=''${8}     # Torrent size in bytes
+      export QB_TRACKER=''${9}       # Current tracker     
+      export QB_INFOHASH1=''${10}    # Info hash v1
+      export QB_INFOHASH2=''${11}    # Info hash v2
+    '';
+  torrentScriptParams = ''\"%N\" \"%L\" \"%G\" \"%F\" \"%R\" \"%D\" \"%C\" \"%Z\" \"%T\" \"%I\" \"%J\" \"%K\"'';
+
   onFinishScript = pkgs.writeShellScript "qbittorrent-on-finish" ''
     #!${pkgs.runtimeShell}
+    set -euo pipefail
     # qBittorrent on-finish script for *arr integration
     # This script is called when a download completes
     # The *arr applications (Sonarr/Radarr) will handle the actual file moving via hardlinks
 
-    TORRENT_PATH="$1"
-    TORRENT_NAME="$2"
-    TORRENT_HASH="$3"
+    ${torrentScriptVars}
 
     echo "$(date): Download completed"
-    echo "  Path: $TORRENT_PATH"
-    echo "  Name: $TORRENT_NAME" 
-    echo "  Hash: $TORRENT_HASH"
+    echo "  Name: $QB_NAME"
+    echo "  Category: $QB_CATEGORY"
+    echo "  Tags: $QB_TAGS"
+    echo "  Content Path: $QB_CONTENT_PATH"
+    echo "  Root Path: $QB_ROOT_PATH"
+    echo "  Save Path: $QB_SAVE_PATH"
+    echo "  Info Hash v1: $QB_INFOHASH1"
+    echo "  Info Hash v2: $QB_INFOHASH2"
+
+    target="$QB_ROOT_PATH"
+    if [ -z "$target" ] || [ ! -e "$target" ]; then
+      target="$QB_SAVE_PATH"
+    fi
+
+    if [ -n "$target" ] && [ -e "$target" ]; then
+      chmod -R 775 "$target"
+      echo "  Permissions set to 775"
+    else
+      echo "  Warning: target does not exist, skipping chmod"
+    fi
 
     # Log to systemd journal for monitoring
-    ${pkgs.systemd}/bin/systemd-cat -t qbittorrent echo "Download completed: $TORRENT_NAME"
+    ${pkgs.systemd}/bin/systemd-cat -t qbittorrent echo "Download completed: $QB_NAME"
   '';
 
   # Generate categories.json from cfg.categories
@@ -165,7 +198,10 @@ in
         FileLogger\Path=${logsDir}
 
         [AutoRun]
+        # OnTorrentAdded\Enabled=true
+        # OnTorrentAdded\Program=''${onAddScript} ''${torrentScriptParams}
         enabled=true
+        program=${onFinishScript} ${torrentScriptParams}
 
         [BitTorrent]
         Session\DefaultSavePath=${cfg.downloadPath}
@@ -189,6 +225,9 @@ in
         Session\ForceProxy=false
         Session\ProxyType=-1
 
+        [LegalNotice]
+        Accepted=true
+
         [Meta]
         MigrationVersion=8
 
@@ -202,8 +241,6 @@ in
         WebUI\LocalHostAuth=false
         WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
         WebUI\Username=${userName}
-        Downloads\OnFinish\Enabled=true
-        Downloads\OnFinish\Program=${onFinishScript} "%F" "%N" "%I"
         Connection\PortRangeMin=${toString cfg.torrentPort}
         Connection\UPnP=false
         Connection\UseUPnPForWebUI=false
@@ -306,7 +343,7 @@ in
     # Ensure the media directories exist and have correct permissions
     systemd.tmpfiles.rules =
       [
-        "d ${cfg.downloadPath} 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.downloadPath} 0775 ${cfg.user} ${cfg.group} -"
         "d ${cfg.homeDir} 0755 ${cfg.user} ${cfg.group} -"
         "d ${cfg.homeDir}/.config 0755 ${cfg.user} ${cfg.group} -"
         "d ${cfg.homeDir}/.config/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
