@@ -9,8 +9,8 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.qbittorrent;
-  configDir = "${cfg.homeDir}/.config/qBittorrent";
-  logsDir = "${cfg.homeDir}/.local/share/qBittorrent/logs";
+  configDir = "${cfg.dataDir}/.config/qBittorrent";
+  logsDir = "${cfg.dataDir}/.local/share/qBittorrent/logs";
   userName = lib.${namespace}.userName config;
   subnet = defaults.network.subnet;
 
@@ -93,7 +93,7 @@ in
 {
   options.${namespace}.services.media.qbittorrent = {
     enable = mkEnableOption "Enable qBittorrent daemon";
-    homeDir = mkOpt types.str "/var/lib/qbittorrent" "Home directory for qBittorrent";
+    dataDir = mkOpt types.str "/var/lib/qbittorrent" "Data directory for qBittorrent";
     categories = mkOption {
       type = types.listOf types.str;
       default = defaultCategories;
@@ -106,7 +106,7 @@ in
       ];
       description = ''
         List of download categories. Supports hierarchical subcategories using forward slashes.
-        Each category will have its own subdirectory structure under the downloadPath.
+        Each category will have its own subdirectory structure under the downloadDir.
         Examples: "Video/Movies", "Video/Series/Anime", "Books/Fiction", etc.
       '';
     };
@@ -123,7 +123,7 @@ in
       mkOpt types.port defaults.network.ports.qbittorrent.torrent
         "Port for BitTorrent protocol (incoming connections)";
 
-    downloadPath = mkOpt types.str "/data/torrents" "Base download path for qBittorrent";
+    downloadDir = mkOpt types.str "/data/torrents" "Base download directory for qBittorrent";
 
     tags = mkOption {
       type = types.listOf types.str;
@@ -204,7 +204,7 @@ in
         program=${onFinishScript} ${torrentScriptParams}
 
         [BitTorrent]
-        Session\DefaultSavePath=${cfg.downloadPath}
+        Session\DefaultSavePath=${cfg.downloadDir}
         Session\DisableAutoTMMByDefault=false
         Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
         Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
@@ -264,7 +264,7 @@ in
       isSystemUser = true;
       group = mkForce cfg.group;
       extraGroups = [ "users" ];
-      home = cfg.homeDir;
+      home = cfg.dataDir;
       createHome = true;
       description = "qBittorrent daemon user";
     };
@@ -290,8 +290,8 @@ in
         ProtectSystem = "strict";
         ProtectHome = true;
         ReadWritePaths = [
-          cfg.homeDir
-          cfg.downloadPath
+          cfg.dataDir
+          cfg.downloadDir
         ];
 
         # Network restrictions - Allow common address families
@@ -343,17 +343,17 @@ in
     # Ensure the media directories exist and have correct permissions
     systemd.tmpfiles.rules =
       [
-        "d ${cfg.downloadPath} 0775 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir} 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.config 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.config/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.local 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.local/share 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.local/share/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.homeDir}/.local/share/qBittorrent/logs 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.downloadDir} 0775 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.config 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.config/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.local 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.local/share 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.local/share/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.dataDir}/.local/share/qBittorrent/logs 0755 ${cfg.user} ${cfg.group} -"
       ]
       ++ map (
-        category: "d ${cfg.downloadPath}/${category} 0755 ${cfg.user} ${cfg.group} -"
+        category: "d ${cfg.downloadDir}/${category} 0755 ${cfg.user} ${cfg.group} -"
       ) cfg.categories;
 
     # Add qBittorrent package to system packages

@@ -9,6 +9,10 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.jellyfin;
+  configDir = "${cfg.dataDir}/config";
+  cacheDir = "${cfg.dataDir}/cache";
+  logDir = "${cfg.dataDir}/log";
+  dataDir = "${cfg.dataDir}/data";
 in
 {
   options.${namespace}.services.media.jellyfin = {
@@ -18,14 +22,8 @@ in
 
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run Jellyfin as";
 
-    dataDir = mkOpt types.str "/var/lib/jellyfin" "Directory where Jellyfin stores its data";
-
-    configDir = mkOpt types.str "/etc/jellyfin" "Directory where Jellyfin stores its configuration";
-
-    cacheDir = mkOpt types.str "/var/cache/jellyfin" "Directory where Jellyfin stores its cache";
-
-    logDir = mkOpt types.str "/var/log/jellyfin" "Directory where Jellyfin stores its logs";
-
+    dataDir = mkOpt types.str "/var/lib/jellyfin" "Data directory for Jellyfin";
+    
     mediaDir = mkOpt types.str "/data/media" "Directory where media files are stored";
 
     package = mkOpt types.package pkgs.jellyfin "Jellyfin package to use";
@@ -40,107 +38,24 @@ in
   };
 
   config = mkIf cfg.enable {
-    users.users.${cfg.user} = {
-      isSystemUser = true;
-      group = mkForce cfg.group;
-      extraGroups = [
-        "users"
-        "video"
-        "render"
-      ];
-      home = cfg.dataDir;
-      createHome = true;
-      description = "Jellyfin media server user";
+    services.jellyfin = {
+      enable = cfg.enable;
+      package = cfg.package;
+      user = cfg.user;
+      group = cfg.group;
+      openFirewall = true;
+      logDir = logDir;
+      cacheDir = cacheDir;
+      dataDir = dataDir;
+      configDir = configDir;
     };
-
-    systemd.services.jellyfin = {
-      description = "Jellyfin Media Server";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
-
-      serviceConfig = {
-        Type = "exec";
-        User = cfg.user;
-        Group = cfg.group;
-        WorkingDirectory = cfg.dataDir;
-        ExecStart = "${cfg.package}/bin/jellyfin --datadir ${cfg.dataDir} --configdir ${cfg.configDir} --cachedir ${cfg.cacheDir} --logdir ${cfg.logDir}";
-        Restart = "on-failure";
-        RestartSec = "5s";
-        TimeoutSec = "15s";
-
-        # Security settings
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        ReadWritePaths = [
-          cfg.dataDir
-          cfg.configDir
-          cfg.cacheDir
-          cfg.logDir
-          cfg.mediaDir
-        ];
-
-        # Device access for hardware transcoding
-        DeviceAllow = [
-          "/dev/dri/renderD128"
-          "/dev/dri/card0"
-        ];
-        SupplementaryGroups = [
-          "video"
-          "render"
-        ];
-        # Network restrictions - Allow common address families
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_UNIX"
-          "AF_PACKET"
-          "AF_NETLINK"
-        ];
-
-        # Capabilities - Allow basic network capabilities
-        CapabilityBoundingSet = [
-          "CAP_NET_BIND_SERVICE"
-        ];
-        LockPersonality = true;
-
-        MemoryDenyWriteExecute = true;
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-        SystemCallArchitectures = "native";
-        # Relaxed system call filter
-        SystemCallFilter = [
-          "@system-service"
-          "@network-io"
-          "~@privileged"
-        ];
-
-      };
-
-      environment = {
-        JELLYFIN_DATA_DIR = cfg.dataDir;
-        JELLYFIN_CONFIG_DIR = cfg.configDir;
-        JELLYFIN_CACHE_DIR = cfg.cacheDir;
-        JELLYFIN_LOG_DIR = cfg.logDir;
-      };
-    };
-
-    # Open firewall port
-    networking.firewall = {
-      allowedTCPPorts = [ cfg.webPort ];
-      allowedUDPPorts = [
-        cfg.discoveryPort
-      ]; # DLNA discovery and local network discovery
-    };
-
+    
     # Ensure directories exist and have correct permissions
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.configDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.cacheDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.logDir} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${configDir} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cacheDir} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${logDir} 0755 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Jellyfin package to system packages

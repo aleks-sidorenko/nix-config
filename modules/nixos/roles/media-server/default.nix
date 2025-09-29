@@ -29,8 +29,8 @@ let
     root = "/data";
     downloadRoot = "${root}/torrents";
     mediaRoot = "${root}/media";
-    downloadPath = category: "${downloadRoot}/${category}";
-    mediaPath = category: "${mediaRoot}/${category}";
+    downloadDir = category: "${downloadRoot}/${category}";
+    mediaDir = category: "${mediaRoot}/${category}";
   };
 in
 {
@@ -56,18 +56,18 @@ in
           qbittorrent = {
             enable = true;
             categories = categories.all;
-            downloadPath = dirs.downloadRoot;
+            downloadDir = dirs.downloadRoot;
           };
 
           jellyfin = {
-            enable = false;
+            enable = true;
             mediaDir = dirs.mediaRoot;
           };
 
           radarr = {
             enable = true;
-            downloadPath = dirs.downloadPath categories.movies;
-            mediaPath = dirs.mediaPath categories.movies;
+            downloadDir = dirs.downloadDir categories.movies;
+            mediaDir = dirs.mediaDir categories.movies;
           };
 
           prowlarr = {
@@ -77,8 +77,8 @@ in
           minidlna = {
             enable = true;
             directories = [
-              "V,${dirs.mediaPath categories.movies}"
-              "V,${dirs.mediaPath categories.series}"
+              "V,${dirs.mediaDir categories.movies}"
+              "V,${dirs.mediaDir categories.series}"
             ];
           };
         };

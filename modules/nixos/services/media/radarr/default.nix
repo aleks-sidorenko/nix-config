@@ -10,8 +10,8 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.radarr;
   userName = lib.${namespace}.userName config;
-  mediaRoot = dirOf cfg.mediaPath;
-  downloadRoot = dirOf cfg.downloadPath;
+  mediaRoot = dirOf cfg.mediaDir;
+  downloadRoot = dirOf cfg.downloadDir;
 
 in
 {
@@ -24,9 +24,9 @@ in
 
     dataDir = mkOpt types.str "/var/lib/radarr" "Directory where Radarr stores its data";
 
-    downloadPath = mkOpt types.str "/data/torrents/Movies" "Directory for downloads";
+    downloadDir = mkOpt types.str "/data/torrents/Movies" "Directory for downloads";
 
-    mediaPath = mkOpt types.str "/data/media/Movies" "Directory for media storage";
+    mediaDir = mkOpt types.str "/data/media/Movies" "Directory for media storage";
 
     package = mkOpt types.package pkgs.radarr "Radarr package to use";
 
@@ -130,7 +130,7 @@ in
       # Create root directories
       "d ${mediaRoot} 0775 ${cfg.user} ${cfg.group} -"
       # Create category-specific directories
-      "d ${cfg.mediaPath} 0775 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.mediaDir} 0775 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Radarr package to system packages
