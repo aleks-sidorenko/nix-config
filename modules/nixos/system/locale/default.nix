@@ -12,30 +12,40 @@ let
   locale = cfg.locale;
   layout = cfg.layout;
   timeZone = cfg.timeZone;
+  extraLocale = head cfg.extraLocales;
 
 in
 {
   options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
-    locale = mkOpt str "en_US.UTF-8" "The system locale.";
+    systemLocale = mkOpt str "en_US.UTF-8" "The system locale.";
+    extraLocales = mkOpt (listOf str) [ "uk_UA.UTF-8" "ru_UA.UTF-8" ] "Extra locales to support.";
     layout = mkOpt str "us" "The default keyboard layout.";
     timeZone = mkOpt str "Europe/Kyiv" "The system time-zone.";
   };
 
   config = mkIf cfg.enable {
     i18n = {
-      defaultLocale = lib.mkDefault "${locale}";
+      defaultLocale = lib.mkDefault "${systemLocale}";
+      supportedLocales = lib.mkDefault [
+        map
+        (locale: "${locale}/UTF-8")
+        cfg.extraLocales
+      ];
 
       extraLocaleSettings = {
-        LC_ADDRESS = "${locale}";
-        LC_IDENTIFICATION = "${locale}";
-        LC_MEASUREMENT = "${locale}";
-        LC_MONETARY = "${locale}";
-        LC_NAME = "${locale}";
-        LC_NUMERIC = "${locale}";
-        LC_PAPER = "${locale}";
-        LC_TELEPHONE = "${locale}";
-        LC_TIME = "${locale}";
+        # LC_ALL = "${systemLocale}"; # This overrides all other LC_* settings.
+        LC_CTYPE = "${systemLocale}";
+        LC_ADDRESS = "${extraLocale}";
+        LC_IDENTIFICATION = "${systemLocale}";
+        LC_MEASUREMENT = "${extraLocale}";
+        LC_MONETARY = "${extraLocale}";
+        LC_NAME = "${extraLocale}";
+        LC_NUMERIC = "${extraLocale}";
+        LC_PAPER = "${extraLocale}";
+        LC_TELEPHONE = "${extraLocale}";
+        LC_TIME = "${extraLocale}";
+        LC_COLLATE = "${extraLocale}";
       };
     };
     time.timeZone = "${timeZone}";
