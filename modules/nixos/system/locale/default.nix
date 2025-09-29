@@ -9,35 +9,45 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.locale;
-  locale = cfg.locale;
-  layout = cfg.layout;
+  locales = cfg.locales;
+  systemLocale = head locales;
+  locale = systemLocale;
+  extraLocales = tail locales;
+  extraLocale = head extraLocales;
+  layouts = cfg.layouts;
+  layout = head layouts;
+  extraLayouts = tail layouts;
   timeZone = cfg.timeZone;
-  extraLocale = head cfg.extraLocales;
+  xkbLayout = concatStringsSep "," layouts;
+  inputSources = map (layoutValue: {
+    type = "xkb";
+    layout = layoutValue;
+  }) layouts;
+  xkbOptions = "grp:win_space_toggle";
 
 in
 {
   options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings.";
-    systemLocale = mkOpt str "en_US.UTF-8" "The system locale.";
-    extraLocales = mkOpt (listOf str) [ "uk_UA.UTF-8" "ru_UA.UTF-8" ] "Extra locales to support.";
-    layout = mkOpt str "us" "The default keyboard layout.";
-    timeZone = mkOpt str "Europe/Kyiv" "The system time-zone.";
+    locales =
+      mkOpt (listOf str) defaults.locale.locales
+        "Locales to support. First entry becomes the system locale.";
+    layouts =
+      mkOpt (listOf str) defaults.locale.layouts
+        "Keyboard layouts to configure. First entry becomes the default layout.";
+    timeZone = mkOpt str defaults.locale.timeZone "The system time-zone.";
   };
 
   config = mkIf cfg.enable {
     i18n = {
-      defaultLocale = lib.mkDefault "${systemLocale}";
-      supportedLocales = lib.mkDefault [
-        map
-        (locale: "${locale}/UTF-8")
-        cfg.extraLocales
-      ];
+      defaultLocale = lib.mkDefault "${locale}";
+      supportedLocales = lib.mkDefault (map (locale: "${locale}/UTF-8") locales);
 
       extraLocaleSettings = {
-        # LC_ALL = "${systemLocale}"; # This overrides all other LC_* settings.
-        LC_CTYPE = "${systemLocale}";
+        # LC_ALL = "${locale}"; # This overrides all other LC_* settings.
+        LC_CTYPE = "${locale}";
         LC_ADDRESS = "${extraLocale}";
-        LC_IDENTIFICATION = "${systemLocale}";
+        LC_IDENTIFICATION = "${locale}";
         LC_MEASUREMENT = "${extraLocale}";
         LC_MONETARY = "${extraLocale}";
         LC_NAME = "${extraLocale}";
@@ -53,7 +63,8 @@ in
     # Configure keymap in X11
     services.xserver = {
       xkb = {
-        layout = "${layout}";
+        layout = "${xkbLayout}";
+        options = "${xkbOptions}";
         variant = "";
       };
     };

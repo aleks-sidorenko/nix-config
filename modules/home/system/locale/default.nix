@@ -14,8 +14,12 @@ in
 {
   options.${namespace}.system.locale = with types; {
     enable = mkBoolOpt false "Whether or not to manage locale settings of user.";
-    locale = mkOpt str "en_US.UTF-8" "The user locale.";
-    layout = mkOpt str "us" "The user keyboard layout.";
+    locales =
+      mkOpt (listOf str) defaults.locale.locales
+        "Locales to support. First entry becomes the system locale.";
+    layouts =
+      mkOpt (listOf str) defaults.locale.layouts
+        "Keyboard layouts to configure. First entry becomes the default layout.";
   };
 
   config = mkIf cfg.enable {
