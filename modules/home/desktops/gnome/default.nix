@@ -51,67 +51,85 @@ in
     ];
 
     # Configure GNOME display settings via dconf
-    dconf.settings = {
+    dconf.settings =
+      let
+        inherit (lib.gvariant) mkTuple;
+        localeLayouts = config.${namespace}.system.locale.layouts;
+        inputSources = map (
+          layout:
+          mkTuple [
+            "xkb"
+            layout
+          ]
+        ) localeLayouts;
+      in
+      {
 
-      "org/gnome/desktop/interface" = {
+        "org/gnome/desktop/interface" = {
 
-        enable-animations = true;
-        enable-hot-corners = false;
+          enable-animations = true;
+          enable-hot-corners = false;
+
+        };
+
+        "org/gnome/desktop/input-sources" = {
+          per-window = true;
+          sources = inputSources;
+          xkb-options = [ "grp:win_space_toggle" ];
+        };
+
+        "org/gnome/desktop/wm/preferences" = {
+          focus-mode = "sloppy";
+        };
+
+        "org/gnome/shell" = {
+          disable-user-extensions = false;
+
+          favorite-apps =
+            let
+            in
+            [ "org.gnome.Nautilus.desktop" ]
+            ++
+              optional config.${namespace}.browsers.default.enable
+                "${config.${namespace}.browsers.default.name}.desktop"
+            ++
+              optional config.${namespace}.cli.terminals.default.enable
+                "${config.${namespace}.cli.terminals.default.name}.desktop";
+
+          enabled-extensions = [
+            "user-theme@gnome-shell-extensions.gcampax.github.com"
+            "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
+            "space-bar@luchrioh"
+            "hibernate-status@dromi"
+            "appindicatorsupport@rgcjonas.gmail.com"
+            "forge@jmmaranan.com"
+            # "just-perfection-desktop@just-perfection"
+            "pano@elhan.io"
+            "search-light@icedman.github.com"
+            "gsconnect@andyholmes.github.io"
+            "caffeine@patapon.info"
+            "Vitals@CoreCoding.com"
+          ];
+        };
+
+        "org/gnome/shell/extensions/appindicator" = {
+          legacy-tray-enabled = true;
+        };
+
+        "org/gnome/shell/extensions/vitals" = {
+          show-temperature = true; # CPU/GPU temp
+          show-voltage = false; # Disable voltage (usually irrelevant)
+          show-fan = true; # Fan speed (if supported)
+          show-memory = true; # RAM usage
+          show-processor = true; # CPU usage
+          show-storage = true; # Disk usage
+          hot-sensors = [ "CPU" ]; # Which temps to show (e.g., "CPU", "GPU")
+          position-in-panel = "right"; # "left", "center", "right"
+          refresh-time = 2; # Update interval (seconds)
+
+        };
 
       };
-
-      "org/gnome/desktop/wm/preferences" = {
-        focus-mode = "sloppy";
-      };
-
-      "org/gnome/shell" = {
-        disable-user-extensions = false;
-
-        favorite-apps =
-          let
-          in
-          [ "org.gnome.Nautilus.desktop" ]
-          ++
-            optional config.${namespace}.browsers.default.enable
-              "${config.${namespace}.browsers.default.name}.desktop"
-          ++
-            optional config.${namespace}.cli.terminals.default.enable
-              "${config.${namespace}.cli.terminals.default.name}.desktop";
-
-        enabled-extensions = [
-          "user-theme@gnome-shell-extensions.gcampax.github.com"
-          "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
-          "space-bar@luchrioh"
-          "hibernate-status@dromi"
-          "appindicatorsupport@rgcjonas.gmail.com"
-          "forge@jmmaranan.com"
-          # "just-perfection-desktop@just-perfection"
-          "pano@elhan.io"
-          "search-light@icedman.github.com"
-          "gsconnect@andyholmes.github.io"
-          "caffeine@patapon.info"
-          "Vitals@CoreCoding.com"
-        ];
-      };
-
-      "org/gnome/shell/extensions/appindicator" = {
-        legacy-tray-enabled = true;
-      };
-
-      "org/gnome/shell/extensions/vitals" = {
-        show-temperature = true; # CPU/GPU temp
-        show-voltage = false; # Disable voltage (usually irrelevant)
-        show-fan = true; # Fan speed (if supported)
-        show-memory = true; # RAM usage
-        show-processor = true; # CPU usage
-        show-storage = true; # Disk usage
-        hot-sensors = [ "CPU" ]; # Which temps to show (e.g., "CPU", "GPU")
-        position-in-panel = "right"; # "left", "center", "right"
-        refresh-time = 2; # Update interval (seconds)
-
-      };
-
-    };
 
     # ssh-agent workaround
     home.sessionVariables = {

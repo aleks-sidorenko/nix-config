@@ -29,7 +29,8 @@ in
 
       settings = {
         input = {
-          kb_layout = config.${namespace}.system.locale.layout;
+          kb_layout = config.${namespace}.system.locale.layouts;
+          kb_options = "grp:win_space_toggle";
           touchpad = {
             disable_while_typing = false;
           };

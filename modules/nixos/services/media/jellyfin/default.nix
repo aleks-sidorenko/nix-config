@@ -23,7 +23,7 @@ in
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run Jellyfin as";
 
     dataDir = mkOpt types.str "/var/lib/jellyfin" "Data directory for Jellyfin";
-    
+
     mediaDir = mkOpt types.str "/data/media" "Directory where media files are stored";
 
     package = mkOpt types.package pkgs.jellyfin "Jellyfin package to use";
@@ -49,7 +49,7 @@ in
       dataDir = dataDir;
       configDir = configDir;
     };
-    
+
     # Ensure directories exist and have correct permissions
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"

@@ -94,11 +94,9 @@ in
         ];
         switch-input-source = [
           "<Super>space"
-          "XF86Keyboard"
         ];
         switch-input-source-backward = [
           "<Shift><Super>space"
-          "<Shift>XF86Keyboard"
         ];
         switch-panels = [ "<Ctrl><Alt>Tab" ];
         switch-panels-backward = [ "<Shift><Ctrl><Alt>Tab" ];

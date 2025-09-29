@@ -23,7 +23,11 @@ in
       };
 
       system = {
-        locale.timeZone = lib.mkDefault "UTC";
+        locale = {
+          locales = lib.mkForce [ "en_US.UTF-8" ];
+          layouts = lib.mkForce [ "us" ];
+          timeZone = lib.mkForce "UTC";
+        };
       };
 
     };
