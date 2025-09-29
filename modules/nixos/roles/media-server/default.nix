@@ -26,11 +26,11 @@ let
   };
 
   dirs = rec {
-    downloadRoot = "/data/torrents";
-    media = "/data/media";
-
-    dowloadPath = category: "${dirs.downloadRoot}/${category}";
-    mediaPath = category: "${dirs.media}/${category}";
+    root = "/data";
+    downloadRoot = "${root}/torrents";
+    mediaRoot = "${root}/media";
+    downloadPath = category: "${downloadRoot}/${category}";
+    mediaPath = category: "${mediaRoot}/${category}";
   };
 in
 {
@@ -39,6 +39,14 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    # Alert if downloadRoot and mediaRoot are not in the same parent directory
+    assertions = [
+      {
+        assertion = (dirOf dirs.downloadRoot) == (dirOf dirs.mediaRoot);
+        message = "downloadRoot (${dirs.downloadRoot}) and mediaRoot (${dirs.mediaRoot}) must be in the same parent directory. Currently: downloadRoot parent is '${dirOf dirs.downloadRoot}', mediaRoot parent is '${dirOf dirs.mediaRoot}'.";
+      }
+    ];
 
     ${namespace} = {
 
@@ -53,33 +61,41 @@ in
 
           jellyfin = {
             enable = false;
-            mediaDir = dirs.media;
-
+            mediaDir = dirs.mediaRoot;
           };
 
           radarr = {
-            enable = false;
-            downloadDir = dirs.dowloadPath categories.movies;
-            mediaDir = dirs.mediaPath categories.movies;
+            enable = true;
+            downloadPath = dirs.downloadPath categories.movies;
+            mediaPath = dirs.mediaPath categories.movies;
           };
 
-          sonarr = {
-            enable = false;
-            downloadDir = dirs.dowloadPath categories.series;
-            mediaDir = dirs.mediaPath categories.series;
-
+          prowlarr = {
+            enable = true;
           };
 
           minidlna = {
             enable = true;
             directories = [
-              "V,${dirs.dowloadPath categories.movies}"
-              "V,${dirs.dowloadPath categories.series}"
+              "V,${dirs.mediaPath categories.movies}"
+              "V,${dirs.mediaPath categories.series}"
             ];
           };
         };
       };
 
+    };
+
+    environment.persistence.${persistence.root config}.directories = [
+      dirs.root
+    ];
+
+    boot.kernel.sysctl = {
+
+      # Default is usually 8192, increase to handle large media libraries
+      "fs.inotify.max_user_watches" = 524288;
+      # Also increase max instances if needed
+      "fs.inotify.max_user_instances" = 256;
     };
 
   };

@@ -39,10 +39,10 @@ in
 
     friendlyName = mkOpt types.str "Media Server" "Friendly name for the media server";
 
-    webPort = mkOpt types.port defaults.ports.dlna.web "Port for the MiniDLNA web interface";
+    webPort = mkOpt types.port defaults.network.ports.dlna.web "Port for the MiniDLNA web interface";
 
     discoveryPort =
-      mkOpt types.port defaults.ports.dlna.discovery
+      mkOpt types.port defaults.network.ports.dlna.discovery
         "Port for DLNA/UPnP discovery (SSDP)";
 
     announceInterval = mkOpt types.int 60 "Announce interval in seconds";

@@ -93,16 +93,15 @@ in
       };
     };
 
-    
     boot.kernel.sysctl = {
       # Use TCP BBR has significantly increased throughput and reduced latency for connections
-      "net.core.default_qdisc" = "fq";      
+      "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
 
       # Default is usually 8192, increase to handle large media libraries
-      "fs.inotify.max_user_watches" = 524288;
+      "fs.inotify.max_user_watches" = mkDefault 524288;
       # Also increase max instances if needed
-      "fs.inotify.max_user_instances" = 256;
+      "fs.inotify.max_user_instances" = mkDefault 256;
     };
 
   };

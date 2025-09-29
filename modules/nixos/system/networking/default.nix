@@ -8,20 +8,13 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.networking;
-  localIp = last: "10.0.0.${toString last}";
-  staticIp = host: last: {
-    "${localIp last}" = [
-      "${host}"
-      "${host}.${cfg.domains.local}"
-    ];
-  };
 in
 {
   options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networking";
     domains = {
-      local = mkOpt str "local" "Local domain for intranet resolution";
-      public = mkOpt str "sidorenko.me" "Public domain to search for";
+      local = mkOpt str defaults.network.domains.local "Local domain for intranet resolution";
+      public = mkOpt str defaults.network.domains.public "Public domain to search for";
     };
 
   };
@@ -35,11 +28,22 @@ in
       # Disable wireless networking since it conflicts with the networkmanager
       wireless.enable = false;
 
+      # Set the domain to the local domain
+      domain = mkForce cfg.domains.local;
+
       search = mkForce [
         cfg.domains.local
         cfg.domains.public
       ];
-      hosts = mkForce (staticIp "server" 40);
+      hosts = mkForce (
+        lib.mapAttrs' (
+          host: ip:
+          lib.nameValuePair ip [
+            host
+            "${host}.${cfg.domains.local}"
+          ]
+        ) defaults.network.hosts
+      );
 
       firewall = {
         enable = false; # TODO: enable firewall

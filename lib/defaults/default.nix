@@ -23,24 +23,39 @@ rec {
       root = "root";
     };
 
-    ports = {
-      dlna = {
-        web = 8200;
-        discovery = 1900;
+    network = {
+      subnet = "10.0.0.0/24";
+      hosts = {
+        router = "10.0.0.1";
+        server = "10.0.0.40";
+        tv = "10.0.0.30";
       };
-      jellyfin = {
-        web = 8096;
-        discovery = 7359;
+      domains = {
+        local = "local";
+        public = "sidorenko.me";
       };
-      qbittorrent = {
-        web = 8080;
-        torrent = 17348;
-      };
-      radarr = {
-        web = 7878;
-      };
-      sonarr = {
-        web = 8989;
+      ports = {
+        dlna = {
+          web = 8200;
+          discovery = 1900;
+        };
+        jellyfin = {
+          web = 8096;
+          discovery = 7359;
+        };
+        qbittorrent = {
+          web = 8080;
+          torrent = 17348;
+        };
+        radarr = {
+          web = 7878;
+        };
+        sonarr = {
+          web = 8989;
+        };
+        prowlarr = {
+          web = 9696;
+        };
       };
     };
   };

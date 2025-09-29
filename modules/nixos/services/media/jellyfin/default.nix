@@ -30,9 +30,13 @@ in
 
     package = mkOpt types.package pkgs.jellyfin "Jellyfin package to use";
 
-    webPort = mkOpt types.port 8096 "Port for the Jellyfin web interface";
+    webPort =
+      mkOpt types.port defaults.network.ports.jellyfin.web
+        "Port for the Jellyfin web interface";
 
-    discoveryPort = mkOpt types.port defaults.ports.jellyfin.discovery "Port for Jellyfin discovery";
+    discoveryPort =
+      mkOpt types.port defaults.network.ports.jellyfin.discovery
+        "Port for Jellyfin discovery";
   };
 
   config = mkIf cfg.enable {
@@ -77,13 +81,6 @@ in
           cfg.mediaDir
         ];
 
-        # Network restrictions
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_UNIX"
-        ];
-
         # Device access for hardware transcoding
         DeviceAllow = [
           "/dev/dri/renderD128"
@@ -93,13 +90,33 @@ in
           "video"
           "render"
         ];
+        # Network restrictions - Allow common address families
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+          "AF_PACKET"
+          "AF_NETLINK"
+        ];
 
-        # Capabilities
+        # Capabilities - Allow basic network capabilities
+        CapabilityBoundingSet = [
+          "CAP_NET_BIND_SERVICE"
+        ];
         LockPersonality = true;
+
+        MemoryDenyWriteExecute = true;
         RestrictNamespaces = true;
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
         SystemCallArchitectures = "native";
+        # Relaxed system call filter
+        SystemCallFilter = [
+          "@system-service"
+          "@network-io"
+          "~@privileged"
+        ];
+
       };
 
       environment = {
@@ -124,19 +141,10 @@ in
       "d ${cfg.configDir} 0755 ${cfg.user} ${cfg.group} -"
       "d ${cfg.cacheDir} 0755 ${cfg.user} ${cfg.group} -"
       "d ${cfg.logDir} 0755 ${cfg.user} ${cfg.group} -"
-      "d ${cfg.mediaDir} 0755 ${cfg.user} ${cfg.group} -"
     ];
 
     # Add Jellyfin package to system packages
     environment.systemPackages = [ cfg.package ];
 
-    # Persistence for important directories
-    environment.persistence.${persistence.root config}.directories = [
-      cfg.dataDir
-      cfg.configDir
-      cfg.cacheDir
-      cfg.logDir
-      cfg.mediaDir
-    ];
   };
 }
