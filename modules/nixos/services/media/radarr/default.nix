@@ -61,6 +61,17 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      services.networking.nginx = {        
+        virtualHosts = {
+          radarr = {
+            serverName = "radarr.local";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     # SOPS secret for Radarr API key
     sops.secrets."service-radarr-api-key" = {
       sopsFile = ../../../secrets.yaml;

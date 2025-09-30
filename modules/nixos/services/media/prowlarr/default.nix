@@ -57,6 +57,18 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      services.networking.nginx = {
+        enable = true;
+        virtualHosts = {
+          prowlarr = {
+            serverName = "prowlarr.local";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     # SOPS secret for Prowlarr API key
     # Note: You need to manually add 'service-prowlarr-api-key' to modules/nixos/secrets.yaml
     # using: sops modules/nixos/secrets.yaml

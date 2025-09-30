@@ -38,6 +38,19 @@ in
   };
 
   config = mkIf cfg.enable {
+
+    ${namespace} = {
+      services.networking.nginx = {
+        enable = true;
+        virtualHosts = {
+          jellyfin = {
+            serverName = "jellyfin.local";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     services.jellyfin = {
       enable = cfg.enable;
       package = cfg.package;
