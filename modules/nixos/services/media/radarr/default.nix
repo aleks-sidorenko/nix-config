@@ -62,7 +62,7 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      services.networking.nginx = {        
+      services.networking.nginx = {
         virtualHosts = {
           radarr = {
             serverName = "radarr.local";
