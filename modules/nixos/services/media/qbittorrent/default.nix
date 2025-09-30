@@ -182,8 +182,7 @@ in
 
     ${namespace} = {
       services = {
-        networking.nginx = {
-          enable = true;
+        networking.nginx = {          
           virtualHosts = {
             qbittorrent = {
               serverName = "qbittorrent.local";
@@ -249,7 +248,6 @@ in
         General\Locale=en
         MailNotification\req_auth=true
         WebUI\AuthSubnetWhitelist=@Invalid()
-
         WebUI\AuthSubnetWhitelist=${subnet}
         WebUI\AuthSubnetWhitelistEnabled=true
         WebUI\LocalHostAuth=false
