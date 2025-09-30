@@ -20,6 +20,15 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      disks.impermanence.files = [
+        "/etc/ssh/ssh_host_ed25519_key"
+        "/etc/ssh/ssh_host_ed25519_key.pub"
+        "/etc/ssh/ssh_host_rsa_key"
+        "/etc/ssh/ssh_host_rsa_key.pub"
+      ];
+    };
+
     services.openssh = {
       enable = true;
 
@@ -52,11 +61,5 @@ in
       ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     };
 
-    environment.persistence.${persistence.root config}.files = [
-      "/etc/ssh/ssh_host_ed25519_key"
-      "/etc/ssh/ssh_host_ed25519_key.pub"
-      "/etc/ssh/ssh_host_rsa_key"
-      "/etc/ssh/ssh_host_rsa_key.pub"
-    ];
   };
 }

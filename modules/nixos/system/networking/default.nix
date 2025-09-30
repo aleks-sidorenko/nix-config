@@ -20,6 +20,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      disks.impermanence.directories = [
+        "/etc/NetworkManager/system-connections"
+      ];
+    };
+
     networking = {
       # Enable NetworkManager to manage the network interfaces
       useDHCP = mkDefault true;
@@ -49,9 +55,7 @@ in
         enable = false; # TODO: enable firewall
       };
     };
-    environment.persistence.${persistence.root config}.directories = [
-      "/etc/NetworkManager/system-connections"
-    ];
+
   };
 
 }
