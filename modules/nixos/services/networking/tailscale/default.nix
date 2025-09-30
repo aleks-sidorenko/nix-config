@@ -6,10 +6,10 @@
 }:
 with lib;
 let
-  cfg = config.${namespace}.services.tailscale;
+  cfg = config.${namespace}.services.networking.tailscale;
 in
 {
-  options.${namespace}.services.tailscale = {
+  options.${namespace}.services.networking.tailscale = {
     enable = mkEnableOption "Enable tailscale";
   };
 

@@ -33,8 +33,8 @@ in
 
       search = mkForce [
         cfg.domains.local
-        cfg.domains.public
       ];
+
       hosts = mkForce (
         lib.mapAttrs' (
           host: ip:

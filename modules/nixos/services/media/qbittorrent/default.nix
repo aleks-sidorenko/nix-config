@@ -180,9 +180,22 @@ in
       mode = "0400";
     };
 
-    ${namespace}.services.media.qbittorrent = {
-      userName = userName;
-      password = ""; # we allow local clients to connect without a password
+    ${namespace} = {
+      services = {
+        networking.nginx = {
+          virtualHosts = {
+            qbittorrent = {
+              serverName = hosts.local "qbittorrent";
+              port = cfg.webPort;
+            };
+          };
+        };
+        media.qbittorrent = {
+          userName = userName;
+          password = ""; # we allow local clients to connect without a password
+        };
+
+      };
     };
 
     # SOPS template for qBittorrent configuration with secret substitution
@@ -235,7 +248,6 @@ in
         General\Locale=en
         MailNotification\req_auth=true
         WebUI\AuthSubnetWhitelist=@Invalid()
-
         WebUI\AuthSubnetWhitelist=${subnet}
         WebUI\AuthSubnetWhitelistEnabled=true
         WebUI\LocalHostAuth=false

@@ -11,11 +11,10 @@ let
   cfg = config.${namespace}.system.locale;
   locales = cfg.locales;
   systemLocale = head locales;
-  locale = systemLocale;
   extraLocales = tail locales;
-  extraLocale = head extraLocales;
+  nativeLocale = if extraLocales == [ ] then systemLocale else head extraLocales;
   layouts = cfg.layouts;
-  layout = head layouts;
+  systemLayout = head layouts;
   extraLayouts = tail layouts;
   timeZone = cfg.timeZone;
   xkbLayout = concatStringsSep "," layouts;
@@ -40,22 +39,22 @@ in
 
   config = mkIf cfg.enable {
     i18n = {
-      defaultLocale = lib.mkDefault "${locale}";
+      defaultLocale = lib.mkDefault "${systemLocale}";
       supportedLocales = lib.mkDefault (map (locale: "${locale}/UTF-8") locales);
 
       extraLocaleSettings = {
-        # LC_ALL = "${locale}"; # This overrides all other LC_* settings.
-        LC_CTYPE = "${locale}";
-        LC_ADDRESS = "${extraLocale}";
-        LC_IDENTIFICATION = "${locale}";
-        LC_MEASUREMENT = "${extraLocale}";
-        LC_MONETARY = "${extraLocale}";
-        LC_NAME = "${extraLocale}";
-        LC_NUMERIC = "${extraLocale}";
-        LC_PAPER = "${extraLocale}";
-        LC_TELEPHONE = "${extraLocale}";
-        LC_TIME = "${extraLocale}";
-        LC_COLLATE = "${extraLocale}";
+        # LC_ALL = "${systemLocale}"; # This overrides all other LC_* settings.
+        LC_CTYPE = "${systemLocale}";
+        LC_ADDRESS = "${nativeLocale}";
+        LC_IDENTIFICATION = "${systemLocale}";
+        LC_MEASUREMENT = "${nativeLocale}";
+        LC_MONETARY = "${nativeLocale}";
+        LC_NAME = "${nativeLocale}";
+        LC_NUMERIC = "${nativeLocale}";
+        LC_PAPER = "${nativeLocale}";
+        LC_TELEPHONE = "${nativeLocale}";
+        LC_TIME = "${nativeLocale}";
+        LC_COLLATE = "${nativeLocale}";
       };
     };
     time.timeZone = "${timeZone}";
@@ -70,6 +69,6 @@ in
     };
 
     # Configure console keymap
-    console.keyMap = "${layout}";
+    console.keyMap = "${systemLayout}";
   };
 }

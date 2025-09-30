@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.roles.server;
+  defaults = lib.${namespace}.defaults;
 in
 {
   options.${namespace}.roles.server = {
@@ -19,7 +20,7 @@ in
 
     ${namespace} = {
       roles = {
-        common.enable = true;
+        common = enabled;
       };
 
       system = {
@@ -29,6 +30,8 @@ in
           timeZone = lib.mkForce "UTC";
         };
       };
+
+      services.networking.nginx = enabled;
 
     };
 

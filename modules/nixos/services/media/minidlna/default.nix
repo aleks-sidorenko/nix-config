@@ -56,6 +56,17 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      services.networking.nginx = {
+        virtualHosts = {
+          minidlna = {
+            serverName = hosts.local "minidlna";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     services.minidlna = {
       enable = true;
       settings = {

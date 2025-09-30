@@ -57,6 +57,17 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      services.networking.nginx = {
+        virtualHosts = {
+          prowlarr = {
+            serverName = hosts.local "prowlarr";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     # SOPS secret for Prowlarr API key
     # Note: You need to manually add 'service-prowlarr-api-key' to modules/nixos/secrets.yaml
     # using: sops modules/nixos/secrets.yaml
@@ -75,14 +86,14 @@ in
           <Port>${toString cfg.webPort}</Port>
           <ApiKey>${config.sops.placeholder."service-prowlarr-api-key"}</ApiKey>
           <AuthenticationMethod>External</AuthenticationMethod>
+          <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
           <LogLevel>${cfg.config.logLevel}</LogLevel>
           <AnalyticsEnabled>False</AnalyticsEnabled>
           <LogDbEnabled>False</LogDbEnabled>
           <InstanceName>${cfg.config.instanceName}</InstanceName>
           <!-- <SslPort>9898</SslPort> -->
           <!-- <EnableSsl>False</EnableSsl> -->
-          <!-- <LaunchBrowser>True</LaunchBrowser> -->
-          <!-- <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired> -->
+          <!-- <LaunchBrowser>True</LaunchBrowser> -->          
           <!-- <Branch>master</Branch> -->
           <!-- <SslCertPath></SslCertPath> -->
           <!-- <SslCertPassword></SslCertPassword> -->

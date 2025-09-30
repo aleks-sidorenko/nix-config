@@ -61,6 +61,17 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace} = {
+      services.networking.nginx = {
+        virtualHosts = {
+          radarr = {
+            serverName = hosts.local "radarr";
+            port = cfg.webPort;
+          };
+        };
+      };
+    };
+
     # SOPS secret for Radarr API key
     sops.secrets."service-radarr-api-key" = {
       sopsFile = ../../../secrets.yaml;
@@ -77,14 +88,14 @@ in
           <Port>${toString cfg.webPort}</Port>
           <ApiKey>${config.sops.placeholder."service-radarr-api-key"}</ApiKey>
           <AuthenticationMethod>External</AuthenticationMethod>
+          <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
           <LogLevel>${cfg.config.logLevel}</LogLevel>
           <AnalyticsEnabled>False</AnalyticsEnabled>
           <LogDbEnabled>False</LogDbEnabled>
           <InstanceName>${cfg.config.instanceName}</InstanceName>
           <!-- <SslPort>9898</SslPort> -->
           <!-- <EnableSsl>False</EnableSsl> -->
-          <!-- <LaunchBrowser>True</LaunchBrowser> -->
-          <!-- <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired> -->
+          <!-- <LaunchBrowser>True</LaunchBrowser> -->          
           <!-- <Branch>master</Branch> -->
           <!-- <SslCertPath></SslCertPath> -->
           <!-- <SslCertPassword></SslCertPassword> -->
