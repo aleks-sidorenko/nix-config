@@ -182,10 +182,10 @@ in
 
     ${namespace} = {
       services = {
-        networking.nginx = {          
+        networking.nginx = {
           virtualHosts = {
             qbittorrent = {
-              serverName = "qbittorrent.local";
+              serverName = hosts.local "qbittorrent";
               port = cfg.webPort;
             };
           };

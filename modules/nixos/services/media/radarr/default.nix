@@ -65,7 +65,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           radarr = {
-            serverName = "radarr.local";
+            serverName = hosts.local "radarr";
             port = cfg.webPort;
           };
         };

@@ -41,13 +41,13 @@ in
 
   config = mkIf cfg.enable {
     services.nginx = {
-      enable = true;      
+      enable = true;
       recommendedTlsSettings = true;
       recommendedOptimisation = true;
       recommendedGzipSettings = true;
-      
+
       proxyTimeout = "600s";
-      
+
       appendHttpConfig = ''
         proxy_headers_hash_max_size 1024;
         proxy_headers_hash_bucket_size 128;

@@ -58,10 +58,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      services.networking.nginx = {        
+      services.networking.nginx = {
         virtualHosts = {
           prowlarr = {
-            serverName = "prowlarr.local";
+            serverName = hosts.local "prowlarr";
             port = cfg.webPort;
           };
         };

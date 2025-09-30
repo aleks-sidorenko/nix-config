@@ -41,10 +41,9 @@ in
 
     ${namespace} = {
       services.networking.nginx = {
-        enable = true;
         virtualHosts = {
           jellyfin = {
-            serverName = "jellyfin.local";
+            serverName = hosts.local "jellyfin";
             port = cfg.webPort;
           };
         };
