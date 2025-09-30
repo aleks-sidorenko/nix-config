@@ -73,6 +73,12 @@ in
             mediaDir = dirs.mediaDir categories.movies;
           };
 
+          sonarr = {
+            enable = true;
+            downloadDir = dirs.downloadDir categories.series;
+            mediaDir = dirs.mediaDir categories.series;
+          };
+
           prowlarr = {
             enable = true;
           };
