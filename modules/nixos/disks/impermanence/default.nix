@@ -35,6 +35,18 @@ in
     enable = mkBoolOpt false "Enable impermanence";
     root = mkStringOpt defaults.persistence.root "The root path for persistent storage";
     device = mkStringOpt defaults.disks.root "The root device name";
+    directories = mkOption {
+      type = types.listOf types.str;
+      default = [
+      ];
+      description = "Directories to persist across reboots";
+    };
+    files = mkOption {
+      type = types.listOf types.str;
+      default = [
+      ];
+      description = "Files to persist across reboots";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -71,10 +83,10 @@ in
         "/var/db/sudo/"
         "/var/lib/"
 
-      ];
+      ] ++ cfg.directories;
       files = [
         "/etc/machine-id"
-      ];
+      ] ++ cfg.files;
     };
   };
 }

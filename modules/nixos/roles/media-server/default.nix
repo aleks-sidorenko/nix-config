@@ -49,6 +49,9 @@ in
     ];
 
     ${namespace} = {
+      disks.impermanence.directories = [
+        dirs.root
+      ];
 
       services = {
 
@@ -86,10 +89,6 @@ in
       };
 
     };
-
-    environment.persistence.${persistence.root config}.directories = [
-      dirs.root
-    ];
 
     boot.kernel.sysctl = {
 
