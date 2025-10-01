@@ -23,6 +23,7 @@ with lib.${namespace};
     roles = {
       server = enabled;
       media-server = enabled;
+      smart-home = enabled;
     };
 
     hardware.raspberry-pi-4 = enabled;
