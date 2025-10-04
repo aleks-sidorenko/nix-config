@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.home-assistant;
-  userName = lib.${namespace}.userName config;
+  userName = lib.${namespace}.userName config;  
 
 in
 {
@@ -33,6 +33,8 @@ in
     zigbee = {
       enable = mkBoolOpt true "Enable Zigbee support via Zigbee2MQTT";
 
+      user = mkOpt types.str "zigbee2mqtt" "User to run Zigbee2MQTT as";
+
       device =
         mkOpt types.str "/dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus-if00-port0"
           "Serial device path for Zigbee coordinator";
@@ -47,6 +49,8 @@ in
     mqtt = {
       enable = mkBoolOpt true "Enable MQTT broker (Mosquitto)";
 
+      user = mkOpt types.str "mosquitto" "User to run Mosquitto as";
+
       dataDir = mkOpt types.str "/var/lib/mosquitto" "Directory where Mosquitto stores its data";
 
       port = mkOpt types.port defaults.network.ports.mqtt.broker "Port for the MQTT broker";
@@ -55,7 +59,7 @@ in
     config = {
       bindAddress = mkOption {
         type = types.str;
-        default = "0.0.0.0";
+        default = "127.0.0.1";
         description = "Bind address for Home Assistant web interface";
       };
 
@@ -91,7 +95,7 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      services.networking.nginx = {
+      services.networking.nginx = {        
         virtualHosts =
           {
             home-assistant = {
@@ -125,8 +129,7 @@ in
     # Home Assistant service
     services.home-assistant = {
       enable = true;
-      package = cfg.package;
-      user = cfg.user;
+      package = cfg.package;      
       configDir = cfg.dataDir;
       configWritable = false;
       customComponents = [ ];
@@ -160,7 +163,7 @@ in
           time_zone = cfg.config.timeZone;
           unit_system = cfg.config.unitSystem;
           temperature_unit = "C";
-          external_url = "http://${hosts.local "home-assistant"}:${toString cfg.webPort}";
+          external_url = "http://${hosts.local "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
         };
 
@@ -177,9 +180,13 @@ in
           trusted_proxies = [
             "127.0.0.1"
             "::1"
-            "10.0.0.0/24"
+            "10.0.0.0/24"            
           ];
           use_x_forwarded_for = true;
+          ip_ban_enabled = false;
+          cors_allowed_origins = [
+            "http://${hosts.local "home-assistant"}"          
+          ];
         };
 
         # MQTT integration
@@ -216,10 +223,10 @@ in
         "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       ]
       ++ optionals cfg.zigbee.enable [
-        "d ${cfg.zigbee.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.zigbee.dataDir} 0755 ${cfg.zigbee.user} ${cfg.group} -"
       ]
       ++ optionals cfg.mqtt.enable [
-        "d ${cfg.mqtt.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+        "d ${cfg.mqtt.dataDir} 0755 ${cfg.mqtt.user} ${cfg.group} -"
       ];
 
     # MQTT Broker (Mosquitto)
@@ -242,8 +249,7 @@ in
     # Zigbee2MQTT service
     services.zigbee2mqtt = mkIf cfg.zigbee.enable {
       enable = true;
-      dataDir = cfg.zigbee.dataDir;
-      openFirewall = true;
+      dataDir = cfg.zigbee.dataDir;      
 
       settings = {
         # MQTT settings
@@ -308,14 +314,15 @@ in
       after = mkIf cfg.mqtt.enable [ "mosquitto.service" ];
       wants = mkIf cfg.mqtt.enable [ "mosquitto.service" ];
       serviceConfig = {
-        Group = cfg.group;
+        User = mkForce cfg.user;
+        Group = mkForce cfg.group;
       };
     };
 
     # Configure mosquitto to run as the home-assistant user/group
     systemd.services.mosquitto = mkIf cfg.mqtt.enable {
       serviceConfig = {
-        User = mkForce cfg.user;
+        User = mkForce cfg.mqtt.user;
         Group = mkForce cfg.group;
       };
     };
@@ -326,7 +333,7 @@ in
       wants = [ "mosquitto.service" ];
 
       serviceConfig = {
-        User = mkForce cfg.user;
+        User = mkForce cfg.zigbee.user;
         Group = mkForce cfg.group;
         # Grant access to serial devices
         SupplementaryGroups = [ "dialout" ];
