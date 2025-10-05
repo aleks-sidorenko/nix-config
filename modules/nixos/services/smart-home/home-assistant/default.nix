@@ -9,12 +9,13 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.home-assistant;
+  mqttCfg = config.${namespace}.services.smart-home.mosquitto;
   userName = lib.${namespace}.userName config;  
 
 in
 {
   options.${namespace}.services.smart-home.home-assistant = {
-    enable = mkEnableOption "Enable Home Assistant with Zigbee support";
+    enable = mkEnableOption "Enable Home Assistant";
 
     user = mkOpt types.str "hass" "User to run Home Assistant as";
 
@@ -30,30 +31,12 @@ in
 
     package = mkOpt types.package pkgs.home-assistant "Home Assistant package to use";
 
-    zigbee = {
-      enable = mkBoolOpt true "Enable Zigbee support via Zigbee2MQTT";
-
-      user = mkOpt types.str "zigbee2mqtt" "User to run Zigbee2MQTT as";
-
-      device =
-        mkOpt types.str "/dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus-if00-port0"
-          "Serial device path for Zigbee coordinator";
-
-      dataDir = mkOpt types.str "/var/lib/zigbee2mqtt" "Directory where Zigbee2MQTT stores its data";
-
-      webPort =
-        mkOpt types.port defaults.network.ports.zigbee2mqtt.web
-          "Port for the Zigbee2MQTT web interface";
-    };
-
     mqtt = {
-      enable = mkBoolOpt true "Enable MQTT broker (Mosquitto)";
+      enable = mkBoolOpt true "Enable MQTT integration in Home Assistant";
 
-      user = mkOpt types.str "mosquitto" "User to run Mosquitto as";
+      broker = mkOpt types.str "127.0.0.1" "MQTT broker address";
 
-      dataDir = mkOpt types.str "/var/lib/mosquitto" "Directory where Mosquitto stores its data";
-
-      port = mkOpt types.port defaults.network.ports.mqtt.broker "Port for the MQTT broker";
+      port = mkOpt types.port defaults.network.ports.mqtt.broker "MQTT broker port";
     };
 
     config = {
@@ -94,21 +77,15 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Enable Mosquitto by default if MQTT is enabled in Home Assistant
+    ${namespace}.services.smart-home.mosquitto.enable = mkIf cfg.mqtt.enable (mkDefault true);
+
     ${namespace} = {
       services.networking.nginx = {        
-        virtualHosts =
-          {
-            home-assistant = {
-              serverName = hosts.local "home-assistant";
-              port = cfg.webPort;
-            };
-          }
-          // optionalAttrs cfg.zigbee.enable {
-            zigbee2mqtt = {
-              serverName = hosts.local "zigbee2mqtt";
-              port = cfg.zigbee.webPort;
-            };
-          };
+        virtualHosts.home-assistant = {
+          serverName = hosts.local "home-assistant";
+          port = cfg.webPort;
+        };
       };
     };
 
@@ -191,7 +168,7 @@ in
 
         # MQTT integration
         mqtt = mkIf cfg.mqtt.enable {
-          broker = "127.0.0.1";
+          broker = cfg.mqtt.broker;
           port = cfg.mqtt.port;
           discovery = true;
           discovery_prefix = "homeassistant";
@@ -218,137 +195,24 @@ in
     };
 
     # Ensure data directory exists with correct permissions
-    systemd.tmpfiles.rules =
-      [
-        "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-      ]
-      ++ optionals cfg.zigbee.enable [
-        "d ${cfg.zigbee.dataDir} 0755 ${cfg.zigbee.user} ${cfg.group} -"
-      ]
-      ++ optionals cfg.mqtt.enable [
-        "d ${cfg.mqtt.dataDir} 0755 ${cfg.mqtt.user} ${cfg.group} -"
-      ];
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+    ];
 
-    # MQTT Broker (Mosquitto)
-    services.mosquitto = mkIf cfg.mqtt.enable {
-      enable = true;
-      dataDir = cfg.mqtt.dataDir;
-      listeners = [
-        {
-          acl = [
-            "pattern readwrite #"
-          ];
-          omitPasswordAuth = true;
-          settings.allow_anonymous = true;
-          port = cfg.mqtt.port;
-          address = "127.0.0.1";
-        }
-      ];
-    };
-
-    # Zigbee2MQTT service
-    services.zigbee2mqtt = mkIf cfg.zigbee.enable {
-      enable = true;
-      dataDir = cfg.zigbee.dataDir;      
-
-      settings = {
-        # MQTT settings
-        mqtt = {
-          base_topic = "zigbee2mqtt";
-          server = "mqtt://127.0.0.1:${toString cfg.mqtt.port}";
-          include_device_information = true;
-        };
-
-        # Serial settings for Zigbee coordinator
-        serial = {
-          port = cfg.zigbee.device;
-          adapter = "auto"; # Auto-detect adapter type
-        };
-
-        # Frontend settings
-        frontend = {
-          port = cfg.zigbee.webPort;
-          host = "0.0.0.0";
-        };
-
-        # Home Assistant integration
-        homeassistant = true;
-
-        # Allow new devices to join
-        permit_join = false; # Set to true temporarily when pairing new devices
-
-        # Advanced settings
-        advanced = {
-          log_level = "info";
-          pan_id = "GENERATE";
-          network_key = "GENERATE";
-          channel = 11;
-
-          # Enable availability for all devices
-          availability_blocklist = [ ];
-          availability_passlist = [ ];
-        };
-
-        # Device options
-        device_options = {
-          retain = true;
-        };
-      };
-    };
-
-    # Grant access to serial devices for Zigbee
-    services.udev.extraRules = mkIf cfg.zigbee.enable ''
-      # Sonoff Zigbee 3.0 USB Dongle Plus
-      SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE="0660", GROUP="dialout", SYMLINK+="zigbee"
-
-      # ConBee II
-      SUBSYSTEM=="tty", ATTRS{idVendor}=="1cf1", ATTRS{idProduct}=="0030", MODE="0660", GROUP="dialout", SYMLINK+="conbee2"
-
-      # Generic USB-to-Serial adapters
-      KERNEL=="ttyUSB*", MODE="0660", GROUP="dialout"
-      KERNEL=="ttyACM*", MODE="0660", GROUP="dialout"
-    '';
-
-    # Ensure Home Assistant user is in the dialout group
-    systemd.services.home-assistant = {
-      after = mkIf cfg.mqtt.enable [ "mosquitto.service" ];
-      wants = mkIf cfg.mqtt.enable [ "mosquitto.service" ];
+    # Ensure Home Assistant starts after MQTT if enabled
+    systemd.services.home-assistant = mkIf cfg.mqtt.enable {
+      after = [ "mosquitto.service" ];
+      wants = [ "mosquitto.service" ];
       serviceConfig = {
         User = mkForce cfg.user;
         Group = mkForce cfg.group;
       };
     };
 
-    # Configure mosquitto to run as the home-assistant user/group
-    systemd.services.mosquitto = mkIf cfg.mqtt.enable {
-      serviceConfig = {
-        User = mkForce cfg.mqtt.user;
-        Group = mkForce cfg.group;
-      };
-    };
-
-    # Configure zigbee2mqtt to run as the home-assistant user/group
-    systemd.services.zigbee2mqtt = mkIf cfg.zigbee.enable {
-      after = [ "mosquitto.service" ];
-      wants = [ "mosquitto.service" ];
-
-      serviceConfig = {
-        User = mkForce cfg.zigbee.user;
-        Group = mkForce cfg.group;
-        # Grant access to serial devices
-        SupplementaryGroups = [ "dialout" ];
-      };
-    };
-
     # Add packages to system
-    environment.systemPackages =
-      with pkgs;
-      [
-        cfg.package
-      ]
-      ++ optionals cfg.zigbee.enable [
-        zigbee2mqtt
-      ];
+    environment.systemPackages = with pkgs; [
+      cfg.package
+    ];
 
   };
 }
