@@ -8,7 +8,7 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.smart-home.zigbee2mqtt;  
+  cfg = config.${namespace}.services.smart-home.zigbee2mqtt;
 
 in
 {
@@ -22,7 +22,7 @@ in
     group = mkOpt types.str config.${namespace}.services.smart-home.group "Group to run Zigbee2MQTT as";
 
     device = mkOpt types.str "/dev/zigbee" "Serial device path for Zigbee coordinator";
-    
+
     adapter = mkOpt types.str "auto" "Adapter type for Zigbee coordinator";
 
     dataDir = mkOpt types.str "/var/lib/zigbee2mqtt" "Directory where Zigbee2MQTT stores its data";
@@ -51,11 +51,11 @@ in
     homeAssistantIntegration = mkBoolOpt true "Enable Home Assistant integration";
 
     advanced = {
-      panId = mkOpt (types.either types.int (types.enum ["GENERATE"])) 52843 
-        "PAN ID for the Zigbee network (use adapter's existing value or GENERATE)";
-      
-      channel = mkOpt types.int 11 
-        "Zigbee channel (11-26, avoid WiFi interference)";
+      panId = mkOpt (types.either types.int (
+        types.enum [ "GENERATE" ]
+      )) 52843 "PAN ID for the Zigbee network (use adapter's existing value or GENERATE)";
+
+      channel = mkOpt types.int 11 "Zigbee channel (11-26, avoid WiFi interference)";
     };
   };
 
@@ -72,11 +72,6 @@ in
         };
       };
     };
-
-    # Ensure data directory exists with correct permissions
-    systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-    ];
 
     # Add Zigbee2MQTT to system packages
     environment.systemPackages = with pkgs; [
@@ -119,12 +114,12 @@ in
         advanced = {
           log_level = cfg.logLevel;
           pan_id = cfg.advanced.panId;
-          network_key = "!secret.yaml network_key";
+          network_key = "!secrets.yaml network_key";
           channel = cfg.advanced.channel;
-          
+
           # Adapter configuration
           adapter_concurrent = null;
-          
+
           # Transmit power in dBm (default: 5)
           transmit_power = 5;
 
@@ -167,15 +162,24 @@ in
       restartUnits = [ "zigbee2mqtt.service" ];
     };
 
+    # Ensure data directory exists with correct permissions
+    # Create empty YAML files for secrets.yaml if it doesn't exist
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+      "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
+    ];
+
     # Configure zigbee2mqtt to run as the specified user/group
     systemd.services.zigbee2mqtt = {
       after = [ "mosquitto.service" ];
       wants = [ "mosquitto.service" ];
 
       preStart = ''
-        # Create secret.yaml file that Zigbee2MQTT can reference
-        # Read the network key from sops and write to secret.yaml
-        echo "network_key: $(cat ${config.sops.secrets."service-zigbee2mqtt-network-key".path})" > "${cfg.dataDir}/secret.yaml"
+        # Create secrets.yaml file that Zigbee2MQTT can reference
+        # Read the network key from sops and write to secrets.yaml
+        echo "network_key: $(cat ${
+          config.sops.secrets."service-zigbee2mqtt-network-key".path
+        })" > "${cfg.dataDir}/secrets.yaml"
       '';
 
       serviceConfig = {

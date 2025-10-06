@@ -17,9 +17,7 @@ in
 
     user = mkOpt types.str "mosquitto" "User to run Mosquitto as";
 
-    group =
-      mkOpt types.str config.${namespace}.services.smart-home.group
-        "Group to run Mosquitto as";
+    group = mkOpt types.str config.${namespace}.services.smart-home.group "Group to run Mosquitto as";
 
     dataDir = mkOpt types.str "/var/lib/mosquitto" "Directory where Mosquitto stores its data";
 

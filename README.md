@@ -91,6 +91,7 @@ deploy .#server --hostname server  --skip-checks
 - EmergentMind config https://github.com/EmergentMind/nix-config
 - Nice nixvim config https://github.com/dc-tec/nixvim
 - Rasbperry PI 4 https://github.com/Stunkymonkey/nixos
+- Home-Assistant https://github.com/azuwis/nix-config/tree/master/nixos/hass
 
 ### Resources
 

@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.home-assistant;
-  userName = lib.${namespace}.userName config;  
+  userName = lib.${namespace}.userName config;
 
 in
 {
@@ -30,25 +30,19 @@ in
 
     package = mkOpt types.package pkgs.home-assistant "Home Assistant package to use";
 
-    mosquitto = mkOpt types.bool false "Enable Home Assistant integration with Mosquitto";
+    mosquitto = {
+      enable = mkEnableOption "Enable Home Assistant integration with Mosquitto";
+    };
+
+    extraComponents = mkOpt (types.listOf types.str) [ ] "Extra Home Assistant components to enable";
+
+    lovelaceConfig = mkOpt types.attrs { } "Lovelace dashboard configuration";
 
     config = {
       bindAddress = mkOption {
         type = types.str;
         default = "0.0.0.0";
         description = "Bind address for Home Assistant web interface";
-      };
-
-      latitude = mkOption {
-        type = types.str;
-        default = defaults.locale.latitude;
-        description = "Latitude for Home Assistant location";
-      };
-
-      longitude = mkOption {
-        type = types.str;
-        default = defaults.locale.longitude;
-        description = "Longitude for Home Assistant location";
       };
 
       timeZone = mkOption {
@@ -70,16 +64,22 @@ in
   };
 
   config = mkIf cfg.enable {
-    
-    
-    ${namespace}.services = {
-      networking.nginx = {        
-        virtualHosts.home-assistant = {
-          serverName = hosts.local "home-assistant";
-          port = cfg.webPort;
-        };
-      };
-      
+
+    # Configure SOPS secret for latitude and longitude
+    sops.secrets."service-home-assistant-latitude" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0440";
+      restartUnits = [ "home-assistant.service" ];
+    };
+
+    sops.secrets."service-home-assistant-longitude" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0440";
+      restartUnits = [ "home-assistant.service" ];
     };
 
     # Create the Home Assistant user
@@ -96,47 +96,66 @@ in
       description = "Home Assistant user";
     };
 
+    # Set default components in namespace
+    ${namespace}.services = {
+      networking.nginx = {
+        virtualHosts.home-assistant = {
+          serverName = hosts.local "home-assistant";
+          port = cfg.webPort;
+        };
+      };
+
+      smart-home.home-assistant = {
+        extraComponents = [
+          "androidtv_remote"
+          "camera"
+          "cast"
+          "default_config"
+          "device_tracker"
+          "esphome"
+          "google_translate"
+          "history"
+          "logbook"
+          "mobile_app"
+          "mqtt"
+          "person"
+          "radio_browser"
+          "recorder"
+          "zone"
+          "zha" # not used, but causes error if missing
+        ];
+
+        lovelaceConfig = {
+          title = "Home";
+          views = [ ];
+        };
+      };
+    };
+
     # Home Assistant service
     services.home-assistant = {
       enable = true;
-      package = cfg.package;      
+      package = cfg.package;
       configDir = cfg.dataDir;
       configWritable = false;
       customComponents = [ ];
       customLovelaceModules = [ ];
+      lovelaceConfig = cfg.lovelaceConfig;
+      lovelaceConfigWritable = false;
 
-      extraComponents = [
-        "androidtv_remote"
-        "camera"
-        "cast"
-        "default_config"
-        "device_tracker"
-        "esphome"
-        "google_translate"
-        "history"
-        "logbook"
-        "met"
-        "mobile_app"
-        "mqtt"
-        "person"
-        "radio_browser"
-        "recorder"
-        "sun"
-        "zone"
-        "zha" # not used, but causes error if missing
-      ];
+      extraComponents = cfg.extraComponents;
 
       config = {
         homeassistant = {
           name = "Home";
-          latitude = cfg.config.latitude;
-          longitude = cfg.config.longitude;
+          latitude = "!secrets.yaml latitude";
+          longitude = "!secrets.yaml longitude";
           time_zone = cfg.config.timeZone;
           unit_system = cfg.config.unitSystem;
           temperature_unit = "C";
           external_url = "http://${hosts.local "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
-          packages = "!include_dir_named ${./packages}";
+
         };
 
         # Enable the frontend
@@ -152,16 +171,15 @@ in
           trusted_proxies = [
             "127.0.0.1"
             "::1"
-            "10.0.0.0/24"            
+            "10.0.0.0/24"
           ];
           use_x_forwarded_for = true;
           ip_ban_enabled = false;
           cors_allowed_origins = [
-            "http://${hosts.local "home-assistant"}"          
+            "http://${hosts.local "home-assistant"}"
           ];
         };
 
-        
         # Enable automation
         automation = "!include automations.yaml";
         script = "!include scripts.yaml";
@@ -178,23 +196,35 @@ in
           gtts
         ];
 
-      lovelaceConfig = { };
       openFirewall = true;
     };
 
     # Ensure data directory exists with correct permissions
-    # Create empty YAML files for automations, scripts, and scenes if they don't exist
+    # Create empty YAML files for automations, scripts, scenes, and secrets if they don't exist
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       "f ${cfg.dataDir}/automations.yaml 0644 ${cfg.user} ${cfg.group} - []"
       "f ${cfg.dataDir}/scripts.yaml 0644 ${cfg.user} ${cfg.group} - {}"
       "f ${cfg.dataDir}/scenes.yaml 0644 ${cfg.user} ${cfg.group} - []"
+      "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
     ];
 
     # Ensure Home Assistant starts after MQTT if enabled
-    systemd.services.home-assistant = mkIf cfg.mosquitto {
+    systemd.services.home-assistant = mkIf cfg.mosquitto.enable {
       after = [ "mosquitto.service" ];
       wants = [ "mosquitto.service" ];
+
+      preStart = ''
+        # Create secrets.yaml file that Home Assistant can reference
+        # Read the latitude and longitude from sops and write to secrets.yaml
+        echo "latitude: $(cat ${
+          config.sops.secrets."service-home-assistant-latitude".path
+        })" > "${cfg.dataDir}/secrets.yaml"
+        echo "longitude: $(cat ${
+          config.sops.secrets."service-home-assistant-longitude".path
+        })" >> "${cfg.dataDir}/secrets.yaml"
+      '';
+
       serviceConfig = {
         User = mkForce cfg.user;
         Group = mkForce cfg.group;
