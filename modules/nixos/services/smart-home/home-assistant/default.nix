@@ -30,6 +30,8 @@ in
 
     package = mkOpt types.package pkgs.home-assistant "Home Assistant package to use";
 
+    mosquitto = mkOpt types.bool false "Enable Home Assistant integration with Mosquitto";
+
     config = {
       bindAddress = mkOption {
         type = types.str;
@@ -194,7 +196,7 @@ in
     ];
 
     # Ensure Home Assistant starts after MQTT if enabled
-    systemd.services.home-assistant = mkIf cfg.mqtt.enable {
+    systemd.services.home-assistant = mkIf cfg.mosquitto {
       after = [ "mosquitto.service" ];
       wants = [ "mosquitto.service" ];
       serviceConfig = {

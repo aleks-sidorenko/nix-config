@@ -54,9 +54,6 @@ in
       panId = mkOpt (types.either types.int (types.enum ["GENERATE"])) 52843 
         "PAN ID for the Zigbee network (use adapter's existing value or GENERATE)";
       
-      networkKey = mkOpt (types.either types.str (types.enum ["GENERATE"])) "GENERATE"
-        "Network encryption key (16-byte hex array or GENERATE)";
-      
       channel = mkOpt types.int 11 
         "Zigbee channel (11-26, avoid WiFi interference)";
     };
@@ -122,7 +119,7 @@ in
         advanced = {
           log_level = cfg.logLevel;
           pan_id = cfg.advanced.panId;
-          network_key = cfg.advanced.networkKey;
+          network_key = "!secret.yaml network_key";
           channel = cfg.advanced.channel;
           
           # Adapter configuration
@@ -161,10 +158,25 @@ in
       KERNEL=="ttyACM*", MODE="0660", GROUP="dialout"
     '';
 
+    # Configure SOPS secret for network key
+    sops.secrets."service-zigbee2mqtt-network-key" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0440";
+      restartUnits = [ "zigbee2mqtt.service" ];
+    };
+
     # Configure zigbee2mqtt to run as the specified user/group
     systemd.services.zigbee2mqtt = {
       after = [ "mosquitto.service" ];
       wants = [ "mosquitto.service" ];
+
+      preStart = ''
+        # Create secret.yaml file that Zigbee2MQTT can reference
+        # Read the network key from sops and write to secret.yaml
+        echo "network_key: $(cat ${config.sops.secrets."service-zigbee2mqtt-network-key".path})" > "${cfg.dataDir}/secret.yaml"
+      '';
 
       serviceConfig = {
         User = mkForce cfg.user;
