@@ -106,28 +106,24 @@ in
       customLovelaceModules = [ ];
 
       extraComponents = [
-        # Core integrations
-        "default_config"
-        "met"
-        "radio_browser"
-
-        # MQTT and Zigbee
-        "mqtt"
-        "zha" # not used, but causes error if missing
-        "esphome"
-
-        # TV integrations
-        "androidtv_remote"      
+        "androidtv_remote"
+        "camera"
         "cast"
-        
-
-        # Useful integrations        
+        "default_config"
+        "device_tracker"
+        "esphome"
         "google_translate"
-        "mobile_app"
-        "sun"
         "history"
         "logbook"
+        "met"
+        "mobile_app"
+        "mqtt"
+        "person"
+        "radio_browser"
         "recorder"
+        "sun"
+        "zone"
+        "zha" # not used, but causes error if missing
       ];
 
       config = {
