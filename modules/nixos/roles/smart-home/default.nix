@@ -31,6 +31,7 @@ in
             enable = true;
             device = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20220713100628-if00";
             adapter = "ember"; # necessary for Sonoff Zigbee Dongle-E
+            advanced.networkKey = "51fd709cce3f87e1da7f4a142263ef9f";
           };
         };
 

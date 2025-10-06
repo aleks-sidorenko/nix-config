@@ -49,6 +49,17 @@ in
     ]) "info" "Log level for Zigbee2MQTT";
 
     homeAssistantIntegration = mkBoolOpt true "Enable Home Assistant integration";
+
+    advanced = {
+      panId = mkOpt (types.either types.int (types.enum ["GENERATE"])) 52843 
+        "PAN ID for the Zigbee network (use adapter's existing value or GENERATE)";
+      
+      networkKey = mkOpt (types.either types.str (types.enum ["GENERATE"])) "GENERATE"
+        "Network encryption key (16-byte hex array or GENERATE)";
+      
+      channel = mkOpt types.int 11 
+        "Zigbee channel (11-26, avoid WiFi interference)";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -110,9 +121,15 @@ in
         # Advanced settings
         advanced = {
           log_level = cfg.logLevel;
-          pan_id = "GENERATE";
-          network_key = "GENERATE"; # TODO - move to sops
-          channel = 11;
+          pan_id = cfg.advanced.panId;
+          network_key = cfg.advanced.networkKey;
+          channel = cfg.advanced.channel;
+          
+          # Adapter configuration
+          adapter_concurrent = null;
+          
+          # Transmit power in dBm (default: 5)
+          transmit_power = 5;
 
           # Enable availability for all devices
           availability_blocklist = [ ];
