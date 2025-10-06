@@ -9,7 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.home-assistant;
-  mqttCfg = config.${namespace}.services.smart-home.mosquitto;
   userName = lib.${namespace}.userName config;  
 
 in
@@ -31,18 +30,10 @@ in
 
     package = mkOpt types.package pkgs.home-assistant "Home Assistant package to use";
 
-    mqtt = {
-      enable = mkBoolOpt true "Enable MQTT integration in Home Assistant";
-
-      broker = mkOpt types.str "127.0.0.1" "MQTT broker address";
-
-      port = mkOpt types.port defaults.network.ports.mqtt.broker "MQTT broker port";
-    };
-
     config = {
       bindAddress = mkOption {
         type = types.str;
-        default = "127.0.0.1";
+        default = "0.0.0.0";
         description = "Bind address for Home Assistant web interface";
       };
 
@@ -77,16 +68,16 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Enable Mosquitto by default if MQTT is enabled in Home Assistant
-    ${namespace}.services.smart-home.mosquitto.enable = mkIf cfg.mqtt.enable (mkDefault true);
-
-    ${namespace} = {
-      services.networking.nginx = {        
+    
+    
+    ${namespace}.services = {
+      networking.nginx = {        
         virtualHosts.home-assistant = {
           serverName = hosts.local "home-assistant";
           port = cfg.webPort;
         };
       };
+      
     };
 
     # Create the Home Assistant user
@@ -120,10 +111,15 @@ in
 
         # MQTT and Zigbee
         "mqtt"
-        "zha" # Zigbee Home Automation (alternative to zigbee2mqtt)
-
-        # Useful integrations
+        "zha" # not used, but causes error if missing
         "esphome"
+
+        # TV integrations
+        "androidtv_remote"      
+        "cast"
+        
+
+        # Useful integrations        
         "google_translate"
         "mobile_app"
         "sun"
@@ -142,6 +138,7 @@ in
           temperature_unit = "C";
           external_url = "http://${hosts.local "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
+          packages = "!include_dir_named ${./packages}";
         };
 
         # Enable the frontend
@@ -166,14 +163,7 @@ in
           ];
         };
 
-        # MQTT integration
-        mqtt = mkIf cfg.mqtt.enable {
-          broker = cfg.mqtt.broker;
-          port = cfg.mqtt.port;
-          discovery = true;
-          discovery_prefix = "homeassistant";
-        };
-
+        
         # Enable automation
         automation = "!include automations.yaml";
         script = "!include scripts.yaml";
@@ -195,8 +185,12 @@ in
     };
 
     # Ensure data directory exists with correct permissions
+    # Create empty YAML files for automations, scripts, and scenes if they don't exist
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+      "f ${cfg.dataDir}/automations.yaml 0644 ${cfg.user} ${cfg.group} - []"
+      "f ${cfg.dataDir}/scripts.yaml 0644 ${cfg.user} ${cfg.group} - {}"
+      "f ${cfg.dataDir}/scenes.yaml 0644 ${cfg.user} ${cfg.group} - []"
     ];
 
     # Ensure Home Assistant starts after MQTT if enabled

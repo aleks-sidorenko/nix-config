@@ -24,6 +24,13 @@ in
         smart-home = {
           home-assistant = {
             enable = true;
+            mqtt.enable = true;
+          };
+          mosquitto.enable = true;
+          zigbee2mqtt = {
+            enable = true;
+            device = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20220713100628-if00";
+            adapter = "ember"; # necessary for Sonoff Zigbee Dongle-E
           };
         };
 
