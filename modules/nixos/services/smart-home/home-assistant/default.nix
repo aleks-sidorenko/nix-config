@@ -11,6 +11,7 @@ let
   cfg = config.${namespace}.services.smart-home.home-assistant;
   userName = lib.${namespace}.userName config;
 
+  lovelaceConfig = import ./lovelace.nix { inherit cfg; };
 in
 {
   options.${namespace}.services.smart-home.home-assistant = {
@@ -106,10 +107,7 @@ in
       };
 
       smart-home.home-assistant = {
-        extraComponents = [
-          "androidtv_remote"
-          "camera"
-          "cast"
+        extraComponents = [          
           "default_config"
           "device_tracker"
           "esphome"
@@ -117,49 +115,15 @@ in
           "history"
           "logbook"
           "mobile_app"
-          "mqtt"
+
           "person"
           "radio_browser"
           "recorder"
           "zone"
-          "zha" # not used, but causes error if missing
           "sun" # for sun.sun entity
           "time_date" # for sensor.time and sensor.date entities
         ];
 
-        lovelaceConfig = {
-          title = "Home";
-          views = [
-            {
-              title = "Overview";
-              path = "default_view";
-              icon = "mdi:home";
-              cards = [
-                {
-                  type = "markdown";
-                  content = "# Welcome to Home Assistant\n\nYour dashboard is now configured! Add your devices and entities to see them here.";
-                }
-                {
-                  type = "entities";
-                  title = "System Information";
-                  entities = [
-                    "sun.sun"
-                    "sensor.time"
-                    "sensor.date"
-                  ];
-                }
-                {
-                  type = "glance";
-                  title = "Quick Access";
-                  entities = [
-                    "sun.sun"
-                    "sensor.time"
-                  ];
-                }
-              ];
-            }
-          ] ++ cfg.views;
-        };
       };
     };
 
@@ -171,7 +135,7 @@ in
       configWritable = false;
       customComponents = [ ];
       customLovelaceModules = [ ];
-      lovelaceConfig = cfg.lovelaceConfig;
+      lovelaceConfig = lovelaceConfig;
       lovelaceConfigWritable = false;
 
       extraComponents = cfg.extraComponents;
@@ -190,11 +154,17 @@ in
           packages = "!include_dir_named packages";
         };
 
+        # Enable default config
+        default_config = {};
+
         # Enable the frontend
         frontend = { };
-
         # Enable configuration UI
         config = { };
+        # Enable sun component
+        sun = {};        
+
+        lovelace.mode = "yaml"; # use yaml mode for lovelace config
 
         # HTTP configuration
         http = {

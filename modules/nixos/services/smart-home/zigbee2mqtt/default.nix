@@ -142,8 +142,12 @@ in
 
     # Grant access to serial devices for Zigbee
     services.udev.extraRules = ''
+    
       # Sonoff Zigbee 3.0 USB Dongle Plus
       SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE="0660", GROUP="dialout", SYMLINK+="zigbee"
+
+      # Sonoff Zigbee 3.0 USB Dongle-E
+      SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0660", GROUP="dialout", SYMLINK+="zigbee"
 
       # ConBee II
       SUBSYSTEM=="tty", ATTRS{idVendor}=="1cf1", ATTRS{idProduct}=="0030", MODE="0660", GROUP="dialout", SYMLINK+="conbee2"
@@ -169,6 +173,20 @@ in
       "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
     ];
 
+    # Create the Zigbee2MQTT user
+    users.users.${cfg.user} = {
+      isSystemUser = true;
+      group = mkForce cfg.group;
+      extraGroups = [
+        "users"
+        "dialout" # Access to serial devices
+        "tty" # Access to TTY devices
+      ];
+      home = cfg.dataDir;
+      createHome = true;
+      description = "Zigbee2MQTT user";
+    };
+
     # Configure zigbee2mqtt to run as the specified user/group
     systemd.services.zigbee2mqtt = {
       after = [ "mosquitto.service" ];
@@ -185,8 +203,6 @@ in
       serviceConfig = {
         User = mkForce cfg.user;
         Group = mkForce cfg.group;
-        # Grant access to serial devices
-        SupplementaryGroups = [ "dialout" ];
       };
     };
   };

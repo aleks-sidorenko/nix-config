@@ -44,7 +44,7 @@ in
           cards = lists.flatten [
             (optional cfg.showForecast {
               type = "weather-forecast";
-              entity = "weather.home";
+              entity = "weather.forecast_home_2";
               show_forecast = true;
             })
             (optional cfg.showSun {
