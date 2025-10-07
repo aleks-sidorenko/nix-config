@@ -24,7 +24,7 @@ in
         smart-home = {
           home-assistant = {
             enable = true;
-            mosquitto = true;
+            mosquitto = enabled;
             weather = enabled;
           };
           mosquitto.enable = true;

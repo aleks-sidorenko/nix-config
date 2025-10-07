@@ -36,7 +36,7 @@ in
 
     extraComponents = mkOpt (types.listOf types.str) [ ] "Extra Home Assistant components to enable";
 
-    lovelaceConfig = mkOpt types.attrs { } "Lovelace dashboard configuration";
+    views = mkOpt (types.listOf types.attrs) [ ] "Lovelace dashboard views";
 
     config = {
       bindAddress = mkOption {
@@ -123,11 +123,42 @@ in
           "recorder"
           "zone"
           "zha" # not used, but causes error if missing
+          "sun" # for sun.sun entity
+          "time_date" # for sensor.time and sensor.date entities
         ];
 
         lovelaceConfig = {
           title = "Home";
-          views = [ ];
+          views = [
+            {
+              title = "Overview";
+              path = "default_view";
+              icon = "mdi:home";
+              cards = [
+                {
+                  type = "markdown";
+                  content = "# Welcome to Home Assistant\n\nYour dashboard is now configured! Add your devices and entities to see them here.";
+                }
+                {
+                  type = "entities";
+                  title = "System Information";
+                  entities = [
+                    "sun.sun"
+                    "sensor.time"
+                    "sensor.date"
+                  ];
+                }
+                {
+                  type = "glance";
+                  title = "Quick Access";
+                  entities = [
+                    "sun.sun"
+                    "sensor.time"
+                  ];
+                }
+              ];
+            }
+          ] ++ cfg.views;
         };
       };
     };
@@ -148,14 +179,15 @@ in
       config = {
         homeassistant = {
           name = "Home";
-          latitude = "!secrets.yaml latitude";
-          longitude = "!secrets.yaml longitude";
+          latitude = "!secret latitude";
+          longitude = "!secret longitude";
+          # elevation = "!secret elevation";
           time_zone = cfg.config.timeZone;
           unit_system = cfg.config.unitSystem;
           temperature_unit = "C";
           external_url = "http://${hosts.local "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
-
+          packages = "!include_dir_named packages";
         };
 
         # Enable the frontend
@@ -203,6 +235,7 @@ in
     # Create empty YAML files for automations, scripts, scenes, and secrets if they don't exist
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/packages 0755 ${cfg.user} ${cfg.group} -"
       "f ${cfg.dataDir}/automations.yaml 0644 ${cfg.user} ${cfg.group} - []"
       "f ${cfg.dataDir}/scripts.yaml 0644 ${cfg.user} ${cfg.group} - {}"
       "f ${cfg.dataDir}/scenes.yaml 0644 ${cfg.user} ${cfg.group} - []"

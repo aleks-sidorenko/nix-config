@@ -36,18 +36,18 @@ in
       ];
 
       # Add weather view to dashboard
-      lovelaceConfig.views = [
+      views = [
         {
           title = "Weather";
           path = "weather";
           icon = "mdi:weather-partly-cloudy";
           cards = lists.flatten [
-            (optional weatherCfg.showForecast {
+            (optional cfg.showForecast {
               type = "weather-forecast";
               entity = "weather.home";
               show_forecast = true;
             })
-            (optional weatherCfg.showSun {
+            (optional cfg.showSun {
               type = "entities";
               title = "Sun";
               entities = [ "sun.sun" ];

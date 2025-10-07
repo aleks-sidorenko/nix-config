@@ -114,7 +114,7 @@ in
         advanced = {
           log_level = cfg.logLevel;
           pan_id = cfg.advanced.panId;
-          network_key = "!secrets.yaml network_key";
+          network_key = "!secret network_key";
           channel = cfg.advanced.channel;
 
           # Adapter configuration
