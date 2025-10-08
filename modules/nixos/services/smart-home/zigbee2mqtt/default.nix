@@ -25,6 +25,8 @@ in
 
     adapter = mkOpt types.str "auto" "Adapter type for Zigbee coordinator";
 
+    baudrate = mkOpt types.int 115200 "Baud rate for Zigbee coordinator";
+
     dataDir = mkOpt types.str "/var/lib/zigbee2mqtt" "Directory where Zigbee2MQTT stores its data";
 
     webPort =
@@ -48,7 +50,10 @@ in
       "error"
     ]) "info" "Log level for Zigbee2MQTT";
 
-    homeAssistantIntegration = mkBoolOpt true "Enable Home Assistant integration";
+    homeassistant = {
+      enable = mkBoolOpt true "Enable Home Assistant integration";
+      legacy = mkBoolOpt false "Enable legacy Home Assistant integration";
+    };
 
     advanced = {
       panId = mkOpt (types.either types.int (
@@ -90,12 +95,14 @@ in
           base_topic = cfg.mqtt.baseTopic;
           server = cfg.mqtt.server;
           include_device_information = true;
+          version = 5;
         };
 
         # Serial settings for Zigbee coordinator
         serial = {
           port = cfg.device;
           adapter = cfg.adapter;
+          baudrate = cfg.baudrate;
         };
 
         # Frontend settings
@@ -105,7 +112,10 @@ in
         };
 
         # Home Assistant integration
-        homeassistant.enabled = cfg.homeAssistantIntegration;
+        homeassistant = {
+          enable = cfg.homeassistant.enable;
+          legacy = cfg.homeassistant.legacy;
+        };
 
         # Allow new devices to join
         permit_join = cfg.permitJoin;
@@ -113,13 +123,12 @@ in
         # Advanced settings
         advanced = {
           log_level = cfg.logLevel;
+          # log_namespaced_levels = { "z2m:mqtt" = "warning"; };
+
           pan_id = cfg.advanced.panId;
           network_key = "!secret network_key";
           channel = cfg.advanced.channel;
-
-          # Adapter configuration
-          adapter_concurrent = null;
-
+          
           # Transmit power in dBm (default: 5)
           transmit_power = 5;
 
