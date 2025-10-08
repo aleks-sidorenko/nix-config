@@ -23,10 +23,8 @@ in
 
         smart-home = {
           home-assistant = {
-            enable = true;
-            mosquitto = enabled;
-            weather = enabled;
-            zigbee2mqtt = enabled;
+            enable = true;            
+            weather = enabled;            
           };
           mosquitto = enabled;
           zigbee2mqtt = {

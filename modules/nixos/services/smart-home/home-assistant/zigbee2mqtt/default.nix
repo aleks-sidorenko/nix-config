@@ -12,12 +12,11 @@ let
 in
 {
   options.${namespace}.services.smart-home.home-assistant.zigbee2mqtt = {
-    enable = mkEnableOption "Enable zigbee2mqtt integration and dashboard";
-
+    enable = mkBoolOpt config.services.zigbee2mqtt.enable "Enable zigbee2mqtt integration and dashboard";
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
-    ${namespace}.services.smart-home.home-assistant = {
+    services.home-assistant = {
 
       extraComponents = [
         "mqtt"
@@ -25,7 +24,7 @@ in
       ];
 
       # Add zigbee2mqtt view to dashboard
-      views = [
+      lovelaceConfig.views = [
         {
           title = "Settings";
           path = "settings";
@@ -49,8 +48,10 @@ in
         }
       ];
 
-    };
+      config.mqtt = { };
 
+    };
+             
     systemd.services.home-assistant.preStart = ''
       ln -fns ${./zigbee2mqtt.yaml} ${haCfg.dataDir}/packages/zigbee2mqtt.yaml
     '';

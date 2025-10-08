@@ -12,49 +12,46 @@ let
 in
 {
   options.${namespace}.services.smart-home.home-assistant.weather = {
-    enable = mkEnableOption "Enable weather integration and dashboard";
-
-    showForecast = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Show weather forecast on dashboard";
-    };
-
-    showSun = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Show sun rise/set information on dashboard";
-    };
+    enable = mkEnableOption "Enable weather integration and dashboard";    
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
-    ${namespace}.services.smart-home.home-assistant = {
+    services.home-assistant = {
       # Add weather components to Home Assistant
       extraComponents = [
         "met" # Norwegian Meteorological Institute weather
         "sun" # Sun rise/set tracking
+        "moon" # Moon phase tracking
       ];
 
       # Add weather view to dashboard
-      views = [
+      lovelaceConfig.views = [
         {
           title = "Weather";
           path = "weather";
           icon = "mdi:weather-partly-cloudy";
-          cards = lists.flatten [
-            (optional cfg.showForecast {
+          cards = [
+            {
               type = "weather-forecast";
               entity = "weather.forecast_home_2";
               show_forecast = true;
-            })
-            (optional cfg.showSun {
+            }
+            {
               type = "entities";
-              title = "Sun";
+              title = "Sun ";
               entities = [ "sun.sun" ];
-            })
+            }
+            {
+              type = "entities";
+              title = "Moon";
+              entities = [ "moon.phase" ];
+            }
           ];
         }
       ];
+
+      # Enable sun component
+      config.sun = {};        
     };
   };
 }

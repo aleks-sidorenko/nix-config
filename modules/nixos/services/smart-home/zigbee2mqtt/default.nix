@@ -51,8 +51,7 @@ in
     ]) "info" "Log level for Zigbee2MQTT";
 
     homeassistant = {
-      enable = mkBoolOpt true "Enable Home Assistant integration";
-      legacy = mkBoolOpt false "Enable legacy Home Assistant integration";
+      enable = mkBoolOpt config.services.home-assistant.enable "Enable Home Assistant integration";      
     };
 
     advanced = {
@@ -113,8 +112,7 @@ in
 
         # Home Assistant integration
         homeassistant = {
-          enable = cfg.homeassistant.enable;
-          legacy = cfg.homeassistant.legacy;
+          enabled = cfg.homeassistant.enable;          
         };
 
         # Allow new devices to join

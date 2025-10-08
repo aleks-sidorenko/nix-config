@@ -32,7 +32,7 @@ in
     package = mkOpt types.package pkgs.home-assistant "Home Assistant package to use";
 
     mosquitto = {
-      enable = mkEnableOption "Enable Home Assistant integration with Mosquitto";
+      enable = mkBoolOpt config.services.mosquitto.enable "Enable Home Assistant integration with Mosquitto";
     };
 
     extraComponents = mkOpt (types.listOf types.str) [ ] "Extra Home Assistant components to enable";
@@ -160,9 +160,7 @@ in
         # Enable the frontend
         frontend = { };
         # Enable configuration UI
-        config = { };
-        # Enable sun component
-        sun = {};        
+        config = { };        
 
         lovelace.mode = "yaml"; # use yaml mode for lovelace config
 
@@ -212,11 +210,7 @@ in
       "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
     ];
 
-    # Ensure Home Assistant starts after MQTT if enabled
-    systemd.services.home-assistant = mkIf cfg.mosquitto.enable {
-      after = [ "mosquitto.service" ];
-      wants = [ "mosquitto.service" ];
-
+    systemd.services.home-assistant = {
       preStart = ''
         # Create secrets.yaml file that Home Assistant can reference
         # Read the latitude and longitude from sops and write to secrets.yaml
@@ -232,6 +226,9 @@ in
         User = mkForce cfg.user;
         Group = mkForce cfg.group;
       };
+    } // mkIf cfg.mosquitto.enable {
+      after = [ "mosquitto.service" ];
+      wants = [ "mosquitto.service" ];
     };
 
     # Add packages to system
