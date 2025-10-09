@@ -9,6 +9,29 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.zigbee2mqtt;
+  
+  devices = config.${namespace}.services.smart-home.devices.all;
+
+  zigbeeDevices = {} //
+    builtins.listToAttrs ( 
+      (
+        map (v: { name = "${v.ieee}"; value = { 
+          ieee = v.ieee;          
+          zone = v.zone.zone;
+          type = v.type;
+          name = v.name;
+          floor = v.zone.floor;
+          friendly_name = v.friendly_name;
+          homeassistant = v.homeassistant // {
+            update = null;
+            expire_after = 3600;
+            object_id = "${v.zone.name}_${v.type}_${v.name}";
+            device.suggested_area = "${v.zone.name}";
+          };
+        };})
+      )
+      devices
+    );
 
 in
 {
@@ -91,8 +114,11 @@ in
       settings = {
         # MQTT settings
         mqtt = {
+          
           base_topic = cfg.mqtt.baseTopic;
           server = cfg.mqtt.server;
+          user = "zigbee2mqtt";
+          password = "!secret password";          
           include_device_information = true;
           version = 5;
         };
@@ -144,6 +170,15 @@ in
           legacy = false;
           retain = true;
         };
+
+        # Devices from the devices module
+        devices = zigbeeDevices;
+
+        # External converters
+        external_converters = [ ];
+
+        # Availability
+        availability = true;
       };
     };
 
@@ -166,6 +201,14 @@ in
 
     # Configure SOPS secret for network key
     sops.secrets."service-zigbee2mqtt-network-key" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0440";
+      restartUnits = [ "zigbee2mqtt.service" ];
+    };
+    
+    sops.secrets."service-zigbee2mqtt-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
       group = cfg.group;
@@ -205,6 +248,9 @@ in
         echo "network_key: $(cat ${
           config.sops.secrets."service-zigbee2mqtt-network-key".path
         })" > "${cfg.dataDir}/secrets.yaml"
+        echo "password: $(cat ${
+          config.sops.secrets."service-zigbee2mqtt-password".path
+        })" >> "${cfg.dataDir}/secrets.yaml"
       '';
 
       serviceConfig = {

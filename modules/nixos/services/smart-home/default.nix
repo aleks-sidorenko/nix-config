@@ -8,7 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home;
-  enabled = config.${namespace}.services.smart-home.home-assistant.enable;
+  enabled = cfg.home-assistant.enable || cfg.zigbee2mqtt.enable;
 
 in
 {

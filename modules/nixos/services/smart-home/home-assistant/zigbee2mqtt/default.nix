@@ -48,7 +48,7 @@ in
         }
       ];
 
-      config.mqtt = { };
+      config.mqtt = {};
 
     };
              

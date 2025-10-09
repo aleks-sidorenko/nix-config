@@ -13,7 +13,6 @@
           entities = [
             "sun.sun"
             "sensor.time"
-            "sensor.date"
           ];
         }
         {

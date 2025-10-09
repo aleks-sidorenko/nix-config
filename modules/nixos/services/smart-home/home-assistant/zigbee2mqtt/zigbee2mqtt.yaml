@@ -71,7 +71,7 @@ timer:
     name: Time remaining
     duration: 254
 
-mqtt:
+mqtt:  
   sensor:
     # Sensor for monitoring the bridge state
     - name: Zigbee2MQTT Bridge state
