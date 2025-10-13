@@ -16,7 +16,7 @@ let
       options = {
         floor = mkOption {
           type = types.enum [
-            "garden"
+            "outdoors"
             "basement"
             "floor1"
             "floor2"
@@ -26,28 +26,29 @@ let
 
         zone = mkOption {
           type = types.enum [
+            "bath"
+            "bedroom"
             "boiler"
-            "kitchen"
-            "living"
+            "garage"
+            "guest"
             "hall"
             "kids"
-            "guest"
-            "toilet"
-            "shower"
-            "bath"
-            "office"
-            "bedroom"
-            "garage"
+            "kitchen"
             "laundry"
-            "wardrobe"
+            "living"
             "main"
+            "office"
+            "shower"
+            "terrace"
+            "toilet"
+            "wardrobe"
           ];
           description = "Zone type/room designation";
         };
 
-        name = mkOption {
+        id = mkOption {
           type = types.str;
-          default = "${config.floor}_${config.zone}";
+          default = mkId [ config.floor config.zone ];
           readOnly = true;
           description = "Unique name/identifier for the zone (automatically derived as floor_zone)";
         };
@@ -55,7 +56,7 @@ let
         friendly_name = mkOption {
           type = types.str;
           readOnly = true;
-          default = "${config.floor}/${config.zone}";
+          default = mkFriendlyName [ config.floor config.zone ];
           description = "Human-readable name for the zone";
         };
       };
@@ -88,6 +89,12 @@ in
             zone = "living";
           };
 
+
+          floor2_bath = {
+            floor = "floor2";
+            zone = "bath";
+          };
+
           floor2_bedroom = {
             floor = "floor2";
             zone = "bedroom";
@@ -98,6 +105,11 @@ in
             zone = "office";
           };
 
+          floor2_shower = {
+            floor = "floor2";
+            zone = "shower";
+          };
+
         }
       '';
     };
@@ -105,10 +117,21 @@ in
 
   config = {
     ${namespace}.services.smart-home.zones.all = mkDefault {
+      # Outdoor zones
+      outdoors_terrace = {
+        floor = "outdoors";
+        zone = "terrace";
+      };
+
       # Basement zones
-      basement_hall = {
+      basement_boiler = {
         floor = "basement";
-        zone = "hall";
+        zone = "boiler";
+      };
+
+      basement_main = {
+        floor = "basement";
+        zone = "main";
       };
 
       # First floor zones
@@ -131,10 +154,30 @@ in
         floor = "floor1";
         zone = "garage";
       };
+      floor1_laundry = {
+        floor = "floor1";
+        zone = "laundry";
+      };
+      
+      
+      floor2_bath = {
+        floor = "floor2";
+        zone = "bath";
+      };
+
+      floor2_kids = {
+        floor = "floor2";
+        zone = "kids";
+      };
 
       floor2_office = {
         floor = "floor2";
         zone = "office";
+      };
+
+      floor2_shower = {
+        floor = "floor2";
+        zone = "shower";
       };
     };
   };

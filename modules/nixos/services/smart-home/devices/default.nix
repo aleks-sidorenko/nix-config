@@ -27,11 +27,18 @@ let
           default = zones.${config.zoneName};
           description = "Zone attribute set (derived from zoneName)";
         };
+        
+        id = mkOption {
+          type = types.str;
+          default = mkId [ config.zone.id config.type config.name ];
+          description = "Unique name/identifier for the device inside the zone";
+          example = "floor1_living_temperature_main";
+        };
 
         name = mkOption {
           type = types.str;
-          description = "Unique name/identifier for the device";
-          example = "raam_zuid";
+          description = "Unique name/identifier for the device inside the zone";
+          example = "main";
         };
 
         ieee = mkOption {
@@ -45,6 +52,7 @@ let
             "temperature"
             "button"
             "plug"
+            "router"
           ];
           description = "Type of the device";
           example = "temperature";
@@ -52,7 +60,7 @@ let
 
         friendly_name = mkOption {
           type = types.str;
-          default = "${config.zone.friendly_name}/${config.type}/${config.name}";
+          default =  mkFriendlyName [ config.zone.friendly_name config.type config.name ];
           description = "Human-readable name for the device";
         };
 
@@ -114,10 +122,25 @@ in
       }
 
       {
+        zoneName = "floor1_toilet";
+        name = "main";
+        type = "router";
+        ieee = "0xe0798dfffe839bdd";
+      }
+
+      {
         zoneName = "floor2_office";
         name = "sensor";
         type = "temperature";
         ieee = "0x00158d0007e496fc";
+
+      }
+      
+      {
+        zoneName = "floor2_shower";
+        name = "sensor";
+        type = "temperature";
+        ieee = "0x00158d0007ed749e";
 
       }
     ];

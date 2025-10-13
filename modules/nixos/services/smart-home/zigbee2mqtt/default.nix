@@ -25,8 +25,8 @@ let
           homeassistant = v.homeassistant // {
             update = null;
             expire_after = 3600;
-            object_id = "${v.zone.name}_${v.type}_${v.name}";
-            device.suggested_area = "${v.zone.name}";
+            object_id = v.id;
+            device.suggested_area = v.zone.friendly_name;
           };
         };})
       )
@@ -116,9 +116,7 @@ in
         mqtt = {
           
           base_topic = cfg.mqtt.baseTopic;
-          server = cfg.mqtt.server;
-          user = "zigbee2mqtt";
-          password = "!secret password";          
+          server = cfg.mqtt.server;          
           include_device_information = true;
           version = 5;
         };
@@ -207,15 +205,7 @@ in
       mode = "0440";
       restartUnits = [ "zigbee2mqtt.service" ];
     };
-    
-    sops.secrets."service-zigbee2mqtt-password" = {
-      sopsFile = ../../../secrets.yaml;
-      owner = cfg.user;
-      group = cfg.group;
-      mode = "0440";
-      restartUnits = [ "zigbee2mqtt.service" ];
-    };
-
+        
     # Ensure data directory exists with correct permissions
     # Create empty YAML files for secrets.yaml if it doesn't exist
     systemd.tmpfiles.rules = [
@@ -247,10 +237,7 @@ in
         # Read the network key from sops and write to secrets.yaml
         echo "network_key: $(cat ${
           config.sops.secrets."service-zigbee2mqtt-network-key".path
-        })" > "${cfg.dataDir}/secrets.yaml"
-        echo "password: $(cat ${
-          config.sops.secrets."service-zigbee2mqtt-password".path
-        })" >> "${cfg.dataDir}/secrets.yaml"
+        })" > "${cfg.dataDir}/secrets.yaml"        
       '';
 
       serviceConfig = {

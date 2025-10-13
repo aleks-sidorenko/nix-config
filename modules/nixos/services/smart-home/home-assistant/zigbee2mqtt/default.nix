@@ -9,6 +9,25 @@ with lib.${namespace};
 let
   haCfg = config.${namespace}.services.smart-home.home-assistant;
   cfg = haCfg.zigbee2mqtt;
+  
+  # Get all temperature sensors from devices
+  devices = config.${namespace}.services.smart-home.devices.all;
+  temperatureSensors = builtins.filter (d: d.type == "temperature") devices;
+  
+  # Generate entity IDs for temperature and humidity sensors
+  mkTemperatureEntities = device: [
+    {
+      entity = "sensor.${device.id}_temperature";
+      name = mkFriendlyName [ device.zone.friendly_name "Temperature"];
+    }
+    {
+      entity = "sensor.${device.id}_humidity";
+      name = mkFriendlyName [ device.zone.friendly_name "Humidity"];
+    }
+  ];
+  
+  # Flatten the list of all temperature/humidity entities
+  temperatureEntities = builtins.concatMap mkTemperatureEntities temperatureSensors;
 in
 {
   options.${namespace}.services.smart-home.home-assistant.zigbee2mqtt = {
@@ -23,7 +42,7 @@ in
         "zha" # not used, but causes error if missing
       ];
 
-      # Add zigbee2mqtt view to dashboard
+      # Add zigbee2mqtt views to dashboard
       lovelaceConfig.views = [
         {
           title = "Settings";
@@ -46,7 +65,33 @@ in
             }
           ];
         }
-      ];
+      ] ++ (optionals (temperatureEntities != []) [
+        {
+          title = "Temperature";
+          path = "temperature";
+          icon = "mdi:thermometer";
+          cards = [
+            {
+              type = "entities";
+              title = "Temperature & Humidity Sensors";
+              show_header_toggle = false;
+              entities = temperatureEntities;
+            }
+            {
+              type = "history-graph";
+              title = "Temperature History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) (builtins.filter (e: lib.hasSuffix "_temperature" e.entity) temperatureEntities);
+            }
+            {
+              type = "history-graph";
+              title = "Humidity History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) (builtins.filter (e: lib.hasSuffix "_humidity" e.entity) temperatureEntities);
+            }
+          ];
+        }
+      ]);
 
       config.mqtt = {};
 
