@@ -135,9 +135,19 @@ in
       };
 
       # First floor zones
+      floor1_garage = {
+        floor = "floor1";
+        zone = "garage";
+      };
+
       floor1_kitchen = {
         floor = "floor1";
         zone = "kitchen";
+      };
+
+      floor1_laundry = {
+        floor = "floor1";
+        zone = "laundry";
       };
 
       floor1_living = {
@@ -150,16 +160,8 @@ in
         zone = "toilet";
       };
 
-      floor1_garage = {
-        floor = "floor1";
-        zone = "garage";
-      };
-      floor1_laundry = {
-        floor = "floor1";
-        zone = "laundry";
-      };
-      
-      
+            
+      # Second floor zones
       floor2_bath = {
         floor = "floor2";
         zone = "bath";

@@ -14,5 +14,5 @@ with lib;
           (lib.strings.toUpper (builtins.substring 0 1 str)) +
           (builtins.substring 1 (builtins.stringLength str) str);
     in
-    lib.strings.concatStringsSep " / " (map capitalize parts);
+    lib.strings.concatStringsSep "/" (map capitalize parts);
 }

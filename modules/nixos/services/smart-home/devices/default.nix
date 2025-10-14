@@ -114,11 +114,33 @@ in
 
   config = {
     ${namespace}.services.smart-home.devices.all = mkDefault [
+      
+{
+        zoneName = "outdoors_terrace";
+        name = "sensor";
+        type = "temperature";
+        ieee = "0x00158d0007e48b04";
+      }
+
+      {
+        zoneName = "basement_boiler";
+        name = "sensor";
+        type = "temperature";
+        ieee = "0x00158d0007e48df4";
+      }
+
       {
         zoneName = "floor1_garage";
         name = "sensor";
         type = "temperature";
         ieee = "0x00158d0007e48b59";
+      }
+
+      {
+        zoneName = "floor1_kitchen";
+        name = "sensor";
+        type = "temperature";
+        ieee = "0x00158d0007e48b1c";
       }
 
       {
