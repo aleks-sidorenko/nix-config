@@ -18,11 +18,11 @@ let
   mkTemperatureEntities = device: [
     {
       entity = "sensor.${device.id}_temperature";
-      name = mkFriendlyName [ device.zone.friendly_name "Temperature"];
+      name = mkFriendlyName [ device.zone.friendly_name "temperature"];
     }
     {
       entity = "sensor.${device.id}_humidity";
-      name = mkFriendlyName [ device.zone.friendly_name "Humidity"];
+      name = mkFriendlyName [ device.zone.friendly_name "humidity"];
     }
   ];
   

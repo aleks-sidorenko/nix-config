@@ -130,6 +130,13 @@ in
       }
 
       {
+        zoneName = "basement_boiler";
+        name = "boiler";
+        type = "plug";
+        ieee = "0x00124b0026b7f92c";
+      }
+
+      {
         zoneName = "floor1_garage";
         name = "sensor";
         type = "temperature";
@@ -142,6 +149,14 @@ in
         type = "temperature";
         ieee = "0x00158d0007e48b1c";
       }
+
+      {
+        zoneName = "floor1_living";
+        name = "tv";
+        type = "plug";
+        ieee = "0x00124b002b48733f";
+      }
+
 
       {
         zoneName = "floor1_toilet";
