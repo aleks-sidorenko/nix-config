@@ -37,6 +37,30 @@ let
     }
   ];
   
+  # Group temperature sensors by zone with section headers
+  groupSensorsByZone = sensors:
+    let
+      # Sort sensors by floor first, then by zone
+      sortedSensors = builtins.sort (a: b: 
+        if a.zone.floor == b.zone.floor 
+        then a.zone.zone < b.zone.zone
+        else a.zone.floor < b.zone.floor
+      ) sensors;
+      
+      # Get unique zone IDs in sorted order
+      zoneIds = lib.unique (map (s: s.zone.id) sortedSensors);
+      
+      # Create entities list with zone section headers
+      mkZoneEntities = zoneId:
+        let
+          zoneSensors = builtins.filter (s: s.zone.id == zoneId) sortedSensors;
+          firstSensor = builtins.head zoneSensors;
+          entities = builtins.concatMap mkTemperatureEntities zoneSensors;
+        in
+        [ { type = "section"; label = firstSensor.zone.friendly_name; } ] ++ entities;
+    in
+    builtins.concatMap mkZoneEntities zoneIds;
+  
   # Flatten the list of all temperature/humidity entities
   temperatureEntities = builtins.concatMap mkTemperatureEntities temperatureSensors;
   
@@ -79,7 +103,7 @@ in
             }
           ];
         }
-      ] ++ (optionals (temperatureEntities != []) [
+      ] ++ (optionals (temperatureSensors != []) [
         {
           title = "Temperature";
           path = "temperature";
@@ -89,7 +113,7 @@ in
               type = "entities";
               title = "Temperature & Humidity Sensors";
               show_header_toggle = false;
-              entities = temperatureEntities;
+              entities = groupSensorsByZone temperatureSensors;
             }
             {
               type = "history-graph";
