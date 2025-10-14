@@ -10,9 +10,12 @@ let
   haCfg = config.${namespace}.services.smart-home.home-assistant;
   cfg = haCfg.zigbee2mqtt;
   
-  # Get all temperature sensors from devices
+  # Get all devices
   devices = config.${namespace}.services.smart-home.devices.all;
+  
+  # Filter devices by type
   temperatureSensors = builtins.filter (d: d.type == "temperature") devices;
+  plugs = builtins.filter (d: d.type == "plug") devices;
   
   # Generate entity IDs for temperature and humidity sensors
   mkTemperatureEntities = device: [
@@ -26,8 +29,19 @@ let
     }
   ];
   
+  # Generate entity IDs for plugs
+  mkPlugEntities = device: [
+    {
+      entity = "switch.${device.id}";
+      name = device.friendly_name;
+    }
+  ];
+  
   # Flatten the list of all temperature/humidity entities
   temperatureEntities = builtins.concatMap mkTemperatureEntities temperatureSensors;
+  
+  # Flatten the list of all plug entities
+  plugEntities = builtins.concatMap mkPlugEntities plugs;
 in
 {
   options.${namespace}.services.smart-home.home-assistant.zigbee2mqtt = {
@@ -88,6 +102,26 @@ in
               title = "Humidity History";
               hours_to_show = 24;
               entities = map (e: e.entity) (builtins.filter (e: lib.hasSuffix "_humidity" e.entity) temperatureEntities);
+            }
+          ];
+        }
+      ]) ++ (optionals (plugEntities != []) [
+        {
+          title = "Plugs";
+          path = "plugs";
+          icon = "mdi:power-plug";
+          cards = [
+            {
+              type = "entities";
+              title = "Smart Plugs";
+              show_header_toggle = true;
+              entities = plugEntities;
+            }
+            {
+              type = "history-graph";
+              title = "Plug State History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) plugEntities;
             }
           ];
         }

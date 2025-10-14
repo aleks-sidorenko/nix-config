@@ -8,6 +8,11 @@
       icon = "mdi:home";
       cards = [
         {
+          type = "weather-forecast";
+          entity = "weather.forecast_home_2";
+          show_forecast = true;
+        }
+        {
           type = "entities";
           title = "System Information";
           entities = [

@@ -44,7 +44,7 @@ in
             {
               type = "entities";
               title = "Moon";
-              entities = [ "moon.phase" ];
+              entities = [ "sensor.moon" ];
             }
           ];
         }
