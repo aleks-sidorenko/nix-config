@@ -16,6 +16,7 @@ let
   # Filter devices by type
   temperatureSensors = builtins.filter (d: d.type == "temperature") devices;
   plugs = builtins.filter (d: d.type == "plug") devices;
+  switches = builtins.filter (d: d.type == "switch") devices;
   
   # Generate entity IDs for temperature and humidity sensors
   mkTemperatureEntities = device: [
@@ -31,6 +32,14 @@ let
   
   # Generate entity IDs for plugs
   mkPlugEntities = device: [
+    {
+      entity = "switch.${device.id}";
+      name = device.friendly_name;
+    }
+  ];
+  
+  # Generate entity IDs for switches
+  mkSwitchEntities = device: [
     {
       entity = "switch.${device.id}";
       name = device.friendly_name;
@@ -66,6 +75,9 @@ let
   
   # Flatten the list of all plug entities
   plugEntities = builtins.concatMap mkPlugEntities plugs;
+  
+  # Flatten the list of all switch entities
+  switchEntities = builtins.concatMap mkSwitchEntities switches;
 in
 {
   options.${namespace}.services.smart-home.home-assistant.zigbee2mqtt = {
@@ -146,6 +158,26 @@ in
               title = "Plug State History";
               hours_to_show = 24;
               entities = map (e: e.entity) plugEntities;
+            }
+          ];
+        }
+      ]) ++ (optionals (switchEntities != []) [
+        {
+          title = "Switches";
+          path = "switches";
+          icon = "mdi:toggle-switch";
+          cards = [
+            {
+              type = "entities";
+              title = "Switches";
+              show_header_toggle = true;
+              entities = switchEntities;
+            }
+            {
+              type = "history-graph";
+              title = "Switch State History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) switchEntities;
             }
           ];
         }

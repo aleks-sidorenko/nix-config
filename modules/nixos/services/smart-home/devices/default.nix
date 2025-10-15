@@ -48,11 +48,12 @@ let
         };
 
         type = mkOption {
-          type = types.enum [
-            "temperature"
+          type = types.enum [            
             "button"
             "plug"
             "router"
+            "switch"
+            "temperature"
           ];
           description = "Type of the device";
           example = "temperature";
@@ -178,6 +179,13 @@ in
         name = "sensor";
         type = "temperature";
         ieee = "0x00158d0007ed749e";
+      }
+
+      {
+        zoneName = "floor2_shower";
+        name = "fan";
+        type = "switch";
+        ieee = "0xe0798dfffec9b072";
 
       }
     ];
