@@ -39,6 +39,8 @@ in
 
     views = mkOpt (types.listOf types.attrs) [ ] "Lovelace dashboard views";
 
+    secrets = mkOpt (types.attrsOf types.path) { } "Secrets to be written to secrets.yaml (name -> sops secret path)";
+
     config = {
       bindAddress = mkOption {
         type = types.str;
@@ -106,7 +108,14 @@ in
         };
       };
 
+
       smart-home.home-assistant = {
+        # Register base secrets
+        secrets = {
+          latitude = config.sops.secrets."service-home-assistant-latitude".path;
+          longitude = config.sops.secrets."service-home-assistant-longitude".path;
+        };
+              
         extraComponents = [          
           "default_config"
           "device_tracker"
@@ -211,16 +220,20 @@ in
     ];
 
     systemd.services.home-assistant = {
-      preStart = ''
-        # Create secrets.yaml file that Home Assistant can reference
-        # Read the latitude and longitude from sops and write to secrets.yaml
-        echo "latitude: $(cat ${
-          config.sops.secrets."service-home-assistant-latitude".path
-        })" > "${cfg.dataDir}/secrets.yaml"
-        echo "longitude: $(cat ${
-          config.sops.secrets."service-home-assistant-longitude".path
-        })" >> "${cfg.dataDir}/secrets.yaml"
-      '';
+      preStart = 
+        let
+          # Generate secret write commands from the secrets attribute set
+          secretCommands = lib.concatStringsSep "\n" (
+            lib.mapAttrsToList (name: secretPath: 
+              ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
+            ) cfg.secrets
+          );
+        in ''
+          # Create secrets.yaml file that Home Assistant can reference
+          # Clear existing file and write all secrets
+          : > "${cfg.dataDir}/secrets.yaml"
+          ${secretCommands}
+        '';
 
       serviceConfig = {
         User = mkForce cfg.user;
