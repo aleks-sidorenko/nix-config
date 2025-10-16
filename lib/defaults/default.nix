@@ -79,6 +79,9 @@ rec {
         mqtt = {
           broker = 1883;
         };
+        minecraft = {
+          server = 25565;
+        };
       };
     };
   };

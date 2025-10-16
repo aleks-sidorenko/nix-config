@@ -24,6 +24,7 @@ with lib.${namespace};
       server = enabled;
       media-server = enabled;
       smart-home = enabled;
+      gaming-server = enabled;
     };
 
     hardware.raspberry-pi-4 = enabled;
