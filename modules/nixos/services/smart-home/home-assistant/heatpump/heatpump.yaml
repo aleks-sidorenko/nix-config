@@ -1,0 +1,120 @@
+# Heatpump integration via ThingSpeak
+
+# Input text to store API credentials (populated from secrets)
+input_text:
+  thingspeak_api_key:
+    name: ThingSpeak API Key
+    initial: !secret thingspeak_api_key
+    mode: password
+  
+  thingspeak_channel:
+    name: ThingSpeak Channel
+    initial: !secret thingspeak_channel
+
+# REST command to update heatpump temperatures
+rest_command:
+  heatpump_update:
+    url: "https://api.thingspeak.com/update.json?api_key={{ states('input_text.thingspeak_api_key') }}&field2={{ temp_from }}&field3={{ temp_to }}"
+    method: GET
+
+# Sensors to track heatpump status
+sensor:
+  - platform: rest
+    name: heatpump_data
+    resource_template: "https://api.thingspeak.com/channels/{{ states('input_text.thingspeak_channel') }}/feeds.json?results=1"
+    method: GET
+    scan_interval: 300  # Update every 5 minutes
+    value_template: "{{ value_json.feeds[0].entry_id if value_json.feeds else 'unavailable' }}"
+    json_attributes:
+      - feeds
+
+# Template sensors (modern format)
+template:
+  - sensor:
+      - name: "Heatpump Temperature From"
+        unique_id: heatpump_temp_from
+        unit_of_measurement: "°C"
+        state: >
+          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
+          {% if feeds and feeds | length > 0 %}
+            {{ feeds[0].field2 | float(0) }}
+          {% else %}
+            0
+          {% endif %}
+      
+      - name: "Heatpump Temperature To"
+        unique_id: heatpump_temp_to
+        unit_of_measurement: "°C"
+        state: >
+          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
+          {% if feeds and feeds | length > 0 %}
+            {{ feeds[0].field3 | float(0) }}
+          {% else %}
+            0
+          {% endif %}
+      
+      - name: "Heatpump Last Update"
+        unique_id: heatpump_last_update
+        state: >
+          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
+          {% if feeds and feeds | length > 0 %}
+            {{ feeds[0].created_at }}
+          {% else %}
+            unavailable
+          {% endif %}
+        device_class: timestamp
+      
+      - name: "Heatpump Status"
+        unique_id: heatpump_status
+        state: >
+          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
+          {% if feeds and feeds | length > 0 %}
+            {% set temp_from = feeds[0].field2 | float(0) %}
+            {% set temp_to = feeds[0].field3 | float(0) %}
+            {% if temp_from > 0 and temp_to > 0 %}
+              {{ temp_from }}°C - {{ temp_to }}°C
+            {% else %}
+              Unknown
+            {% endif %}
+          {% else %}
+            Unknown
+          {% endif %}
+
+# Automations for scheduled temperature changes
+automation:
+  # Morning schedule: 7:00 AM - Set to 15-18°C
+  - id: heatpump_morning_schedule
+    alias: "Heatpump: Morning Schedule"
+    description: "Set heatpump temperatures to 15-18°C at 7:00 AM"
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      - service: rest_command.heatpump_update
+        data:
+          temp_from: 15
+          temp_to: 18
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Morning schedule activated: 15°C - 18°C"
+    mode: single
+
+  # Night schedule: 11:00 PM - Set to 23-28°C
+  - id: heatpump_night_schedule
+    alias: "Heatpump: Night Schedule"
+    description: "Set heatpump temperatures to 23-28°C at 11:00 PM"
+    trigger:
+      - platform: time
+        at: "23:00:00"
+    action:
+      - service: rest_command.heatpump_update
+        data:
+          temp_from: 23
+          temp_to: 28
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Night schedule activated: 23°C - 28°C"
+    mode: single
+

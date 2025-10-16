@@ -20,6 +20,7 @@ rec {
         "ua"
         "ru"
       ];
+
       timeZone = "Europe/Kyiv";
     };
 
@@ -68,6 +69,15 @@ rec {
         };
         prowlarr = {
           web = 9696;
+        };
+        home-assistant = {
+          web = 8123;
+        };
+        zigbee2mqtt = {
+          web = 8099;
+        };
+        mqtt = {
+          broker = 1883;
         };
       };
     };
