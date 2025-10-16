@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.services.smart-home.home-assistant.weather = {
-    enable = mkEnableOption "Enable weather integration and dashboard";    
+    enable = mkEnableOption "Enable weather integration and dashboard";
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
@@ -51,7 +51,7 @@ in
       ];
 
       # Enable sun component
-      config.sun = {};        
+      config.sun = { };
     };
   };
 }

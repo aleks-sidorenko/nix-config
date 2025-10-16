@@ -9,14 +9,16 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.zigbee2mqtt;
-  
+
   devices = config.${namespace}.services.smart-home.devices.all;
 
-  zigbeeDevices = {} //
-    builtins.listToAttrs ( 
-      (
-        map (v: { name = "${v.ieee}"; value = { 
-          ieee = v.ieee;          
+  zigbeeDevices =
+    { }
+    // builtins.listToAttrs (
+      (map (v: {
+        name = "${v.ieee}";
+        value = {
+          ieee = v.ieee;
           zone = v.zone.zone;
           type = v.type;
           name = v.name;
@@ -28,9 +30,9 @@ let
             object_id = v.id;
             device.suggested_area = v.zone.friendly_name;
           };
-        };})
-      )
-      devices
+        };
+      }))
+        devices
     );
 
 in
@@ -74,7 +76,7 @@ in
     ]) "info" "Log level for Zigbee2MQTT";
 
     homeassistant = {
-      enable = mkBoolOpt config.services.home-assistant.enable "Enable Home Assistant integration";      
+      enable = mkBoolOpt config.services.home-assistant.enable "Enable Home Assistant integration";
     };
 
     advanced = {
@@ -114,9 +116,9 @@ in
       settings = {
         # MQTT settings
         mqtt = {
-          
+
           base_topic = cfg.mqtt.baseTopic;
-          server = cfg.mqtt.server;          
+          server = cfg.mqtt.server;
           include_device_information = true;
           version = 5;
         };
@@ -136,7 +138,7 @@ in
 
         # Home Assistant integration
         homeassistant = {
-          enabled = cfg.homeassistant.enable;          
+          enabled = cfg.homeassistant.enable;
         };
 
         # Allow new devices to join
@@ -150,7 +152,7 @@ in
           pan_id = cfg.advanced.panId;
           network_key = "!secret network_key";
           channel = cfg.advanced.channel;
-          
+
           # Transmit power in dBm (default: 5)
           transmit_power = 5;
 
@@ -182,7 +184,7 @@ in
 
     # Grant access to serial devices for Zigbee
     services.udev.extraRules = ''
-    
+
       # Sonoff Zigbee 3.0 USB Dongle Plus
       SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE="0660", GROUP="dialout", SYMLINK+="zigbee"
 
@@ -205,7 +207,7 @@ in
       mode = "0440";
       restartUnits = [ "zigbee2mqtt.service" ];
     };
-        
+
     # Ensure data directory exists with correct permissions
     # Create empty YAML files for secrets.yaml if it doesn't exist
     systemd.tmpfiles.rules = [

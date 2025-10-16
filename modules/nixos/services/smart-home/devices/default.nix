@@ -27,10 +27,14 @@ let
           default = zones.${config.zoneName};
           description = "Zone attribute set (derived from zoneName)";
         };
-        
+
         id = mkOption {
           type = types.str;
-          default = mkId [ config.zone.id config.type config.name ];
+          default = mkId [
+            config.zone.id
+            config.type
+            config.name
+          ];
           description = "Unique name/identifier for the device inside the zone";
           example = "floor1_living_temperature_main";
         };
@@ -48,7 +52,7 @@ let
         };
 
         type = mkOption {
-          type = types.enum [            
+          type = types.enum [
             "button"
             "plug"
             "router"
@@ -61,7 +65,11 @@ let
 
         friendly_name = mkOption {
           type = types.str;
-          default =  mkFriendlyName [ config.zone.friendly_name config.type config.name ];
+          default = mkFriendlyName [
+            config.zone.friendly_name
+            config.type
+            config.name
+          ];
           description = "Human-readable name for the device";
         };
 
@@ -115,8 +123,8 @@ in
 
   config = {
     ${namespace}.services.smart-home.devices.all = mkDefault [
-      
-{
+
+      {
         zoneName = "outdoors_terrace";
         name = "sensor";
         type = "temperature";
@@ -158,7 +166,6 @@ in
         ieee = "0x00124b002b48733f";
       }
 
-
       {
         zoneName = "floor1_toilet";
         name = "main";
@@ -173,7 +180,7 @@ in
         ieee = "0x00158d0007e496fc";
 
       }
-      
+
       {
         zoneName = "floor2_shower";
         name = "sensor";

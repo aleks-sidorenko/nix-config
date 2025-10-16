@@ -48,7 +48,10 @@ let
 
         id = mkOption {
           type = types.str;
-          default = mkId [ config.floor config.zone ];
+          default = mkId [
+            config.floor
+            config.zone
+          ];
           readOnly = true;
           description = "Unique name/identifier for the zone (automatically derived as floor_zone)";
         };
@@ -56,7 +59,10 @@ let
         friendly_name = mkOption {
           type = types.str;
           readOnly = true;
-          default = mkFriendlyName [ config.floor config.zone ];
+          default = mkFriendlyName [
+            config.floor
+            config.zone
+          ];
           description = "Human-readable name for the zone";
         };
       };
@@ -160,7 +166,6 @@ in
         zone = "toilet";
       };
 
-            
       # Second floor zones
       floor2_bath = {
         floor = "floor2";

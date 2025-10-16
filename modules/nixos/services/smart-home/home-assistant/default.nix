@@ -39,7 +39,9 @@ in
 
     views = mkOpt (types.listOf types.attrs) [ ] "Lovelace dashboard views";
 
-    secrets = mkOpt (types.attrsOf types.path) { } "Secrets to be written to secrets.yaml (name -> sops secret path)";
+    secrets =
+      mkOpt (types.attrsOf types.path) { }
+        "Secrets to be written to secrets.yaml (name -> sops secret path)";
 
     config = {
       bindAddress = mkOption {
@@ -108,15 +110,14 @@ in
         };
       };
 
-
       smart-home.home-assistant = {
         # Register base secrets
         secrets = {
           latitude = config.sops.secrets."service-home-assistant-latitude".path;
           longitude = config.sops.secrets."service-home-assistant-longitude".path;
         };
-              
-        extraComponents = [          
+
+        extraComponents = [
           "default_config"
           "device_tracker"
           "esphome"
@@ -164,12 +165,12 @@ in
         };
 
         # Enable default config
-        default_config = {};
+        default_config = { };
 
         # Enable the frontend
         frontend = { };
         # Enable configuration UI
-        config = { };        
+        config = { };
 
         lovelace.mode = "yaml"; # use yaml mode for lovelace config
 
@@ -219,30 +220,33 @@ in
       "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
     ];
 
-    systemd.services.home-assistant = {
-      preStart = 
-        let
-          # Generate secret write commands from the secrets attribute set
-          secretCommands = lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (name: secretPath: 
-              ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
-            ) cfg.secrets
-          );
-        in ''
-          # Create secrets.yaml file that Home Assistant can reference
-          # Clear existing file and write all secrets
-          : > "${cfg.dataDir}/secrets.yaml"
-          ${secretCommands}
-        '';
+    systemd.services.home-assistant =
+      {
+        preStart =
+          let
+            # Generate secret write commands from the secrets attribute set
+            secretCommands = lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (
+                name: secretPath: ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
+              ) cfg.secrets
+            );
+          in
+          ''
+            # Create secrets.yaml file that Home Assistant can reference
+            # Clear existing file and write all secrets
+            : > "${cfg.dataDir}/secrets.yaml"
+            ${secretCommands}
+          '';
 
-      serviceConfig = {
-        User = mkForce cfg.user;
-        Group = mkForce cfg.group;
+        serviceConfig = {
+          User = mkForce cfg.user;
+          Group = mkForce cfg.group;
+        };
+      }
+      // mkIf cfg.mosquitto.enable {
+        after = [ "mosquitto.service" ];
+        wants = [ "mosquitto.service" ];
       };
-    } // mkIf cfg.mosquitto.enable {
-      after = [ "mosquitto.service" ];
-      wants = [ "mosquitto.service" ];
-    };
 
     # Add packages to system
     environment.systemPackages = with pkgs; [
