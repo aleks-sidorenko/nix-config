@@ -16,6 +16,66 @@ rest_command:
   heatpump_update:
     url: "https://api.thingspeak.com/update.json?api_key={{ states('input_text.thingspeak_api_key') }}&field2={{ temp_from }}&field3={{ temp_to }}"
     method: GET
+    timeout: 10
+
+# Retry-capable script to update heatpump temperatures
+script:
+  heatpump_update_with_retry:
+    alias: "Heatpump: Update with retry"
+    mode: single
+    fields:
+      temp_from:
+        description: "Lower temperature"
+        example: 15
+      temp_to:
+        description: "Upper temperature"
+        example: 18
+      attempts:
+        description: "Number of attempts"
+        example: 3
+        default: 3
+      delay_seconds:
+        description: "Delay between attempts"
+        example: 2
+        default: 2
+    sequence:
+      - variables:
+          attempt: 1
+      - repeat:
+          while: "{{ attempt <= attempts }}"
+          sequence:
+            - service: rest_command.heatpump_update
+              data:
+                temp_from: "{{ temp_from }}"
+                temp_to: "{{ temp_to }}"
+              response_variable: resp
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: >
+                        {% set status = resp.status | int(-1) %}
+                        {% set body = resp.content | default('') %}
+                        {% set numeric = (body | int(0)) %}
+                        {% set ok_numeric = numeric > 0 %}
+                        {% set ok_json = ('"entry_id"' in body and ('"entry_id": 0' not in body)) %}
+                        {{ status == 200 and (ok_numeric or ok_json) }}
+                  sequence:
+                    - service: homeassistant.update_entity
+                      target:
+                        entity_id: sensor.heatpump_data
+                    - service: logbook.log
+                      data:
+                        name: Heatpump
+                        message: "Update succeeded on attempt {{ attempt }}: {{ temp_from }}-{{ temp_to }}°C"
+                    - stop: "success"
+            - delay:
+                seconds: "{{ delay_seconds }}"
+            - variables:
+                attempt: "{{ attempt + 1 }}"
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Update failed after {{ attempts }} attempts: {{ temp_from }}-{{ temp_to }}°C"
 
 # Sensors to track heatpump status
 sensor:
@@ -90,7 +150,7 @@ automation:
       - platform: time
         at: "07:00:00"
     action:
-      - service: rest_command.heatpump_update
+      - service: script.heatpump_update_with_retry
         data:
           temp_from: 15
           temp_to: 18
@@ -108,7 +168,7 @@ automation:
       - platform: time
         at: "23:00:00"
     action:
-      - service: rest_command.heatpump_update
+      - service: script.heatpump_update_with_retry
         data:
           temp_from: 23
           temp_to: 28
