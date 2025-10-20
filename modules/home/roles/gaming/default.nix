@@ -16,17 +16,11 @@ in
   };
 
   config = mkIf cfg.enable {
-    programs.mangohud = {
-      enable = true;
-      enableSessionWide = true;
-      settings = {
-        cpu_load_change = true;
+
+    ${namespace} = {
+      games = {
+        minecraft = enabled;
       };
     };
-
-    home.packages = with pkgs; [
-      lutris
-      bottles
-    ];
   };
 }

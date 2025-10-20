@@ -6,6 +6,8 @@
   ...
 }:
 with lib;
+with lib.${namespace};
+
 let
   cfg = config.${namespace}.roles.desktop;
 in
@@ -17,10 +19,11 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       roles = {
-        common.enable = true;
-        development.enable = true;
-        media.enable = true;
-        mobile.enable = true;
+        common = enabled;
+        development = enabled;
+        media = enabled;
+        mobile = enabled;
+        gaming = enabled;
       };
 
       services = {
@@ -28,9 +31,7 @@ in
       };
 
       desktops = {
-        gnome = {
-          enable = true;
-        };
+        gnome = enabled;
       };
 
       browsers = {
