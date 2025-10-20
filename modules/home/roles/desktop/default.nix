@@ -24,6 +24,7 @@ in
         media = enabled;
         mobile = enabled;
         gaming = enabled;
+        social = enabled;
       };
 
       services = {
