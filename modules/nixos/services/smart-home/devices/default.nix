@@ -167,6 +167,13 @@ in
       }
 
       {
+        zoneName = "floor1_living";
+        name = "fountain";
+        type = "plug";
+        ieee = "0x00124b0026b81082";
+      }
+      
+      {
         zoneName = "floor1_toilet";
         name = "main";
         type = "router";
