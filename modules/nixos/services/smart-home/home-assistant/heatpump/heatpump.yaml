@@ -32,17 +32,19 @@ script:
         example: 18
       attempts:
         description: "Number of attempts"
-        example: 3
-        default: 3
+        example: 5
+        default: 5
       delay_seconds:
         description: "Delay between attempts"
-        example: 2
-        default: 2
+        example: 10
+        default: 10
     sequence:
       - variables:
           attempt: 1
+          max_attempts: "{{ attempts | default(5) | int }}"
+          retry_delay: "{{ delay_seconds | default(10) | int }}"
       - repeat:
-          while: "{{ attempt <= attempts }}"
+          while: "{{ attempt <= max_attempts }}"
           sequence:
             - service: rest_command.heatpump_update
               data:
@@ -75,13 +77,13 @@ script:
                         message: "Update succeeded on attempt {{ attempt }}: {{ temp_from }}-{{ temp_to }}°C (verified)"
                     - stop: "success"
             - delay:
-                seconds: "{{ delay_seconds }}"
+                seconds: "{{ retry_delay }}"
             - variables:
                 attempt: "{{ attempt + 1 }}"
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Update failed after {{ attempts }} attempts: {{ temp_from }}-{{ temp_to }}°C"
+          message: "Update failed after {{ max_attempts }} attempts: {{ temp_from }}-{{ temp_to }}°C"
 
 # Sensors to track heatpump status
 sensor:
