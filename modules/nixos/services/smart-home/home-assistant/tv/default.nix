@@ -11,26 +11,40 @@ let
   haCfg = config.${namespace}.services.smart-home.home-assistant;
   cfg = haCfg.tv;
   
+  # Helper to remove leading zero from a numeric string (e.g., "08" -> "8", "00" -> "0")
+  stripLeadingZero = str: 
+    if lib.hasPrefix "0" str && builtins.stringLength str > 1
+    then builtins.substring 1 (builtins.stringLength str - 1) str
+    else str;
+  
+  # Parse time string "HH:MM" into { hour = int; minute = int; }
+  # Removes leading zeros before converting to int
+  parseTime = time:
+    let
+      parts = lib.splitString ":" time;
+    in
+    {
+      hour = lib.toInt (stripLeadingZero (builtins.elemAt parts 0));
+      minute = lib.toInt (stripLeadingZero (builtins.elemAt parts 1));
+    };
+  
   # Validate time format HH:MM and range
   validateTime = time:
     let
       parts = lib.splitString ":" time;
       hasCorrectFormat = (builtins.length parts) == 2;
-      hour = if hasCorrectFormat then lib.toInt (builtins.elemAt parts 0) else -1;
-      minute = if hasCorrectFormat then lib.toInt (builtins.elemAt parts 1) else -1;
-      validHour = hour >= 0 && hour <= 23;
-      validMinute = minute >= 0 && minute <= 59;
+      parsed = if hasCorrectFormat then parseTime time else { hour = -1; minute = -1; };
+      validHour = parsed.hour >= 0 && parsed.hour <= 23;
+      validMinute = parsed.minute >= 0 && parsed.minute <= 59;
     in
     hasCorrectFormat && validHour && validMinute;
   
   # Convert time HH:MM to minutes since midnight for comparison
   timeToMinutes = time:
     let
-      parts = lib.splitString ":" time;
-      hour = lib.toInt (builtins.elemAt parts 0);
-      minute = lib.toInt (builtins.elemAt parts 1);
+      parsed = parseTime time;
     in
-    (hour * 60) + minute;
+    (parsed.hour * 60) + parsed.minute;
   
   # Define the interval submodule type
   intervalType = types.submodule ({ config, ... }: {
