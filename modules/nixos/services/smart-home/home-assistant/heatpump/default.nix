@@ -10,10 +10,43 @@ with lib.${namespace};
 let
   haCfg = config.${namespace}.services.smart-home.home-assistant;
   cfg = haCfg.heatpump;
+  
+  modeType = types.submodule {
+    options = {
+      temp_from = mkOption {
+        type = types.int;
+        description = "Lower temperature threshold in °C";
+      };
+      temp_to = mkOption {
+        type = types.int;
+        description = "Upper temperature threshold in °C";
+      };
+    };
+  };
 in
 {
   options.${namespace}.services.smart-home.home-assistant.heatpump = {
     enable = mkEnableOption "Enable heatpump integration and dashboard";
+    
+    modes = {
+      minimal = mkOption {
+        type = modeType;
+        default = {
+          temp_from = 15;
+          temp_to = 18;
+        };
+        description = "Minimal heating mode (used during morning)";
+      };
+      
+      full = mkOption {
+        type = modeType;
+        default = {
+          temp_from = 23;
+          temp_to = 28;
+        };
+        description = "Full heating mode (used during night)";
+      };
+    };
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
@@ -84,8 +117,8 @@ in
               content = ''
                 ## Heatpump Schedule
 
-                **Morning (7:00):** 15°C - 18°C
-                **Night (23:00):** 23°C - 28°C
+                **Morning (7:00):** ${toString cfg.modes.minimal.temp_from}°C - ${toString cfg.modes.minimal.temp_to}°C
+                **Night (23:00):** ${toString cfg.modes.full.temp_from}°C - ${toString cfg.modes.full.temp_to}°C
 
                 The heatpump temperatures are automatically adjusted at these times.
               '';
@@ -96,9 +129,19 @@ in
 
     };
 
-    # Link heatpump package configuration
-    systemd.services.home-assistant.preStart = ''
-      ln -fns ${./heatpump.yaml} ${haCfg.dataDir}/packages/heatpump.yaml
-    '';
+    # Generate and link heatpump package configuration with templated values
+    systemd.services.home-assistant.preStart =
+      let
+        heatpumpYaml = pkgs.substituteAll {
+          src = ./heatpump.yaml;
+          minimal_temp_from = toString cfg.modes.minimal.temp_from;
+          minimal_temp_to = toString cfg.modes.minimal.temp_to;
+          full_temp_from = toString cfg.modes.full.temp_from;
+          full_temp_to = toString cfg.modes.full.temp_to;
+        };
+      in
+      ''
+        ln -fns ${heatpumpYaml} ${haCfg.dataDir}/packages/heatpump.yaml
+      '';
   };
 }
