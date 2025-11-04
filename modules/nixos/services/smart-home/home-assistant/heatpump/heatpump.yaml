@@ -56,7 +56,7 @@ script:
                       data:
                         temp_from: "{{ temp_from }}"
                         temp_to: "{{ temp_to }}"
-                      response_variable: resp
+                      response_variable: resp                    
                     - choose:
                         - conditions:
                             - condition: template
@@ -65,10 +65,8 @@ script:
                                 {% if status != 200 %}
                                   false
                                 {% else %}
-                                  {% set body = resp.content | default('{}') %}
-                                  {% set json_data = body | from_json %}
-                                  {% set returned_field2 = json_data.field2 | default(0) | int %}
-                                  {% set returned_field3 = json_data.field3 | default(0) | int %}
+                                  {% set returned_field2 = resp.content.field2 | default(0) | int %}
+                                  {% set returned_field3 = resp.content.field3 | default(0) | int %}
                                   {% set expected_field2 = temp_from | int %}
                                   {% set expected_field3 = temp_to | int %}
                                   {{ returned_field2 == expected_field2 and returned_field3 == expected_field3 }}
