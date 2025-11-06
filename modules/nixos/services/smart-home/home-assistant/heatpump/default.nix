@@ -91,12 +91,12 @@ in
           cards = [
             {
               type = "entities";
-              title = "Heatpump Control";
+              title = "Heatpump Status";
               show_header_toggle = false;
               entities = [
                 {
                   entity = "sensor.heatpump_status";
-                  name = "Status";
+                  name = "Current Status";
                 }
                 {
                   entity = "sensor.heatpump_temperature_from";
@@ -113,14 +113,45 @@ in
               ];
             }
             {
+              type = "entities";
+              title = "Minimal Mode (Night Off)";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "input_number.heatpump_minimal_temp_from";
+                  name = "Temperature From";
+                }
+                {
+                  entity = "input_number.heatpump_minimal_temp_to";
+                  name = "Temperature To";
+                }
+              ];
+            }
+            {
+              type = "entities";
+              title = "Full Mode (Night On)";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "input_number.heatpump_full_temp_from";
+                  name = "Temperature From";
+                }
+                {
+                  entity = "input_number.heatpump_full_temp_to";
+                  name = "Temperature To";
+                }
+              ];
+            }
+            {
               type = "markdown";
               content = ''
                 ## Heatpump Schedule
 
-                **Minimal (night_off event):** ${toString cfg.modes.minimal.temp_from}°C - ${toString cfg.modes.minimal.temp_to}°C
-                **Full (night_on event):** ${toString cfg.modes.full.temp_from}°C - ${toString cfg.modes.full.temp_to}°C
+                The heatpump temperatures are automatically adjusted based on night schedule events:
+                - **Night Off event**: Uses Minimal Mode settings
+                - **Night On event**: Uses Full Mode settings
 
-                The heatpump temperatures are automatically adjusted based on night schedule events.
+                You can adjust the temperatures using the controls above. Changes take effect on the next scheduled event.
               '';
             }
           ];
