@@ -156,14 +156,15 @@ template:
           {% endif %}
 
 # Automations for scheduled temperature changes
+# These automations listen to custom night_on and night_off events
 automation:
-  # Morning schedule: 7:00 AM - Set to minimal mode
+  # Listen to night_off event (morning) - Set to minimal mode
   - id: heatpump_morning_schedule
     alias: "Heatpump: Morning Schedule"
-    description: "Set heatpump temperatures to minimal mode at 7:00 AM"
+    description: "Set heatpump temperatures to minimal mode when night_off event fires"
     trigger:
-      - platform: time
-        at: "07:00:00"
+      - platform: event
+        event_type: night_off
     action:
       - service: script.heatpump_update_with_retry
         data:
@@ -172,16 +173,16 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Morning schedule activated: @minimal_temp_from@°C - @minimal_temp_to@°C"
+          message: "Morning schedule activated (night_off event): @minimal_temp_from@°C - @minimal_temp_to@°C"
     mode: single
 
-  # Night schedule: 11:00 PM - Set to full mode
+  # Listen to night_on event - Set to full mode
   - id: heatpump_night_schedule
     alias: "Heatpump: Night Schedule"
-    description: "Set heatpump temperatures to full mode at 11:00 PM"
+    description: "Set heatpump temperatures to full mode when night_on event fires"
     trigger:
-      - platform: time
-        at: "23:00:00"
+      - platform: event
+        event_type: night_on
     action:
       - service: script.heatpump_update_with_retry
         data:
@@ -190,6 +191,6 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Night schedule activated: @full_temp_from@°C - @full_temp_to@°C"
+          message: "Night schedule activated (night_on event): @full_temp_from@°C - @full_temp_to@°C"
     mode: single
 

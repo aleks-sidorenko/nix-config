@@ -117,10 +117,10 @@ in
               content = ''
                 ## Heatpump Schedule
 
-                **Morning (7:00):** ${toString cfg.modes.minimal.temp_from}°C - ${toString cfg.modes.minimal.temp_to}°C
-                **Night (23:00):** ${toString cfg.modes.full.temp_from}°C - ${toString cfg.modes.full.temp_to}°C
+                **Minimal (night_off event):** ${toString cfg.modes.minimal.temp_from}°C - ${toString cfg.modes.minimal.temp_to}°C
+                **Full (night_on event):** ${toString cfg.modes.full.temp_from}°C - ${toString cfg.modes.full.temp_to}°C
 
-                The heatpump temperatures are automatically adjusted at these times.
+                The heatpump temperatures are automatically adjusted based on night schedule events.
               '';
             }
           ];

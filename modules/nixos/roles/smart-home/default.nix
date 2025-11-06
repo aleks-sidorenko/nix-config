@@ -27,6 +27,7 @@ in
             weather = enabled;
             heatpump = enabled;
             tv = enabled;
+            night-schedule = enabled;
           };
           mosquitto = enabled;
           zigbee2mqtt = {
