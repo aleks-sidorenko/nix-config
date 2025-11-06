@@ -30,6 +30,12 @@ in
             weather = enabled;
             heatpump = enabled;
             tv = enabled;            
+            inverter = {
+              enable = true;
+              ipAddress = "192.168.1.100";
+              serialNumber = "123456789";
+              inverterModel = "deye_sg04lp3";
+            };
           };
           mosquitto = enabled;
           zigbee2mqtt = {
