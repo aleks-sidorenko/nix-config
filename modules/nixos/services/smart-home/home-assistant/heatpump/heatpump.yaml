@@ -40,46 +40,53 @@ script:
         default: 10
     sequence:
       - variables:
-          attempt: 1
-          max_attempts: "{{ attempts | default(5) | int }}"
-          retry_delay: "{{ delay_seconds | default(10) | int }}"
-      - repeat:
-          while: "{{ attempt <= max_attempts }}"
-          sequence:
-            - service: rest_command.heatpump_update
-              data:
-                temp_from: "{{ temp_from }}"
-                temp_to: "{{ temp_to }}"
-              response_variable: resp
-            - choose:
-                - conditions:
-                    - condition: template
-                      value_template: >
-                        {% set status = resp.status | int(-1) %}
-                        {% if status != 200 %}
-                          false
-                        {% else %}
-                          {% set body = resp.content | default('{}') %}
-                          {% set json_data = body | from_json %}
-                          {% set returned_field2 = json_data.field2 | default('') | string %}
-                          {% set returned_field3 = json_data.field3 | default('') | string %}
-                          {% set expected_field2 = temp_from | string %}
-                          {% set expected_field3 = temp_to | string %}
-                          {{ returned_field2 == expected_field2 and returned_field3 == expected_field3 }}
-                        {% endif %}
+          max_attempts: "{{ attempts | default(5, true) | int }}"
+          retry_delay: "{{ delay_seconds | default(10, true) | int }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ max_attempts | int > 0 }}"
+            sequence:
+              - repeat:
+                  count: "{{ max_attempts | int }}"
                   sequence:
-                    - service: homeassistant.update_entity
-                      target:
-                        entity_id: sensor.heatpump_data
-                    - service: logbook.log
+                    - variables:
+                        attempt: "{{ repeat.index }}"
+                    - service: rest_command.heatpump_update
                       data:
-                        name: Heatpump
-                        message: "Update succeeded on attempt {{ attempt }}: {{ temp_from }}-{{ temp_to }}°C (verified)"
-                    - stop: "success"
-            - delay:
-                seconds: "{{ retry_delay }}"
-            - variables:
-                attempt: "{{ attempt + 1 }}"
+                        temp_from: "{{ temp_from }}"
+                        temp_to: "{{ temp_to }}"
+                      response_variable: resp                    
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template: >
+                                {% set status = resp.status | int(-1) %}
+                                {% if status != 200 %}
+                                  false
+                                {% else %}
+                                  {% set returned_field2 = resp.content.field2 | default(0) | int %}
+                                  {% set returned_field3 = resp.content.field3 | default(0) | int %}
+                                  {% set expected_field2 = temp_from | int %}
+                                  {% set expected_field3 = temp_to | int %}
+                                  {{ returned_field2 == expected_field2 and returned_field3 == expected_field3 }}
+                                {% endif %}
+                          sequence:
+                            - service: homeassistant.update_entity
+                              target:
+                                entity_id: sensor.heatpump_data
+                            - service: logbook.log
+                              data:
+                                name: Heatpump
+                                message: "Update succeeded on attempt {{ attempt }}: {{ temp_from }}-{{ temp_to }}°C (verified)"
+                            - stop: "success"
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template: "{{ not repeat.last }}"
+                          sequence:
+                            - delay:
+                                seconds: "{{ retry_delay }}"
       - service: logbook.log
         data:
           name: Heatpump

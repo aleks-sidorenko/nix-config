@@ -148,13 +148,13 @@ in
       default = [
         {
           name = "morning";
-          start = "08:00";
-          end = "10:00";
+          start = "07:30";
+          end = "9:30";
         }
         {
           name = "evening";
-          start = "17:00";
-          end = "19:00";
+          start = "18:00";
+          end = "19:30";
         }
         {
           name = "night";
