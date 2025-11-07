@@ -191,8 +191,7 @@ in
     # Generate and link heatpump package configuration with templated values
     systemd.services.home-assistant.preStart =
       let
-        heatpumpYaml = pkgs.substituteAll {
-          src = ./heatpump.yaml;
+        heatpumpYaml = pkgs.replaceVars ./heatpump.yaml {
           minimal_temp_from = toString cfg.modes.minimal.temp_from;
           minimal_temp_to = toString cfg.modes.minimal.temp_to;
           full_temp_from = toString cfg.modes.full.temp_from;

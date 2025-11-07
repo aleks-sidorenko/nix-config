@@ -25,7 +25,7 @@ in
       doggo
       duf
       delta
-      du-dust
+      dust
       dysk
       entr
       erdtree
