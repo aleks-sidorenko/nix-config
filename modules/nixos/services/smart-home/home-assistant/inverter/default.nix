@@ -25,10 +25,11 @@ in
   options.${namespace}.services.smart-home.home-assistant.inverter = {
     enable = mkEnableOption "Enable Deye inverter integration via Solarman";
 
-    ipAddress = mkOption {
+    host = mkOption {
       type = types.str;
-      description = "IP address of the Solarman logger device";
-      example = "192.168.1.100";
+      description = "Host name or IP address of the Solarman logger device";
+      example = "10.0.0.100";
+      default = hosts.local "inverter";
     };
 
     serialNumber = mkOption {
@@ -170,7 +171,7 @@ in
           
           solarman:
             - name: "Solarman"
-              ip_address: "${cfg.ipAddress}"
+              ip_address: "${cfg.host}"
               serial: ${cfg.serialNumber}
               port: ${toString cfg.port}
               mb_slave_id: 1

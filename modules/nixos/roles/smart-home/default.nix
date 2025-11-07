@@ -31,10 +31,9 @@ in
             heatpump = enabled;
             tv = enabled;            
             inverter = {
-              enable = true;
-              ipAddress = "192.168.1.100";
-              serialNumber = "123456789";
-              inverterModel = "deye_sg04lp3";
+              enable = true;              
+              serialNumber = "2407298505";
+              inverterModel = "deye_sg04lp3"; # TODO: get from inverter
             };
           };
           mosquitto = enabled;
