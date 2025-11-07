@@ -1,0 +1,42 @@
+# Night Schedule Custom Events
+# Fires night_on and night_off events that other automations can listen to
+
+automation:
+  # Fire night_on event at configured time
+  - id: night_schedule_on
+    alias: "Night Schedule: ON"
+    description: "Fire night_on event at @nightOnTime@"
+    trigger:
+      - platform: time
+        at: "@nightOnTime@:00"
+    action:
+      - event: night_on
+        event_data:
+          time: "@nightOnTime@"
+          source: night_schedule
+          timestamp: "{{ now().isoformat() }}"
+      - service: logbook.log
+        data:
+          name: Night Schedule
+          message: "Night mode activated (night_on event fired at @nightOnTime@)"
+    mode: single
+
+  # Fire night_off event at configured time
+  - id: night_schedule_off
+    alias: "Night Schedule: OFF"
+    description: "Fire night_off event at @nightOffTime@"
+    trigger:
+      - platform: time
+        at: "@nightOffTime@:00"
+    action:
+      - event: night_off
+        event_data:
+          time: "@nightOffTime@"
+          source: night_schedule
+          timestamp: "{{ now().isoformat() }}"
+      - service: logbook.log
+        data:
+          name: Night Schedule
+          message: "Day mode activated (night_off event fired at @nightOffTime@)"
+    mode: single
+
