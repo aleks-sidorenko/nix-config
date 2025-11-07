@@ -126,6 +126,20 @@ in
                   name = "Temperature To";
                 }
               ];
+              footer = {
+                type = "buttons";
+                entities = [
+                  {
+                    entity = "script.heatpump_apply_minimal_mode";
+                    name = "Apply Minimal Mode";
+                    icon = "mdi:thermometer-low";
+                    tap_action = {
+                      action = "call-service";
+                      service = "script.heatpump_apply_minimal_mode";
+                    };
+                  }
+                ];
+              };
             }
             {
               type = "entities";
@@ -141,6 +155,20 @@ in
                   name = "Temperature To";
                 }
               ];
+              footer = {
+                type = "buttons";
+                entities = [
+                  {
+                    entity = "script.heatpump_apply_full_mode";
+                    name = "Apply Full Mode";
+                    icon = "mdi:thermometer-high";
+                    tap_action = {
+                      action = "call-service";
+                      service = "script.heatpump_apply_full_mode";
+                    };
+                  }
+                ];
+              };
             }
             {
               type = "markdown";

@@ -35,13 +35,13 @@ in
     systemd.services.home-assistant.preStart =
       let
         nightScheduleYaml = pkgs.substituteAll {
-          src = ./night-schedule.yaml;
+          src = ./night_schedule.yaml;
           nightOnTime = cfg.nightOnTime;
           nightOffTime = cfg.nightOffTime;
         };
       in
       ''
-        ln -fns ${nightScheduleYaml} ${haCfg.dataDir}/packages/night-schedule.yaml
+        ln -fns ${nightScheduleYaml} ${haCfg.dataDir}/packages/night_schedule.yaml
       '';
   };
 }
