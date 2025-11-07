@@ -26,7 +26,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v18
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
+        uses: DeterminateSystems/magic-nix-cache-action@v13
 
       - name: Check deploy-rs configuration
         run: |
