@@ -24,10 +24,12 @@ in
         smart-home = {
           home-assistant = {
             enable = true;
+            hacs = enabled;
+            night-schedule = enabled;
+            
             weather = enabled;
             heatpump = enabled;
-            tv = enabled;
-            night-schedule = enabled;
+            tv = enabled;            
           };
           mosquitto = enabled;
           zigbee2mqtt = {
