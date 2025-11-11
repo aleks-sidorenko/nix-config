@@ -138,7 +138,12 @@ in
 
     # Disable gnome-keyring ssh-agent
     xdg.configFile."autostart/gnome-keyring-ssh.desktop".text = ''
-      ${lib.fileContents "${pkgs.gnome-keyring}/etc/xdg/autostart/gnome-keyring-ssh.desktop"}
+      [Desktop Entry]
+      Type=Application
+      Name=SSH Key Agent
+      Comment=GNOME Keyring: SSH Agent
+      Exec=/usr/bin/gnome-keyring-daemon --start --components=ssh
+      OnlyShowIn=GNOME;Unity;
       Hidden=true
     '';
 

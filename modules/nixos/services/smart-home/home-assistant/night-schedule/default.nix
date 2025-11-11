@@ -34,8 +34,7 @@ in
     # Generate and link night schedule automation configuration with templated values
     systemd.services.home-assistant.preStart =
       let
-        nightScheduleYaml = pkgs.substituteAll {
-          src = ./night_schedule.yaml;
+        nightScheduleYaml = pkgs.replaceVars ./night_schedule.yaml {
           nightOnTime = cfg.nightOnTime;
           nightOffTime = cfg.nightOffTime;
         };

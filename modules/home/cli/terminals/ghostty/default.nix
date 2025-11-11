@@ -24,14 +24,15 @@ in
       package = pkgs.ghostty;
     };
 
+    # Enable Catppuccin theme for Ghostty
+    catppuccin.ghostty.enable = true;
+
     programs.ghostty = {
       enable = true;
       enableFishIntegration = true;
 
       settings = {
-        theme = "catppuccin-mocha";
-        font-family = "${config.stylix.fonts.monospace.name}";
-        font-size = 14;
+      
         command = shell;
         gtk-titlebar = false;
         gtk-tabs-location = "hidden";
@@ -43,6 +44,8 @@ in
         confirm-close-surface = false;
         keybind = [
           "ctrl+shift+plus=increase_font_size:1"
+          # Claude Code Shift+Enter binding
+          "shift+enter=text:\u001b[13;2u"
         ];
       };
     };

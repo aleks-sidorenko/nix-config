@@ -35,12 +35,6 @@ in
 
         # Use proprietary driver (open source drivers not mature enough yet)
         open = false;
-
-        # Enable hardware acceleration and video decode
-        nvidiaPersistenced = true;
-
-        # Force composition pipeline for better display detection
-        forceFullCompositionPipeline = true;
       };
     };
 
@@ -90,11 +84,6 @@ in
       # Improve Wayland compatibility
       WLR_NO_HARDWARE_CURSORS = "1";
     };
-
-    # Create nvidia-uvm device on boot
-    services.udev.extraRules = ''
-      KERNEL=="nvidia_uvm", RUN+="${pkgs.runtimeShell} -c 'mknod -m 666 /dev/nvidia-uvm c $(grep nvidia-uvm /proc/devices | cut -d \  -f 1) 0'"
-    '';
 
   };
 
