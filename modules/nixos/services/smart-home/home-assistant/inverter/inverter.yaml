@@ -1,0 +1,13 @@
+# Solarman integration for Deye inverter
+# Solarman custom component is automatically installed via NixOS module
+
+sensor:
+  - platform: solarman
+    name: "Solarman"
+    inverter_host: "@inverterHost@"
+    inverter_serial: @inverterSerial@
+    inverter_port: @inverterPort@
+    inverter_mb_slaveid: 1
+    lookup_file: "@lookupFile@.yaml"
+    scan_interval: @scanInterval@
+

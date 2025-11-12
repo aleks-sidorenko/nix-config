@@ -26,10 +26,15 @@ in
             enable = true;
             hacs = enabled;
             night-schedule = enabled;
-            
+
             weather = enabled;
             heatpump = enabled;
-            tv = enabled;            
+            tv = enabled;
+            inverter = {
+              enable = true;
+              serialNumber = "2988661222";
+              inverterModel = "deye_hybrid";
+            };
           };
           mosquitto = enabled;
           zigbee2mqtt = {

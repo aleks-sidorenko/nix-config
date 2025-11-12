@@ -83,6 +83,13 @@ check:
     @echo "🔍 Checking flake configuration..."
     nix flake check
 
+# Fetch GitHub repository hash for Nix packages
+# Usage: just fetch-github-hash owner repo revision
+# Example: just fetch-github-hash StephanJoubert home_assistant_solarman 1.5.1
+fetch-github-hash owner repo revision:
+    @echo "🔐 Fetching hash for {{owner}}/{{repo}}@{{revision}}..."
+    nix-shell -p nix-prefetch-github --run "nix-prefetch-github {{owner}} {{repo}} --rev {{revision}}"
+
 # Show system information
 info:
     @echo "📋 System Information:"
