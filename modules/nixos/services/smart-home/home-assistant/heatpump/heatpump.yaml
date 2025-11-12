@@ -212,15 +212,16 @@ template:
           {% endif %}
 
 # Automations for scheduled temperature changes
-# These automations listen to custom night_on and night_off events
+# These automations listen to night_schedule_status sensor state changes
 automation:
-  # Listen to night_off event - Set to minimal mode
-  - id: heatpump_night_off_schedule
-    alias: "Heatpump: Night Off Schedule"
-    description: "Set heatpump temperatures to minimal mode when night_off event fires"
+  # Listen to night schedule turning off - Set to minimal mode
+  - id: heatpump_night_schedule_off
+    alias: "Heatpump: Night Schedule Off"
+    description: "Set heatpump temperatures to minimal mode when night schedule turns off"
     trigger:
-      - platform: event
-        event_type: night_off
+      - platform: state
+        entity_id: binary_sensor.night_schedule_status
+        to: "off"
     action:
       - service: script.heatpump_update_with_retry
         data:
@@ -229,16 +230,17 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Night Off schedule activated: {{ states('input_number.heatpump_minimal_temp_from') }}°C - {{ states('input_number.heatpump_minimal_temp_to') }}°C"
+          message: "Night Schedule Off activated: {{ states('input_number.heatpump_minimal_temp_from') }}°C - {{ states('input_number.heatpump_minimal_temp_to') }}°C"
     mode: single
 
-  # Listen to night_on event - Set to full mode
-  - id: heatpump_night_on_schedule
-    alias: "Heatpump: Night On Schedule"
-    description: "Set heatpump temperatures to full mode when night_on event fires"
+  # Listen to night schedule turning on - Set to full mode
+  - id: heatpump_night_schedule_on
+    alias: "Heatpump: Night Schedule On"
+    description: "Set heatpump temperatures to full mode when night schedule turns on"
     trigger:
-      - platform: event
-        event_type: night_on
+      - platform: state
+        entity_id: binary_sensor.night_schedule_status
+        to: "on"
     action:
       - service: script.heatpump_update_with_retry
         data:
@@ -247,6 +249,24 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Night On schedule activated: {{ states('input_number.heatpump_full_temp_from') }}°C - {{ states('input_number.heatpump_full_temp_to') }}°C"
+          message: "Night Schedule On activated: {{ states('input_number.heatpump_full_temp_from') }}°C - {{ states('input_number.heatpump_full_temp_to') }}°C"
     mode: single
 
+  # Listen to grid status changes - Set to minimal mode when off-grid
+  - id: heatpump_grid_off
+    alias: "Heatpump: Grid Off"
+    description: "Set heatpump temperatures to minimal mode when grid status changes to Off-Grid"
+    trigger:
+      - platform: state
+        entity_id: sensor.solarman_grid_connected_status
+        to: "Off-Grid"
+    action:
+      - service: script.heatpump_update_with_retry
+        data:
+          temp_from: "{{ states('input_number.heatpump_minimal_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_minimal_temp_to') | int }}"
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Grid Off-Grid detected: switching to minimal mode {{ states('input_number.heatpump_minimal_temp_from') }}°C - {{ states('input_number.heatpump_minimal_temp_to') }}°C"
+    mode: single

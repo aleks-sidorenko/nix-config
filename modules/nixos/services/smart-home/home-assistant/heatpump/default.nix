@@ -175,11 +175,16 @@ in
               content = ''
                 ## Heatpump Schedule
 
-                The heatpump temperatures are automatically adjusted based on night schedule events:
-                - **Night Off event**: Uses Minimal Mode settings
-                - **Night On event**: Uses Full Mode settings
+                The heatpump temperatures are automatically adjusted based on:
+                
+                ### Night Schedule
+                - **Night Schedule Off**: Uses Minimal Mode settings
+                - **Night Schedule On**: Uses Full Mode settings
 
-                You can adjust the temperatures using the controls above. Changes take effect on the next scheduled event.
+                ### Grid Status
+                - **Grid Off-Grid**: Automatically switches to Minimal Mode to conserve power
+
+                You can adjust the temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
               '';
             }
           ];
