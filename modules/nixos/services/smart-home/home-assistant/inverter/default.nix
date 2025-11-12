@@ -108,7 +108,64 @@ in
         {
           title = "Solar Inverter";
           path = "inverter";
-          icon = "mdi:solar-power";          
+          icon = "mdi:solar-power";
+          cards = [
+            {
+              type = "entities";
+              title = "Inverter Status";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "sensor.solarman_total_production";
+                  name = "Total Production";
+                }
+                {
+                  entity = "sensor.solarman_today_production";
+                  name = "Today's Production";
+                }
+                
+              ];
+            }
+            {
+              type = "entities";
+              title = "Grid Status";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "sensor.solarman_grid_connected_status";
+                  name = "Grid Connected";
+                }
+                {
+                  entity = "sensor.solarman_total_grid_power";
+                  name = "Total Power";
+                }
+                
+              ];
+            }
+            {
+              type = "entities";
+              title = "Battery Status";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "sensor.solarman_battery_soc";
+                  name = "Battery SOC";
+                }
+                {
+                  entity = "sensor.solarman_battery_voltage";
+                  name = "Battery Voltage";
+                }
+                {
+                  entity = "sensor.solarman_battery_power";
+                  name = "Battery Power";
+                }
+                {
+                  entity = "sensor.solarman_battery_temperature";
+                  name = "Battery Temperature";
+                }
+              ];
+            }
+          ];
         }
       ];
     };

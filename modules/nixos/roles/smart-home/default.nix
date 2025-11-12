@@ -33,7 +33,7 @@ in
             inverter = {
               enable = true;
               serialNumber = "2988661222";
-              inverterModel = "deye_sg04lp3"; # TODO: get from inverter
+              inverterModel = "deye_hybrid";
             };
           };
           mosquitto = enabled;
