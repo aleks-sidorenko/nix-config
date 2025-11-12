@@ -4,22 +4,16 @@ This module integrates Deye inverters with Home Assistant using the Solarman cus
 
 ## Prerequisites
 
-### 1. Install Solarman Custom Component
+### Automatic Installation
 
-The Solarman integration is a custom component that needs to be installed separately. You have two options:
+The Solarman custom component is **automatically installed** when you enable this module. No manual installation via HACS or manual download is required!
 
-#### Option A: Via HACS (Recommended)
-1. Install HACS (Home Assistant Community Store) if not already installed
-2. Go to HACS → Integrations
-3. Search for "Solarman" and install it
-4. Restart Home Assistant
+The module uses NixOS's declarative configuration to:
+- Fetch the Solarman component from GitHub
+- Install it as a Home Assistant custom component
+- Configure it with your inverter settings
 
-#### Option B: Manual Installation
-1. Download the latest release from [https://github.com/StephanJoubert/home_assistant_solarman](https://github.com/StephanJoubert/home_assistant_solarman)
-2. Extract the `custom_components/solarman` folder to your Home Assistant's `custom_components` directory
-3. Restart Home Assistant
-
-### 2. Network Configuration
+### Network Configuration
 
 Make sure your Deye inverter's Solarman logger is accessible on your network. You'll need:
 - IP address of the Solarman logger
@@ -38,7 +32,7 @@ Enable the inverter integration in your NixOS configuration:
       enable = true;
       inverter = {
         enable = true;
-        ipAddress = "192.168.1.100";  # Replace with your logger's IP
+        host = "192.168.1.100";  # Replace with your logger's IP
         serialNumber = "123456789";    # Replace with your logger's serial
       };
     };
@@ -55,7 +49,7 @@ Enable the inverter integration in your NixOS configuration:
       enable = true;
       inverter = {
         enable = true;
-        ipAddress = "192.168.1.100";
+        host = "192.168.1.100";
         serialNumber = "123456789";
         port = 8899;                   # Default Solarman port
         inverterModel = "deye_sg04lp3"; # Model-specific configuration file
@@ -172,6 +166,43 @@ automation:
     action:
       # Add your export control actions here
 ```
+
+## Technical Details
+
+### How Automated Installation Works
+
+This NixOS module uses a declarative approach to install and configure the Solarman integration:
+
+1. **Component Installation**: The module uses `pkgs.buildHomeAssistantComponent` to:
+   - Fetch the Solarman source code from GitHub (version v5.2.2)
+   - Build it as a Home Assistant custom component
+   - Install it automatically when the system is rebuilt
+
+2. **Configuration Generation**: The module generates a YAML configuration file that:
+   - Contains your inverter's connection settings
+   - Is placed in Home Assistant's packages directory
+   - Is automatically loaded on startup
+
+3. **Dependencies**: The module ensures all required Home Assistant components (`sensor`, `switch`) are enabled.
+
+### Updating Solarman Version
+
+The Solarman component version is defined in `default.nix`. To update:
+
+1. Change the `version` field (e.g., `version = "1.5.1";`)
+2. Get the new hash by running:
+   ```bash
+   just fetch-github-hash StephanJoubert home_assistant_solarman 1.5.1
+   ```
+3. Update the `hash` field in `default.nix` with the output
+4. Rebuild your system
+
+### Advantages of This Approach
+
+- **Reproducible**: Your entire setup is defined in code
+- **Version Controlled**: The Solarman version is pinned with a hash
+- **No Manual Steps**: Fresh installs work without manual intervention
+- **Updates**: Update the version number in `solarman/default.nix` to upgrade
 
 ## References
 

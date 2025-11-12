@@ -26,13 +26,13 @@ in
             enable = true;
             hacs = enabled;
             night-schedule = enabled;
-            
+
             weather = enabled;
             heatpump = enabled;
-            tv = enabled;            
+            tv = enabled;
             inverter = {
-              enable = true;              
-              serialNumber = "2407298505";
+              enable = true;
+              serialNumber = "2988661222";
               inverterModel = "deye_sg04lp3"; # TODO: get from inverter
             };
           };
