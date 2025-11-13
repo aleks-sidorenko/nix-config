@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.services.smart-home.home-assistant.night-schedule = {
-    enable = mkEnableOption "Enable night schedule sensor (sensor.night_schedule_status)";
+    enable = mkEnableOption "Enable night schedule sensor (sensor.night_schedule)";
     
     nightOnTime = mkOption {
       type = types.str;

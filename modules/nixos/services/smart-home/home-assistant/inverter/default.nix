@@ -116,20 +116,6 @@ in
     systemd.tmpfiles.rules = [
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
-
-    # Create Solarman configuration package
-    systemd.services.home-assistant.preStart =
-      let
-        inverterYaml = pkgs.replaceVars ./inverter.yaml {
-          inverterHost = cfg.host;
-          inverterSerial = cfg.serialNumber;
-          inverterPort = toString cfg.port;
-          lookupFile = cfg.inverterModel;
-          scanInterval = toString cfg.updateInterval;
-        };
-      in
-      ''
-        ln -fns ${inverterYaml} ${haCfg.dataDir}/packages/inverter.yaml
-      '';
+   
   };
 }
