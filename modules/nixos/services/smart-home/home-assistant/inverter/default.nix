@@ -107,7 +107,86 @@ in
           title = "Solar Inverter";
           path = "inverter";
           icon = "mdi:solar-power";
-          catds = [ ];
+          cards = [
+            # Grid Status Card
+            {
+              type = "entities";
+              title = "Grid Status";
+              entities = [
+                "binary_sensor.inverter_grid"
+                "sensor.inverter_grid_l1_voltage"
+                "sensor.inverter_grid_l2_voltage"
+                "sensor.inverter_grid_l3_voltage"
+                "sensor.inverter_grid_frequency"
+                "sensor.inverter_grid_power"
+              ];
+            }
+            # Battery Status Card
+            {
+              type = "entities";
+              title = "Battery Status";
+              entities = [                
+                "sensor.inverter_battery"
+                "sensor.inverter_battery_power"                
+                "sensor.inverter_battery_temperature"
+                "sensor.inverter_battery_voltage"
+                "sensor.inverter_total_battery_life_cycles"
+              ];
+            }
+            # Battery Control Card
+            {
+              type = "entities";
+              title = "Battery Control";
+              entities = [
+                "switch.inverter_battery_grid_charging"
+              ];
+            }
+            # Power Production Card
+            {
+              type = "entities";
+              title = "Power Production";
+              entities = [                
+                "sensor.inverter_total_production"
+                "sensor.inverter_today_production"                
+              ];
+            }
+            # Solar Panels Card
+            {
+              type = "entities";
+              title = "Solar Panels";
+              entities = [
+                "sensor.inverter_pv1_voltage"
+                "sensor.inverter_pv1_current"
+                "sensor.inverter_pv1_power"
+                "sensor.inverter_pv2_voltage"
+                "sensor.inverter_pv2_current"
+                "sensor.inverter_pv2_power"
+              ];
+            }
+            # Inverter Status Card
+            {
+              type = "entities";
+              title = "Inverter Status";
+              entities = [
+                "sensor.inverter_device"
+                "sensor.inverter_device_state"
+                "sensor.inverter_temperature"                
+              ];
+            }
+            # Power Flow Card (if available)
+            {
+              type = "gauge";
+              entity = "sensor.inverter_grid_power";
+              name = "Grid Power";
+              min = -10000;
+              max = 10000;
+              severity = {
+                green = -10000;
+                yellow = 0;
+                red = 5000;
+              };
+            }
+          ];
         }
       ];
     };

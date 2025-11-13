@@ -1,4 +1,4 @@
-# Night Schedule Status Sensor
+# Night Schedule Sensor
 # Provides sensor.night_schedule with values "on" or "off"
 # Other automations can listen to state changes of this sensor
 
@@ -19,7 +19,7 @@ input_datetime:
 # Template sensor that determines if we're in night mode
 template:
   - binary_sensor:
-      - name: "Night Schedule Status"
+      - name: "Night Schedule"
         unique_id: night_schedule
         state: >
           {% set now_time = now().strftime('%H:%M') %}
@@ -36,8 +36,8 @@ template:
 # Automation to log state changes
 automation:
   - id: night_schedule_changed
-    alias: "Night Schedule: Status Changed"
-    description: "Log when night schedule status changes"
+    alias: "Night Schedule: Changed"
+    description: "Log when night schedule changes"
     trigger:
       - platform: state
         entity_id: binary_sensor.night_schedule
@@ -50,5 +50,5 @@ automation:
           name: Night Schedule
           message: >
             Night mode {{ 'activated' if trigger.to_state.state == 'on' else 'deactivated' }} 
-            (sensor.night_schedule changed to {{ trigger.to_state.state }})
+            (binary_sensor.night_schedule changed to {{ trigger.to_state.state }})
     mode: single
