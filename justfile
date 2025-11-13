@@ -84,9 +84,9 @@ check:
     nix flake check
 
 # Fetch GitHub repository hash for Nix packages
-# Usage: just fetch-github-hash owner repo revision
-# Example: just fetch-github-hash StephanJoubert home_assistant_solarman 1.5.1
-fetch-github-hash owner repo revision:
+# Usage: just github-fetch-hash owner repo revision
+# Example: just github-fetch-hash StephanJoubert home_assistant_solarman 1.5.1
+github-fetch-hash owner repo revision:
     @echo "🔐 Fetching hash for {{owner}}/{{repo}}@{{revision}}..."
     nix-shell -p nix-prefetch-github --run "nix-prefetch-github {{owner}} {{repo}} --rev {{revision}}"
 
@@ -189,7 +189,7 @@ lint-check:
     @echo "✅ Quality check passed!"
 
 # Show secrets managed by SOPS
-secrets:
+secrets-list:
     @echo "🔐 SOPS secrets:"
     @echo "NixOS secrets:"
     @sops --decrypt modules/nixos/secrets.yaml | yq '.data | keys' | sed 's/^/  /'
@@ -197,7 +197,7 @@ secrets:
     @sops --decrypt modules/home/secrets.yaml | yq '.data | keys' | sed 's/^/  /' 2>/dev/null || echo "  No home secrets found"
 
 # Edit SOPS secrets
-edit-secrets type:
+secrets-edit type:
     @echo "🔓 Editing {{type}} secrets..."
     sops modules/{{type}}/secrets.yaml
 
