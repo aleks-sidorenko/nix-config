@@ -13,11 +13,11 @@ let
   
   modeType = types.submodule {
     options = {
-      temp_from = mkOption {
+      temperature_from = mkOption {
         type = types.int;
         description = "Lower temperature threshold in °C";
       };
-      temp_to = mkOption {
+      temperature_to = mkOption {
         type = types.int;
         description = "Upper temperature threshold in °C";
       };
@@ -32,8 +32,8 @@ in
       off = mkOption {
         type = modeType;
         default = {
-          temp_from = 15;
-          temp_to = 18;
+          temperature_from = 15;
+          temperature_to = 18;
         };
         description = "Off heating mode (used during morning)";
       };
@@ -41,8 +41,8 @@ in
       on = mkOption {
         type = modeType;
         default = {
-          temp_from = 23;
-          temp_to = 28;
+          temperature_from = 23;
+          temperature_to = 28;
         };
         description = "On heating mode (used during night)";
       };
@@ -95,8 +95,8 @@ in
               show_header_toggle = false;
               entities = [
                 {
-                  entity = "sensor.heatpump_status";
-                  name = "Current Status";
+                  entity = "sensor.heatpump_mode";
+                  name = "Current Mode";
                 }
                 {
                   entity = "sensor.heatpump_temperature_from";
@@ -114,61 +114,22 @@ in
             }
             {
               type = "entities";
-              title = "Off Mode (Night Off)";
+              title = "Control";
               show_header_toggle = false;
               entities = [
                 {
-                  entity = "input_number.heatpump_off_temp_from";
+                  entity = "switch.heatpump";
+                  name = "Heatpump";
+                }
+                {
+                  entity = "input_number.heatpump_temperature_from";
                   name = "Temperature From";
                 }
                 {
-                  entity = "input_number.heatpump_off_temp_to";
+                  entity = "input_number.heatpump_temperature_to";
                   name = "Temperature To";
                 }
-              ];
-              footer = {
-                type = "buttons";
-                entities = [
-                  {
-                    entity = "script.heatpump_apply_off_mode";
-                    name = "Apply Off Mode";
-                    icon = "mdi:thermometer-low";
-                    tap_action = {
-                      action = "call-service";
-                      service = "script.heatpump_apply_off_mode";
-                    };
-                  }
-                ];
-              };
-            }
-            {
-              type = "entities";
-              title = "On Mode (Night On)";
-              show_header_toggle = false;
-              entities = [
-                {
-                  entity = "input_number.heatpump_on_temp_from";
-                  name = "Temperature From";
-                }
-                {
-                  entity = "input_number.heatpump_on_temp_to";
-                  name = "Temperature To";
-                }
-              ];
-              footer = {
-                type = "buttons";
-                entities = [
-                  {
-                    entity = "script.heatpump_apply_on_mode";
-                    name = "Apply On Mode";
-                    icon = "mdi:thermometer-high";
-                    tap_action = {
-                      action = "call-service";
-                      service = "script.heatpump_apply_on_mode";
-                    };
-                  }
-                ];
-              };
+              ];              
             }
             {
               type = "markdown";
@@ -178,13 +139,14 @@ in
                 The heatpump temperatures are automatically adjusted based on:
                 
                 ### Night Schedule
-                - **Night Schedule Off**: Uses Off Mode settings
-                - **Night Schedule On**: Uses On Mode settings
+                - **Night Schedule Off**: Uses Off Mode settings (configured in Nix)
+                - **Night Schedule On**: Uses On Mode settings (adjustable above)
 
                 ### Grid Status
-                - **Grid Off-Grid**: Automatically switches to Off Mode to conserve power
+                - **Grid Off**: Automatically switches to Off Mode to conserve power
+                - **Grid On**: Automatically switches to On Mode to heat the house if Night Schedule is On
 
-                You can adjust the temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
+                You can adjust the On Mode temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
               '';
             }
           ];
@@ -197,10 +159,10 @@ in
     systemd.services.home-assistant.preStart =
       let
         heatpumpYaml = pkgs.replaceVars ./heatpump.yaml {
-          off_temp_from = toString cfg.modes.off.temp_from;
-          off_temp_to = toString cfg.modes.off.temp_to;
-          on_temp_from = toString cfg.modes.on.temp_from;
-          on_temp_to = toString cfg.modes.on.temp_to;
+          off_temperature_from = toString cfg.modes.off.temperature_from;
+          off_temperature_to = toString cfg.modes.off.temperature_to;
+          on_temperature_from = toString cfg.modes.on.temperature_from;
+          on_temperature_to = toString cfg.modes.on.temperature_to;
         };
       in
       ''
