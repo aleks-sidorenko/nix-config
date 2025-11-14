@@ -121,8 +121,11 @@ sensor:
     method: GET
     scan_interval: 300  # Update every 5 minutes
     value_template: "{{ value_json.feeds[0].entry_id if value_json.feeds else 'unavailable' }}"
+    json_attributes_path: "$.feeds[0]"
     json_attributes:
-      - feeds
+      - field2
+      - field3
+      - created_at
 
 # Template sensors (modern format)
 template:
@@ -130,34 +133,16 @@ template:
       - name: "Heatpump Temperature From"
         unique_id: heatpump_temperature_from
         unit_of_measurement: "°C"
-        state: >
-          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
-          {% if feeds and feeds | length > 0 %}
-            {{ feeds[0].field2 | int(0) }}
-          {% else %}
-            0
-          {% endif %}
+        state: "{{ state_attr('sensor.heatpump_data', 'field2') | int(0) }}"
       
       - name: "Heatpump Temperature To"
         unique_id: heatpump_temperature_to
         unit_of_measurement: "°C"
-        state: >
-          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
-          {% if feeds and feeds | length > 0 %}
-            {{ feeds[0].field3 | int(0) }}
-          {% else %}
-            0
-          {% endif %}
+        state: "{{ state_attr('sensor.heatpump_data', 'field3') | int(0) }}"
       
       - name: "Heatpump Last Update"
         unique_id: heatpump_last_update
-        state: >
-          {% set feeds = state_attr('sensor.heatpump_data', 'feeds') %}
-          {% if feeds and feeds | length > 0 %}
-            {{ feeds[0].created_at }}
-          {% else %}
-            unavailable
-          {% endif %}
+        state: "{{ state_attr('sensor.heatpump_data', 'created_at') }}"
         device_class: timestamp
       
       - name: "Heatpump Mode"

@@ -114,7 +114,7 @@ in
             }
             {
               type = "entities";
-              title = "Control";
+              title = "Heatpump Control";
               show_header_toggle = false;
               entities = [
                 {
