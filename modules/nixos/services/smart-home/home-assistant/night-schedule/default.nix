@@ -13,19 +13,19 @@ let
 in
 {
   options.${namespace}.services.smart-home.home-assistant.night-schedule = {
-    enable = mkEnableOption "Enable night schedule custom events (night_on and night_off)";
+    enable = mkEnableOption "Enable night schedule sensor (sensor.night_schedule)";
     
     nightOnTime = mkOption {
       type = types.str;
       default = "23:00";
-      description = "Time when night_on event is fired (HH:MM format, 24-hour)";
+      description = "Time when night mode starts (HH:MM format, 24-hour)";
       example = "23:00";
     };
     
     nightOffTime = mkOption {
       type = types.str;
       default = "07:00";
-      description = "Time when night_off event is fired (HH:MM format, 24-hour)";
+      description = "Time when night mode ends (HH:MM format, 24-hour)";
       example = "07:00";
     };
   };

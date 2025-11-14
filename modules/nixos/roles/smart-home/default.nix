@@ -24,7 +24,6 @@ in
         smart-home = {
           home-assistant = {
             enable = true;
-            hacs = enabled;
             night-schedule = enabled;
 
             weather = enabled;
@@ -32,8 +31,7 @@ in
             tv = enabled;
             inverter = {
               enable = true;
-              serialNumber = "2988661222";
-              inverterModel = "deye_hybrid";
+              serialNumber = "2988661222";              
             };
           };
           mosquitto = enabled;

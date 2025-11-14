@@ -129,6 +129,18 @@ in
 
         };
 
+        # Power management settings
+        "org/gnome/settings-daemon/plugins/power" = {
+          sleep-inactive-ac-timeout = 7200; # 2 hours (7200 seconds) when plugged in
+          sleep-inactive-ac-type = "hibernate"; # hibernate when timeout is reached
+          sleep-inactive-battery-timeout = 1800; # 30 minutes on battery
+          sleep-inactive-battery-type = "hibernate"; # hibernate on battery timeout
+        };
+
+        "org/gnome/desktop/session" = {
+          idle-delay = 900; # Screen blank/lock after 15 minutes (900 seconds)
+        };
+
       };
 
     # ssh-agent workaround

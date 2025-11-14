@@ -21,31 +21,29 @@ let
 
   # Solarman custom component package
   solarman = pkgs.buildHomeAssistantComponent rec {
-    owner = "StephanJoubert";
+    owner = "davidrapan";
     domain = "solarman";
-    version = "1.5.1";
+    version = "25.08.16";
 
     src = pkgs.fetchFromGitHub {
-      owner = "StephanJoubert";
-      repo = "home_assistant_solarman";
-      rev = version;
-      # To get the correct hash, run:
-      # nix-shell -p nix-prefetch-github --run "nix-prefetch-github StephanJoubert home_assistant_solarman --rev 1.5.1"
-      # Or build with lib.fakeHash and copy the hash from the error message
-      hash = "sha256-+znRq7LGIxbxMEypIRqbIMgV8H4OyiOakmExx1aHEl8=";
+      owner = "davidrapan";
+      repo = "ha-solarman";
+      rev = "v${version}";
+      sha256 = "sha256-SsUObH3g3i9xQ4JvRDcCm1Fg2giH+MN3rC3NMPYO5m0=";
+      # just github-fetch-hash davidrapan ha-solarman v25.08.16
     };
-
-    # Solarman dependencies
-    dependencies = with pkgs.home-assistant.python.pkgs; [ 
-      pyyaml 
-      pysolarmanv5
+    dependencies = with pkgs.home-assistant.python.pkgs; [
+      aiohttp
+      aiofiles
+      propcache
+      pyyaml
+      umodbus
     ];
-
     meta = with lib; {
       description = "Home Assistant integration for Solarman data loggers";
-      homepage = "https://github.com/StephanJoubert/home_assistant_solarman";
-      changelog = "https://github.com/StephanJoubert/home_assistant_solarman/releases/tag/${version}";
-      license = licenses.asl20;
+      homepage = "https://github.com/davidrapan/ha-solarman";
+      changelog = "https://github.com/davidrapan/ha-solarman/releases/tag/v${version}";
+      license = licenses.mit;
       maintainers = with maintainers; [ ];
     };
   };
@@ -75,9 +73,9 @@ in
 
     inverterModel = mkOption {
       type = types.str;
-      default = "deye_sg04lp3";
+      default = "deye_p3";
       description = "Inverter model identifier for Solarman";
-      example = "deye_sg04lp3";
+      example = "deye_p3";
     };
 
     updateInterval = mkOption {
@@ -110,60 +108,83 @@ in
           path = "inverter";
           icon = "mdi:solar-power";
           cards = [
-            {
-              type = "entities";
-              title = "Inverter Status";
-              show_header_toggle = false;
-              entities = [
-                {
-                  entity = "sensor.solarman_total_production";
-                  name = "Total Production";
-                }
-                {
-                  entity = "sensor.solarman_today_production";
-                  name = "Today's Production";
-                }
-                
-              ];
-            }
+            # Grid Status Card
             {
               type = "entities";
               title = "Grid Status";
-              show_header_toggle = false;
               entities = [
-                {
-                  entity = "sensor.solarman_grid_connected_status";
-                  name = "Grid Connected";
-                }
-                {
-                  entity = "sensor.solarman_total_grid_power";
-                  name = "Total Power";
-                }
-                
+                "binary_sensor.inverter_grid"
+                "sensor.inverter_grid_l1_voltage"
+                "sensor.inverter_grid_l2_voltage"
+                "sensor.inverter_grid_l3_voltage"
+                "sensor.inverter_grid_frequency"
+                "sensor.inverter_grid_power"
               ];
             }
+            # Battery Status Card
             {
               type = "entities";
               title = "Battery Status";
-              show_header_toggle = false;
-              entities = [
-                {
-                  entity = "sensor.solarman_battery_soc";
-                  name = "Battery SOC";
-                }
-                {
-                  entity = "sensor.solarman_battery_voltage";
-                  name = "Battery Voltage";
-                }
-                {
-                  entity = "sensor.solarman_battery_power";
-                  name = "Battery Power";
-                }
-                {
-                  entity = "sensor.solarman_battery_temperature";
-                  name = "Battery Temperature";
-                }
+              entities = [                
+                "sensor.inverter_battery"
+                "sensor.inverter_battery_power"                
+                "sensor.inverter_battery_temperature"
+                "sensor.inverter_battery_voltage"
+                "sensor.inverter_total_battery_life_cycles"
               ];
+            }
+            # Battery Control Card
+            {
+              type = "entities";
+              title = "Battery Control";
+              entities = [
+                "switch.inverter_battery_grid_charging"
+              ];
+            }
+            # Power Production Card
+            {
+              type = "entities";
+              title = "Power Production";
+              entities = [                
+                "sensor.inverter_total_production"
+                "sensor.inverter_today_production"                
+              ];
+            }
+            # Solar Panels Card
+            {
+              type = "entities";
+              title = "Solar Panels";
+              entities = [
+                "sensor.inverter_pv1_voltage"
+                "sensor.inverter_pv1_current"
+                "sensor.inverter_pv1_power"
+                "sensor.inverter_pv2_voltage"
+                "sensor.inverter_pv2_current"
+                "sensor.inverter_pv2_power"
+              ];
+            }
+            # Inverter Status Card
+            {
+              type = "entities";
+              title = "Inverter Status";
+              entities = [
+                "sensor.inverter_device"
+                "sensor.inverter_device_state"
+                "sensor.inverter_temperature"                
+              ];
+            }
+            # Power Flow Card (if available)
+            {
+              type = "gauge";
+              entity = "sensor.inverter_grid_power";
+              name = "Grid Power";
+              min = -10000;
+              max = 10000;
+              severity = {
+                green = -10000;
+                yellow = 0;
+                red = 5000;
+              };
             }
           ];
         }
@@ -174,20 +195,6 @@ in
     systemd.tmpfiles.rules = [
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
-
-    # Create Solarman configuration package
-    systemd.services.home-assistant.preStart =
-      let
-        inverterYaml = pkgs.replaceVars ./inverter.yaml {
-          inverterHost = cfg.host;
-          inverterSerial = cfg.serialNumber;
-          inverterPort = toString cfg.port;
-          lookupFile = cfg.inverterModel;
-          scanInterval = toString cfg.updateInterval;
-        };
-      in
-      ''
-        ln -fns ${inverterYaml} ${haCfg.dataDir}/packages/inverter.yaml
-      '';
+   
   };
 }

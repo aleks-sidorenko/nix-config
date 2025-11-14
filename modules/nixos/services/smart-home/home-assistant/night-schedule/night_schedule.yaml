@@ -1,42 +1,54 @@
-# Night Schedule Custom Events
-# Fires night_on and night_off events that other automations can listen to
+# Night Schedule Sensor
+# Provides sensor.night_schedule with values "on" or "off"
+# Other automations can listen to state changes of this sensor
 
+# Input datetime helpers to store schedule times
+input_datetime:
+  night_schedule_on_time:
+    name: "Night Schedule On Time"
+    has_date: false
+    has_time: true
+    initial: "@nightOnTime@"
+  
+  night_schedule_off_time:
+    name: "Night Schedule Off Time"
+    has_date: false
+    has_time: true
+    initial: "@nightOffTime@"
+
+# Template sensor that determines if we're in night mode
+template:
+  - binary_sensor:
+      - name: "Night Schedule"
+        unique_id: night_schedule
+        state: >
+          {% set now_time = now().strftime('%H:%M') %}
+          {% set on_time = states('input_datetime.night_schedule_on_time')[:5] %}
+          {% set off_time = states('input_datetime.night_schedule_off_time')[:5] %}
+          {% if on_time < off_time %}
+            {# Normal case: e.g., 08:00 to 22:00 #}
+            {{ on_time <= now_time < off_time }}
+          {% else %}
+            {# Crosses midnight: e.g., 23:00 to 07:00 #}
+            {{ now_time >= on_time or now_time < off_time }}
+          {% endif %}
+
+# Automation to log state changes
 automation:
-  # Fire night_on event at configured time
-  - id: night_schedule_on
-    alias: "Night Schedule: ON"
-    description: "Fire night_on event at @nightOnTime@"
+  - id: night_schedule_changed
+    alias: "Night Schedule: Changed"
+    description: "Log when night schedule changes"
     trigger:
-      - platform: time
-        at: "@nightOnTime@:00"
+      - platform: state
+        entity_id: binary_sensor.night_schedule
+    condition:
+      - condition: template
+        value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
     action:
-      - event: night_on
-        event_data:
-          time: "@nightOnTime@"
-          source: night_schedule
-          timestamp: "{{ now().isoformat() }}"
       - service: logbook.log
         data:
           name: Night Schedule
-          message: "Night mode activated (night_on event fired at @nightOnTime@)"
+          message: >
+            Night mode {{ 'activated' if trigger.to_state.state == 'on' else 'deactivated' }} 
+            (binary_sensor.night_schedule changed to {{ trigger.to_state.state }})
     mode: single
-
-  # Fire night_off event at configured time
-  - id: night_schedule_off
-    alias: "Night Schedule: OFF"
-    description: "Fire night_off event at @nightOffTime@"
-    trigger:
-      - platform: time
-        at: "@nightOffTime@:00"
-    action:
-      - event: night_off
-        event_data:
-          time: "@nightOffTime@"
-          source: night_schedule
-          timestamp: "{{ now().isoformat() }}"
-      - service: logbook.log
-        data:
-          name: Night Schedule
-          message: "Day mode activated (night_off event fired at @nightOffTime@)"
-    mode: single
-
