@@ -13,41 +13,41 @@ input_text:
 
 # Input numbers for temperature control
 input_number:
-  heatpump_minimal_temp_from:
-    name: "Minimal Temperature From"
+  heatpump_off_temp_from:
+    name: "Off Temperature From"
     min: 10
     max: 30
     step: 1
     unit_of_measurement: "°C"
     icon: mdi:thermometer-low
-    initial: @minimal_temp_from@
+    initial: @off_temp_from@
   
-  heatpump_minimal_temp_to:
-    name: "Minimal Temperature To"
+  heatpump_off_temp_to:
+    name: "Off Temperature To"
     min: 10
     max: 30
     step: 1
     unit_of_measurement: "°C"
     icon: mdi:thermometer-high
-    initial: @minimal_temp_to@
+    initial: @off_temp_to@
   
-  heatpump_full_temp_from:
-    name: "Full Temperature From"
+  heatpump_on_temp_from:
+    name: "On Temperature From"
     min: 10
     max: 30
     step: 1
     unit_of_measurement: "°C"
     icon: mdi:thermometer-low
-    initial: @full_temp_from@
+    initial: @on_temp_from@
   
-  heatpump_full_temp_to:
-    name: "Full Temperature To"
+  heatpump_on_temp_to:
+    name: "On Temperature To"
     min: 10
     max: 30
     step: 1
     unit_of_measurement: "°C"
     icon: mdi:thermometer-high
-    initial: @full_temp_to@
+    initial: @on_temp_to@
 
 # REST command to update heatpump temperatures
 rest_command:
@@ -130,23 +130,23 @@ script:
           name: Heatpump
           message: "Update failed after {{ max_attempts }} attempts: {{ temp_from }}-{{ temp_to }}°C"
   
-  heatpump_apply_minimal_mode:
-    alias: "Heatpump: Apply Minimal Mode"
+  heatpump_apply_off_mode:
+    alias: "Heatpump: Apply Off Mode"
     mode: single
     sequence:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_minimal_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_minimal_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_off_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_off_temp_to') | int }}"
   
-  heatpump_apply_full_mode:
-    alias: "Heatpump: Apply Full Mode"
+  heatpump_apply_on_mode:
+    alias: "Heatpump: Apply On Mode"
     mode: single
     sequence:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_full_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_full_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_on_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_on_temp_to') | int }}"
 
 # Sensors to track heatpump status
 sensor:
@@ -214,10 +214,10 @@ template:
 # Automations for scheduled temperature changes
 # These automations listen to night_schedule sensor state changes
 automation:
-  # Listen to night schedule turning off - Set to minimal mode
+  # Listen to night schedule turning off - Set to off mode
   - id: heatpump_night_schedule_off
     alias: "Heatpump: Night Schedule Off"
-    description: "Set heatpump temperatures to minimal mode when night schedule turns off"
+    description: "Set heatpump temperatures to off mode when night schedule turns off"
     trigger:
       - platform: state
         entity_id: binary_sensor.night_schedule
@@ -225,18 +225,18 @@ automation:
     action:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_minimal_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_minimal_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_off_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_off_temp_to') | int }}"
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Night Schedule Off activated: {{ states('input_number.heatpump_minimal_temp_from') }}°C - {{ states('input_number.heatpump_minimal_temp_to') }}°C"
+          message: "Night Schedule Off activated: {{ states('input_number.heatpump_off_temp_from') }}°C - {{ states('input_number.heatpump_off_temp_to') }}°C"
     mode: single
 
-  # Listen to night schedule turning on - Set to full mode
+  # Listen to night schedule turning on - Set to on mode
   - id: heatpump_night_schedule_on
     alias: "Heatpump: Night Schedule On"
-    description: "Set heatpump temperatures to full mode when night schedule turns on"
+    description: "Set heatpump temperatures to on mode when night schedule turns on"
     trigger:
       - platform: state
         entity_id: binary_sensor.night_schedule
@@ -244,18 +244,18 @@ automation:
     action:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_full_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_full_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_on_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_on_temp_to') | int }}"
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Night Schedule On activated: {{ states('input_number.heatpump_full_temp_from') }}°C - {{ states('input_number.heatpump_full_temp_to') }}°C"
+          message: "Night Schedule On activated: {{ states('input_number.heatpump_on_temp_from') }}°C - {{ states('input_number.heatpump_on_temp_to') }}°C"
     mode: single
 
-  # Listen to grid status changes - Set to minimal mode when grid off
+  # Listen to grid status changes - Set to off mode when grid off
   - id: heatpump_grid_off
     alias: "Heatpump: Grid Off"
-    description: "Set heatpump temperatures to minimal mode when grid status changes to Off-Grid"
+    description: "Set heatpump temperatures to off mode when grid status changes to Off-Grid"
     trigger:
       - platform: state
         entity_id: binary_sensor.inverter_grid
@@ -263,18 +263,18 @@ automation:
     action:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_minimal_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_minimal_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_off_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_off_temp_to') | int }}"
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: switching to minimal mode {{ states('input_number.heatpump_minimal_temp_from') }}°C - {{ states('input_number.heatpump_minimal_temp_to') }}°C"
+          message: "Grid off detected: switching to off mode {{ states('input_number.heatpump_off_temp_from') }}°C - {{ states('input_number.heatpump_off_temp_to') }}°C"
     mode: single
 
-  # Listen to grid status changes - Set to full mode when grid on
+  # Listen to grid status changes - Set to on mode when grid on
   - id: heatpump_grid_on
     alias: "Heatpump: Grid On"
-    description: "Set heatpump temperatures to full mode when grid status changes to Grid Connected"
+    description: "Set heatpump temperatures to on mode when grid status changes to Grid Connected"
     trigger:
       - platform: state
         entity_id: binary_sensor.inverter_grid
@@ -286,10 +286,10 @@ automation:
     action:
       - service: script.heatpump_update_with_retry
         data:
-          temp_from: "{{ states('input_number.heatpump_full_temp_from') | int }}"
-          temp_to: "{{ states('input_number.heatpump_full_temp_to') | int }}"
+          temp_from: "{{ states('input_number.heatpump_on_temp_from') | int }}"
+          temp_to: "{{ states('input_number.heatpump_on_temp_to') | int }}"
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid on detected: switching to full mode {{ states('input_number.heatpump_full_temp_from') }}°C - {{ states('input_number.heatpump_full_temp_to') }}°C"
+          message: "Grid on detected: switching to on mode {{ states('input_number.heatpump_on_temp_from') }}°C - {{ states('input_number.heatpump_on_temp_to') }}°C"
     mode: single
