@@ -1,0 +1,23 @@
+# Climate automations for fan control and other climate-related devices
+
+automation:
+  # Auto-off timer for shower fan
+  - id: climate_shower_fan_auto_off
+    alias: "Climate: Shower Fan Auto-Off"
+    description: "Automatically turn off the shower fan after configured duration"
+    trigger:
+      - platform: state
+        entity_id: @shower_fan_entity_id@
+        to: "on"
+    action:
+      - delay:
+          seconds: @shower_fan_duration@
+      - service: switch.turn_off
+        target:
+          entity_id: @shower_fan_entity_id@
+      - service: logbook.log
+        data:
+          name: Climate
+          message: "Shower fan automatically turned off after @shower_fan_duration@ seconds"
+    mode: restart  # If fan is turned on again, restart the timer
+

@@ -28,6 +28,7 @@ in
 
             weather = enabled;
             heatpump = enabled;
+            climate = enabled;
             tv = enabled;
             inverter = {
               enable = true;
