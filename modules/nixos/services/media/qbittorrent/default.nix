@@ -125,6 +125,8 @@ in
 
     downloadDir = mkOpt types.str "/data/torrents" "Base download directory for qBittorrent";
 
+    uploadSpeedLimit = mkOpt types.int 1000 "Global upload speed limit in KB/s (0 for unlimited)";
+
     tags = mkOption {
       type = types.listOf types.str;
       default = [
@@ -222,7 +224,7 @@ in
         Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
         Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
         Session\ExcludedFileNames=
-        Session\GlobalUPSpeedLimit=200
+        Session\GlobalUPSpeedLimit=${toString cfg.uploadSpeedLimit}
         Session\Port=${toString cfg.torrentPort}
         Session\QueueingSystemEnabled=true
         Session\SSL\Port=30088
