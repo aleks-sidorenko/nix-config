@@ -26,8 +26,9 @@ with lib.${namespace};
       devices = [
         {
           name = "DVI-D-1";
-          vendor = "Samsung";
-          model = "SyncMaster PX2370";
+          vendor = "DEL";
+          model = "DELL U2419H";
+          serial = "153FD23";
           width = 1920;
           height = 1080;
           refreshRate = 60;
@@ -38,8 +39,9 @@ with lib.${namespace};
         }
         {
           name = "HDMI-1";
-          vendor = "Dell";
-          model = "U2414H";
+          vendor = "SAM";
+          model = "SyncMaster";
+          serial = "H9MZ504458";
           width = 1920;
           height = 1080;
           refreshRate = 60;
