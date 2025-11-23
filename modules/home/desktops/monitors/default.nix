@@ -32,6 +32,12 @@ in
               example = "U2414H";
               description = "Monitor model name (without vendor)";
             };
+            serial = mkOption {
+              type = types.str;
+              default = "";
+              example = "H9MZ504458";
+              description = "Monitor serial number";
+            };
             primary = mkOption {
               type = types.bool;
               default = false;
