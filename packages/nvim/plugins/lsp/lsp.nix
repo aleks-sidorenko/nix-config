@@ -37,7 +37,7 @@
         };
         terraformls = {
           enable = true;
-        };        
+        };
         jsonls = {
           enable = true;
         };
