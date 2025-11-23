@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.apps.telegram;
+  telegram = getExecPath2 pkgs.telegram-desktop "Telegram";
 in
 {
   options.${namespace}.apps.telegram = {
@@ -29,8 +30,8 @@ in
         Type=Application
         Name=Telegram Desktop
         Comment=Official desktop application for the Telegram messaging service
-        TryExec=telegram-desktop
-        Exec=telegram-desktop -startintray
+        TryExec=${telegram}
+        Exec=${telegram} -startintray
         Icon=telegram
         Terminal=false
         StartupWMClass=TelegramDesktop

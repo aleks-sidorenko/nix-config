@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.apps.viber;
+  viber = getExecPath pkgs.viber;
 in
 {
   options.${namespace}.apps.viber = {
@@ -29,8 +30,8 @@ in
         Type=Application
         Name=Viber
         Comment=Free calls, text and picture sharing with anyone, anywhere!
-        TryExec=viber
-        Exec=viber --startminimized %U
+        TryExec=${viber}
+        Exec=${viber} --startminimized %U
         Icon=viber
         Terminal=false
         Categories=Network;InstantMessaging;
