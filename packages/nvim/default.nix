@@ -15,7 +15,10 @@ in
 nixvim'.makeNixvimWithModule {
   inherit pkgs;
   extraSpecialArgs = {
-    inherit lib namespace;
+    inherit namespace;
+    lib = lib.extend (self: super: {
+      nixvim = nixvimLib;
+    });
   };
   module = {
     

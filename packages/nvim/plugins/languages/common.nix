@@ -1,133 +1,132 @@
 { pkgs, lib, config, ... }:
 {
   # General LSP configuration and keymaps
-  plugins = {
-    lsp-lines = {
-      enable = true;
+  plugins.lsp-lines = {
+    enable = true;
+  };
+  plugins.lsp-format = {
+    enable = true;
+  };
+  plugins.helm = {
+    enable = true;
+  };
+  plugins.lsp = {
+    enable = true;
+    inlayHints = true;
+    servers = {
+    # General purpose LSPs (always enabled)
+    html = {
+        enable = true;
     };
-    lsp-format = {
-      enable = true;
+    lua_ls = {
+        enable = true;
     };
-    helm = {
-      enable = true;
+    nil_ls = {
+        enable = true;
     };
-    lsp = {
-      enable = true;
-      inlayHints = true;
-      servers = {
-        # General purpose LSPs (always enabled)
-        html = {
-          enable = true;
-        };
-        lua_ls = {
-          enable = true;
-        };
-        nil_ls = {
-          enable = true;
-        };
-        marksman = {
-          enable = true;
-        };
-        terraformls = {
-          enable = true;
-        };
-        jsonls = {
-          enable = true;
-        };
-        helm_ls = {
-          enable = true;
-          extraOptions = {
-            settings = {
-              "helm_ls" = {
-                yamlls = {
-                  path = "${pkgs.yaml-language-server}/bin/yaml-language-server";
-                };
-              };
+    marksman = {
+        enable = true;
+    };
+    terraformls = {
+        enable = true;
+    };
+    jsonls = {
+        enable = true;
+    };
+    helm_ls = {
+        enable = true;
+        extraOptions = {
+        settings = {
+            "helm_ls" = {
+            yamlls = {
+                path = "${pkgs.yaml-language-server}/bin/yaml-language-server";
             };
-          };
-        };
-        yamlls = {
-          enable = true;
-          extraOptions = {
-            settings = {
-              yaml = {
-                schemas = {
-                  kubernetes = "'*.yaml";
-                  "http://json.schemastore.org/github-workflow" = ".github/workflows/*";
-                  "http://json.schemastore.org/github-action" = ".github/action.{yml,yaml}";
-                  "http://json.schemastore.org/ansible-stable-2.9" = "roles/tasks/*.{yml,yaml}";
-                  "http://json.schemastore.org/kustomization" = "kustomization.{yml,yaml}";
-                  "http://json.schemastore.org/ansible-playbook" = "*play*.{yml,yaml}";
-                  "http://json.schemastore.org/chart" = "Chart.{yml,yaml}";
-                  "https://json.schemastore.org/dependabot-v2" = ".github/dependabot.{yml,yaml}";
-                  "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json" =
-                    "*docker-compose*.{yml,yaml}";
-                  "https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json" =
-                    "*flow*.{yml,yaml}";
-                };
-              };
             };
-          };
         };
-        
-        # Language-specific LSPs are in separate language files
-      };
-
-      keymaps = {
-        silent = true;
-        lspBuf = {
-          gd = {
-            action = "definition";
-            desc = "Goto Definition";
-          };
-          gr = {
-            action = "references";
-            desc = "Goto References";
-          };
-          gD = {
-            action = "declaration";
-            desc = "Goto Declaration";
-          };
-          gI = {
-            action = "implementation";
-            desc = "Goto Implementation";
-          };
-          gT = {
-            action = "type_definition";
-            desc = "Type Definition";
-          };
-          K = {
-            action = "hover";
-            desc = "Hover";
-          };
-          "<leader>cw" = {
-            action = "workspace_symbol";
-            desc = "Workspace Symbol";
-          };
-          "<leader>cr" = {
-            action = "rename";
-            desc = "Rename";
-          };
         };
-        diagnostic = {
-          "<leader>cd" = {
-            action = "open_float";
-            desc = "Line Diagnostics";
-          };
-          "[d" = {
-            action = "goto_next";
-            desc = "Next Diagnostic";
-          };
-          "]d" = {
-            action = "goto_prev";
-            desc = "Previous Diagnostic";
-          };
+    };
+    yamlls = {
+        enable = true;
+        extraOptions = {
+        settings = {
+            yaml = {
+            schemas = {
+                kubernetes = "'*.yaml";
+                "http://json.schemastore.org/github-workflow" = ".github/workflows/*";
+                "http://json.schemastore.org/github-action" = ".github/action.{yml,yaml}";
+                "http://json.schemastore.org/ansible-stable-2.9" = "roles/tasks/*.{yml,yaml}";
+                "http://json.schemastore.org/kustomization" = "kustomization.{yml,yaml}";
+                "http://json.schemastore.org/ansible-playbook" = "*play*.{yml,yaml}";
+                "http://json.schemastore.org/chart" = "Chart.{yml,yaml}";
+                "https://json.schemastore.org/dependabot-v2" = ".github/dependabot.{yml,yaml}";
+                "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json" =
+                "*docker-compose*.{yml,yaml}";
+                "https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json" =
+                "*flow*.{yml,yaml}";
+            };
+            };
         };
-      };
+        };
     };
     
-    # LSP progress UI
-    fidget = {
+    # Language-specific LSPs are in separate language files
+    };
+
+    keymaps = {
+    silent = true;
+    lspBuf = {
+        gd = {
+        action = "definition";
+        desc = "Goto Definition";
+        };
+        gr = {
+        action = "references";
+        desc = "Goto References";
+        };
+        gD = {
+        action = "declaration";
+        desc = "Goto Declaration";
+        };
+        gI = {
+        action = "implementation";
+        desc = "Goto Implementation";
+        };
+        gT = {
+        action = "type_definition";
+        desc = "Type Definition";
+        };
+        K = {
+        action = "hover";
+        desc = "Hover";
+        };
+        "<leader>cw" = {
+        action = "workspace_symbol";
+        desc = "Workspace Symbol";
+        };
+        "<leader>cr" = {
+        action = "rename";
+        desc = "Rename";
+        };
+    };
+    diagnostic = {
+        "<leader>cd" = {
+        action = "open_float";
+        desc = "Line Diagnostics";
+        };
+        "[d" = {
+        action = "goto_next";
+        desc = "Next Diagnostic";
+        };
+        "]d" = {
+        action = "goto_prev";
+        desc = "Previous Diagnostic";
+        };
+    };
+    };
+  };  
+  
+  # LSP progress UI
+  plugins.fidget = {
       enable = true;
       settings = {
         logger = {
@@ -225,12 +224,12 @@
             group_separator = "---";
             group_separator_hl = "Comment";
           };
-        };
       };
     };
-    
-    # Formatting configuration
-    conform-nvim = {
+  };
+  
+  # Formatting configuration
+  plugins.conform-nvim = {
       enable = true;
       settings = {
         format_on_save = ''
@@ -337,7 +336,6 @@
           bicep = {
             command = "${lib.getExe pkgs.bicep}";
           };
-        };
       };
     };
   };
