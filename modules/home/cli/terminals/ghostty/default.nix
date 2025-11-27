@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
-  shell = config.${namespace}.cli.shells.default.name;
+  shell = config.${namespace}.cli.shells.default.name;  
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
@@ -39,12 +39,34 @@ in
         gtk-single-instance = true;
         window-padding-x = 6;
         window-padding-y = 6;
+        window-save-state = "always";
         copy-on-select = "clipboard";
         cursor-style = "block";
         confirm-close-surface = false;
+        # https://sterba.dev/posts/replacing-tmux/
         keybind = [
-          "ctrl+shift+plus=increase_font_size:1"
-          # Claude Code Shift+Enter binding
+          "clear"
+
+          # Split management
+          "ctrl+shift+h=goto_split:left"
+          "ctrl+shift+j=goto_split:bottom"
+          "ctrl+shift+k=goto_split:top"
+          "ctrl+shift+l=goto_split:right"
+          
+          "ctrl+shift+-=new_split:down"          
+          "ctrl+shift+|=new_split:right"          
+          "ctrl+shift+f=toggle_split_zoom"
+          
+          # Tab management
+          "ctrl+shift+]=next_tab"
+          "ctrl+shift+[=previous_tab"
+          "ctrl+shift+n=new_tab"
+          "ctrl+shift+q=close_tab"
+          
+          # Reload config
+          "super+r=reload_config"
+
+          # Claude Code
           "shift+enter=text:\u001b[13;2u"
         ];
       };

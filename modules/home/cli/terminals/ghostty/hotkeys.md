@@ -96,3 +96,7 @@ This document lists the keyboard shortcuts configured for the Ghostty terminal e
 | Action | Shortcut |
 |--------|----------|
 | Claude code | `Shift+Enter` |
+
+
+## Links
+* https://sterba.dev/posts/replacing-tmux/

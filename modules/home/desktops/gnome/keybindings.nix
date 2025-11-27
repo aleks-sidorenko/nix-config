@@ -26,53 +26,51 @@ in
       };
 
       "org/gnome/settings-daemon/plugins/media-keys" = {
-        www = [ "<Super>w" ];
+        www = [ "<Ctrl><Alt>w" ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
         ];
       };
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-        name = "Open Terminal (Super+t)";
+        name = "Open Terminal (Ctrl+Alt+t)";
         command = terminal;
-        binding = "<Super>t";
+        binding = "<Ctrl><Alt>t";
       };
 
       "org/gnome/desktop/wm/keybindings" = {
         activate-window-menu = [ "<Alt>space" ];
         always-on-top = [ ];
-        begin-move = [ "<Alt>F7" ];
-        begin-resize = [ "<Alt>F8" ];
-        close = [ "<Super>q" ];
+        begin-move = [ ];
+        begin-resize = [ ];
+        close = [ "<Alt>F4" ];
         cycle-group = [ "<Alt>F6" ];
-        cycle-group-backward = [ "<Shift><Alt>F6" ];
-        cycle-panels = [ "<Ctrl><Alt>Escape" ];
-        cycle-panels-backward = [ "<Shift><Ctrl><Alt>Escape" ];
+        cycle-group-backward = [ ];
+        cycle-panels = [ ];
+        cycle-panels-backward = [ ];
         cycle-windows = [ "<Alt>Escape" ];
         cycle-windows-backward = [ "<Shift><Alt>Escape" ];
         lower = [ ];
         maximize = [ "<Super>Up" ];
         maximize-horizontally = [ ];
         maximize-vertically = [ ];
-        minimize = [ "<Super>h" ];
+        minimize = [ "<Super>Down" ];
         move-to-monitor-down = [ "<Super><Shift>Down" ];
         move-to-monitor-left = [ "<Super><Shift>Left" ];
         move-to-monitor-right = [ "<Super><Shift>Right" ];
         move-to-monitor-up = [ "<Super><Shift>Up" ];
         move-to-workspace-1 = [ "<Super><Shift>Home" ];
-        move-to-workspace-down = [ "<Ctrl><Shift><Alt>Down" ];
+        move-to-workspace-down = [];
         move-to-workspace-last = [ "<Super><Shift>End" ];
         move-to-workspace-left = [
           "<Super><Shift>Page_Up"
-          "<Super><Shift><Alt>Left"
-          "<Ctrl><Shift><Alt>Left"
+          "<Super><Shift><Alt>Left"          
         ];
         move-to-workspace-right = [
           "<Super><Shift>Page_Down"
-          "<Super><Shift><Alt>Right"
-          "<Ctrl><Shift><Alt>Right"
+          "<Super><Shift><Alt>Right"          
         ];
-        move-to-workspace-up = [ "<Ctrl><Shift><Alt>Up" ];
+        move-to-workspace-up = [ ];
         panel-run-dialog = [ "<Alt>F2" ];
         switch-applications = [
           "<Super>Tab"
@@ -101,7 +99,7 @@ in
         switch-panels = [ "<Ctrl><Alt>Tab" ];
         switch-panels-backward = [ "<Shift><Ctrl><Alt>Tab" ];
         switch-to-workspace-1 = [ "<Super>Home" ];
-        switch-to-workspace-down = [ "<Ctrl><Alt>Down" ];
+        switch-to-workspace-down = [ ];
         switch-to-workspace-last = [ "<Super>End" ];
         switch-to-workspace-left = [
           "<Super>Page_Up"
@@ -113,10 +111,9 @@ in
           "<Super><Alt>Right"
           "<Ctrl><Alt>Right"
         ];
-        switch-to-workspace-up = [ "<Ctrl><Alt>Up" ];
+        switch-to-workspace-up = [ ];
         toggle-maximized = [ "<Alt>F10" ];
-        unmaximize = [
-          "<Super>Down"
+        unmaximize = [          
           "<Alt>F5"
         ];
       };
