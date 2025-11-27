@@ -3,9 +3,7 @@ lib.mkIf config.development.rust.enable {
   # Rust analyzer with enhanced tooling
   plugins.rustaceanvim = {
     enable = true;
-    
-    rustAnalyzerPackage = pkgs.rust-analyzer;
-    
+            
     settings = {
       server = {
         default_settings = {

@@ -15,10 +15,7 @@ let
 
   nvim' = inputs.self.packages.${system}.nvim;
 
-  nvim = nvim'.extend {
-    viAlias = lib.mkForce true;
-    vimAlias = lib.mkForce true;
-    
+  nvim = nvim'.extend {        
     # Pass development options from the home configuration
     config.development = {
       haskell.enable = lib.mkIf (cfg.development.haskell) (lib.mkForce true);

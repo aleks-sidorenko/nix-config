@@ -4,10 +4,6 @@ lib.mkIf config.development.haskell.enable {
   plugins.haskell-tools = {
     enable = true;
     
-    hls = {
-      package = pkgs.haskell-language-server;
-    };
-    
     settings = {
       hls = {
         on_attach = ''
@@ -55,7 +51,7 @@ lib.mkIf config.development.haskell.enable {
         };
         tags = {
           enable = true;
-          package = pkgs.fast-tags;
+          package = pkgs.haskellPackages.fast-tags;
         };
       };
     };

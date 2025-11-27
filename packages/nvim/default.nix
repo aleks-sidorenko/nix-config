@@ -15,14 +15,8 @@ in
 nixvim'.makeNixvimWithModule {
   inherit pkgs;
   extraSpecialArgs = {
-    inherit namespace;
-    lib = lib.extend (self: super: {
-      nixvim = nixvimLib;
-    });
   };
-  module = {
-    
-    
+  module = {    
     # Define custom development options
     options = {
       development = {

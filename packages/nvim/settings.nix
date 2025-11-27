@@ -1,6 +1,10 @@
 { pkgs, ... }:
 {
   config = {
+
+    viAlias = true;
+    vimAlias = true;
+
     extraConfigLuaPre =
       # lua
       ''
