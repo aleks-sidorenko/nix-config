@@ -15,16 +15,30 @@ let
 
   nvim' = inputs.self.packages.${system}.nvim;
 
-  nvim = nvim'.extend {
-    viAlias = lib.mkForce true;
-    vimAlias = lib.mkForce true;
+  nvim = nvim'.extend {        
+    # Pass development options from the home configuration
+    config.development = {
+      haskell.enable = lib.mkIf (cfg.development.haskell) (lib.mkForce true);
+      rust.enable = lib.mkIf (cfg.development.rust) (lib.mkForce true);
+      python.enable = lib.mkIf (cfg.development.python) (lib.mkForce true);
+      go.enable = lib.mkIf (cfg.development.go) (lib.mkForce true);
+      typescript.enable = lib.mkIf (cfg.development.typescript) (lib.mkForce true);
+    };
   };
 in
 {
 
   options.${namespace}.cli.editors.nvim = with types; {
-    enable = mkBoolOpt false "Enable neovim editor.";
+    enable = mkEnableOption "Enable neovim editor.";
     default = mkBoolOpt false "Whether or not to use neovim as the default shell.";
+    
+    development = {
+      haskell = mkEnableOption "Enable Haskell development support in Neovim.";
+      rust = mkEnableOption "Enable Rust development support in Neovim.";
+      python = mkEnableOption "Enable Python development support in Neovim.";
+      go = mkEnableOption "Enable Go development support in Neovim.";
+      typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
+    };
   };
 
   config = mkIf cfg.enable {

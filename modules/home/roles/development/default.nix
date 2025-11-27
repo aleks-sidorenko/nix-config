@@ -8,16 +8,32 @@ with lib;
 let
   cfg = config.${namespace}.roles.development;
 in
-{
-  # TODO: split by areas: backend, frontend, mobile, desktop, devops,etc.
+{  
   options.${namespace}.roles.development = {
     enable = mkEnableOption "Enable development configuration";
+    
+    languages = {
+      haskell = mkEnableOption "Enable Haskell development support";
+      rust = mkEnableOption "Enable Rust development support";
+      python = mkEnableOption "Enable Python development support";
+      go = mkEnableOption "Enable Go development support";
+      typescript = mkEnableOption "Enable TypeScript development support";
+    };
   };
 
   config = mkIf cfg.enable {
     ${namespace} = {
       cli = {
-        editors.nvim.enable = true;
+        editors.nvim = {
+          enable = true;
+          development = {
+            haskell = cfg.languages.haskell;
+            rust = cfg.languages.rust;
+            python = cfg.languages.python;
+            go = cfg.languages.go;
+            typescript = cfg.languages.typescript;
+          };
+        };
         multiplexers.zellij.enable = true;
 
         tools = {

@@ -20,7 +20,16 @@ in
     ${namespace} = {
       roles = {
         common = enabled;
-        development = enabled;
+        development = {
+          enable = true;
+          languages = {
+            haskell = true;
+            rust = false;
+            python = true;
+            go = false;
+            typescript = true;
+          };
+        };
         media = enabled;
         mobile = enabled;
         gaming = enabled;
