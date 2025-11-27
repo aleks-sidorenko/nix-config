@@ -15,12 +15,34 @@ in
 nixvim'.makeNixvimWithModule {
   inherit pkgs;
   extraSpecialArgs = {
-    # TODO - provide some extra args like `lib.${namespace}
+    inherit lib namespace;
   };
   module = {
     # This means I can't use `default.nix` as a filename later, because there
     # doesn't seem to be a version that is "all files recursive except THIS
     # default.nix"
     imports = (lib.snowfall.fs.get-non-default-nix-files-recursive ./.);
+    
+    # Define custom development options
+    options = {
+      development = {
+        haskell.enable = lib.mkEnableOption "Haskell development support";
+        rust.enable = lib.mkEnableOption "Rust development support";
+        python.enable = lib.mkEnableOption "Python development support";
+        go.enable = lib.mkEnableOption "Go development support";
+        typescript.enable = lib.mkEnableOption "TypeScript development support";
+      };
+    };
+    
+    # Set defaults
+    config = {
+      development = {
+        haskell.enable = lib.mkDefault false;
+        rust.enable = lib.mkDefault false;
+        python.enable = lib.mkDefault false;
+        go.enable = lib.mkDefault false;
+        typescript.enable = lib.mkDefault false;
+      };
+    };
   };
 }
