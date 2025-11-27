@@ -1,5 +1,6 @@
 {
-  plugins.web-devicons = {
+  plugins.which-key = {
     enable = true;
   };
 }
+
