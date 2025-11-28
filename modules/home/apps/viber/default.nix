@@ -31,7 +31,7 @@ in
         Name=Viber
         Comment=Free calls, text and picture sharing with anyone, anywhere!
         TryExec=${viber}
-        Exec=${viber} --startminimized %U
+        Exec=${viber} --StartInBackground %U
         Icon=viber
         Terminal=false
         Categories=Network;InstantMessaging;
