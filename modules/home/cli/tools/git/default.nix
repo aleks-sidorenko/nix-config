@@ -20,8 +20,9 @@ in
   options.${namespace}.cli.tools.git = with types; {
     enable = mkBoolOpt false "Whether or not to enable git.";
     email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git.";
+    fullName = mkOpt (nullOr str) "Alexander Sidorenko" "The full name to use with git.";
     urlRewrites = mkOpt (attrsOf str) { } "url we need to rewrite i.e. ssh to http";
-    allowedSigners = mkOpt str "" "The public key used for signing commits";
+    allowedSigners = mkOpt str "~/.ssh/id_ed25519.pub" "The public key used for signing commits";
   };
 
   config = mkIf cfg.enable {
@@ -29,49 +30,59 @@ in
 
     programs.git = {
       enable = true;
-      userName = "Alexander Sidorenko";
-      userEmail = cfg.email;
+      settings = {
 
-      extraConfig = {
+        user = {
+          name = cfg.fullName;
+          email = cfg.email;
+        };
+
         gpg.format = "ssh";
         gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         commit.gpgsign = true;
-        user.signingkey = "~/.ssh/id_ed25519.pub";
+        user.signingkey = cfg.allowedSigners;
 
-        core = {
-          editor = "nvim";
-          pager = "delta";
+
+        diff.tool = "difftastic";
+        difftool = {
+          prompt = "false";
+          difftastic.cmd = "difft \"$LOCAL\" \"$REMOTE\"";
         };
 
-        color = {
-          ui = true;
-        };
-
-        interactive = {
-          diffFitler = "delta --color-only";
-        };
-
-        delta = {
-          enable = true;
-          navigate = true;
-          light = false;
-          side-by-side = false;
-          options.syntax-theme = "catppuccin";
+        log = {
+          showSignature = "true";
         };
 
         pull = {
-          ff = "only";
+          rebase = true;
+        };
+        
+        init = {
+          defaultBranch = "master";
         };
 
         push = {
           default = "current";
           autoSetupRemote = true;
         };
+      };      
 
-        init = {
-          defaultBranch = "init";
-        };
-      } // rewriteURL;
+      signing = {
+        signByDefault = true;
+        key = cfg.allowedSigners;
+      };
+
+      ignores = [
+        ".direnv"
+        "result"
+      ];
+            
     };
+
+    programs.difftastic = {
+      enable = true;      
+    };
+
+    
   };
 }
