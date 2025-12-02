@@ -459,7 +459,7 @@
     }
     {
       mode = "n";
-      key = "<leader><tab><tab>";
+      key = "<leader><tab>n";
       action = "<cmd>tabnew<cr>";
       options = {
         desc = "New Tab";
@@ -475,7 +475,7 @@
     }
     {
       mode = "n";
-      key = "<leader><tab>d";
+      key = "<leader><tab>q";
       action = "<cmd>tabclose<cr>";
       options = {
         desc = "Close Tab";
