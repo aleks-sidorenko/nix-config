@@ -24,6 +24,11 @@ let
       go.enable = lib.mkIf (cfg.development.go) (lib.mkForce true);
       typescript.enable = lib.mkIf (cfg.development.typescript) (lib.mkForce true);
     };
+    # Pass AI options from the home configuration
+    config.ai = {
+      copilot.enable = lib.mkIf (cfg.ai.copilot) (lib.mkForce true);
+      claude-code.enable = lib.mkIf (cfg.ai.claude-code) (lib.mkForce true);
+    };
   };
 in
 {
@@ -38,6 +43,11 @@ in
       python = mkEnableOption "Enable Python development support in Neovim.";
       go = mkEnableOption "Enable Go development support in Neovim.";
       typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
+    };
+    
+    ai = {
+      copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim.";
+      claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim.";
     };
   };
 

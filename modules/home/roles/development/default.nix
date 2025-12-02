@@ -5,6 +5,7 @@
   ...
 }:
 with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.roles.development;
 in
@@ -16,6 +17,11 @@ in
       type = types.str;
       default = "~/Projects";
       description = "Path to the projects directory";
+    };
+    
+    ai = {
+      copilot = mkEnableOption "Enable GitHub Copilot AI assistant";
+      claude-code = mkEnableOption "Enable Claude Code AI assistant";
     };
     
     languages = {
@@ -36,6 +42,10 @@ in
       cli = {
         editors.nvim = {
           enable = true;
+          ai = {
+            copilot = cfg.ai.copilot;
+            claude-code = cfg.ai.claude-code;
+          };
           development = {
             haskell = cfg.languages.haskell;
             rust = cfg.languages.rust;
@@ -51,6 +61,7 @@ in
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;
+          claude-code.enable = true;
           database.enable = true;
           direnv.enable = true;
           eza.enable = true;

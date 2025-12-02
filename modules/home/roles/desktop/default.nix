@@ -22,6 +22,10 @@ in
         common = enabled;
         development = {
           enable = true;
+          ai = {
+            copilot = true;
+            claude-code = true;
+          };
           languages = {
             haskell = true;
             rust = false;
