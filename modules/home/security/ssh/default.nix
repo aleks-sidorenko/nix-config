@@ -15,6 +15,13 @@ in
   options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Whether or not to enable ssh";
 
+    publicKey = mkOption {
+      type = str;
+      default = "~/.ssh/${publicKey}";
+      readOnly = true;
+      description = "Path to the public SSH key";
+    };
+
     extraHosts = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {
@@ -47,6 +54,7 @@ in
   config = mkIf cfg.enable {
     programs.ssh = {
       enable = true;
+      enableDefaultConfig = false;
       # Let GPG agent handle the keys
       addKeysToAgent = "confirm";
       matchBlocks = cfg.extraHosts;
@@ -61,6 +69,6 @@ in
       '';
     };
 
-    home.file.".ssh/${publicKey}".source = ./${publicKey};
+    home.file."${cfg.publicKey}".source = ./${publicKey};
   };
 }
