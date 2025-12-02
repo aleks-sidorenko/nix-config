@@ -21,43 +21,18 @@ in
       readOnly = true;
       description = "Path to the public SSH key";
     };
-
-    extraHosts = lib.mkOption {
-      type = lib.types.attrsOf (
-        lib.types.submodule {
-          options = {
-            hostname = lib.mkOption {
-              type = lib.types.str;
-              description = "The hostname or IP address of the SSH host.";
-            };
-            identityFile = lib.mkOption {
-              type = lib.types.str;
-              default = "~/${sshDir}/${keyName}";
-              description = "The path to the identity file for the SSH host.";
-            };
-          };
-        }
-      );
-      default = { };
-      description = "A set of extra SSH hosts.";
-      example = literalExample ''
-        {
-          "gitlab-personal" = {
-            hostname = "gitlab.com";
-            identityFile = "~/${sshDir}/${keyName}";
-          };
-        }
-      '';
-    };
   };
 
   config = mkIf cfg.enable {
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
-      # Let GPG agent handle the keys
-      addKeysToAgent = "confirm";
-      matchBlocks = cfg.extraHosts;
+      matchBlocks = {
+        
+        "*" = {
+          addKeysToAgent = "confirm"; # Let GPG agent handle the keys
+        };
+      };
 
       extraConfig = ''
         # Use GPG agent for SSH
