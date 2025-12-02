@@ -18,7 +18,7 @@ in
       };
 
       "org/gnome/shell/keybindings" = {
-        open-terminal = [ ];
+        open-terminal = [ "<Ctrl><Alt>t" "<Super>t" ];        
       };
 
       "org/gnome/shell/keybindings/toggle-application-view" = {
@@ -26,9 +26,10 @@ in
       };
 
       "org/gnome/settings-daemon/plugins/media-keys" = {
-        www = [ "<Ctrl><Alt>w" ];
+        www = [ "<Ctrl><Alt>w" "<Super>w" ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
         ];
       };
 
@@ -37,12 +38,18 @@ in
         command = terminal;
         binding = "<Ctrl><Alt>t";
       };
+      
+      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+        name = "Open Terminal (Super+t)";
+        command = terminal;
+        binding = "<Super>t";
+      };
 
       "org/gnome/desktop/wm/keybindings" = {
         activate-window-menu = [ "<Alt>space" ];
         always-on-top = [ ];
         begin-move = [ ];
-        begin-resize = [ ];
+        begn-resize = [ ];
         close = [ "<Alt>F4" ];
         cycle-group = [ "<Alt>F6" ];
         cycle-group-backward = [ ];
