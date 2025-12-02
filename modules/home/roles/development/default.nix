@@ -12,6 +12,12 @@ in
   options.${namespace}.roles.development = {
     enable = mkEnableOption "Enable development configuration";
 
+    projectsHome = mkOption {
+      type = types.str;
+      default = "~/Projects";
+      description = "Path to the projects directory";
+    };
+    
     languages = {
       haskell = mkEnableOption "Enable Haskell development support";
       rust = mkEnableOption "Enable Rust development support";
@@ -22,6 +28,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    home.sessionVariables = {
+      PROJECTS_HOME = cfg.projectsHome;
+    };
+
     ${namespace} = {
       cli = {
         editors.nvim = {
