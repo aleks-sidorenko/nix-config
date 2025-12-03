@@ -2,6 +2,7 @@
   plugins.copilot-chat = {
     enable = config.ai.copilot.enable;
 
+    lazyLoad.enable = true;
     lazyLoad.settings.cmd = [
       "CopilotChat"
       "CopilotChatAgents"

@@ -23,7 +23,7 @@ in
         development = {
           enable = true;
           ai = {
-            copilot = true;
+            copilot = false;
             claude-code = true;
           };
           languages = {

@@ -90,6 +90,7 @@ deploy .#server --hostname server  --skip-checks
 - Misterio77 config https://github.com/Misterio77/nix-config
 - EmergentMind config https://github.com/EmergentMind/nix-config
 - Nice nixvim config https://github.com/dc-tec/nixvim
+- Dev oriented nixvim config https://github.com/khaneliman/khanelivim/tree/main
 - Rasbperry PI 4 https://github.com/Stunkymonkey/nixos
 - Home-Assistant https://github.com/azuwis/nix-config/tree/master/nixos/hass
 - Home-Assistant https://github.com/nathan-gs/nix-conf/tree/main/smarthome
