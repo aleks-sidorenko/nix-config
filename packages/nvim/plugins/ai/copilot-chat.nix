@@ -1,4 +1,5 @@
-{config, lib, ...}: {
+{ config, lib, ... }:
+{
   plugins.copilot-chat = {
     enable = config.ai.copilot.enable;
 

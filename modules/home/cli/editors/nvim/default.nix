@@ -44,7 +44,7 @@ in
       go = mkEnableOption "Enable Go development support in Neovim.";
       typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
     };
-    
+
     ai = {
       copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim.";
       claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim.";

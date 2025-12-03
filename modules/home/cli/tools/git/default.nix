@@ -43,7 +43,6 @@ in
         commit.gpgsign = true;
         user.signingkey = cfg.allowedSigners;
 
-
         diff.tool = "difftastic";
         difftool = {
           prompt = "false";
@@ -57,7 +56,7 @@ in
         pull = {
           rebase = true;
         };
-        
+
         init = {
           defaultBranch = "master";
         };
@@ -148,7 +147,6 @@ in
           # Clean
           clean-all = "clean -fd";
           pristine = "!git reset --hard && git clean -fdx";
-                  
 
           # Remote
           rv = "remote -v";
@@ -160,8 +158,6 @@ in
           wtl = "worktree list";
           wta = "worktree add";
           wtr = "worktree remove";
-
-          
 
           # Misc
           aliases = "config --get-regexp alias";

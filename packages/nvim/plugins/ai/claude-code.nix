@@ -1,4 +1,10 @@
-{config, lib, pkgs, ...}: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   plugins = {
     claude-code = {
       enable = config.ai.claude-code.enable;
@@ -81,4 +87,3 @@
     }
   ];
 }
-
