@@ -10,14 +10,15 @@ let
   cfg = config.${namespace}.security.ssh;
 
   publicKey = "id_ed25519.pub";
+  relativePublicKeyPath = ".ssh/${publicKey}";
 in
 {
   options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Whether or not to enable ssh";
 
-    publicKey = mkOption {
+    publicKeyPath = mkOption {
       type = str;
-      default = "~/.ssh/${publicKey}";
+      default = "${config.home.homeDirectory}/${relativePublicKeyPath}";
       readOnly = true;
       description = "Path to the public SSH key";
     };
@@ -44,6 +45,6 @@ in
       '';
     };
 
-    home.file."${cfg.publicKey}".source = ./${publicKey};
+    home.file."${relativePublicKeyPath}".source = ./${publicKey};
   };
 }
