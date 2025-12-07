@@ -18,7 +18,17 @@ in
     ${namespace} = {      
       services = {
         gaming = {          
-          minecraft-server = enabled;
+          minecraft-server = {
+            enable = true;
+            ops = [
+              {
+                uuid = "036251c9-562e-48b6-af54-1ae7a154c01f"; # https://mcuuid.net/?q=s1dus
+                name = "s1dus";
+                level = 4;
+                bypassesPlayerLimit = true;
+              }
+            ];
+          };
         };
       };
     };
