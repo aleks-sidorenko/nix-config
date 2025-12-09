@@ -29,7 +29,31 @@ in
             weather = enabled;
             heatpump = enabled;
             climate = enabled;
-            tv = enabled;
+            plugs = {
+              enable = true;
+              plugs = [
+                {
+                  enable = true;
+                  name = "tv";
+                  displayName = "TV";
+                  entity_id = "switch.floor1_living_plug_tv";
+                  intervals = [
+                    { name = "morning"; start = "07:30"; end = "09:30"; }
+                    { name = "evening"; start = "18:00"; end = "19:30"; }
+                    { name = "night"; start = "22:00"; end = "01:00"; }
+                  ];
+                }
+                {
+                  enable = true;
+                  name = "fireplace";
+                  displayName = "Fireplace";
+                  entity_id = "switch.floor1_living_plug_fireplace";
+                  intervals = [
+                    { name = "evening"; start = "16:00"; end = "00:00"; }
+                  ];
+                }
+              ];
+            };
             inverter = {
               enable = true;
               serialNumber = "2988661222";              
