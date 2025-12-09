@@ -16,7 +16,7 @@ nixvim'.makeNixvimWithModule {
   inherit pkgs;
   extraSpecialArgs = {
   };
-  module = {    
+  module = {
     # Define custom development options
     options = {
       development = {
@@ -27,7 +27,7 @@ nixvim'.makeNixvimWithModule {
         typescript.enable = lib.mkEnableOption "TypeScript development support";
       };
     };
-    
+
     # Set defaults
     config = {
       development = {

@@ -44,7 +44,7 @@ in
         onShutdown = "shutdown";
         qemu = {
           swtpm.enable = true;
-          
+
         };
       };
     };

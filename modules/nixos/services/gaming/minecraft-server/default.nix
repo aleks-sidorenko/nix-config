@@ -37,17 +37,26 @@ let
   };
 
   # Generate ops.json content
-  opsJson = builtins.toJSON (map (op: {
-    inherit (op) uuid name level bypassesPlayerLimit;
-  }) cfg.ops);
+  opsJson = builtins.toJSON (
+    map (op: {
+      inherit (op)
+        uuid
+        name
+        level
+        bypassesPlayerLimit
+        ;
+    }) cfg.ops
+  );
 in
 {
   options.${namespace}.services.gaming.minecraft-server = {
     enable = mkEnableOption "Enable Minecraft Java Edition server";
 
     user = mkOpt types.str "minecraft" "User to run the Minecraft server as";
-    
-    group = mkOpt types.str config.${namespace}.services.gaming.group "Group to run the Minecraft server as";
+
+    group =
+      mkOpt types.str config.${namespace}.services.gaming.group
+        "Group to run the Minecraft server as";
 
     port = mkOpt types.port defaults.network.ports.minecraft.server "Port for the Minecraft server";
 
@@ -133,7 +142,7 @@ in
 
     # Ensure directories exist and have correct permissions
     systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"      
+      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
     ];
 
     # Write ops.json if operators are defined
@@ -148,5 +157,3 @@ in
     '';
   };
 }
-
-

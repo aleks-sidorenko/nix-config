@@ -50,7 +50,9 @@ in
               monitor:
               let
                 vendorLine = optionalString (monitor.vendor != "") "          <vendor>${monitor.vendor}</vendor>\n";
-                productLine = optionalString (monitor.model != "") "          <product>${monitor.model}</product>\n";
+                productLine = optionalString (
+                  monitor.model != ""
+                ) "          <product>${monitor.model}</product>\n";
                 serialLine = optionalString (monitor.serial != "") "          <serial>${monitor.serial}</serial>\n";
                 primaryLine = optionalString monitor.primary "      <primary>yes</primary>\n";
               in

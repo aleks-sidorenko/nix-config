@@ -8,10 +8,10 @@ with lib;
 let
   cfg = config.${namespace}.roles.development;
 in
-{  
+{
   options.${namespace}.roles.development = {
     enable = mkEnableOption "Enable development configuration";
-    
+
     languages = {
       haskell = mkEnableOption "Enable Haskell development support";
       rust = mkEnableOption "Enable Rust development support";

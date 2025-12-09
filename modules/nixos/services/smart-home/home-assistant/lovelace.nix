@@ -72,5 +72,6 @@
         }
       ];
     }
-  ] ++ cfg.views;
+  ]
+  ++ cfg.views;
 }

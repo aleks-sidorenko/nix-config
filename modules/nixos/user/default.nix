@@ -51,8 +51,10 @@ in
         "networkmanager"
         "input"
         "tty"
-      ] ++ cfg.extraGroups;
-    } // cfg.extraOptions;
+      ]
+      ++ cfg.extraGroups;
+    }
+    // cfg.extraOptions;
 
     home-manager = {
       useGlobalPkgs = true;

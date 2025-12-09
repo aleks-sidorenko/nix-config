@@ -18,7 +18,10 @@ in
       };
 
       "org/gnome/shell/keybindings" = {
-        open-terminal = [ "<Ctrl><Alt>t" "<Super>t" ];        
+        open-terminal = [
+          "<Ctrl><Alt>t"
+          "<Super>t"
+        ];
       };
 
       "org/gnome/shell/keybindings/toggle-application-view" = {
@@ -26,7 +29,10 @@ in
       };
 
       "org/gnome/settings-daemon/plugins/media-keys" = {
-        www = [ "<Ctrl><Alt>w" "<Super>w" ];
+        www = [
+          "<Ctrl><Alt>w"
+          "<Super>w"
+        ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
@@ -38,7 +44,7 @@ in
         command = terminal;
         binding = "<Ctrl><Alt>t";
       };
-      
+
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
         name = "Open Terminal (Super+t)";
         command = terminal;
@@ -67,15 +73,15 @@ in
         move-to-monitor-right = [ "<Super><Shift>Right" ];
         move-to-monitor-up = [ "<Super><Shift>Up" ];
         move-to-workspace-1 = [ "<Super><Shift>Home" ];
-        move-to-workspace-down = [];
+        move-to-workspace-down = [ ];
         move-to-workspace-last = [ "<Super><Shift>End" ];
         move-to-workspace-left = [
           "<Super><Shift>Page_Up"
-          "<Super><Shift><Alt>Left"          
+          "<Super><Shift><Alt>Left"
         ];
         move-to-workspace-right = [
           "<Super><Shift>Page_Down"
-          "<Super><Shift><Alt>Right"          
+          "<Super><Shift><Alt>Right"
         ];
         move-to-workspace-up = [ ];
         panel-run-dialog = [ "<Alt>F2" ];
@@ -120,7 +126,7 @@ in
         ];
         switch-to-workspace-up = [ ];
         toggle-maximized = [ "<Alt>F10" ];
-        unmaximize = [          
+        unmaximize = [
           "<Alt>F5"
         ];
       };

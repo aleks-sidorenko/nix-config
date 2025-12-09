@@ -10,7 +10,7 @@ with lib.${namespace};
 let
   haCfg = config.${namespace}.services.smart-home.home-assistant;
   cfg = haCfg.heatpump;
-  
+
   modeType = types.submodule {
     options = {
       temperature_from = mkOption {
@@ -27,7 +27,7 @@ in
 {
   options.${namespace}.services.smart-home.home-assistant.heatpump = {
     enable = mkEnableOption "Enable heatpump integration and dashboard";
-    
+
     modes = {
       off = mkOption {
         type = modeType;
@@ -37,7 +37,7 @@ in
         };
         description = "Off heating mode (used during morning)";
       };
-      
+
       on = mkOption {
         type = modeType;
         default = {
@@ -129,7 +129,7 @@ in
                   entity = "input_number.heatpump_temperature_to";
                   name = "Temperature To";
                 }
-              ];              
+              ];
             }
             {
               type = "markdown";
@@ -137,7 +137,7 @@ in
                 ## Heatpump Schedule
 
                 The heatpump temperatures are automatically adjusted based on:
-                
+
                 ### Night Schedule
                 - **Night Schedule Off**: Uses Off Mode settings (configured in Nix)
                 - **Night Schedule On**: Uses On Mode settings (adjustable above)

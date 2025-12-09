@@ -172,7 +172,7 @@ in
         type = "plug";
         ieee = "0x00124b0026b81082";
       }
-      
+
       {
         zoneName = "floor2_hall";
         name = "main";

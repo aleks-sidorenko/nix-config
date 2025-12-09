@@ -42,7 +42,6 @@ in
         commit.gpgsign = true;
         user.signingkey = cfg.allowedSigners;
 
-
         diff.tool = "difftastic";
         difftool = {
           prompt = "false";
@@ -56,7 +55,7 @@ in
         pull = {
           rebase = true;
         };
-        
+
         init = {
           defaultBranch = "master";
         };
@@ -65,7 +64,7 @@ in
           default = "current";
           autoSetupRemote = true;
         };
-      };      
+      };
 
       signing = {
         signByDefault = true;
@@ -76,13 +75,12 @@ in
         ".direnv"
         "result"
       ];
-            
+
     };
 
     programs.difftastic = {
-      enable = true;      
+      enable = true;
     };
 
-    
   };
 }

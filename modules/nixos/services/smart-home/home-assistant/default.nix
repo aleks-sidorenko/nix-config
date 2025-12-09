@@ -220,33 +220,32 @@ in
       "f ${cfg.dataDir}/secrets.yaml 0644 ${cfg.user} ${cfg.group} - {}"
     ];
 
-    systemd.services.home-assistant =
-      {
-        preStart =
-          let
-            # Generate secret write commands from the secrets attribute set
-            secretCommands = lib.concatStringsSep "\n" (
-              lib.mapAttrsToList (
-                name: secretPath: ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
-              ) cfg.secrets
-            );
-          in
-          ''
-            # Create secrets.yaml file that Home Assistant can reference
-            # Clear existing file and write all secrets
-            : > "${cfg.dataDir}/secrets.yaml"
-            ${secretCommands}
-          '';
+    systemd.services.home-assistant = {
+      preStart =
+        let
+          # Generate secret write commands from the secrets attribute set
+          secretCommands = lib.concatStringsSep "\n" (
+            lib.mapAttrsToList (
+              name: secretPath: ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
+            ) cfg.secrets
+          );
+        in
+        ''
+          # Create secrets.yaml file that Home Assistant can reference
+          # Clear existing file and write all secrets
+          : > "${cfg.dataDir}/secrets.yaml"
+          ${secretCommands}
+        '';
 
-        serviceConfig = {
-          User = mkForce cfg.user;
-          Group = mkForce cfg.group;
-        };
-      }
-      // mkIf cfg.mosquitto.enable {
-        after = [ "mosquitto.service" ];
-        wants = [ "mosquitto.service" ];
+      serviceConfig = {
+        User = mkForce cfg.user;
+        Group = mkForce cfg.group;
       };
+    }
+    // mkIf cfg.mosquitto.enable {
+      after = [ "mosquitto.service" ];
+      wants = [ "mosquitto.service" ];
+    };
 
     # Add packages to system
     environment.systemPackages = with pkgs; [

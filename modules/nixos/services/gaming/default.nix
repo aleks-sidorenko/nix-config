@@ -20,5 +20,3 @@ in
     users.groups.${cfg.group} = mkDefault { };
   };
 }
-
-

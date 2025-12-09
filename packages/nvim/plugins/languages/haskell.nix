@@ -1,9 +1,14 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 lib.mkIf config.development.haskell.enable {
   # Haskell Language Server with advanced tooling
   plugins.haskell-tools = {
     enable = true;
-    
+
     settings = {
       hls = {
         on_attach = ''
@@ -27,7 +32,7 @@ lib.mkIf config.development.haskell.enable {
           };
         };
       };
-      
+
       tools = {
         codeLens = {
           autoRefresh = true;
@@ -56,25 +61,24 @@ lib.mkIf config.development.haskell.enable {
       };
     };
   };
-  
+
   # Formatting
   plugins.conform-nvim.settings.formatters_by_ft.haskell = [ "ormolu" ];
-  
+
   # Toolchain and tools
   extraPackages = with pkgs; [
     # Haskell toolchain
     ghc
     cabal-install
     stack
-    
+
     # Formatters
     ormolu
     stylish-haskell
-    
+
     # Additional tools
     haskellPackages.hoogle
     haskellPackages.fast-tags
     haskellPackages.hlint
   ];
 }
-

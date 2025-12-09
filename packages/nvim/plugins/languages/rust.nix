@@ -1,9 +1,14 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 lib.mkIf config.development.rust.enable {
   # Rust analyzer with enhanced tooling
   plugins.rustaceanvim = {
     enable = true;
-            
+
     settings = {
       server = {
         default_settings = {
@@ -62,7 +67,7 @@ lib.mkIf config.development.rust.enable {
           };
         };
       };
-      
+
       dap = {
         adapter = {
           type = "executable";
@@ -72,10 +77,10 @@ lib.mkIf config.development.rust.enable {
       };
     };
   };
-  
+
   # Formatting
   plugins.conform-nvim.settings.formatters_by_ft.rust = [ "rustfmt" ];
-  
+
   # Rust toolchain
   extraPackages = with pkgs; [
     cargo
@@ -84,4 +89,3 @@ lib.mkIf config.development.rust.enable {
     rustfmt
   ];
 }
-
