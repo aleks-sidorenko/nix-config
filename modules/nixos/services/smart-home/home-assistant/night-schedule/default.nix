@@ -14,14 +14,14 @@ in
 {
   options.${namespace}.services.smart-home.home-assistant.night-schedule = {
     enable = mkEnableOption "Enable night schedule sensor (sensor.night_schedule)";
-    
+
     nightOnTime = mkOption {
       type = types.str;
       default = "23:00";
       description = "Time when night mode starts (HH:MM format, 24-hour)";
       example = "23:00";
     };
-    
+
     nightOffTime = mkOption {
       type = types.str;
       default = "07:00";
@@ -44,4 +44,3 @@ in
       '';
   };
 }
-

@@ -186,6 +186,11 @@ in
         floor = "floor2";
         zone = "shower";
       };
+
+      floor2_hall = {
+        floor = "floor2";
+        zone = "hall";
+      };
     };
   };
 }

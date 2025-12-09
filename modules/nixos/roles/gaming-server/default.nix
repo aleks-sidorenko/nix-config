@@ -15,9 +15,9 @@ in
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {      
+    ${namespace} = {
       services = {
-        gaming = {          
+        gaming = {
           minecraft-server = {
             enable = true;
             ops = [
@@ -34,5 +34,3 @@ in
     };
   };
 }
-
-

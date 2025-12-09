@@ -83,10 +83,12 @@ in
         "/var/db/sudo/"
         "/var/lib/"
 
-      ] ++ cfg.directories;
+      ]
+      ++ cfg.directories;
       files = [
         "/etc/machine-id"
-      ] ++ cfg.files;
+      ]
+      ++ cfg.files;
     };
   };
 }

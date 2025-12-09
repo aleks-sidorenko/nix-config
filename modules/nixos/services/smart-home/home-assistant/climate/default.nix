@@ -14,7 +14,7 @@ in
 {
   options.${namespace}.services.smart-home.home-assistant.climate = {
     enable = mkEnableOption "Enable climate automations";
-    
+
     showerFan = {
       entity_id = mkOption {
         type = types.str;
@@ -22,7 +22,7 @@ in
         description = "Entity ID of the shower fan switch";
         example = "switch.floor2_shower_switch_fan";
       };
-      
+
       duration_seconds = mkOption {
         type = types.int;
         default = 300;
@@ -46,4 +46,3 @@ in
       '';
   };
 }
-

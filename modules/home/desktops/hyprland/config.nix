@@ -98,7 +98,8 @@ in
           "${pkgs.clipse}/bin/clipse -listen"
           "${pkgs.solaar}/bin/solaar -w hide"
           "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator"
-        ] ++ cfg.execOnceExtras;
+        ]
+        ++ cfg.execOnceExtras;
       };
     };
   };

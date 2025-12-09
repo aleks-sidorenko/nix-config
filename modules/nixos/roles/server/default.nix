@@ -35,21 +35,20 @@ in
 
     };
 
-    environment =
-      {
-        systemPackages = [
-          pkgs.nfs-utils
-          pkgs.openiscsi
-          pkgs.dnsutils
-        ];
-        # Print the URL instead on servers
-        variables.BROWSER = "echo";
-      }
-      // optionalAttrs (versionAtLeast (versions.majorMinor version) "24.05") {
-        # Don't install the /lib/ld-linux.so.2 and /lib64/ld-linux-x86-64.so.2
-        # stubs. Server users should know what they are doing.
-        stub-ld.enable = mkDefault false;
-      };
+    environment = {
+      systemPackages = [
+        pkgs.nfs-utils
+        pkgs.openiscsi
+        pkgs.dnsutils
+      ];
+      # Print the URL instead on servers
+      variables.BROWSER = "echo";
+    }
+    // optionalAttrs (versionAtLeast (versions.majorMinor version) "24.05") {
+      # Don't install the /lib/ld-linux.so.2 and /lib64/ld-linux-x86-64.so.2
+      # stubs. Server users should know what they are doing.
+      stub-ld.enable = mkDefault false;
+    };
 
     security = {
       sudo = {

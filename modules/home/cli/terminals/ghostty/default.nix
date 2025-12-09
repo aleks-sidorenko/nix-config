@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
-  shell = config.${namespace}.cli.shells.default.name; 
+  shell = config.${namespace}.cli.shells.default.name;
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
@@ -32,7 +32,7 @@ in
       enableFishIntegration = true;
 
       settings = {
-      
+
         command = shell;
         gtk-titlebar = false;
         gtk-tabs-location = "hidden";
@@ -43,7 +43,7 @@ in
         copy-on-select = "clipboard";
         cursor-style = "block";
         confirm-close-surface = false;
-        
+
         keybind = [
           "clear"
 
@@ -54,7 +54,6 @@ in
           "ctrl+shift+arrow_right=next_tab"
           "ctrl+shift+[=previous_tab"
           "ctrl+shift+]=next_tab"
-          
 
           # Quick Tab Access (Alt+1-9)
           "alt+1=goto_tab:1"
@@ -71,14 +70,13 @@ in
           # vim style
           "alt+shift+h=goto_split:left"
           "alt+shift+j=goto_split:down"
-          "alt+shift+k=goto_split:up"                    
+          "alt+shift+k=goto_split:up"
           "alt+shift+l=goto_split:right"
           # arrows
           "alt+shift+arrow_up=goto_split:up"
           "alt+shift+arrow_down=goto_split:down"
           "alt+shift+arrow_left=goto_split:left"
           "alt+shift+arrow_right=goto_split:right"
-          
 
           # Split Creation (Ctrl+Shift)
           # vim style (ctrl+shift+hjkl)
@@ -119,7 +117,7 @@ in
           "ctrl+insert=copy_to_clipboard"
 
           # Font/Display (Ctrl)
-          
+
           "ctrl++=increase_font_size:1"
           "ctrl+-=decrease_font_size:1"
           "ctrl+0=reset_font_size"
@@ -149,7 +147,6 @@ in
           "shift+arrow_down=adjust_selection:down"
           "shift+arrow_left=adjust_selection:left"
           "shift+arrow_right=adjust_selection:right"
-
 
           # Write to File (Prefix: Ctrl+A, then key)
           # Actions: key = paste, shift+key = open, ctrl+key = copy

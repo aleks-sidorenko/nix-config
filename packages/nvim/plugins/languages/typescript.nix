@@ -1,10 +1,15 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 lib.mkIf config.development.typescript.enable {
   # TypeScript LSP
   plugins.lsp.servers.ts_ls = {
     enable = true;
   };
-  
+
   # TypeScript/JavaScript formatters
   plugins.conform-nvim.settings.formatters_by_ft = {
     javascript = {
@@ -18,10 +23,9 @@ lib.mkIf config.development.typescript.enable {
       stop_after_first = true;
     };
   };
-  
+
   extraPackages = with pkgs; [
     prettierd
     nodePackages.prettier
   ];
 }
-

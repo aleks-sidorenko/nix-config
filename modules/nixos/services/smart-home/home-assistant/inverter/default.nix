@@ -125,9 +125,9 @@ in
             {
               type = "entities";
               title = "Battery Status";
-              entities = [                
+              entities = [
                 "sensor.inverter_battery"
-                "sensor.inverter_battery_power"                
+                "sensor.inverter_battery_power"
                 "sensor.inverter_battery_temperature"
                 "sensor.inverter_battery_voltage"
                 "sensor.inverter_total_battery_life_cycles"
@@ -145,9 +145,9 @@ in
             {
               type = "entities";
               title = "Power Production";
-              entities = [                
+              entities = [
                 "sensor.inverter_total_production"
-                "sensor.inverter_today_production"                
+                "sensor.inverter_today_production"
               ];
             }
             # Solar Panels Card
@@ -170,7 +170,7 @@ in
               entities = [
                 "sensor.inverter_device"
                 "sensor.inverter_device_state"
-                "sensor.inverter_temperature"                
+                "sensor.inverter_temperature"
               ];
             }
             # Power Flow Card (if available)
@@ -195,6 +195,6 @@ in
     systemd.tmpfiles.rules = [
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
-   
+
   };
 }

@@ -28,7 +28,7 @@ in
       enable = true;
       enableDefaultConfig = false;
       matchBlocks = {
-        
+
         "*" = {
           addKeysToAgent = "confirm"; # Let GPG agent handle the keys
         };

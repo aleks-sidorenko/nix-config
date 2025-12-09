@@ -38,14 +38,13 @@ let
     let
 
       mkSubvolume = subvol: {
-        ${subvolume subvol.name} =
-          {
-            mountpoint = mountpoint subvol;
-            inherit (subvol) mountOptions;
-          }
-          // optionalAttrs (subvol.swapfile != null) {
-            swap.swapfile.size = subvol.swapfile.size;
-          };
+        ${subvolume subvol.name} = {
+          mountpoint = mountpoint subvol;
+          inherit (subvol) mountOptions;
+        }
+        // optionalAttrs (subvol.swapfile != null) {
+          swap.swapfile.size = subvol.swapfile.size;
+        };
       };
     in
     foldl' (acc: subvol: acc // mkSubvolume subvol) { } disk.content;

@@ -106,103 +106,102 @@ in
       ];
 
       # Add zigbee2mqtt views to dashboard
-      lovelaceConfig.views =
-        [
-          {
-            title = "Settings";
-            path = "settings";
-            icon = "mdi:cog";
-            cards = [
-              {
-                type = "entities";
-                show_header_toggle = false;
-                entities = [
-                  { entity = "sensor.zigbee2mqtt_bridge_state"; }
-                  { entity = "sensor.zigbee2mqtt_version"; }
-                  { entity = "sensor.zigbee2mqtt_coordinator_version"; }
-                  { entity = "input_select.zigbee2mqtt_log_level"; }
-                  { type = "divider"; }
-                  { entity = "switch.zigbee2mqtt_main_join"; }
-                  { entity = "input_number.zigbee2mqtt_join_minutes"; }
-                  { entity = "timer.zigbee_permit_join"; }
-                ];
-              }
-            ];
-          }
-        ]
-        ++ (optionals (temperatureSensors != [ ]) [
-          {
-            title = "Temperature";
-            path = "temperature";
-            icon = "mdi:thermometer";
-            cards = [
-              {
-                type = "entities";
-                title = "Temperature & Humidity Sensors";
-                show_header_toggle = false;
-                entities = groupSensorsByZone temperatureSensors;
-              }
-              {
-                type = "history-graph";
-                title = "Temperature History";
-                hours_to_show = 24;
-                entities = map (e: e.entity) (
-                  builtins.filter (e: lib.hasSuffix "_temperature" e.entity) temperatureEntities
-                );
-              }
-              {
-                type = "history-graph";
-                title = "Humidity History";
-                hours_to_show = 24;
-                entities = map (e: e.entity) (
-                  builtins.filter (e: lib.hasSuffix "_humidity" e.entity) temperatureEntities
-                );
-              }
-            ];
-          }
-        ])
-        ++ (optionals (plugEntities != [ ]) [
-          {
-            title = "Plugs";
-            path = "plugs";
-            icon = "mdi:power-plug";
-            cards = [
-              {
-                type = "entities";
-                title = "Smart Plugs";
-                show_header_toggle = true;
-                entities = plugEntities;
-              }
-              {
-                type = "history-graph";
-                title = "Plug State History";
-                hours_to_show = 24;
-                entities = map (e: e.entity) plugEntities;
-              }
-            ];
-          }
-        ])
-        ++ (optionals (switchEntities != [ ]) [
-          {
-            title = "Switches";
-            path = "switches";
-            icon = "mdi:toggle-switch";
-            cards = [
-              {
-                type = "entities";
-                title = "Switches";
-                show_header_toggle = true;
-                entities = switchEntities;
-              }
-              {
-                type = "history-graph";
-                title = "Switch State History";
-                hours_to_show = 24;
-                entities = map (e: e.entity) switchEntities;
-              }
-            ];
-          }
-        ]);
+      lovelaceConfig.views = [
+        {
+          title = "Settings";
+          path = "settings";
+          icon = "mdi:cog";
+          cards = [
+            {
+              type = "entities";
+              show_header_toggle = false;
+              entities = [
+                { entity = "sensor.zigbee2mqtt_bridge_state"; }
+                { entity = "sensor.zigbee2mqtt_version"; }
+                { entity = "sensor.zigbee2mqtt_coordinator_version"; }
+                { entity = "input_select.zigbee2mqtt_log_level"; }
+                { type = "divider"; }
+                { entity = "switch.zigbee2mqtt_main_join"; }
+                { entity = "input_number.zigbee2mqtt_join_minutes"; }
+                { entity = "timer.zigbee_permit_join"; }
+              ];
+            }
+          ];
+        }
+      ]
+      ++ (optionals (temperatureSensors != [ ]) [
+        {
+          title = "Temperature";
+          path = "temperature";
+          icon = "mdi:thermometer";
+          cards = [
+            {
+              type = "entities";
+              title = "Temperature & Humidity Sensors";
+              show_header_toggle = false;
+              entities = groupSensorsByZone temperatureSensors;
+            }
+            {
+              type = "history-graph";
+              title = "Temperature History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) (
+                builtins.filter (e: lib.hasSuffix "_temperature" e.entity) temperatureEntities
+              );
+            }
+            {
+              type = "history-graph";
+              title = "Humidity History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) (
+                builtins.filter (e: lib.hasSuffix "_humidity" e.entity) temperatureEntities
+              );
+            }
+          ];
+        }
+      ])
+      ++ (optionals (plugEntities != [ ]) [
+        {
+          title = "Plugs";
+          path = "plugs";
+          icon = "mdi:power-plug";
+          cards = [
+            {
+              type = "entities";
+              title = "Smart Plugs";
+              show_header_toggle = true;
+              entities = plugEntities;
+            }
+            {
+              type = "history-graph";
+              title = "Plug State History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) plugEntities;
+            }
+          ];
+        }
+      ])
+      ++ (optionals (switchEntities != [ ]) [
+        {
+          title = "Switches";
+          path = "switches";
+          icon = "mdi:toggle-switch";
+          cards = [
+            {
+              type = "entities";
+              title = "Switches";
+              show_header_toggle = true;
+              entities = switchEntities;
+            }
+            {
+              type = "history-graph";
+              title = "Switch State History";
+              hours_to_show = 24;
+              entities = map (e: e.entity) switchEntities;
+            }
+          ];
+        }
+      ]);
 
       config.mqtt = { };
 

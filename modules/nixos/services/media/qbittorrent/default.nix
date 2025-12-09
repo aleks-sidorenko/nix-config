@@ -355,20 +355,19 @@ in
     };
 
     # Ensure the media directories exist and have correct permissions
-    systemd.tmpfiles.rules =
-      [
-        "d ${cfg.downloadDir} 0775 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.config 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.config/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.local 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.local/share 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.local/share/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
-        "d ${cfg.dataDir}/.local/share/qBittorrent/logs 0755 ${cfg.user} ${cfg.group} -"
-      ]
-      ++ map (
-        category: "d ${cfg.downloadDir}/${category} 0755 ${cfg.user} ${cfg.group} -"
-      ) cfg.categories;
+    systemd.tmpfiles.rules = [
+      "d ${cfg.downloadDir} 0775 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.config 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.config/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.local 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.local/share 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.local/share/qBittorrent 0755 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir}/.local/share/qBittorrent/logs 0755 ${cfg.user} ${cfg.group} -"
+    ]
+    ++ map (
+      category: "d ${cfg.downloadDir}/${category} 0755 ${cfg.user} ${cfg.group} -"
+    ) cfg.categories;
 
     # Add qBittorrent package to system packages
     environment.systemPackages = [ pkgs.qbittorrent-nox ];

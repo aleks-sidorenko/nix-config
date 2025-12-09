@@ -15,7 +15,7 @@ let
 
   nvim' = inputs.self.packages.${system}.nvim;
 
-  nvim = nvim'.extend {        
+  nvim = nvim'.extend {
     # Pass development options from the home configuration
     config.development = {
       haskell.enable = lib.mkIf (cfg.development.haskell) (lib.mkForce true);
@@ -31,7 +31,7 @@ in
   options.${namespace}.cli.editors.nvim = with types; {
     enable = mkEnableOption "Enable neovim editor.";
     default = mkBoolOpt false "Whether or not to use neovim as the default shell.";
-    
+
     development = {
       haskell = mkEnableOption "Enable Haskell development support in Neovim.";
       rust = mkEnableOption "Enable Rust development support in Neovim.";

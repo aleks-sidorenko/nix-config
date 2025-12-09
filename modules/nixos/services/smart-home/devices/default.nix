@@ -168,13 +168,13 @@ in
 
       {
         zoneName = "floor1_living";
-        name = "fountain";
+        name = "fireplace";
         type = "plug";
         ieee = "0x00124b0026b81082";
       }
-      
+
       {
-        zoneName = "floor1_toilet";
+        zoneName = "floor2_hall";
         name = "main";
         type = "router";
         ieee = "0xe0798dfffe839bdd";
