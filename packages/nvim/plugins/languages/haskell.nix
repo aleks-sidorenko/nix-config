@@ -16,13 +16,19 @@ lib.mkIf config.development.haskell.enable {
             local opts = { noremap = true, silent = true, buffer = bufnr }
             -- Hoogle search
             vim.keymap.set('n', '<leader>hs', vim.lsp.buf.hover, opts)
-            vim.keymap.set('n', '<leader>hh', require('haskell-tools').hoogle.hoogle_signature, opts)
+            vim.keymap.set('n', '<leader>hh', function()
+              require('haskell-tools').hoogle.hoogle_signature()
+            end, opts)
             -- Repl
-            vim.keymap.set('n', '<leader>hr', require('haskell-tools').repl.toggle, opts)
+            vim.keymap.set('n', '<leader>hr', function()
+              require('haskell-tools').repl.toggle()
+            end, opts)
             vim.keymap.set('n', '<leader>hf', function()
               require('haskell-tools').repl.toggle(vim.api.nvim_buf_get_name(0))
             end, opts)
-            vim.keymap.set('n', '<leader>hq', require('haskell-tools').repl.quit, opts)
+            vim.keymap.set('n', '<leader>hq', function()
+              require('haskell-tools').repl.quit()
+            end, opts)
           end
         '';
         default_settings = {
