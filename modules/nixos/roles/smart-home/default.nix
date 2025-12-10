@@ -62,9 +62,9 @@ in
                   entity_id = "switch.floor1_living_plug_fireplace";
                   intervals = [
                     {
-                      name = "evening";
-                      start = "16:00";
-                      end = "00:00";
+                      name = "default";
+                      start = "08:00";
+                      end = "23:59";
                     }
                   ];
                 }
