@@ -321,12 +321,12 @@ in
         # Generate a YAML file for each enabled plug
         plugYamlFiles = map (plug: {
           name = plug.name;
-          yaml = pkgs.writeText "plug-${plug.name}.yaml" (mkPlugYaml plug);
+          yaml = pkgs.writeText "plug_${plug.name}.yaml" (mkPlugYaml plug);
         }) enabledPlugs;
 
         # Generate symlink commands for all enabled plugs
         symlinkCommands = lib.concatMapStrings (p: ''
-          ln -fns ${p.yaml} ${haCfg.dataDir}/packages/plug-${p.name}.yaml
+          ln -fns ${p.yaml} ${haCfg.dataDir}/packages/plug_${p.name}.yaml
         '') plugYamlFiles;
       in
       symlinkCommands;
