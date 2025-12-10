@@ -43,7 +43,7 @@ jobs:
 
       - name: Check formatting
         run: |
-          nix fmt -- --check .
+          nix fmt -- --ci
 
   build-systems:
     name: "Build NixOS Systems"

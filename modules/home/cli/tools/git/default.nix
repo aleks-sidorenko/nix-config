@@ -168,7 +168,6 @@ in
           week = "log --since='1 week ago' --oneline --author='$(git config user.email)'";
         };
 
-
       };
 
       signing = {

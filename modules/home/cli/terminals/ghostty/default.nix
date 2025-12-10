@@ -58,7 +58,6 @@ in
           "${prefix}>t>q=close_tab:this"
           "${prefix}>t>[=previous_tab"
           "${prefix}>t>]=next_tab"
-          
 
           # Quick Tab Access (alt+ctrl+1-9)
           "alt+ctrl+1=goto_tab:1"
@@ -73,11 +72,9 @@ in
 
           # Window Management (Ctrl+Shift)
           "ctrl+shift+n=new_window"
-          "ctrl+shift+q=close_window"          
+          "ctrl+shift+q=close_window"
           "${prefix}>w>n=new_window"
           "${prefix}>w>q=close_window"
-
-          
 
           # Split Navigation (Alt+Shift to avoid GNOME conflicts)
           # vim style
@@ -105,7 +102,6 @@ in
           "${prefix}>arrow_down=goto_split:down"
           "${prefix}>arrow_left=goto_split:left"
           "${prefix}>arrow_right=goto_split:right"
-        
 
           # Split Creation (Ctrl+Shift)
           # vim style (ctrl+shift+hjkl)
@@ -123,7 +119,7 @@ in
           "ctrl+shift+-=new_split:down"
           "${prefix}>|=new_split:right"
           "${prefix}>-=new_split:down"
-          
+
           "ctrl+shift+enter=toggle_split_zoom"
 
           # Split Resize (Alt+Shift+Ctrl)

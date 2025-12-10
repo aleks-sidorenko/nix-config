@@ -192,6 +192,6 @@
         system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
       ) inputs.deploy-rs.lib;
 
-      outputs-builder = channels: { formatter = channels.nixpkgs.nixfmt-rfc-style; };
+      outputs-builder = channels: { formatter = channels.nixpkgs.nixfmt-tree; };
     };
 }
