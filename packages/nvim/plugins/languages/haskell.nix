@@ -11,26 +11,28 @@ lib.mkIf config.development.haskell.enable {
 
     settings = {
       hls = {
+        /*
         on_attach = ''
-          function(client, bufnr)
+          function(client, bufnr, ht)
             local opts = { noremap = true, silent = true, buffer = bufnr }
             -- Hoogle search
             vim.keymap.set('n', '<leader>hs', vim.lsp.buf.hover, opts)
             vim.keymap.set('n', '<leader>hh', function()
-              require('haskell-tools').hoogle.hoogle_signature()
+              ht.hoogle.hoogle_signature()
             end, opts)
             -- Repl
             vim.keymap.set('n', '<leader>hr', function()
-              require('haskell-tools').repl.toggle()
+              ht.repl.toggle()
             end, opts)
             vim.keymap.set('n', '<leader>hf', function()
-              require('haskell-tools').repl.toggle(vim.api.nvim_buf_get_name(0))
+              ht.repl.toggle(vim.api.nvim_buf_get_name(0))
             end, opts)
             vim.keymap.set('n', '<leader>hq', function()
-              require('haskell-tools').repl.quit()
+              ht.repl.quit()
             end, opts)
           end
         '';
+        */
         default_settings = {
           haskell-language-server = {
             formattingProvider = "ormolu";
@@ -73,18 +75,6 @@ lib.mkIf config.development.haskell.enable {
 
   # Toolchain and tools
   extraPackages = with pkgs; [
-    # Haskell toolchain
-    ghc
-    cabal-install
-    stack
-
-    # Formatters
-    ormolu
-    stylish-haskell
-
-    # Additional tools
-    haskellPackages.hoogle
-    haskellPackages.fast-tags
-    haskellPackages.hlint
+    haskell-language-server
   ];
 }

@@ -39,7 +39,12 @@ in
     };
 
     ${namespace} = {
-      cli = {
+      development = {
+        haskell = {
+          enable = cfg.languages.haskell;
+        };
+      };
+      cli = {        
         editors.nvim = {
           enable = true;
           ai = {
