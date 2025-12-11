@@ -1,4 +1,4 @@
-{  
+{
   lib,
   pkgs,
   config,
@@ -30,7 +30,7 @@ in
       haskellPackages.hoogle
       haskellPackages.fast-tags
       haskellPackages.hlint
-      
+
     ];
   };
 }

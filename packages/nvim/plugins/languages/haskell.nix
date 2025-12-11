@@ -8,9 +8,9 @@ lib.mkIf config.development.haskell.enable {
   # Haskell Language Server with advanced tooling
   plugins.haskell-tools = {
     enable = true;
-        
+
     settings = {
-      hls = {        
+      hls = {
         on_attach = {
           __raw = ''
             function(client, bufnr, ht)
@@ -33,15 +33,15 @@ lib.mkIf config.development.haskell.enable {
             end
           '';
         };
-        
+
         default_settings = {
           haskell = {
             formattingProvider = "ormolu";
             checkProject = true;
-          };          
+          };
         };
       };
-      
+
       tools = {
         codeLens = {
           autoRefresh = true;
@@ -49,13 +49,11 @@ lib.mkIf config.development.haskell.enable {
         hoogle = {
           mode = "auto";
         };
-        
-        /*
+
         hover = {
           enable = true;
-          border = "rounded";
         };
-        */
+
         repl = {
           handler = "builtin";
           builtin = {
@@ -68,12 +66,12 @@ lib.mkIf config.development.haskell.enable {
             };
           };
         };
-        
+
         tags = {
           enable = true;
           package = pkgs.haskellPackages.fast-tags;
         };
-        
+
       };
     };
   };

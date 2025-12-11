@@ -50,6 +50,30 @@
         silent = true;
       };
     }
+    # Line navigation
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-[>";
+      action = "^";
+      options = {
+        desc = "Go to beginning of line";
+      };
+    }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-]>";
+      action = "$";
+      options = {
+        desc = "Go to end of line";
+      };
+    }
+    # Window navigation
     {
       mode = "n";
       key = "<C-h>";
@@ -367,7 +391,7 @@
         desc = "Enter Normal Mode";
       };
     }
-    
+
     # Windows
     {
       mode = "t";
@@ -400,7 +424,7 @@
       options = {
         desc = "Go to Right Window";
       };
-    }    
+    }
     {
       mode = "n";
       key = "<leader>wp";
@@ -421,13 +445,13 @@
     }
     {
       mode = "n";
-      key = "<leader>w-";
-      action = "<C-W>s";
+      key = "<C-x>";
+      action = "<cmd>:close<cr>";
       options = {
-        desc = "Split Window Below";
-        remap = true;
+        desc = "Close Window";
       };
     }
+
     {
       mode = "n";
       key = "<leader>w|";
@@ -455,7 +479,7 @@
         remap = true;
       };
     }
-    
+
     # Tabs
     {
       mode = "n";
@@ -505,11 +529,11 @@
         desc = "Previous Tab";
       };
     }
-    
+
     # Terminal
     {
       mode = "n";
-      key =  "<C-;>";
+      key = "<C-;>";
       action = "<cmd>terminal<cr>";
       options = {
         desc = "Toggle Terminal Window";
@@ -517,7 +541,7 @@
     }
     {
       mode = "n";
-      key =  "<leader>;n";
+      key = "<leader>;n";
       action = "<cmd>terminal<cr>";
       options = {
         desc = "Toggle Terminal Window";

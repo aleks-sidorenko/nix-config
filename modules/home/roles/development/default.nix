@@ -44,7 +44,7 @@ in
           enable = cfg.languages.haskell;
         };
       };
-      cli = {        
+      cli = {
         editors.nvim = {
           enable = true;
           ai = {
