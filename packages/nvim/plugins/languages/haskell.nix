@@ -49,11 +49,13 @@ lib.mkIf config.development.haskell.enable {
         hoogle = {
           mode = "auto";
         };
+        
         /*
         hover = {
           enable = true;
           border = "rounded";
         };
+        */
         repl = {
           handler = "builtin";
           builtin = {
@@ -66,11 +68,12 @@ lib.mkIf config.development.haskell.enable {
             };
           };
         };
+        
         tags = {
           enable = true;
           package = pkgs.haskellPackages.fast-tags;
         };
-        */
+        
       };
     };
   };

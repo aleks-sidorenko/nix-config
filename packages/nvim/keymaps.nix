@@ -89,14 +89,6 @@
     {
       mode = "n";
       key = "<C-Up>";
-      action = "<cmd>resize +2<cr>";
-      options = {
-        desc = "Increase Window Height";
-      };
-    }
-    {
-      mode = "n";
-      key = "<C-Down>";
       action = "<cmd>resize -2<cr>";
       options = {
         desc = "Decrease Window Height";
@@ -104,18 +96,26 @@
     }
     {
       mode = "n";
-      key = "<C-Left>";
-      action = "<cmd>vertical resize -2<cr>";
+      key = "<C-Down>";
+      action = "<cmd>resize +2<cr>";
       options = {
-        desc = "Decrease Window Width";
+        desc = "Increase Window Height";
+      };
+    }
+    {
+      mode = "n";
+      key = "<C-Left>";
+      action = "<cmd>vertical resize +2<cr>";
+      options = {
+        desc = "Increase Window Width";
       };
     }
     {
       mode = "n";
       key = "<C-Right>";
-      action = "<cmd>vertical resize +2<cr>";
+      action = "<cmd>vertical resize -2<cr>";
       options = {
-        desc = "Increase Window Width";
+        desc = "Decrease Window Width";
       };
     }
     {
