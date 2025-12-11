@@ -16,8 +16,8 @@ lib.mkIf config.development.haskell.enable {
             function(client, bufnr, ht)
               local opts = { noremap = true, silent = true, buffer = bufnr }
               -- Hoogle search
-              vim.keymap.set('n', '<leader>hs', vim.lsp.buf.hover, opts)
-              vim.keymap.set('n', '<leader>hh', function()
+              vim.keymap.set('n', '<leader>hh', vim.lsp.buf.hover, opts)
+              vim.keymap.set('n', '<leader>hs', function()
                 ht.hoogle.hoogle_signature()
               end, opts)
               -- Repl
