@@ -64,7 +64,7 @@
             ]
             [
               "󰧑 SecondBrain"
-              "edit ~/projects/personal/SecondBrain"
+              "edit ~/projects/personal/SecondBrain" # TODO: adjust to myself
               "sb"
             ]
           ];

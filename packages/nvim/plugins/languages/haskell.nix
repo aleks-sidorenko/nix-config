@@ -11,22 +11,31 @@ lib.mkIf config.development.haskell.enable {
 
     settings = {
       hls = {
-        on_attach = ''
-          function(client, bufnr)
-            local opts = { noremap = true, silent = true, buffer = bufnr }
-            -- Hoogle search
-            vim.keymap.set('n', '<leader>hs', vim.lsp.buf.hover, opts)
-            vim.keymap.set('n', '<leader>hh', require('haskell-tools').hoogle.hoogle_signature, opts)
-            -- Repl
-            vim.keymap.set('n', '<leader>hr', require('haskell-tools').repl.toggle, opts)
-            vim.keymap.set('n', '<leader>hf', function()
-              require('haskell-tools').repl.toggle(vim.api.nvim_buf_get_name(0))
-            end, opts)
-            vim.keymap.set('n', '<leader>hq', require('haskell-tools').repl.quit, opts)
-          end
-        '';
+        on_attach = {
+          __raw = ''
+            function(client, bufnr, ht)
+              local opts = { noremap = true, silent = true, buffer = bufnr }
+              -- Hoogle search
+              vim.keymap.set('n', '<leader>hh', vim.lsp.buf.hover, opts)
+              vim.keymap.set('n', '<leader>hs', function()
+                ht.hoogle.hoogle_signature()
+              end, opts)
+              -- Repl
+              vim.keymap.set('n', '<leader>hr', function()
+                ht.repl.toggle()
+              end, opts)
+              vim.keymap.set('n', '<leader>hf', function()
+                ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+              end, opts)
+              vim.keymap.set('n', '<leader>hq', function()
+                ht.repl.quit()
+              end, opts)
+            end
+          '';
+        };
+
         default_settings = {
-          haskell-language-server = {
+          haskell = {
             formattingProvider = "ormolu";
             checkProject = true;
           };
@@ -40,24 +49,29 @@ lib.mkIf config.development.haskell.enable {
         hoogle = {
           mode = "auto";
         };
+
         hover = {
           enable = true;
-          border = "rounded";
         };
+
         repl = {
           handler = "builtin";
           builtin = {
-            create_repl_window = ''
-              function(view)
-                return view.create_repl_split({ size = vim.o.lines / 3 })
-              end
-            '';
+            create_repl_window = {
+              __raw = ''
+                function(view)
+                  return view.create_repl_split({ size = vim.o.lines / 3 })
+                end
+              '';
+            };
           };
         };
+
         tags = {
           enable = true;
           package = pkgs.haskellPackages.fast-tags;
         };
+
       };
     };
   };
@@ -67,18 +81,6 @@ lib.mkIf config.development.haskell.enable {
 
   # Toolchain and tools
   extraPackages = with pkgs; [
-    # Haskell toolchain
-    ghc
-    cabal-install
-    stack
-
-    # Formatters
-    ormolu
-    stylish-haskell
-
-    # Additional tools
-    haskellPackages.hoogle
-    haskellPackages.fast-tags
-    haskellPackages.hlint
+    haskell-language-server
   ];
 }

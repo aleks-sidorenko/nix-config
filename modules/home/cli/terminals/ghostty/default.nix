@@ -10,6 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
   shell = config.${namespace}.cli.shells.default.name;
+  prefix = "ctrl+a";
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
@@ -35,8 +36,9 @@ in
 
         command = shell;
         gtk-titlebar = false;
-        gtk-tabs-location = "hidden";
+        gtk-tabs-location = "bottom";
         gtk-single-instance = true;
+        macos-titlebar-style = "tabs";
         window-padding-x = 6;
         window-padding-y = 6;
         window-save-state = "always";
@@ -47,24 +49,32 @@ in
         keybind = [
           "clear"
 
-          # Tab Management (Ctrl+Shift for terminal operations)
-          "ctrl+shift+t=new_tab"
-          "ctrl+shift+w=close_tab:this"
-          "ctrl+shift+arrow_left=previous_tab"
-          "ctrl+shift+arrow_right=next_tab"
-          "ctrl+shift+[=previous_tab"
-          "ctrl+shift+]=next_tab"
+          # Tab Management (Alt+Ctrl)
+          "alt+ctrl+n=new_tab"
+          "alt+ctrl+q=close_tab:this"
+          "alt+ctrl+[=previous_tab"
+          "alt+ctrl+]=next_tab"
+          "${prefix}>t>n=new_tab"
+          "${prefix}>t>q=close_tab:this"
+          "${prefix}>t>[=previous_tab"
+          "${prefix}>t>]=next_tab"
 
-          # Quick Tab Access (Alt+1-9)
-          "alt+1=goto_tab:1"
-          "alt+2=goto_tab:2"
-          "alt+3=goto_tab:3"
-          "alt+4=goto_tab:4"
-          "alt+5=goto_tab:5"
-          "alt+6=goto_tab:6"
-          "alt+7=goto_tab:7"
-          "alt+8=goto_tab:8"
-          "alt+9=last_tab"
+          # Quick Tab Access (alt+ctrl+1-9)
+          "alt+ctrl+1=goto_tab:1"
+          "alt+ctrl+2=goto_tab:2"
+          "alt+ctrl+3=goto_tab:3"
+          "alt+ctrl+4=goto_tab:4"
+          "alt+ctrl+5=goto_tab:5"
+          "alt+ctrl+6=goto_tab:6"
+          "alt+ctrl+7=goto_tab:7"
+          "alt+ctrl+8=goto_tab:8"
+          "alt+ctrl+9=last_tab"
+
+          # Window Management (Ctrl+Shift)
+          "ctrl+shift+n=new_window"
+          "ctrl+shift+q=close_window"
+          "${prefix}>w>n=new_window"
+          "${prefix}>w>q=close_window"
 
           # Split Navigation (Alt+Shift to avoid GNOME conflicts)
           # vim style
@@ -72,11 +82,26 @@ in
           "alt+shift+j=goto_split:down"
           "alt+shift+k=goto_split:up"
           "alt+shift+l=goto_split:right"
+          "alt+shift+[=goto_split:previous"
+          "alt+shift+]=goto_split:next"
+
+          "${prefix}>h=goto_split:left"
+          "${prefix}>j=goto_split:down"
+          "${prefix}>k=goto_split:up"
+          "${prefix}>l=goto_split:right"
+          "${prefix}>[=goto_split:previous"
+          "${prefix}>]=goto_split:next"
+
           # arrows
           "alt+shift+arrow_up=goto_split:up"
           "alt+shift+arrow_down=goto_split:down"
           "alt+shift+arrow_left=goto_split:left"
           "alt+shift+arrow_right=goto_split:right"
+
+          "${prefix}>arrow_up=goto_split:up"
+          "${prefix}>arrow_down=goto_split:down"
+          "${prefix}>arrow_left=goto_split:left"
+          "${prefix}>arrow_right=goto_split:right"
 
           # Split Creation (Ctrl+Shift)
           # vim style (ctrl+shift+hjkl)
@@ -89,9 +114,11 @@ in
           "ctrl+shift+arrow_down=new_split:down"
           "ctrl+shift+arrow_left=new_split:left"
           "ctrl+shift+arrow_right=new_split:right"
-          # logicial
+          # logical
           "ctrl+shift+|=new_split:right"
           "ctrl+shift+-=new_split:down"
+          "${prefix}>|=new_split:right"
+          "${prefix}>-=new_split:down"
 
           "ctrl+shift+enter=toggle_split_zoom"
 
@@ -107,8 +134,6 @@ in
           "alt+shift+ctrl+arrow_left=resize_split:left,10"
           "alt+shift+ctrl+arrow_right=resize_split:right,10"
 
-          #
-
           # Copy/Paste (Standard)
           "ctrl+shift+c=copy_to_clipboard"
           "ctrl+shift+v=paste_from_clipboard"
@@ -117,7 +142,6 @@ in
           "ctrl+insert=copy_to_clipboard"
 
           # Font/Display (Ctrl)
-
           "ctrl++=increase_font_size:1"
           "ctrl+-=decrease_font_size:1"
           "ctrl+0=reset_font_size"
@@ -129,10 +153,8 @@ in
           "ctrl+shift+p=toggle_command_palette"
           "ctrl+shift+i=inspector:toggle"
 
-          # Window Management
-          "ctrl+shift+n=new_window"
-          "ctrl+shift+q=quit"
-          "alt+f4=close_window"
+          # Global
+          "alt+f4=quit"
 
           # Navigation
           "ctrl+shift+page_up=jump_to_prompt:-1"
@@ -148,20 +170,20 @@ in
           "shift+arrow_left=adjust_selection:left"
           "shift+arrow_right=adjust_selection:right"
 
-          # Write to File (Prefix: Ctrl+A, then key)
+          # Write to File (prefix, then key)
           # Actions: key = paste, shift+key = open, ctrl+key = copy
           # Screen (s)
-          "ctrl+a>s=write_screen_file:paste"
-          "ctrl+a>shift+s=write_screen_file:open"
-          "ctrl+a>ctrl+s=write_screen_file:copy"
+          "${prefix}>s=write_screen_file:paste"
+          "${prefix}>shift+s=write_screen_file:open"
+          "${prefix}>ctrl+s=write_screen_file:copy"
           # Scrollback (b for buffer)
-          "ctrl+a>b=write_scrollback_file:paste"
-          "ctrl+a>shift+b=write_scrollback_file:open"
-          "ctrl+a>ctrl+b=write_scrollback_file:copy"
+          "${prefix}>b=write_scrollback_file:paste"
+          "${prefix}>shift+b=write_scrollback_file:open"
+          "${prefix}>ctrl+b=write_scrollback_file:copy"
           # Selection (e for excerpt)
-          "ctrl+a>e=write_selection_file:paste"
-          "ctrl+a>shift+e=write_selection_file:open"
-          "ctrl+a>ctrl+e=write_selection_file:copy"
+          "${prefix}>e=write_selection_file:paste"
+          "${prefix}>shift+e=write_selection_file:open"
+          "${prefix}>ctrl+e=write_selection_file:copy"
 
           # Claude Code
           "shift+enter=text:\u001b[13;2u"

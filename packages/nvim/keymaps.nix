@@ -50,6 +50,30 @@
         silent = true;
       };
     }
+    # Line navigation
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-[>";
+      action = "^";
+      options = {
+        desc = "Go to beginning of line";
+      };
+    }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-]>";
+      action = "$";
+      options = {
+        desc = "Go to end of line";
+      };
+    }
+    # Window navigation
     {
       mode = "n";
       key = "<C-h>";
@@ -89,14 +113,6 @@
     {
       mode = "n";
       key = "<C-Up>";
-      action = "<cmd>resize +2<cr>";
-      options = {
-        desc = "Increase Window Height";
-      };
-    }
-    {
-      mode = "n";
-      key = "<C-Down>";
       action = "<cmd>resize -2<cr>";
       options = {
         desc = "Decrease Window Height";
@@ -104,18 +120,26 @@
     }
     {
       mode = "n";
-      key = "<C-Left>";
-      action = "<cmd>vertical resize -2<cr>";
+      key = "<C-Down>";
+      action = "<cmd>resize +2<cr>";
       options = {
-        desc = "Decrease Window Width";
+        desc = "Increase Window Height";
+      };
+    }
+    {
+      mode = "n";
+      key = "<C-Left>";
+      action = "<cmd>vertical resize +2<cr>";
+      options = {
+        desc = "Increase Window Width";
       };
     }
     {
       mode = "n";
       key = "<C-Right>";
-      action = "<cmd>vertical resize +2<cr>";
+      action = "<cmd>vertical resize -2<cr>";
       options = {
-        desc = "Increase Window Width";
+        desc = "Decrease Window Width";
       };
     }
     {
@@ -213,6 +237,7 @@
         desc = "Redraw / Clear hlsearch / Diff Update";
       };
     }
+    # Search
     {
       mode = "n";
       key = "n";
@@ -265,6 +290,25 @@
       options = {
         expr = true;
         desc = "Prev Search Result";
+      };
+    }
+    # Jumps
+    {
+      mode = "n";
+      key = "<C-[>";
+      action = "<C-o>";
+      options = {
+        desc = "Jump Back";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<C-]>";
+      action = "<C-i>";
+      options = {
+        desc = "Jump Forward";
+        remap = true;
       };
     }
     {
@@ -347,6 +391,8 @@
         desc = "Enter Normal Mode";
       };
     }
+
+    # Windows
     {
       mode = "t";
       key = "<C-h>";
@@ -380,40 +426,32 @@
       };
     }
     {
-      mode = "t";
-      key = "<C-/>";
-      action = "<cmd>close<cr>";
-      options = {
-        desc = "Hide Terminal";
-      };
-    }
-    {
       mode = "n";
-      key = "<leader>ww";
+      key = "<leader>wp";
       action = "<C-W>p";
       options = {
-        desc = "Other Window";
+        desc = "Previous Window";
         remap = true;
       };
     }
     {
       mode = "n";
-      key = "<leader>wd";
+      key = "<leader>wq";
       action = "<C-W>c";
       options = {
-        desc = "Delete Window";
+        desc = "Close Window";
         remap = true;
       };
     }
     {
       mode = "n";
-      key = "<leader>w-";
-      action = "<C-W>s";
+      key = "<C-x>";
+      action = "<cmd>:close<cr>";
       options = {
-        desc = "Split Window Below";
-        remap = true;
+        desc = "Close Window";
       };
     }
+
     {
       mode = "n";
       key = "<leader>w|";
@@ -441,6 +479,8 @@
         remap = true;
       };
     }
+
+    # Tabs
     {
       mode = "n";
       key = "<leader><tab>l";
@@ -487,6 +527,67 @@
       action = "<cmd>tabprevious<cr>";
       options = {
         desc = "Previous Tab";
+      };
+    }
+
+    # Terminal
+    {
+      mode = "n";
+      key = "<C-;>";
+      action = "<cmd>terminal<cr>";
+      options = {
+        desc = "Toggle Terminal Window";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>;n";
+      action = "<cmd>terminal<cr>";
+      options = {
+        desc = "Toggle Terminal Window";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>;_";
+      action = "<cmd>botright terminal<cr>";
+      options = {
+        desc = "Open bottom terminal";
+        silent = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>;|";
+      action = "<cmd>vertical terminal<CR>";
+      options = {
+        desc = "Open a vertical terminal split";
+        silent = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>;-";
+      action = "<cmd>horizontal terminal<CR>";
+      options = {
+        desc = "Open a horizontal terminal split";
+        silent = true;
+      };
+    }
+    {
+      mode = "t";
+      key = "<C-/>";
+      action = "<cmd>close<cr>";
+      options = {
+        desc = "Hide Terminal";
+      };
+    }
+    {
+      mode = "t";
+      key = "<leader>;q";
+      action = "<cmd>close<cr>";
+      options = {
+        desc = "Close Terminal";
       };
     }
   ];

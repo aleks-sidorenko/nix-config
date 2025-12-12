@@ -59,13 +59,16 @@
       callback = {
         __raw = ''
           function()
-            if
-              vim.fn.line "'\"" > 1
-              and vim.fn.line "'\"" <= vim.fn.line "$"
-              and vim.bo.filetype ~= "commit"
-              and vim.fn.index({ "xxd", "gitrebase" }, vim.bo.filetype) == -1
+            local mark = vim.api.nvim_buf_get_mark(0, '"')
+            local line_count = vim.api.nvim_buf_line_count(0)
+            local ft = vim.bo.filetype
+            if mark[1] > 1
+              and mark[1] <= line_count
+              and ft ~= "commit"
+              and ft ~= "xxd"
+              and ft ~= "gitrebase"
             then
-              vim.cmd "normal! g`\""
+              pcall(vim.api.nvim_win_set_cursor, 0, mark)
             end
           end
         '';

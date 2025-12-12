@@ -26,6 +26,10 @@ nixvim'.makeNixvimWithModule {
         go.enable = lib.mkEnableOption "Go development support";
         typescript.enable = lib.mkEnableOption "TypeScript development support";
       };
+      ai = {
+        copilot.enable = lib.mkEnableOption "GitHub Copilot AI assistant";
+        claude-code.enable = lib.mkEnableOption "Claude Code AI assistant";
+      };
     };
 
     # Set defaults
@@ -36,6 +40,10 @@ nixvim'.makeNixvimWithModule {
         python.enable = lib.mkDefault false;
         go.enable = lib.mkDefault false;
         typescript.enable = lib.mkDefault false;
+      };
+      ai = {
+        copilot.enable = lib.mkDefault false;
+        claude-code.enable = lib.mkDefault false;
       };
     };
 
