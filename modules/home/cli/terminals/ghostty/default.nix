@@ -52,8 +52,7 @@ in
           # Tab Management (Alt+Ctrl)
           "alt+ctrl+n=new_tab"
           "alt+ctrl+q=close_tab:this"
-          "alt+ctrl+[=previous_tab"
-          "alt+ctrl+]=next_tab"
+          
           "${prefix}>t>n=new_tab"
           "${prefix}>t>q=close_tab:this"
           "${prefix}>t>[=previous_tab"
@@ -82,9 +81,7 @@ in
           "alt+shift+j=goto_split:down"
           "alt+shift+k=goto_split:up"
           "alt+shift+l=goto_split:right"
-          "alt+shift+[=goto_split:previous"
-          "alt+shift+]=goto_split:next"
-
+          
           "${prefix}>h=goto_split:left"
           "${prefix}>j=goto_split:down"
           "${prefix}>k=goto_split:up"

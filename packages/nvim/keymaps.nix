@@ -73,6 +73,29 @@
         desc = "Go to end of line";
       };
     }
+    # File navigation
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-S-[>";
+      action = "gg";
+      options = {
+        desc = "Go to beginning of file";
+      };
+    }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<A-S-]>";
+      action = "G";
+      options = {
+        desc = "Go to end of file";
+      };
+    }
     # Window navigation
     {
       mode = "n";
