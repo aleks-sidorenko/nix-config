@@ -552,66 +552,6 @@
         desc = "Previous Tab";
       };
     }
-
-    # Terminal
-    {
-      mode = "n";
-      key = "<C-;>";
-      action = "<cmd>terminal<cr>";
-      options = {
-        desc = "Toggle Terminal Window";
-      };
-    }
-    {
-      mode = "n";
-      key = "<leader>;n";
-      action = "<cmd>terminal<cr>";
-      options = {
-        desc = "Toggle Terminal Window";
-      };
-    }
-    {
-      mode = "n";
-      key = "<leader>;_";
-      action = "<cmd>botright terminal<cr>";
-      options = {
-        desc = "Open bottom terminal";
-        silent = true;
-      };
-    }
-    {
-      mode = "n";
-      key = "<leader>;|";
-      action = "<cmd>vertical terminal<CR>";
-      options = {
-        desc = "Open a vertical terminal split";
-        silent = true;
-      };
-    }
-    {
-      mode = "n";
-      key = "<leader>;-";
-      action = "<cmd>horizontal terminal<CR>";
-      options = {
-        desc = "Open a horizontal terminal split";
-        silent = true;
-      };
-    }
-    {
-      mode = "t";
-      key = "<C-/>";
-      action = "<cmd>close<cr>";
-      options = {
-        desc = "Hide Terminal";
-      };
-    }
-    {
-      mode = "t";
-      key = "<leader>;q";
-      action = "<cmd>close<cr>";
-      options = {
-        desc = "Close Terminal";
-      };
-    }
+    
   ];
 }

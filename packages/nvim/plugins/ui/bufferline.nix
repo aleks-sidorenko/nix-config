@@ -61,8 +61,18 @@
 
     {
       mode = "n";
-      key = "<leader>bd";
-      action = "<cmd>bdelete<cr>";
+      key = "<leader>bp";
+      action = "<cmd>BufferLineTogglePin<cr>";
+      options = {
+        desc = "Toggle pin";
+      };
+    }
+
+
+    {
+      mode = "n";
+      key = "<leader>bq";
+      action = "<cmd>bp|bd #<cr>";
       options = {
         desc = "Delete buffer";
       };
@@ -85,16 +95,6 @@
         desc = "Delete other buffers";
       };
     }
-
-    {
-      mode = "n";
-      key = "<leader>bp";
-      action = "<cmd>BufferLineTogglePin<cr>";
-      options = {
-        desc = "Toggle pin";
-      };
-    }
-
     {
       mode = "n";
       key = "<leader>bP";
@@ -102,6 +102,7 @@
       options = {
         desc = "Delete non-pinned buffers";
       };
-    }
+    }    
+    
   ];
 }

@@ -16,7 +16,7 @@ _: {
     }
     {
       mode = "n";
-      key = "<leader>tv";
+      key = "<leader>t|";
       action = "<cmd>ToggleTerm direction=vertical<cr>";
       options = {
         desc = "Toggle Vertical Terminal Window";
@@ -24,7 +24,7 @@ _: {
     }
     {
       mode = "n";
-      key = "<leader>th";
+      key = "<leader>t-";
       action = "<cmd>ToggleTerm direction=horizontal<cr>";
       options = {
         desc = "Toggle Horizontal Terminal Window";
@@ -38,5 +38,6 @@ _: {
         desc = "Toggle Floating Terminal Window";
       };
     }
+
   ];
 }

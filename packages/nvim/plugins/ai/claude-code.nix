@@ -42,8 +42,8 @@
         command = "claude";
         keymaps = {
           toggle = {
-            normal = "<C-,>";
-            terminal = "<C-,>";
+            normal = "<C-;>";
+            terminal = "<C-;>";
           };
           window_navigation = true;
           scrolling = true;
