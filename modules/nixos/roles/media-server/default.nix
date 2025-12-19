@@ -49,10 +49,7 @@ in
     ];
 
     ${namespace} = {
-      disks.impermanence.directories = [
-        dirs.root
-      ];
-
+      
       services = {
 
         media = {
