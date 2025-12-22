@@ -60,9 +60,9 @@ with lib.${namespace};
           encrypted = false;
           content = [
             {
-              name = "media";
+              name = "data";
               mountOptions = [
-                "subvol=media"
+                "subvol=data"
                 "noatime"
               ];
             }
