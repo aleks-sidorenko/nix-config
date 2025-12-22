@@ -68,7 +68,6 @@
       };
     }
 
-
     {
       mode = "n";
       key = "<leader>bq";
@@ -102,7 +101,7 @@
       options = {
         desc = "Delete non-pinned buffers";
       };
-    }    
-    
+    }
+
   ];
 }

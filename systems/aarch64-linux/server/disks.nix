@@ -62,10 +62,10 @@ with lib.${namespace};
             {
               name = "media";
               mountOptions = [
-                "subvol=media"                
+                "subvol=media"
                 "noatime"
               ];
-            },
+            }
             {
               name = "backup";
               mountOptions = [
