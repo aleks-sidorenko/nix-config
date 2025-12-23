@@ -171,6 +171,8 @@ in
       readOnly = true;
       description = "Password for qBittorrent web interface authentication";
     };
+
+    queueingEnabled = mkOpt types.bool false "Enable queueing system";
   };
 
   config = mkIf cfg.enable {
@@ -226,7 +228,7 @@ in
         Session\ExcludedFileNames=
         Session\GlobalUPSpeedLimit=${toString cfg.uploadSpeedLimit}
         Session\Port=${toString cfg.torrentPort}
-        Session\QueueingSystemEnabled=true
+        Session\QueueingSystemEnabled=${toString cfg.queueingEnabled}
         Session\SSL\Port=30088
         Session\SubcategoriesEnabled=true
         Session\Tags=${builtins.concatStringsSep ", " cfg.tags}
