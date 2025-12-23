@@ -52,6 +52,29 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
     ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/rpi/firmware.sh
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
 
+# Format disks with disko configuration
+# Usage:
+#   just bootstrap-disk hostname                  # Preview changes (dry-run)
+#   just bootstrap-disk hostname --apply          # Apply and format disks
+bootstrap-disk hostname mode="--dry-run":
+    @echo "💾 Formatting disks for {{hostname}} using disko..."
+    @if [ "{{mode}}" = "--dry-run" ]; then \
+        echo "🔍 Running in dry-run mode (preview only)..."; \
+        echo "⚠️  No changes will be made to disks"; \
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}} --dry-run; \
+    elif [ "{{mode}}" = "--apply" ]; then \
+        echo "⚠️  WARNING: This will DESTROY ALL DATA on configured disks!"; \
+        echo "⚠️  Press Ctrl+C within 5 seconds to cancel..."; \
+        sleep 5; \
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}}; \
+        echo "✅ Disks formatted successfully!"; \
+        echo "💡 Run 'just deploy {{hostname}}' to apply mount configuration"; \
+    else \
+        echo "❌ Invalid mode: {{mode}}"; \
+        echo "💡 Use '--dry-run' to preview or '--apply' to format"; \
+        exit 1; \
+    fi
+
 # Deploy to a specific host using deploy-rs
 # Usage:
 #   just deploy hostname                            # Deploy with local build

@@ -552,6 +552,6 @@
         desc = "Previous Tab";
       };
     }
-    
+
   ];
 }

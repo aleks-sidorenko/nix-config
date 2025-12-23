@@ -12,6 +12,7 @@
     * `sops updatekeys ./modules/nixos/secrets.yaml` as `user-${username}-password`
 
 ## Bootstrap/Install remotely using `nixos-anywhere`
+
 ### Common
 * Prerequisites
     * Target host/ip is assigned to `$hostname`
@@ -75,3 +76,59 @@ VM is provisioned via Vagrant and has SSH enabled already with keys copied from 
 vagrant up
 vagrant ssh-config >> .ssh.config
 ```
+
+## Format disk with disko
+
+### Apply disko configuration to format a disk
+
+⚠️ **WARNING**: This will **DESTROY ALL DATA** on the target disk(s). Always backup first!
+
+1. **Preview changes (dry-run)**
+   ```bash
+   just bootstrap-disk <hostname>
+   ```
+   Or manually:
+   ```bash
+   sudo nix run github:nix-community/disko -- --mode disko --flake .#<hostname> --dry-run
+   ```
+
+2. **Apply the disko configuration**
+   ```bash
+   just bootstrap-disk <hostname> --apply
+   ```
+   Or manually:
+   ```bash
+   sudo nix run github:nix-community/disko -- --mode disko --flake .#<hostname>
+   ```
+   This will format **ALL** disks defined in your system configuration.
+
+3. **Deploy to apply mount configuration**
+   ```bash
+   just deploy <hostname>
+   ```
+   Or manually:
+   ```bash
+   sudo nixos-rebuild switch --flake .#<hostname>
+   ```
+
+### Manual formatting (for single data disk)
+
+If you only want to format a specific data disk without touching other disks:
+
+1. **Format the disk with btrfs**
+   ```bash
+   sudo mkfs.btrfs -f -L <disk-label> /dev/disk/by-id/<disk-id>
+   ```
+
+2. **Mount temporarily and create subvolumes**
+   ```bash
+   sudo mount /dev/disk/by-id/<disk-id> /mnt
+   sudo btrfs subvolume create /mnt/@<subvol1>
+   sudo btrfs subvolume create /mnt/@<subvol2>
+   sudo umount /mnt
+   ```
+
+3. **Rebuild system to apply mount configuration**
+   ```bash
+   sudo nixos-rebuild switch --flake .#<hostname>
+   ```

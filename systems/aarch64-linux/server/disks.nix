@@ -55,6 +55,27 @@ with lib.${namespace};
             }
           ];
         };
+        data = {
+          device = "/dev/disk/by-id/usb-Seagate_Expansion_NAAX0CP9-0:0";
+          encrypted = false;
+          content = [
+            {
+              name = "data";
+              mountOptions = [
+                "subvol=data"
+                "noatime"
+              ];
+            }
+            {
+              name = "backup";
+              mountOptions = [
+                "subvol=backup"
+                "compress=zstd"
+                "noatime"
+              ];
+            }
+          ];
+        };
       };
     };
   };
