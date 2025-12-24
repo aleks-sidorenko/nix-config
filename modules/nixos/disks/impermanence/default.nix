@@ -77,8 +77,8 @@ in
     boot.initrd = {
       supportedFilesystems = [ "btrfs" ];
       postDeviceCommands = lib.mkIf (!phase1Systemd) (lib.mkBefore wipeScript);
-      systemd.services.restore-root = lib.mkIf phase1Systemd {
-        description = "Rollback btrfs rootfs";
+      systemd.services.impermanence-rollback-root = lib.mkIf phase1Systemd {
+        description = "Rollback btrfs rootfs for impermanence";
         wantedBy = [ "initrd.target" ];
         requires = [ "dev-disk-by\\x2dlabel-${device}.device" ];
         after = [
