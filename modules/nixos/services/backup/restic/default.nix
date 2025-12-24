@@ -12,7 +12,7 @@ let
   host = hosts.local "restic";
   port = defaults.network.ports.restic.web;
   repository = "rest:http://${host}:${toString port}";
-    
+
 in
 {
   options.${namespace}.services.backup.restic = {
@@ -30,7 +30,9 @@ in
 
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
-    passwordFile = mkOpt types.path "/var/lib/restic/password" "Path to file containing repository password";
+    passwordFile =
+      mkOpt types.path "/var/lib/restic/password"
+        "Path to file containing repository password";
 
     paths = mkOpt (types.listOf types.str) [
       "/home"
@@ -75,27 +77,31 @@ in
 
     extraOptions = mkOpt (types.listOf types.str) [ ] "Extra options to pass to restic";
 
-    rcloneConfigFile = mkOpt (types.nullOr types.path) null "Path to rclone config file (if using rclone backend)";
+    rcloneConfigFile =
+      mkOpt (types.nullOr types.path) null
+        "Path to rclone config file (if using rclone backend)";
 
-    environmentFile = mkOpt (types.nullOr types.path) null "Environment file containing additional secrets";
+    environmentFile =
+      mkOpt (types.nullOr types.path) null
+        "Environment file containing additional secrets";
   };
 
   config = mkIf cfg.enable {
     # Add Restic package to system packages
     environment.systemPackages = [ cfg.package ];
 
-
     # Configure Restic backup service
     services.restic.backups = {
       default = {
-        inherit (cfg) 
+        inherit (cfg)
           user
           passwordFile
           paths
           exclude
           initialize
           pruneOpts
-          extraOptions;
+          extraOptions
+          ;
 
         repository = mkIf (cfg.repository != "") cfg.repository;
         repositoryFile = mkIf (cfg.repositoryFile != null) cfg.repositoryFile;
@@ -111,9 +117,15 @@ in
         rcloneConfigFile = mkIf (cfg.rcloneConfigFile != null) cfg.rcloneConfigFile;
 
         # Add environment file if specified
-      } // (if cfg.environmentFile != null then {
-        environmentFile = cfg.environmentFile;
-      } else { });
+      }
+      // (
+        if cfg.environmentFile != null then
+          {
+            environmentFile = cfg.environmentFile;
+          }
+        else
+          { }
+      );
     };
 
     # Create restic user if it doesn't exist
@@ -133,4 +145,3 @@ in
     ];
   };
 }
-

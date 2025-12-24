@@ -22,11 +22,15 @@ in
 
     dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic server";
 
-    backupDir = mkOpt types.str "/backup" "Directory where backups are stored (e.g., USB disk mount point)";
-    
+    backupDir =
+      mkOpt types.str "/backup"
+        "Directory where backups are stored (e.g., USB disk mount point)";
+
     webPort = mkOpt types.port defaults.network.ports.restic.web "Port to listen on";
 
-    listenAddress = mkOpt types.str "0.0.0.0:${toString cfg.webPort}" "Address and port to listen on for the web interface";
+    listenAddress =
+      mkOpt types.str "0.0.0.0:${toString cfg.webPort}"
+        "Address and port to listen on for the web interface";
 
     appendOnly = mkBoolOpt false "Enable append-only mode (prevents deletion of data)";
 
@@ -36,16 +40,20 @@ in
 
     auth = {
       enable = mkBoolOpt false "Enable HTTP authentication";
-      
+
       username = mkOpt types.str "restic" "Username for HTTP authentication";
-      
-      passwordFile = mkOpt (types.nullOr types.str) null "Path to file containing the password (typically from SOPS)";
+
+      passwordFile =
+        mkOpt (types.nullOr types.str) null
+          "Path to file containing the password (typically from SOPS)";
     };
 
-    htpasswdFile = mkOpt types.str "${cfg.dataDir}/.htpasswd" "Path to htpasswd file for HTTP authentication";
+    htpasswdFile =
+      mkOpt types.str "${cfg.dataDir}/.htpasswd"
+        "Path to htpasswd file for HTTP authentication";
 
     extraFlags = mkOpt (types.listOf types.str) [ ] "Extra command-line flags for rest-server";
-    
+
   };
 
   config = mkIf cfg.enable {
@@ -72,7 +80,7 @@ in
     users.groups.${cfg.group} = mkDefault { };
 
     # Ensure directories exist with correct permissions
-    systemd.tmpfiles.rules = [      
+    systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       "d ${cfg.backupDir} 0755 ${cfg.user} ${cfg.group} -"
     ];
@@ -100,7 +108,7 @@ in
         Type = "simple";
         User = cfg.user;
         Group = cfg.group;
-        ExecStart = 
+        ExecStart =
           let
             flags = [
               "--path ${cfg.backupDir}"
@@ -109,7 +117,7 @@ in
             ++ optional cfg.appendOnly "--append-only"
             ++ optional cfg.privateRepos "--private-repos"
             ++ optional cfg.prometheus "--prometheus"
-            ++ (if cfg.auth.enable then ["--htpasswd-file ${cfg.htpasswdFile}"] else ["--no-auth"])
+            ++ (if cfg.auth.enable then [ "--htpasswd-file ${cfg.htpasswdFile}" ] else [ "--no-auth" ])
             ++ cfg.extraFlags;
           in
           "${cfg.package}/bin/rest-server ${concatStringsSep " " flags}";
@@ -122,11 +130,18 @@ in
         PrivateTmp = true;
         ProtectSystem = "strict";
         ProtectHome = true;
-        ReadWritePaths = [ cfg.dataDir cfg.backupDir ];
+        ReadWritePaths = [
+          cfg.dataDir
+          cfg.backupDir
+        ];
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
         ProtectControlGroups = true;
-        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
         RestrictNamespaces = true;
         LockPersonality = true;
         RestrictRealtime = true;
@@ -138,7 +153,6 @@ in
     # Open firewall port if needed
     networking.firewall.allowedTCPPorts = [ cfg.webPort ];
 
-
     ${namespace}.services.networking.nginx = {
       virtualHosts.restic-server = {
         serverName = hosts.local "restic";
@@ -147,4 +161,3 @@ in
     };
   };
 }
-

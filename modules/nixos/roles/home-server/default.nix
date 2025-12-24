@@ -8,7 +8,7 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.home-server;  
+  cfg = config.${namespace}.roles.home-server;
 in
 {
   options.${namespace}.roles.home-server = {
@@ -24,7 +24,7 @@ in
         media-server = enabled;
         smart-home = enabled;
         gaming-server = enabled;
-        backup-server = enabled;        
+        backup-server = enabled;
       };
     };
 

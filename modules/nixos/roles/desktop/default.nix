@@ -36,7 +36,6 @@ in
         gnome.enable = true;
       };
 
-      
       disks = {
         hibernation.enable = true;
       };
