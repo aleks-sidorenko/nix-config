@@ -14,8 +14,25 @@ let
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
     (
-      mount -t btrfs -o subvol=/ /dev/disk/by-label/${device} "$MNTPOINT"
-      trap 'umount $MNTPOINT; rm -rf $MNTPOINT' EXIT
+      # Mount with retry mechanism (up to 3 attempts)
+      if ! mountpoint -q "$MNTPOINT"; then
+        for attempt in 1 2 3; do
+          if mount -t btrfs -o subvol=/ /dev/disk/by-label/${device} "$MNTPOINT"; then
+            echo "Successfully mounted on attempt $attempt"
+            break
+          fi
+          if [ $attempt -lt 3 ]; then
+            echo "Mount attempt $attempt failed, device may be busy. Retrying in 1 second..."
+            sleep 1
+          else
+            echo "Mount failed after 3 attempts"
+            exit 1
+          fi
+        done
+      else
+        echo "Mount point already mounted"
+      fi
+      trap 'umount $MNTPOINT 2>/dev/null || true; rm -rf $MNTPOINT' EXIT
 
       echo "Cleaning root subvolume"
       btrfs subvolume list -o "$MNTPOINT/@root" | cut -f9 -d ' ' |
@@ -60,8 +77,8 @@ in
     boot.initrd = {
       supportedFilesystems = [ "btrfs" ];
       postDeviceCommands = lib.mkIf (!phase1Systemd) (lib.mkBefore wipeScript);
-      systemd.services.restore-root = lib.mkIf phase1Systemd {
-        description = "Rollback btrfs rootfs";
+      systemd.services.impermanence-rollback-root = lib.mkIf phase1Systemd {
+        description = "Rollback btrfs rootfs for impermanence";
         wantedBy = [ "initrd.target" ];
         requires = [ "dev-disk-by\\x2dlabel-${device}.device" ];
         after = [
