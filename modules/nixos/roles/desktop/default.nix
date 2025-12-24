@@ -17,8 +17,9 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       roles = {
-        common.enable = true;
-
+        common = enabled;
+        gaming = enabled;
+        backup = enabled;
       };
 
       cli = {
@@ -33,14 +34,6 @@ in
 
       desktops = {
         gnome.enable = true;
-      };
-
-      services = {
-        # TODO impl
-        # backup.enable = true;
-        # TODO impl
-        # vpn.enable = true;
-        # virtualisation.podman.enable = true;
       };
 
       disks = {
