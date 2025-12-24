@@ -23,7 +23,7 @@ Use this checklist to set up your backup system from scratch.
 
 - [ ] Add filesystem mount to server configuration:
   ```nix
-  fileSystems."/backups" = {
+  fileSystems."/backup" = {
     device = "/dev/disk/by-uuid/YOUR-UUID-HERE";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
@@ -34,7 +34,7 @@ Use this checklist to set up your backup system from scratch.
   ```nix
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";
+    dataDir = "/backup";
     listenAddress = "0.0.0.0:8000";
     privateRepos = true;
     appendOnly = true;
@@ -47,7 +47,7 @@ Use this checklist to set up your backup system from scratch.
   ```
 
 - [ ] Build and deploy: `just deploy server`
-- [ ] Verify mount: `df -h /backups`
+- [ ] Verify mount: `df -h /backup`
 - [ ] Verify server: `curl http://localhost:8000/`
 - [ ] Check logs: `journalctl -u restic-rest-server -f`
 
@@ -166,7 +166,7 @@ Use this checklist to set up your backup system from scratch.
     ];
     
     exclude = [
-      "/backups"  # Don't backup the backup directory
+      "/backup"  # Don't backup the backup directory
     ];
     
     initialize = true;
@@ -239,7 +239,7 @@ For each host (desktop, vm, server):
 
 - [ ] Check disk usage:
   ```bash
-  df -h /backups
+  df -h /backup
   ```
 
 ## Phase 6: Monitoring Setup
@@ -252,7 +252,7 @@ For each host (desktop, vm, server):
   echo "=== Backup Status ==="
   echo ""
   echo "Disk Usage:"
-  df -h /backups
+  df -h /backup
   echo ""
   echo "Last Backup:"
   systemctl status restic-backups-default.service | grep "Active:"
@@ -297,7 +297,7 @@ Store in secure location (password manager, encrypted file, etc.):
 ### Weekly Tasks
 - [ ] Check backup logs: `journalctl -u restic-backups-default.service --since "1 week ago"`
 - [ ] Verify all hosts backed up
-- [ ] Check disk space: `df -h /backups`
+- [ ] Check disk space: `df -h /backup`
 
 ### Monthly Tasks
 - [ ] Run repository check: `sudo systemctl start restic-backups-default-check.service`
@@ -333,7 +333,7 @@ Store in secure location (password manager, encrypted file, etc.):
 - Unlock: `sudo -u restic restic -r rest:http://SERVER:8000/ unlock`
 
 **Out of space:**
-- Check disk: `df -h /backups`
+- Check disk: `df -h /backup`
 - Prune old backups: `sudo -u restic restic -r rest:http://SERVER:8000/ forget --keep-last 10 --prune`
 
 ## Success Criteria

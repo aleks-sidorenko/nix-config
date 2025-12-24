@@ -19,6 +19,7 @@ in
       roles = {
         common = enabled;
         gaming = enabled;
+        backup = enabled;
       };
 
       cli = {
@@ -35,14 +36,7 @@ in
         gnome.enable = true;
       };
 
-      services = {
-        # TODO impl
-        # backup.enable = true;
-        # TODO impl
-        # vpn.enable = true;
-        # virtualisation.podman.enable = true;
-      };
-
+      
       disks = {
         hibernation.enable = true;
       };

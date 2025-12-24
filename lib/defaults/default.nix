@@ -73,7 +73,7 @@ rec {
         home-assistant = {
           web = 8123;
         };
-        restic-server = {
+        restic = {
           web = 8000;
         };
         zigbee2mqtt = {

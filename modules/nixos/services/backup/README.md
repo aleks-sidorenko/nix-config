@@ -24,7 +24,7 @@ Server module for hosting a Restic REST server to receive backups.
 ```nix
 nix-config.services.backup.restic-server = {
   enable = true;
-  dataDir = "/backups";
+  dataDir = "/backup";
   listenAddress = "0.0.0.0:8000";
 };
 ```
@@ -42,14 +42,14 @@ See the comprehensive documentation in the `docs/` directory:
 ### 1. Server Setup
 ```nix
 {
-  fileSystems."/backups" = {
-    device = "/dev/disk/by-label/backups";
+  fileSystems."/backup" = {
+    device = "/dev/disk/by-label/backup";
     fsType = "ext4";
   };
 
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";
+    dataDir = "/backup";
   };
 
   networking.firewall.allowedTCPPorts = [ 8000 ];
@@ -143,7 +143,7 @@ systemctl status restic-backups-default.timer
                   ▼
          ┌─────────────────┐
          │   USB Disk      │
-         │   /backups      │
+         │   /backup      │
          └─────────────────┘
 ```
 

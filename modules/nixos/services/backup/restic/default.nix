@@ -9,6 +9,10 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic;
+  host = hosts.local "restic";
+  port = defaults.network.ports.restic.web;
+  repository = "rest:http://${host}:${toString port}";
+    
 in
 {
   options.${namespace}.services.backup.restic = {
@@ -18,9 +22,11 @@ in
 
     user = mkOpt types.str "restic" "User to run Restic backups as";
 
-    group = mkOpt types.str "restic" "Group to run Restic backups as";
+    group = mkOpt types.str config.${namespace}.services.backup.group "Group to run Restic backups as";
 
-    repository = mkOpt types.str "" "Restic repository URL (e.g., rest:http://server:8000/)";
+    dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic backup service";
+
+    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://server:8000/)";
 
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
@@ -78,6 +84,7 @@ in
     # Add Restic package to system packages
     environment.systemPackages = [ cfg.package ];
 
+
     # Configure Restic backup service
     services.restic.backups = {
       default = {
@@ -113,12 +120,12 @@ in
     users.users.${cfg.user} = mkIf (cfg.user == "restic") {
       isSystemUser = true;
       group = cfg.group;
-      home = "/var/lib/restic";
+      home = cfg.dataDir;
       createHome = true;
       description = "Restic backup user";
     };
 
-    users.groups.${cfg.group} = mkIf (cfg.group == "restic") { };
+    users.groups.${cfg.group} = mkDefault { };
 
     # Ensure directories exist with correct permissions
     systemd.tmpfiles.rules = [

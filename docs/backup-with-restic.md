@@ -12,7 +12,7 @@ The backup system consists of two modules:
 ## Architecture
 
 The typical setup involves:
-- A server running `restic-server` with a USB disk mounted at `/backups`
+- A server running `restic-server` with a USB disk mounted at `/backup`
 - Multiple clients running `restic` that backup to the server
 - Automated daily backups with retention policies
 
@@ -26,7 +26,7 @@ On your backup server (e.g., the `server` host):
 {
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";  # USB disk mount point
+    dataDir = "/backup";  # USB disk mount point
     listenAddress = "0.0.0.0:8000";
     privateRepos = true;  # Each client gets its own subdirectory
     appendOnly = false;   # Set to true for extra safety
@@ -45,7 +45,7 @@ For better security, use htpasswd authentication:
 {
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";
+    dataDir = "/backup";
     listenAddress = "0.0.0.0:8000";
     privateRepos = true;
     htpasswdFile = "/var/lib/restic/htpasswd";
@@ -64,7 +64,7 @@ For secure connections over the network:
 {
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";
+    dataDir = "/backup";
     listenAddress = "0.0.0.0:8443";
     privateRepos = true;
     tls = {
@@ -292,15 +292,15 @@ Add to your server configuration:
 ```nix
 {
   # Find USB disk UUID with: lsblk -f
-  fileSystems."/backups" = {
+  fileSystems."/backup" = {
     device = "/dev/disk/by-uuid/YOUR-USB-DISK-UUID";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
   
   # Or use labels
-  # fileSystems."/backups" = {
-  #   device = "/dev/disk/by-label/backups";
+  # fileSystems."/backup" = {
+  #   device = "/dev/disk/by-label/backup";
   #   fsType = "ext4";
   #   options = [ "defaults" "nofail" ];
   # };
@@ -317,14 +317,14 @@ lsblk
 sudo mkfs.ext4 -L backups /dev/sdX1
 
 # Create mount point
-sudo mkdir -p /backups
+sudo mkdir -p /backup
 
 # Mount it
-sudo mount /dev/disk/by-label/backups /backups
+sudo mount /dev/disk/by-label/backup /backup
 
 # Set permissions
-sudo chown restic:restic /backups
-sudo chmod 700 /backups
+sudo chown restic:restic /backup
+sudo chmod 700 /backup
 ```
 
 ## Setting Up Secrets
@@ -470,7 +470,7 @@ sudo -u restic restic -r rest:http://10.0.0.40:8000/ snapshots
 - Check server address and port
 
 **Out of space:**
-- Check USB disk space: `df -h /backups`
+- Check USB disk space: `df -h /backup`
 - Adjust retention policy to keep fewer backups
 - Run prune to free up space
 
@@ -548,8 +548,8 @@ sudo -u restic restic -r rest:http://10.0.0.40:8000/ snapshots
 ```nix
 {
   # Mount USB disk
-  fileSystems."/backups" = {
-    device = "/dev/disk/by-label/backups";
+  fileSystems."/backup" = {
+    device = "/dev/disk/by-label/backup";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
@@ -557,7 +557,7 @@ sudo -u restic restic -r rest:http://10.0.0.40:8000/ snapshots
   # Enable restic server
   nix-config.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups";
+    dataDir = "/backup";
     listenAddress = "0.0.0.0:8000";
     privateRepos = true;
     appendOnly = true;  # Extra safety

@@ -39,7 +39,7 @@ with lib.${namespace};
     # Add backup server
     services.backup.restic-server = {
       enable = true;
-      dataDir = "/backups";
+      dataDir = "/backup";
       listenAddress = "0.0.0.0:8000";
       privateRepos = true;
       appendOnly = true;  # Prevent accidental deletion
@@ -47,8 +47,8 @@ with lib.${namespace};
   };
 
   # Mount USB backup drive
-  fileSystems."/backups" = {
-    device = "/dev/disk/by-label/backups";
+  fileSystems."/backup" = {
+    device = "/dev/disk/by-label/backup";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
@@ -74,7 +74,7 @@ with lib.${namespace};
       "/var/tmp"
       "/var/log"
       # Don't backup the backup directory itself
-      "/backups"
+      "/backup"
     ];
     
     timerConfig = {
@@ -347,15 +347,15 @@ Use bind mounts or multiple server instances:
 ```nix
 {
   # Main USB backup
-  fileSystems."/backups/main" = {
-    device = "/dev/disk/by-label/backups-main";
+  fileSystems."/backup/main" = {
+    device = "/dev/disk/by-label/backup-main";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
 
   # Secondary backup (another USB or network drive)
-  fileSystems."/backups/secondary" = {
-    device = "/dev/disk/by-label/backups-secondary";
+  fileSystems."/backup/secondary" = {
+    device = "/dev/disk/by-label/backup-secondary";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
@@ -363,7 +363,7 @@ Use bind mounts or multiple server instances:
   # Primary restic server on port 8000
   ${namespace}.services.backup.restic-server = {
     enable = true;
-    dataDir = "/backups/main";
+    dataDir = "/backup/main";
     listenAddress = "0.0.0.0:8000";
     privateRepos = true;
   };
@@ -378,7 +378,7 @@ Use bind mounts or multiple server instances:
       Type = "simple";
       User = "restic";
       Group = "restic";
-      ExecStart = "${pkgs.restic-rest-server}/bin/rest-server --path /backups/secondary --listen 0.0.0.0:8001 --private-repos";
+      ExecStart = "${pkgs.restic-rest-server}/bin/rest-server --path /backup/secondary --listen 0.0.0.0:8001 --private-repos";
       Restart = "on-failure";
     };
   };
@@ -457,7 +457,7 @@ sudo mkfs.ext4 -L backups /dev/sdX1
 sudo blkid /dev/sdX1
 
 # 4. Create mount point
-sudo mkdir -p /backups
+sudo mkdir -p /backup
 ```
 
 ### Add to Server Configuration
@@ -466,7 +466,7 @@ Use UUID for more reliable mounting:
 
 ```nix
 {
-  fileSystems."/backups" = {
+  fileSystems."/backup" = {
     device = "/dev/disk/by-uuid/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
@@ -478,8 +478,8 @@ Or use label:
 
 ```nix
 {
-  fileSystems."/backups" = {
-    device = "/dev/disk/by-label/backups";
+  fileSystems."/backup" = {
+    device = "/dev/disk/by-label/backup";
     fsType = "ext4";
     options = [ "defaults" "nofail" ];
   };
@@ -516,7 +516,7 @@ sudo systemctl status restic-backups-default.service
 sudo -u restic restic -r rest:http://10.0.0.40:8000/ snapshots
 
 # On server, check backup directory
-ls -lah /backups/
+ls -lah /backup/
 ```
 
 ### 4. Test Restore
@@ -543,7 +543,7 @@ journalctl -u restic-backups-default.service -n 100
 
 ```bash
 # On server
-df -h /backups
+df -h /backup
 
 # In restic
 sudo -u restic restic -r rest:http://127.0.0.1:8000/ stats

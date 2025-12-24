@@ -264,11 +264,11 @@ sudo chown restic:restic /var/lib/restic/password
 sudo chmod 400 /var/lib/restic/password
 
 # Check backup directory permissions
-ls -la /backups
+ls -la /backup
 
 # Fix backup directory permissions
-sudo chown -R restic:restic /backups
-sudo chmod 700 /backups
+sudo chown -R restic:restic /backup
+sudo chmod 700 /backup
 ```
 
 ### Repository Issues
@@ -290,7 +290,7 @@ restic -r rest:http://SERVER:8000/ repair snapshots
 
 ```bash
 # Check backup disk usage
-df -h /backups
+df -h /backup
 
 # Check repository size
 restic -r rest:http://SERVER:8000/ stats --mode raw-data
@@ -472,7 +472,7 @@ sudo fsck /dev/sdX1
 sudo mount -o ro /dev/sdX1 /mnt/recovery
 
 # 4. Copy data to new disk
-sudo rsync -av /mnt/recovery/ /new/backups/
+sudo rsync -av /mnt/recovery/ /new/backup/
 
 # 5. Update configuration with new disk
 # 6. Verify repository
