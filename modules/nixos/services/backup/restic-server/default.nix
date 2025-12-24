@@ -9,12 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic-server;
-  
-  # Use provided passwordFile or default to SOPS secret path
-  passwordFilePath = 
-    if cfg.auth.passwordFile != null 
-    then cfg.auth.passwordFile 
-    else config.sops.secrets."service-restic-password".path;
 in
 {
   options.${namespace}.services.backup.restic-server = {
@@ -44,20 +38,6 @@ in
 
     prometheus = mkBoolOpt false "Enable Prometheus metrics";
 
-    auth = {
-      enable = mkBoolOpt false "Enable HTTP authentication";
-
-      username = mkOpt types.str "restic" "Username for HTTP authentication";
-
-      passwordFile =
-        mkOpt (types.nullOr types.str) null
-          "Path to file containing the password. Defaults to SOPS secret 'service-restic-password' if not specified.";
-    };
-
-    htpasswdFile =
-      mkOpt types.str "${cfg.dataDir}/.htpasswd"
-        "Path to htpasswd file for HTTP authentication";
-
     extraFlags = mkOpt (types.listOf types.str) [ ] "Extra command-line flags for rest-server";
 
   };
@@ -65,14 +45,6 @@ in
   config = mkIf cfg.enable {
     # Add Restic REST server package to system packages
     environment.systemPackages = [ cfg.package ];
-
-    # SOPS secret for restic-server password
-    sops.secrets."service-restic-password" = mkIf cfg.auth.enable {
-      sopsFile = ../../../secrets.yaml;
-      owner = cfg.user;
-      group = cfg.group;
-      mode = "0400";
-    };
 
     # Create restic user and group
     users.users.${cfg.user} = {
@@ -97,19 +69,6 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      preStart = mkIf cfg.auth.enable ''
-        # Generate htpasswd file from SOPS secret
-        if [ -f "${passwordFilePath}" ]; then
-          echo "Generating htpasswd file..."
-          ${pkgs.apacheHttpd}/bin/htpasswd -cbB "${cfg.htpasswdFile}" "${cfg.auth.username}" "$(cat ${passwordFilePath})"
-          chmod 640 "${cfg.htpasswdFile}"
-          chown ${cfg.user}:${cfg.group} "${cfg.htpasswdFile}"
-          echo "htpasswd file generated successfully"
-        else
-          echo "Warning: Password file not found at ${passwordFilePath}"
-        fi
-      '';
-
       serviceConfig = {
         Type = "simple";
         User = cfg.user;
@@ -123,7 +82,7 @@ in
             ++ optional cfg.appendOnly "--append-only"
             ++ optional cfg.privateRepos "--private-repos"
             ++ optional cfg.prometheus "--prometheus"
-            ++ (if cfg.auth.enable then [ "--htpasswd-file ${cfg.htpasswdFile}" ] else [ "--no-auth" ])
+            ++ [ "--no-auth" ]
             ++ cfg.extraFlags;
           in
           "${cfg.package}/bin/rest-server ${concatStringsSep " " flags}";
