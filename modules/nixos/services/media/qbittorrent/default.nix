@@ -125,7 +125,7 @@ in
 
     downloadDir = mkOpt types.str "/data/torrents" "Base download directory for qBittorrent";
 
-    uploadSpeedLimit = mkOpt types.int 1000 "Global upload speed limit in KB/s (0 for unlimited)";
+    uploadSpeedLimit = mkOpt types.int 500 "Global upload speed limit in KB/s (0 for unlimited)";
 
     tags = mkOption {
       type = types.listOf types.str;
