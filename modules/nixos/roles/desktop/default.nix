@@ -17,8 +17,8 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       roles = {
-        common.enable = true;
-
+        common = enabled;
+        gaming = enabled;
       };
 
       cli = {
