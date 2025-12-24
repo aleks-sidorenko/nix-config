@@ -9,9 +9,8 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic;
-  host = hosts.local "restic";
-  port = defaults.network.ports.restic.web;
-  repository = "rest:http://${host}:${toString port}";
+  
+  repository = "rest:http://${hosts.local "restic"}";
 
 in
 {
@@ -31,7 +30,7 @@ in
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
     passwordFile =
-      mkOpt types.path "/var/lib/restic/password"
+      mkOpt types.path config.sops.secrets."service-restic-password".path
         "Path to file containing repository password";
 
     paths = mkOpt (types.listOf types.str) [
@@ -90,6 +89,14 @@ in
     # Add Restic package to system packages
     environment.systemPackages = [ cfg.package ];
 
+    # SOPS secret for restic password
+    sops.secrets."service-restic-password" = {
+      sopsFile = ../../../secrets.yaml;
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0400";
+    };
+
     # Configure Restic backup service
     services.restic.backups = {
       default = {
@@ -141,7 +148,7 @@ in
 
     # Ensure directories exist with correct permissions
     systemd.tmpfiles.rules = [
-      "d /var/lib/restic 0700 ${cfg.user} ${cfg.group} -"
+      "d ${cfg.dataDir} 0700 ${cfg.user} ${cfg.group} -"
     ];
   };
 }

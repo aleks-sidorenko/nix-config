@@ -20,7 +20,7 @@ in
 
     group = mkOpt types.str config.${namespace}.services.backup.group "Group to run Restic server as";
 
-    dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic server";
+    dataDir = mkOpt types.str "/var/lib/restic-server" "Data directory for Restic server";
 
     backupDir =
       mkOpt types.str "/backup"
