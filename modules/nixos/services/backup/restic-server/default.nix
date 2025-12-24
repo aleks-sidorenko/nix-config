@@ -9,6 +9,12 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic-server;
+  
+  # Use provided passwordFile or default to SOPS secret path
+  passwordFilePath = 
+    if cfg.auth.passwordFile != null 
+    then cfg.auth.passwordFile 
+    else config.sops.secrets."service-restic-password".path;
 in
 {
   options.${namespace}.services.backup.restic-server = {
@@ -45,7 +51,7 @@ in
 
       passwordFile =
         mkOpt (types.nullOr types.str) null
-          "Path to file containing the password (typically from SOPS)";
+          "Path to file containing the password. Defaults to SOPS secret 'service-restic-password' if not specified.";
     };
 
     htpasswdFile =
@@ -93,14 +99,14 @@ in
 
       preStart = mkIf cfg.auth.enable ''
         # Generate htpasswd file from SOPS secret
-        if [ -f "${cfg.auth.passwordFile}" ]; then
+        if [ -f "${passwordFilePath}" ]; then
           echo "Generating htpasswd file..."
-          ${pkgs.apacheHttpd}/bin/htpasswd -cbB "${cfg.htpasswdFile}" "${cfg.auth.username}" "$(cat ${cfg.auth.passwordFile})"
+          ${pkgs.apacheHttpd}/bin/htpasswd -cbB "${cfg.htpasswdFile}" "${cfg.auth.username}" "$(cat ${passwordFilePath})"
           chmod 640 "${cfg.htpasswdFile}"
           chown ${cfg.user}:${cfg.group} "${cfg.htpasswdFile}"
           echo "htpasswd file generated successfully"
         else
-          echo "Warning: Password file not found at ${cfg.auth.passwordFile}"
+          echo "Warning: Password file not found at ${passwordFilePath}"
         fi
       '';
 

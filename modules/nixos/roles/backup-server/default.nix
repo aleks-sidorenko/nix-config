@@ -18,7 +18,10 @@ in
     ${namespace} = {
       services = {
         backup = {
-          restic-server.enable = true;
+          restic-server = {
+            enable = true;
+            auth.enable = true;
+          };
         };
       };
     };
