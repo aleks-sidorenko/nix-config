@@ -18,7 +18,7 @@ in
     ${namespace} = {
       services = {
         backup = {
-          restic-server  = enabled;
+          restic-server = enabled;
         };
       };
     };

@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic;
-  
+
   repository = "rest:http://${hosts.local "restic"}";
 
 in
