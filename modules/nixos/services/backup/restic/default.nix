@@ -26,7 +26,7 @@ let
     "/var/log"
     "/home/*/.cache"
     "/home/*/.local/share/Trash"
-  ];
+  ] ++ (map (persistence.resolve config) ["/var/cache" "/var/tmp" "/var/log"]);
 
 in
 {
@@ -91,6 +91,15 @@ in
     # Add Restic package to system packages
     environment.systemPackages = [ cfg.package ];
 
+    # Set environment variables for CLI usage
+    environment.sessionVariables = {
+      RESTIC_PASSWORD_FILE = cfg.passwordFile;
+    } // lib.optionalAttrs (cfg.repositoryFile == null && cfg.repository != "") {
+      RESTIC_REPOSITORY = cfg.repository;
+    } // lib.optionalAttrs (cfg.repositoryFile != null) {
+      RESTIC_REPOSITORY_FILE = cfg.repositoryFile;
+    };
+
     # SOPS secret for restic password
     sops.secrets."service-restic-password" = {
       sopsFile = ../../../secrets.yaml;
@@ -138,7 +147,7 @@ in
     };
 
     # Create restic user if it doesn't exist
-    users.users.${cfg.user} = mkIf (cfg.user == "restic") {
+    users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.group;
       home = cfg.dataDir;
