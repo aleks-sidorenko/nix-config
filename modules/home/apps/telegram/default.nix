@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.apps.telegram;
-  telegram = getExecPath2 pkgs.telegram-desktop "Telegram";
+  telegram = lib.getExe' pkgs.telegram-desktop "Telegram";
 in
 {
   options.${namespace}.apps.telegram = {

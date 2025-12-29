@@ -68,18 +68,18 @@ in
         "SUPER, T, exec, ${terminal}"
         "ALTCTRL, T, exec, ${terminal}"
         "SUPER, B, exec, ${
-          getExecPath config.${namespace}.desktops.addons.rofi.package
+          lib.getExe config.${namespace}.desktops.addons.rofi.package
         } -show drun -mode drun"
         "SUPER, Q, killactive,"
         "SUPER, F, Fullscreen,0"
-        "SUPER, R, exec, ${getExecPath resize}"
+        "SUPER, R, exec, ${lib.getExe resize}"
         "SUPER, Space, keyboardlayoutnext,"
-        "SUPER, V, exec, ${getExecPath pkgs.pyprland} toggle pwvucontrol"
-        "SUPER_SHIFT, T, exec, ${getExecPath pkgs.pyprland} toggle term"
+        "SUPER, V, exec, ${lib.getExe pkgs.pyprland} toggle pwvucontrol"
+        "SUPER_SHIFT, T, exec, ${lib.getExe pkgs.pyprland} toggle term"
         "SUPER_SHIFT, Space, keyboardlayoutprev,"
-        ",XF86Launch5, exec, ${getExecPath pkgs.hyprlock}"
-        ",XF86Launch4, exec, ${getExecPath pkgs.hyprlock}"
-        "SUPER,backspace, exec, ${getExecPath pkgs.hyprlock}"
+        ",XF86Launch5, exec, ${lib.getExe pkgs.hyprlock}"
+        ",XF86Launch4, exec, ${lib.getExe pkgs.hyprlock}"
+        "SUPER,backspace, exec, ${lib.getExe pkgs.hyprlock}"
         "CTRL_SUPER,backspace, exec,wlogout --column-spacing 50 --row-spacing 50"
         ",Print, exec,grimblast --notify copysave area"
         "SHIFT, Print, exec,grimblast --notify copy active"
@@ -132,19 +132,19 @@ in
         "SUPERSHIFT,u, movetoworkspace,special"
       ];
       bindi = [
-        ",XF86MonBrightnessUp, exec,  ${getExecPath pkgs.brightnessctl} +5%"
-        ",XF86MonBrightnessDown, exec,  ${getExecPath pkgs.brightnessctl} -5%"
-        ",XF86AudioRaiseVolume, exec,  ${getExecPath pkgs.pamixer} -i 5"
-        ",XF86AudioLowerVolume, exec,  ${getExecPath pkgs.pamixer} -d 5"
-        ",XF86AudioMute, exec,  ${getExecPath pkgs.pamixer} --toggle-mute"
-        ",XF86AudioMicMute, exec,  ${getExecPath pkgs.pamixer} --default-source --toggle-mute"
+        ",XF86MonBrightnessUp, exec,  ${lib.getExe pkgs.brightnessctl} +5%"
+        ",XF86MonBrightnessDown, exec,  ${lib.getExe pkgs.brightnessctl} -5%"
+        ",XF86AudioRaiseVolume, exec,  ${lib.getExe pkgs.pamixer} -i 5"
+        ",XF86AudioLowerVolume, exec,  ${lib.getExe pkgs.pamixer} -d 5"
+        ",XF86AudioMute, exec,  ${lib.getExe pkgs.pamixer} --toggle-mute"
+        ",XF86AudioMicMute, exec,  ${lib.getExe pkgs.pamixer} --default-source --toggle-mute"
         ",XF86AudioNext, exec,playerctl next"
         ",XF86AudioPrev, exec,playerctl previous"
         ",XF86AudioPlay, exec,playerctl play-pause"
         ",XF86AudioStop, exec,playerctl stop"
       ];
       bindl = [
-        ",switch:Lid Switch, exec, ${getExecPath laptop_lid_switch}"
+        ",switch:Lid Switch, exec, ${lib.getExe laptop_lid_switch}"
       ];
       binde = [
         "SUPERALT, h, resizeactive, -20 0"
