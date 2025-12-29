@@ -11,6 +11,22 @@ let
   cfg = config.${namespace}.services.backup.restic;
 
   repository = "rest:http://${hosts.local "restic"}";
+  paths = [
+    "/home"    
+    "/root"
+  ] ++ persistence.dirs config;
+
+
+  exclude = [
+    "*.tmp"
+    "*.cache"
+    "*.log"
+    "/var/cache"
+    "/var/tmp"
+    "/var/log"
+    "/home/*/.cache"
+    "/home/*/.local/share/Trash"
+  ];
 
 in
 {
@@ -25,7 +41,7 @@ in
 
     dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic backup service";
 
-    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://server:8000/)";
+    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://restic.local)";
 
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
@@ -33,23 +49,9 @@ in
       mkOpt types.path config.sops.secrets."service-restic-password".path
         "Path to file containing repository password";
 
-    paths = mkOpt (types.listOf types.str) [
-      "/home"
-      "/etc"
-      "/var"
-      "/root"
-    ] "List of paths to backup";
+    paths = mkOpt (types.listOf types.str) paths "List of paths to backup";
 
-    exclude = mkOpt (types.listOf types.str) [
-      "*.tmp"
-      "*.cache"
-      "*.log"
-      "/var/cache"
-      "/var/tmp"
-      "/var/log"
-      "/home/*/.cache"
-      "/home/*/.local/share/Trash"
-    ] "List of patterns to exclude from backup";
+    exclude = mkOpt (types.listOf types.str) exclude "List of patterns to exclude from backup";
 
     timerConfig = mkOpt types.attrs {
       OnCalendar = "daily";
@@ -64,7 +66,7 @@ in
       "--keep-yearly 2"
     ] "Options for pruning old backups";
 
-    initialize = mkBoolOpt false "Initialize the repository if it doesn't exist";
+    initialize = mkBoolOpt true "Initialize the repository if it doesn't exist";
 
     checkOpts = mkOpt (types.listOf types.str) [
       "--read-data-subset=5%"
@@ -150,5 +152,12 @@ in
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0700 ${cfg.user} ${cfg.group} -"
     ];
+
+    # Grant CAP_DAC_READ_SEARCH capability to bypass read permission checks
+    # This allows the restic user to read all files without running as root
+    systemd.services.restic-backups-default.serviceConfig = {
+      AmbientCapabilities = [ "CAP_DAC_READ_SEARCH" ];
+      CapabilityBoundingSet = [ "CAP_DAC_READ_SEARCH" ];
+    };
   };
 }
