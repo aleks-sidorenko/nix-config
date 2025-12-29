@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.apps.viber;
-  viber = getExecPath pkgs.viber;
+  viber = lib.getExe pkgs.viber;
 in
 {
   options.${namespace}.apps.viber = {

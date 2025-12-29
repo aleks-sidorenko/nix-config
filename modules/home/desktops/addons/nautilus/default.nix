@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.addons.nautilus;
-  terminal = getExecPath config.${namespace}.cli.terminals.default.package;
+  terminal = lib.getExe config.${namespace}.cli.terminals.default.package;
 in
 {
   options.${namespace}.desktops.addons.nautilus = with types; {

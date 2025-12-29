@@ -22,7 +22,7 @@ in
     programs.rofi = {
       enable = true;
       package = cfg.package;
-      terminal = getExecPath terminal;
+      terminal = lib.getExe terminal;
       extraConfig = {
         modi = "run,drun,window";
         show-icons = true;

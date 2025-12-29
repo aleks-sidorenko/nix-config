@@ -11,14 +11,6 @@ rec {
   # - For shells/other contexts: returns $HOME based path if no config provided
   flakeDir = config: toString (/. + "${lib.${namespace}.homeDir config}/.${namespace}");
 
-  # Returns the executable path for a given package
-  # Example: getExecPath2 pkgs.hello null -> "/nix/store/...-hello/bin/hello"
-  # Example: getExecPath2 pkgs.hello "custom-binary" -> "/nix/store/...-hello/bin/custom-binary"
-  getExecPath2 = package: name: "${package}/bin/${if name == null then package.pname else name}";
-
-  # Example: getExecPath pkgs.hello -> "/nix/store/...-hello/bin/hello"
-  getExecPath = package: getExecPath2 package null;
-
   persistence = {
 
     # Returns the root path for persistent storage, null if disabled

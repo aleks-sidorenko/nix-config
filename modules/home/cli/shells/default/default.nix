@@ -27,7 +27,7 @@ in
 
     home.sessionVariables = {
       # SHELL = cfg.name; - this doesn't work for ssh & sudo to root user
-      SHELL = getExecPath cfg.package;
+      SHELL = lib.getExe cfg.package;
     };
   };
 }
