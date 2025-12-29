@@ -31,6 +31,11 @@ in
               default = { };
               description = "Additional location configurations";
             };
+            clientMaxBodySize = mkOption {
+              type = types.str;
+              default = "10m";
+              description = "Maximum allowed size of the client request body";
+            };
           };
         }
       );
@@ -55,6 +60,9 @@ in
 
       virtualHosts = mapAttrs (name: vhost: {
         serverName = vhost.serverName;
+        extraConfig = ''
+          client_max_body_size ${vhost.clientMaxBodySize};
+        '';
         locations = vhost.locations // {
           "/" = {
             proxyPass = "http://127.0.0.1:${toString vhost.port}";

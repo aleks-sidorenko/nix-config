@@ -122,6 +122,7 @@ in
       virtualHosts.restic-server = {
         serverName = hosts.local "restic";
         port = cfg.webPort;
+        clientMaxBodySize = "0"; # Unlimited - required for large backup uploads
       };
     };
   };
