@@ -25,7 +25,7 @@ in
         smart-home = enabled;
         gaming-server = enabled;
         backup-server = enabled;
-        # backup = enabled;
+        backup = enabled;
       };
     };
 
