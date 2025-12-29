@@ -22,7 +22,7 @@ rec {
   persistence = {
 
     # Returns the root path for persistent storage, null if disabled
-    root = 
+    root =
       config:
       let
         cfg = config.${namespace}.disks.impermanence;
@@ -31,7 +31,7 @@ rec {
 
     # Returns the persistence dirs if enabled or empty list if not
     dirs =
-      config: 
+      config:
       let
         cfg = config.${namespace}.disks.impermanence;
       in

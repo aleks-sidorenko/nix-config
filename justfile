@@ -142,42 +142,10 @@ cleanup:
     @echo "🗑️  Removing old boot entries..."
     sudo /run/current-system/bin/switch-to-configuration boot
 
-# Format nix files with nixfmt-rfc-style (default formatter)
-format:
-    @echo "✨ Formatting nix files with nixfmt-rfc-style..."
-    find . -name "*.nix" -not -path "./result*" -not -path "./.direnv/*" | xargs nixfmt
-
-# Format nix files with alejandra
-format-alejandra:
-    @echo "✨ Formatting nix files with alejandra..."
-    find . -name "*.nix" -not -path "./result*" -not -path "./.direnv/*" | xargs alejandra
-
-# Format nix files with nixpkgs-fmt
-format-nixpkgs:
-    @echo "✨ Formatting nix files with nixpkgs-fmt..."
-    find . -name "*.nix" -not -path "./result*" -not -path "./.direnv/*" | xargs nixpkgs-fmt
-
-# Check nix file formatting without making changes
-format-check:
-    @echo "🔍 Checking nix file formatting..."
-    @if find . -name "*.nix" -not -path "./result*" -not -path "./.direnv/*" | xargs nixfmt --check; then \
-        echo "✅ All nix files are properly formatted"; \
-    else \
-        echo "❌ Some nix files need formatting. Run 'just format' to fix them."; \
-        exit 1; \
-    fi
-
-# Format specific file or directory
-format-path path:
-    @echo "✨ Formatting {{path}}..."
-    @if [ -f "{{path}}" ]; then \
-        nixfmt "{{path}}"; \
-    elif [ -d "{{path}}" ]; then \
-        find "{{path}}" -name "*.nix" | xargs nixfmt; \
-    else \
-        echo "❌ Path {{path}} not found"; \
-        exit 1; \
-    fi
+# Format nix files with nixfmt-tree (default formatter)
+format *path=".":
+    @echo "✨ Formatting nix files with nixfmt-tree..."
+    nix fmt {{path}}
 
 # Run all code quality checks (format, lint, dead code detection)
 lint:
@@ -204,7 +172,8 @@ lint-fix:
 # Check code quality without making changes
 lint-check:
     @echo "🔍 Checking code quality (no changes)..."
-    just format-check
+    @echo "🔍 Checking nix file formatting..."
+    nix fmt -- --fail-on-change
     @echo "🕵️  Checking for issues with statix..."
     statix check .
     @echo "💀 Checking for dead code with deadnix..."

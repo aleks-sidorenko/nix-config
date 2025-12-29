@@ -12,10 +12,10 @@ let
 
   repository = "rest:http://${hosts.local "restic"}";
   paths = [
-    "/home"    
+    "/home"
     "/root"
-  ] ++ persistence.dirs config;
-
+  ]
+  ++ persistence.dirs config;
 
   exclude = [
     "*.tmp"
@@ -26,7 +26,12 @@ let
     "/var/log"
     "/home/*/.cache"
     "/home/*/.local/share/Trash"
-  ] ++ (map (persistence.resolve config) ["/var/cache" "/var/tmp" "/var/log"]);
+  ]
+  ++ (map (persistence.resolve config) [
+    "/var/cache"
+    "/var/tmp"
+    "/var/log"
+  ]);
 
 in
 {
@@ -94,9 +99,11 @@ in
     # Set environment variables for CLI usage
     environment.sessionVariables = {
       RESTIC_PASSWORD_FILE = cfg.passwordFile;
-    } // lib.optionalAttrs (cfg.repositoryFile == null && cfg.repository != "") {
+    }
+    // lib.optionalAttrs (cfg.repositoryFile == null && cfg.repository != "") {
       RESTIC_REPOSITORY = cfg.repository;
-    } // lib.optionalAttrs (cfg.repositoryFile != null) {
+    }
+    // lib.optionalAttrs (cfg.repositoryFile != null) {
       RESTIC_REPOSITORY_FILE = cfg.repositoryFile;
     };
 
