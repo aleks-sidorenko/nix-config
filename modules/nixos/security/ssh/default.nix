@@ -51,7 +51,7 @@ in
 
       hostKeys = [
         {
-          path = persistence.path config "/etc/ssh/ssh_host_ed25519_key";
+          path = persistence.resolve config "/etc/ssh/ssh_host_ed25519_key";
           type = "ed25519";
         }
       ];

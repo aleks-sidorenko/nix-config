@@ -16,7 +16,7 @@ in
 
     package = mkOpt types.package pkgs.restic-rest-server "Restic REST server package to use";
 
-    user = mkOpt types.str "restic" "User to run Restic server as";
+    user = mkOpt types.str "restic-server" "User to run Restic server as";
 
     group = mkOpt types.str config.${namespace}.services.backup.group "Group to run Restic server as";
 
@@ -122,6 +122,7 @@ in
       virtualHosts.restic-server = {
         serverName = hosts.local "restic";
         port = cfg.webPort;
+        clientMaxBodySize = "0"; # Unlimited - required for large backup uploads
       };
     };
   };
