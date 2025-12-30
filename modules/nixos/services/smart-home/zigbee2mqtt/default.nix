@@ -26,7 +26,7 @@ let
           friendly_name = v.friendly_name;
           homeassistant = v.homeassistant // {
             update = null;
-            expire_after = 3600;
+            expire_after = 7200; # 2 hours - Aqara sensors report infrequently
             object_id = v.id;
             device.suggested_area = v.zone.friendly_name;
           };
@@ -84,7 +84,7 @@ in
         types.enum [ "GENERATE" ]
       )) 52843 "PAN ID for the Zigbee network (use adapter's existing value or GENERATE)";
 
-      channel = mkOpt types.int 11 "Zigbee channel (11-26, avoid WiFi interference)";
+      channel = mkOpt types.int 15 "Zigbee channel (11-26, avoid WiFi interference)";
     };
   };
 
@@ -153,8 +153,8 @@ in
           network_key = "!secret network_key";
           channel = cfg.advanced.channel;
 
-          # Transmit power in dBm (default: 5)
-          transmit_power = 5;
+          # Transmit power in dBm (increased for better Aqara sensor connectivity)
+          transmit_power = 9;
 
           # Enable availability for all devices
           availability_blocklist = [ ];
@@ -177,8 +177,15 @@ in
         # External converters
         external_converters = [ ];
 
-        # Availability
-        availability = true;
+        # Availability - configured for Aqara sensors which report infrequently
+        availability = {
+          active = {
+            timeout = 10; # For mains-powered/router devices
+          };
+          passive = {
+            timeout = 7200; # 2 hours for battery sensors like Aqara
+          };
+        };
       };
     };
 
