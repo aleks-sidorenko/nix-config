@@ -67,7 +67,7 @@ in
     };
 
     permitJoin = mkBoolOpt false "Allow new devices to join (set to true temporarily when pairing)";
-    
+
     logLevel = mkOpt (types.enum [
       "debug"
       "info"
@@ -148,7 +148,7 @@ in
         advanced = {
           log_level = cfg.logLevel;
           # log_namespaced_levels = { "z2m:mqtt" = "warning"; };
-          
+
           pan_id = cfg.advanced.panId;
           network_key = "!secret network_key";
           channel = cfg.advanced.channel;
