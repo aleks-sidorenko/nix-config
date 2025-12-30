@@ -68,6 +68,8 @@ in
 
     permitJoin = mkBoolOpt false "Allow new devices to join (set to true temporarily when pairing)";
 
+    permitJoinTimeout = mkOpt types.int 86400 "Time in seconds before permit_join is disabled (default: 24 hours)";
+
     logLevel = mkOpt (types.enum [
       "debug"
       "info"
@@ -149,6 +151,7 @@ in
           log_level = cfg.logLevel;
           # log_namespaced_levels = { "z2m:mqtt" = "warning"; };
 
+          permit_join_timeout = cfg.permitJoinTimeout;
           pan_id = cfg.advanced.panId;
           network_key = "!secret network_key";
           channel = cfg.advanced.channel;
