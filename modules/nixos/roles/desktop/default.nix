@@ -36,6 +36,11 @@ in
         gnome.enable = true;
       };
 
+      services = {
+        virtualisation.kvm = enabled;
+        virtualisation.virtualbox = enabled;
+      };
+
       disks = {
         hibernation.enable = true;
       };
