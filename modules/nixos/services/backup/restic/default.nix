@@ -25,22 +25,22 @@ let
     "/var/cache"
     "/var/tmp"
     "/var/log"
-    
+
     # User cache directories
     "/home/*/.cache"
     "/home/*/.local/cache"
     "/home/*/.local/share/Trash"
-    
+
     # Browser caches
     "/home/*/.mozilla/firefox/*/cache2"
     "/home/*/.config/*/Cache"
-    
+
     # Package manager caches
     "/home/*/.npm/_cacache"
     "/home/*/.cargo/registry"
     "/home/*/.cargo/git"
     "/home/*/snap/*/common/.cache"
-    
+
     # Haskell build artifacts
     "/home/*/.stack-work"
     "*/.stack-work"
@@ -48,7 +48,7 @@ let
     "/home/*/.ghc"
     "*/dist"
     "*/dist-newstyle"
-    
+
     # Java build artifacts
     "*/target"
     "*/build"

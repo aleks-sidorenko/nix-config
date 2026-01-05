@@ -13,7 +13,7 @@ in
 {
   options.${namespace}.services.virtualisation.virtualbox = {
     enable = lib.mkEnableOption "enable VirtualBox virtualisation";
-    
+
     enableExtensionPack = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -37,4 +37,3 @@ in
 
   };
 }
-
