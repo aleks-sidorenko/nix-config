@@ -23,7 +23,10 @@ in
       };
 
       system = {
-        nix.enable = true;
+        nix = {
+          enable = true;
+          githubAuth = true;
+        };
         locale.enable = true;
         networking.enable = true;
       };
