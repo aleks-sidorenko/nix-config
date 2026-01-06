@@ -27,12 +27,12 @@ in
           nautilus-open-any-terminal
         ];
       };
+      displayManager.gdm = {
+        enable = true;
+        wayland = true;
+      };
       xserver = {
         enable = true;
-        displayManager.gdm = {
-          enable = true;
-          wayland = true;
-        };        
       };
     };
 
