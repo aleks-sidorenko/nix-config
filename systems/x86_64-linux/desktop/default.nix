@@ -21,7 +21,7 @@ in
         enable = true;
       };
     };
-    
+
   };
 
   boot = {

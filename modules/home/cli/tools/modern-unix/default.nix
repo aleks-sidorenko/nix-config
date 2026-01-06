@@ -20,7 +20,7 @@ in
       broot
       choose
       curlie
-      chafa      
+      chafa
       doggo
       duf
       delta
