@@ -16,7 +16,7 @@ in
   };
 
   imports = with inputs; [
-    nix-index-database.hmModules.nix-index
+    nix-index-database.homeModules.nix-index
   ];
 
   config = mkIf cfg.enable {

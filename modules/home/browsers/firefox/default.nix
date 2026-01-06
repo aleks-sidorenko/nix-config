@@ -13,7 +13,7 @@ let
   cfg = config.${namespace}.browsers.firefox;
   name = pkgs.firefox.pname;
   profileName = config.home.username or "default";
-  plugins = inputs.firefox-addons.packages.${pkgs.system};
+  plugins = inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
   passCfg = config.${namespace}.security.pass;
 in
 {

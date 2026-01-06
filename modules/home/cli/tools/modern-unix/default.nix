@@ -20,8 +20,7 @@ in
       broot
       choose
       curlie
-      chafa
-      dogdns
+      chafa      
       doggo
       duf
       delta

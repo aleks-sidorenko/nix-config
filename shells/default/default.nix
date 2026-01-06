@@ -13,7 +13,7 @@ pkgs.mkShell {
   packages = with pkgs; [
     nix
     nh
-    inputs.nixos-anywhere.packages.${pkgs.system}.nixos-anywhere
+    inputs.nixos-anywhere.packages.${pkgs.stdenv.hostPlatform.system}.nixos-anywhere
     deploy-rs
     statix
     deadnix
