@@ -2,15 +2,20 @@
   description = "Alexander's Nix/NixOS Config";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Stable channel - NixOS 25.11
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+
+    # Unstable channel for specific packages
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nur = {
       url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     snowfall-lib = {
@@ -27,18 +32,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    impermanence.url = "github:nix-community/impermanence";
+    impermanence = {
+      url = "github:nix-community/impermanence";
+    };
 
-    nixgl.url = "github:nix-community/nixGL";
-    nix-index-database.url = "github:nix-community/nix-index-database";
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     disko = {
-      inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixos-facter-modules = {
       url = "github:numtide/nixos-facter-modules";
+
     };
 
     nixos-anywhere = {
@@ -76,6 +90,7 @@
 
     hyprpanel = {
       url = "github:Jas-SinghFSU/HyprPanel";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Homelab
@@ -92,8 +107,14 @@
       flake = false;
     };
 
-    stylix.url = "github:danth/stylix";
-    catppuccin.url = "github:catppuccin/nix";
+    stylix = {
+      url = "github:nix-community/stylix/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    catppuccin = {
+      url = "github:catppuccin/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Terminal
 
@@ -104,7 +125,7 @@
     # Neovim
 
     nixvim = {
-      url = "github:nix-community/nixvim";
+      url = "github:nix-community/nixvim/nixos-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -184,6 +205,13 @@
       overlays = with inputs; [
         nixgl.overlay
         nur.overlays.default
+        # Make unstable packages available as pkgs.unstable
+        (final: prev: {
+          unstable = import nixpkgs-unstable {
+            system = final.system;
+            config.allowUnfree = true;
+          };
+        })
       ];
 
       deploy = lib.mkDeploy { inherit (inputs) self; };

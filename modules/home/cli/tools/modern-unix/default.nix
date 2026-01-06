@@ -21,7 +21,6 @@ in
       choose
       curlie
       chafa
-      dogdns
       doggo
       duf
       delta

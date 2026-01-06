@@ -11,6 +11,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.security.pass;
   home = config.home.homeDirectory;
+  passwordStore = "${home}/.password-store";
 in
 {
   options.${namespace}.security.pass = with types; {
@@ -21,7 +22,7 @@ in
     programs.password-store = {
       enable = true;
       settings = {
-        PASSWORD_STORE_DIR = "$HOME/.password-store";
+        PASSWORD_STORE_DIR = passwordStore;
       };
       package = pkgs.pass.withExtensions (p: [
         p.pass-otp
@@ -32,7 +33,7 @@ in
 
     services.pass-secret-service = {
       enable = true;
-      storePath = "${home}/.password-store";
+      storePath = passwordStore;
     };
   };
 }

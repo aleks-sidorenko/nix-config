@@ -22,10 +22,6 @@ in
       };
     };
 
-    services = {
-      virtualisation.kvm = enabled;
-    };
-
   };
 
   boot = {

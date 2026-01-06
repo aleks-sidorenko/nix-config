@@ -21,18 +21,18 @@ in
       gvfs.enable = true; # GNOME Virtual File System
       udisks2.enable = true; # Disk management service
       udev.packages = with pkgs; [ gnome-settings-daemon ];
+      desktopManager.gnome = {
+        enable = true;
+        extraGSettingsOverridePackages = with pkgs; [
+          nautilus-open-any-terminal
+        ];
+      };
+      displayManager.gdm = {
+        enable = true;
+        wayland = true;
+      };
       xserver = {
         enable = true;
-        displayManager.gdm = {
-          enable = true;
-          wayland = true;
-        };
-        desktopManager.gnome = {
-          enable = true;
-          extraGSettingsOverridePackages = with pkgs; [
-            nautilus-open-any-terminal
-          ];
-        };
       };
     };
 

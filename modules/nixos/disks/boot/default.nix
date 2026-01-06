@@ -15,6 +15,7 @@ in
   options.${namespace}.disks.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting.";
     debug = mkBoolOpt false "Enable debug mode";
+    configurationLimit = mkOpt int 3 "Maximum number of configurations in boot menu";
   };
 
   config = mkIf cfg.enable {
@@ -29,7 +30,10 @@ in
 
       loader = {
         efi.canTouchEfiVariables = true;
-        systemd-boot.enable = true;
+        systemd-boot = {
+          enable = true;
+          configurationLimit = cfg.configurationLimit;
+        };
         grub.enable = mkForce false;
       };
 

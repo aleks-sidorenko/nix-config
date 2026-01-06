@@ -18,7 +18,7 @@ let
   #     mkdir -p ~/.cache/zellij
   #     cat<<EOF>~/.cache/zellij/permissions.kdl
   #     "${
-  #       inputs.zjstatus.packages.${pkgs.system}.default
+  #       inputs.zjstatus.packages.${pkgs.stdenv.hostPlatform.system}.default
   #     }/bin/zjstatus.wasm" {
   #         ChangeApplicationState
   #         RunCommands
