@@ -15,6 +15,7 @@
 
     nur = {
       url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     snowfall-lib = {
@@ -31,18 +32,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    impermanence.url = "github:nix-community/impermanence";
+    impermanence = {
+      url = "github:nix-community/impermanence";
+    };
 
-    nixgl.url = "github:nix-community/nixGL";
-    nix-index-database.url = "github:nix-community/nix-index-database";
-
-    disko = {
+    nixgl = {
+      url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {      
       url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixos-facter-modules = {
       url = "github:numtide/nixos-facter-modules";
+
     };
 
     nixos-anywhere = {
@@ -80,6 +90,7 @@
 
     hyprpanel = {
       url = "github:Jas-SinghFSU/HyprPanel";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Homelab
@@ -96,8 +107,14 @@
       flake = false;
     };
 
-    stylix.url = "github:danth/stylix";
-    catppuccin.url = "github:catppuccin/nix";
+    stylix = {
+      url = "github:danth/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    catppuccin = {
+      url = "github:catppuccin/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Terminal
 
@@ -108,7 +125,7 @@
     # Neovim
 
     nixvim = {
-      url = "github:nix-community/nixvim";
+      url = "github:nix-community/nixvim/nixos-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
