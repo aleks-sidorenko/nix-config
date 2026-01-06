@@ -19,7 +19,7 @@ in
 
   config = mkIf cfg.enable {
     # Configure SOPS secret for GitHub token
-    sops.secrets."nix-github-token" = mkIf (sopsEnabled && cfg.githubAuth) {
+    sops.secrets."system-github-token" = mkIf (sopsEnabled && cfg.githubAuth) {
       sopsFile = ../../secrets.yaml;
       mode = "0440";
       restartUnits = [ "nix-daemon.service" ];
@@ -58,7 +58,7 @@ in
 
       # Configure GitHub access token for Nix
       extraOptions = mkIf (sopsEnabled && cfg.githubAuth) ''
-        !include ${config.sops.secrets."nix-github-token".path}
+        !include ${config.sops.secrets."system-github-token".path}
       '';
 
       # Enable garbage collection

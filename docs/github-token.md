@@ -16,7 +16,7 @@ sops modules/nixos/secrets.yaml
 Add this line:
 
 ```yaml
-nix-github-token: |
+system-github-token: |
   access-tokens = github.com=ghp_YOUR_TOKEN_HERE
 ```
 
@@ -30,7 +30,7 @@ sudo nixos-rebuild switch --flake .#desktop
 
 - Modified `modules/nixos/system/nix/default.nix`:
   - Added `githubAuth` option
-  - Configured SOPS secret `nix-github-token`
+  - Configured SOPS secret `system-github-token`
   - Set up Nix extraOptions to use the token
 
 - Modified `modules/nixos/roles/common/default.nix`:
@@ -42,7 +42,7 @@ After rebuild, test with:
 
 ```bash
 # Check secret file exists
-ls -la /run/secrets/nix-github-token
+ls -la /run/secrets/system-github-token
 
 # Test GitHub API access
 nix flake metadata github:nixos/nixpkgs
