@@ -35,7 +35,7 @@ with lib.${namespace};
         "usbhid"
         "sd_mod"
       ];
-      kernelModules = [ ]; # Removed "kvm-intel" - conflicts with VirtualBox
+      kernelModules = [ ];
     };
 
   };

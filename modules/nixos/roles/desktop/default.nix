@@ -36,8 +36,7 @@ in
         gnome.enable = true;
       };
 
-      services = {
-        # virtualisation.kvm = enabled;  # Disabled - conflicts with VirtualBox
+      services = {        
         virtualisation.virtualbox = enabled;
       };
 
