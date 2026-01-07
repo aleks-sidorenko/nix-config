@@ -36,7 +36,7 @@ in
         gnome.enable = true;
       };
 
-      services = {        
+      services = {
         virtualisation.virtualbox = enabled;
       };
 
