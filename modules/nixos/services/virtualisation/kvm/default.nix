@@ -17,6 +17,12 @@ in
 
   config = lib.mkIf cfg.enable {
 
+    assertions = [
+      {
+        assertion = !config.${namespace}.services.virtualisation.virtualbox.enable;
+        message = "KVM and VirtualBox cannot be enabled simultaneously as they conflict with each other.";
+      }
+    ];
     ${namespace}.user.extraGroups = [
       "kvm"
       "libvirtd"
@@ -48,5 +54,17 @@ in
         };
       };
     };
+
+    # Declare KVM support for Nix builds
+    nix.settings.system-features = [
+      "kvm"
+      "nixos-test"
+    ];
+
+    # Load KVM modules in initrd for early KVM support
+    boot.initrd.kernelModules = [
+      "kvm"
+      "kvm-intel"
+    ];
   };
 }

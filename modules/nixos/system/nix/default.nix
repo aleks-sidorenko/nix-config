@@ -40,9 +40,7 @@ in
         ];
         warn-dirty = false;
         system-features = [
-          "kvm"
           "big-parallel"
-          "nixos-test"
         ];
         # Configure binary caches for faster package downloads
         substituters = [

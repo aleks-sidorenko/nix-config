@@ -37,7 +37,6 @@ in
       };
 
       services = {
-        virtualisation.kvm = enabled;
         virtualisation.virtualbox = enabled;
       };
 

@@ -35,8 +35,9 @@ with lib.${namespace};
         "usbhid"
         "sd_mod"
       ];
-      kernelModules = [ "kvm-intel" ];
+      kernelModules = [ ];
     };
+
   };
 
   hardware = {
