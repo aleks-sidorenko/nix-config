@@ -35,7 +35,10 @@ in
       enableExtensionPack = cfg.enableExtensionPack;
     };
 
-    boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
-          
+    boot.blacklistedKernelModules = [
+      "kvm"
+      "kvm-intel"
+    ];
+
   };
 }

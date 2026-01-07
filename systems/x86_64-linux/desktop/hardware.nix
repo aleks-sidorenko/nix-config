@@ -37,7 +37,7 @@ with lib.${namespace};
       ];
       kernelModules = [ ]; # Removed "kvm-intel" - conflicts with VirtualBox
     };
-        
+
   };
 
   hardware = {
