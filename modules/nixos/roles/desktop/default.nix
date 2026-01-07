@@ -37,7 +37,7 @@ in
       };
 
       services = {
-        virtualisation.kvm = enabled;
+        # virtualisation.kvm = enabled;  # Disabled - conflicts with VirtualBox
         virtualisation.virtualbox = enabled;
       };
 

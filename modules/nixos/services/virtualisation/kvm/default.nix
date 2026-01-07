@@ -17,6 +17,8 @@ in
 
   config = lib.mkIf cfg.enable {
 
+    
+
     ${namespace}.user.extraGroups = [
       "kvm"
       "libvirtd"
@@ -48,5 +50,11 @@ in
         };
       };
     };
+
+    # Declare KVM support for Nix builds
+    nix.settings.system-features = [ "kvm" "nixos-test" ];
+    
+    # Load KVM modules in initrd for early KVM support
+    boot.initrd.kernelModules = [ "kvm" "kvm-intel"];
   };
 }
