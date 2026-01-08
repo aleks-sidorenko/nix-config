@@ -22,7 +22,7 @@ in
   config = mkIf cfg.enable {
 
     home = {
-      packages = with pkgs; [
+      packages = with pkgs.unstable; [
         prismlauncher
       ];
     };
