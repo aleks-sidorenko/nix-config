@@ -37,7 +37,10 @@ in
       };
 
       services = {
-        virtualisation.virtualbox = enabled;
+        virtualisation = {
+          virtualbox = enabled;
+          podman = enabled;
+        };
       };
 
       disks = {

@@ -76,7 +76,15 @@
         desc = "Delete buffer";
       };
     }
-
+    # Delete buffer and close window
+    {
+      mode = "n";
+      key = "<S-x>";
+      action = "<cmd>bp|bd #<cr>";
+      options = {
+        desc = "Delete buffer";
+      };
+    }
     {
       mode = "n";
       key = "<leader>bl";
