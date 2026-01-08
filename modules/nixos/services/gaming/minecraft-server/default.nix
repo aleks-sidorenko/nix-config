@@ -67,7 +67,7 @@ in
     jvmOpts = mkOpt types.str "-Xms2G -Xmx2G" "JVM options for the server process";
 
     # For vanilla server; overrideable to e.g. pkgs.paper, pkgs.fabric-server, etc.
-    package = mkOpt types.package pkgs.minecraft-server "Minecraft server package to use";
+    package = mkOpt types.package pkgs.unstable.minecraft-server "Minecraft server package to use";
 
     ops = mkOption {
       type = types.listOf operatorType;
