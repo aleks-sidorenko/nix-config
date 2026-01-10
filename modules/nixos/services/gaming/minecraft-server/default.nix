@@ -47,6 +47,44 @@ let
         ;
     }) cfg.ops
   );
+
+  # Generate gamerules datapack
+  # Note: toString in Nix converts true→"1" and false→"", so we need boolToString for booleans
+  valueToString = value:
+    if isBool value then boolToString value
+    else toString value;
+
+  gameruleCommands = concatStringsSep "\n" (
+    mapAttrsToList (rule: value: "gamerule ${rule} ${valueToString value}") cfg.gamerules
+  );
+
+  packMcmeta = builtins.toJSON {
+    pack = {
+      pack_format = cfg.datapackFormat;
+      description = "NixOS managed gamerules";
+    };
+  };
+
+  loadJson = builtins.toJSON {
+    values = [ "nixconfig:gamerules" ];
+  };
+
+  gameruleDatapack = pkgs.runCommand "nix-gamerules-datapack" { } ''
+    mkdir -p $out/data/nixconfig/function
+    mkdir -p $out/data/minecraft/tags/function
+
+    cat > $out/pack.mcmeta <<'EOF'
+${packMcmeta}
+EOF
+
+    cat > $out/data/nixconfig/function/gamerules.mcfunction <<'EOF'
+${gameruleCommands}
+EOF
+
+    cat > $out/data/minecraft/tags/function/load.json <<'EOF'
+${loadJson}
+EOF
+  '';
 in
 {
   options.${namespace}.services.gaming.minecraft-server = {
@@ -103,6 +141,32 @@ in
       };
       description = "server.properties key-value map";
     };
+
+    worldName = mkOpt types.str "world" "Name of the world folder (used for datapack installation)";
+
+    gamerules = mkOption {
+      type = types.attrsOf (types.oneOf [ types.str types.bool types.int ]);
+      default = { };      
+      example = {
+        keep_inventory = true;        
+        mob_griefing = false;
+        random_tick_speed = 3;
+      };
+      description = "Gamerules to set via datapack on world load";
+    };
+
+    datapackFormat = mkOption {
+      type = types.int;
+      default = 48;
+      description = ''
+        Datapack format version. Must match your Minecraft version:
+        - 48 for MC 1.21.x
+        - 41 for MC 1.20.5-1.20.6
+        - 26 for MC 1.20.2-1.20.4
+        - 15 for MC 1.20-1.20.1
+        See: https://minecraft.wiki/w/Pack_format
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -151,9 +215,23 @@ in
       mode = "0644";
     };
 
-    # Symlink ops.json to dataDir before server starts
-    systemd.services.minecraft-server.preStart = mkIf (cfg.ops != [ ]) ''
-      ln -sf /etc/minecraft/ops.json ${cfg.dataDir}/ops.json
-    '';
+    # Symlink ops.json and install gamerules datapack before server starts
+    systemd.services.minecraft-server.preStart =
+      let
+        opsScript = optionalString (cfg.ops != [ ]) ''
+          ln -sf /etc/minecraft/ops.json ${cfg.dataDir}/ops.json
+        '';
+        gamerulesScript = optionalString (cfg.gamerules != { }) ''
+          # Install gamerules datapack
+          mkdir -p ${cfg.dataDir}/${cfg.worldName}/datapacks
+          rm -rf ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+          cp -r ${gameruleDatapack} ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+          chmod -R u+w ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+        '';
+      in
+      mkIf (cfg.ops != [ ] || cfg.gamerules != { }) ''
+        ${opsScript}
+        ${gamerulesScript}
+      '';
   };
 }
