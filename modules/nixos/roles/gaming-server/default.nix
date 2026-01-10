@@ -30,7 +30,7 @@ in
             ];
             # Gamerules applied via datapack on world load
             gamerules = {
-              keep_inventory = true;              
+              keep_inventory = true;
               mob_griefing = true;
             };
           };

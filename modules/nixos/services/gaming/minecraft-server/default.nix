@@ -50,9 +50,7 @@ let
 
   # Generate gamerules datapack
   # Note: toString in Nix converts true→"1" and false→"", so we need boolToString for booleans
-  valueToString = value:
-    if isBool value then boolToString value
-    else toString value;
+  valueToString = value: if isBool value then boolToString value else toString value;
 
   gameruleCommands = concatStringsSep "\n" (
     mapAttrsToList (rule: value: "gamerule ${rule} ${valueToString value}") cfg.gamerules
@@ -70,20 +68,20 @@ let
   };
 
   gameruleDatapack = pkgs.runCommand "nix-gamerules-datapack" { } ''
-    mkdir -p $out/data/nixconfig/function
-    mkdir -p $out/data/minecraft/tags/function
+        mkdir -p $out/data/nixconfig/function
+        mkdir -p $out/data/minecraft/tags/function
 
-    cat > $out/pack.mcmeta <<'EOF'
-${packMcmeta}
-EOF
+        cat > $out/pack.mcmeta <<'EOF'
+    ${packMcmeta}
+    EOF
 
-    cat > $out/data/nixconfig/function/gamerules.mcfunction <<'EOF'
-${gameruleCommands}
-EOF
+        cat > $out/data/nixconfig/function/gamerules.mcfunction <<'EOF'
+    ${gameruleCommands}
+    EOF
 
-    cat > $out/data/minecraft/tags/function/load.json <<'EOF'
-${loadJson}
-EOF
+        cat > $out/data/minecraft/tags/function/load.json <<'EOF'
+    ${loadJson}
+    EOF
   '';
 in
 {
@@ -145,10 +143,16 @@ in
     worldName = mkOpt types.str "world" "Name of the world folder (used for datapack installation)";
 
     gamerules = mkOption {
-      type = types.attrsOf (types.oneOf [ types.str types.bool types.int ]);
-      default = { };      
+      type = types.attrsOf (
+        types.oneOf [
+          types.str
+          types.bool
+          types.int
+        ]
+      );
+      default = { };
       example = {
-        keep_inventory = true;        
+        keep_inventory = true;
         mob_griefing = false;
         random_tick_speed = 3;
       };
