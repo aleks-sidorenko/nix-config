@@ -123,6 +123,7 @@ in
           "esphome"
           "google_translate"
           "history"
+          "isal"
           "logbook"
           "mobile_app"
 

@@ -37,13 +37,13 @@ in
     messages = {
       gridOn = mkOption {
         type = types.str;
-        default = "⚡ Power grid is ON";
+        default = "Power grid is ON";
         description = "Message to send when grid power is restored";
       };
 
       gridOff = mkOption {
         type = types.str;
-        default = "🔋 Power grid is OFF - Running on battery/solar";
+        default = "Power grid is OFF";
         description = "Message to send when grid power is lost";
       };
     };
@@ -73,10 +73,12 @@ in
       restartUnits = [ "home-assistant.service" ];
     };
 
-    # Register secrets with Home Assistant
-    ${namespace}.services.smart-home.home-assistant.secrets = {
-      telegram_bot_token = config.sops.secrets."service-home-assistant-telegram-bot-token".path;
-      telegram_chat_id = config.sops.secrets."service-home-assistant-telegram-chat-id".path;
+    # Register secrets with main Home Assistant module
+    ${namespace} = {
+      services.smart-home.home-assistant.secrets = {
+        telegram_bot_token = config.sops.secrets."service-home-assistant-telegram-bot-token".path;
+        telegram_chat_id = config.sops.secrets."service-home-assistant-telegram-chat-id".path;
+      };
     };
 
     # Add Telegram component
