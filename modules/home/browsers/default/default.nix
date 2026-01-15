@@ -44,7 +44,7 @@ in
       addons.xdg.associations = mkMimeAssociations cfg.name mimeTypes;
       # Add browser to GNOME favorites
       gnome.favoriteApps = [ cfg.name ];
-    };    
+    };
   };
 
 }

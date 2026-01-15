@@ -15,7 +15,9 @@ in
 
   options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
-    favoriteApps = mkOpt (types.listOf types.str) [ ] "List of desktop file names (without .desktop) to add to GNOME dock";
+    favoriteApps =
+      mkOpt (types.listOf types.str) [ ]
+        "List of desktop file names (without .desktop) to add to GNOME dock";
   };
 
   config = mkIf cfg.enable {
