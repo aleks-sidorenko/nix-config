@@ -3,19 +3,19 @@
   pkgs,
   lib,
   namespace,
-  osConfig,
   ...
 }:
 with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.gnome;
-  vbCfg = osConfig.${namespace}.services.virtualisation.virtualbox;
 in
 {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
   options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
+    favoriteApps = mkOpt (types.listOf types.str) [ ] "List of desktop file names (without .desktop) to add to GNOME dock";
   };
 
   config = mkIf cfg.enable {
@@ -87,17 +87,7 @@ in
         "org/gnome/shell" = {
           disable-user-extensions = false;
 
-          favorite-apps =
-            [ "org.gnome.Nautilus.desktop" ]
-            ++
-              optional config.${namespace}.browsers.default.enable
-                "${config.${namespace}.browsers.default.name}.desktop"
-            ++
-              optional config.${namespace}.cli.terminals.default.enable
-                "${config.${namespace}.cli.terminals.default.name}.desktop"
-            ++
-              optional vbCfg.enable
-                "virtualbox.desktop";
+          favorite-apps = [ "org.gnome.Nautilus.desktop" ] ++ map (app: "${app}.desktop") cfg.favoriteApps;
 
           enabled-extensions = [
             "user-theme@gnome-shell-extensions.gcampax.github.com"
