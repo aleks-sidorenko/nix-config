@@ -3,11 +3,13 @@
   pkgs,
   lib,
   namespace,
+  osConfig,
   ...
 }:
 with lib;
 let
   cfg = config.${namespace}.desktops.gnome;
+  vbCfg = osConfig.${namespace}.services.virtualisation.virtualbox;
 in
 {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
@@ -86,15 +88,16 @@ in
           disable-user-extensions = false;
 
           favorite-apps =
-            let
-            in
             [ "org.gnome.Nautilus.desktop" ]
             ++
               optional config.${namespace}.browsers.default.enable
                 "${config.${namespace}.browsers.default.name}.desktop"
             ++
               optional config.${namespace}.cli.terminals.default.enable
-                "${config.${namespace}.cli.terminals.default.name}.desktop";
+                "${config.${namespace}.cli.terminals.default.name}.desktop"
+            ++
+              optional vbCfg.enable
+                "virtualbox.desktop";
 
           enabled-extensions = [
             "user-theme@gnome-shell-extensions.gcampax.github.com"
