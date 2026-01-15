@@ -1,6 +1,19 @@
 # Telegram Grid Notifications
 # Sends notifications to a Telegram group when power grid status changes
 
+# Input boolean to enable/disable notifications
+input_boolean:
+  telegram_grid_notifications:
+    name: "Telegram Grid Notifications"
+    icon: mdi:telegram
+    initial: true
+
+# Input button to manually send test notification
+input_button:
+  telegram_grid_test_notification:
+    name: "Send Test Notification"
+    icon: mdi:send
+
 # Configure Telegram bot
 telegram_bot:
   - platform: polling
@@ -14,6 +27,29 @@ notify:
     name: telegram_grid_notify
     chat_id: !secret telegram_chat_id
 
+# Reusable script to send telegram notification
+script:
+  send_telegram_grid_notification:
+    alias: "Telegram: Send Grid Notification"
+    mode: queued
+    max: 10
+    fields:
+      message:
+        description: "Message to send via Telegram"
+        example: "💡 🟰 🟢"
+      log_message:
+        description: "Message to log in the logbook"
+        example: "Grid power restored"
+        default: "Notification sent"
+    sequence:
+      - service: notify.telegram_grid_notify
+        data:
+          message: "{{ message }}"
+      - service: logbook.log
+        data:
+          name: Telegram Grid Notification
+          message: "{{ log_message }}"
+
 # Automations for grid status changes
 automation:
   # Notify when grid power is restored (ON)
@@ -25,14 +61,15 @@ automation:
         entity_id: "@gridEntity@"
         from: "off"
         to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.telegram_grid_notifications
+        state: "on"
     action:
-      - service: notify.telegram_grid_notify
+      - service: script.send_telegram_grid_notification
         data:
           message: "@gridOnMessage@"
-      - service: logbook.log
-        data:
-          name: Telegram Grid Notification
-          message: "Sent notification: Grid power restored"
+          log_message: "Grid power restored"
     mode: single
 
   # Notify when grid power is lost (OFF)
@@ -44,14 +81,15 @@ automation:
         entity_id: "@gridEntity@"
         from: "on"
         to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.telegram_grid_notifications
+        state: "on"
     action:
-      - service: notify.telegram_grid_notify
+      - service: script.send_telegram_grid_notification
         data:
           message: "@gridOffMessage@"
-      - service: logbook.log
-        data:
-          name: Telegram Grid Notification
-          message: "Sent notification: Grid power lost"
+          log_message: "Grid power lost"
     mode: single
 
   # Optional: Notify on Home Assistant startup with current grid status
@@ -64,15 +102,32 @@ automation:
     condition:
       - condition: template
         value_template: "{{ @notifyOnStartup@ }}"
+      - condition: state
+        entity_id: input_boolean.telegram_grid_notifications
+        state: "on"
     action:
       - delay:
           seconds: 30  # Wait for sensors to initialize
-      - service: notify.telegram_grid_notify
+      - service: script.send_telegram_grid_notification
         data:
           message: >            
             {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
-      - service: logbook.log
+          log_message: "Startup notification with current grid status"
+    mode: single
+  
+  # Manual test notification button
+  - id: telegram_grid_test_notification
+    alias: "Telegram: Send Test Notification"
+    description: "Send a test notification when button is pressed"
+    trigger:
+      - platform: state
+        entity_id: input_button.telegram_grid_test_notification
+    action:
+      - service: script.send_telegram_grid_notification
         data:
-          name: Telegram Grid Notification
-          message: "Sent startup notification with grid status"
+          message: >
+            🧪 Test Notification
+            Grid Status: {{ states('@gridEntity@') }}
+            Time: {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+          log_message: "Manual test notification sent"
     mode: single
