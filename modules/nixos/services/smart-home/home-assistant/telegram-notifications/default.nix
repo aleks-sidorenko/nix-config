@@ -87,43 +87,6 @@ in
       "telegram_bot"
     ];
 
-    # Add telegram notifications view to dashboard
-    services.home-assistant.lovelaceConfig.views = [
-      {
-        title = "Telegram Notifications";
-        path = "telegram_notifications";
-        icon = "mdi:telegram";
-        cards = [
-          {
-            type = "entities";
-            title = "Grid Notifications";
-            show_header_toggle = false;
-            entities = [
-              {
-                entity = "input_boolean.telegram_grid_notifications";
-                name = "Enable Notifications";
-              }
-              {
-                entity = cfg.gridEntity;
-                name = "Grid Status";
-              }
-            ];
-          }
-          {
-            type = "entities";
-            title = "Manual Control";
-            show_header_toggle = false;
-            entities = [              
-              {
-                entity = "script.send_telegram_grid_notification";
-                name = "Notification Script";
-              }
-            ];
-          }          
-        ];
-      }
-    ];
-
     # Generate and link telegram notification configuration
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let

@@ -10,8 +10,8 @@ input_boolean:
 
 # Input button to manually send test notification
 input_button:
-  telegram_grid_test_notification:
-    name: "Send Test Notification"
+  telegram_grid_manual_notification:
+    name: "Send Manual Notification"
     icon: mdi:send
 
 # Configure Telegram bot
@@ -42,6 +42,9 @@ script:
         example: "Grid power restored"
         default: "Notification sent"
     sequence:
+      - condition: state
+        entity_id: input_boolean.telegram_grid_notifications
+        state: "on"
       - service: notify.telegram_grid_notify
         data:
           message: "{{ message }}"
@@ -61,10 +64,6 @@ automation:
         entity_id: "@gridEntity@"
         from: "off"
         to: "on"
-    condition:
-      - condition: state
-        entity_id: input_boolean.telegram_grid_notifications
-        state: "on"
     action:
       - service: script.send_telegram_grid_notification
         data:
@@ -81,10 +80,6 @@ automation:
         entity_id: "@gridEntity@"
         from: "on"
         to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.telegram_grid_notifications
-        state: "on"
     action:
       - service: script.send_telegram_grid_notification
         data:
@@ -102,9 +97,6 @@ automation:
     condition:
       - condition: template
         value_template: "{{ @notifyOnStartup@ }}"
-      - condition: state
-        entity_id: input_boolean.telegram_grid_notifications
-        state: "on"
     action:
       - delay:
           seconds: 30  # Wait for sensors to initialize
@@ -116,18 +108,16 @@ automation:
     mode: single
   
   # Manual test notification button
-  - id: telegram_grid_test_notification
-    alias: "Telegram: Send Test Notification"
-    description: "Send a test notification when button is pressed"
+  - id: telegram_grid_manual_notification
+    alias: "Telegram: Send Manual Notification"
+    description: "Send a manual notification when button is pressed"
     trigger:
       - platform: state
-        entity_id: input_button.telegram_grid_test_notification
+        entity_id: input_button.telegram_grid_manual_notification
     action:
       - service: script.send_telegram_grid_notification
         data:
           message: >
-            🧪 Test Notification
-            Grid Status: {{ states('@gridEntity@') }}
-            Time: {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
-          log_message: "Manual test notification sent"
+            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
+          log_message: "Manual notification sent with current grid status"
     mode: single

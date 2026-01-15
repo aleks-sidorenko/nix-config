@@ -132,15 +132,7 @@ in
                 "sensor.inverter_battery_voltage"
                 "sensor.inverter_total_battery_life_cycles"
               ];
-            }
-            # Battery Control Card
-            {
-              type = "entities";
-              title = "Battery Control";
-              entities = [
-                "switch.inverter_battery_grid_charging"
-              ];
-            }
+            }            
             # Power Production Card
             {
               type = "entities";
@@ -184,6 +176,35 @@ in
                 green = -10000;
                 yellow = 0;
                 red = 5000;
+              };
+            }
+            # Grid Notifications Card
+            {
+              type = "entities";
+              title = "Grid Notifications";
+              show_header_toggle = false;
+              entities = [
+                {
+                  entity = "input_boolean.telegram_grid_notifications";
+                  name = "Enable Notifications";
+                }
+              ];
+              footer = {
+                type = "buttons";
+                entities = [
+                  {
+                    entity = "input_button.telegram_grid_manual_notification";
+                    name = "Send Notification";
+                    icon = "mdi:send";
+                    tap_action = {
+                      action = "call-service";
+                      service = "input_button.press";
+                      target = {
+                        entity_id = "input_button.telegram_grid_manual_notification";
+                      };
+                    };
+                  }
+                ];
               };
             }
           ];
