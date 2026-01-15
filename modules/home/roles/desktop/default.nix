@@ -51,11 +51,11 @@ in
       browsers = {
         chrome = {
           enable = true;
-          default = true;
+          default = false;
         };
         firefox = {
           enable = true;
-          default = false;
+          default = true;
         };
       };
 

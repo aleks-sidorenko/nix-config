@@ -29,6 +29,9 @@ in
     home.sessionVariables = {
       TERM = cfg.name;
     };
+
+    # Add terminal to GNOME favorites
+    ${namespace}.desktops.gnome.favoriteApps = [ cfg.name ];
   };
 
 }

@@ -47,5 +47,9 @@ in
       "kvm-intel"
     ];
 
+    home-manager.users.${config.${namespace}.user.name} = {
+      # Add VirtualBox to GNOME favorites
+      ${namespace}.desktops.gnome.favoriteApps = [ "virtualbox" ];
+    };
   };
 }
