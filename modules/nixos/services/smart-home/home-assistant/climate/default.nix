@@ -34,7 +34,7 @@ in
   config = mkIf (haCfg.enable && cfg.enable) {
 
     # Generate and link climate package configuration with templated values
-    systemd.services.home-assistant.preStart =
+    systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         climateYaml = pkgs.replaceVars ./climate.yaml {
           shower_fan_entity_id = cfg.showerFan.entity_id;
@@ -43,6 +43,7 @@ in
       in
       ''
         ln -fns ${climateYaml} ${haCfg.dataDir}/packages/climate.yaml
-      '';
+      ''
+    );
   };
 }

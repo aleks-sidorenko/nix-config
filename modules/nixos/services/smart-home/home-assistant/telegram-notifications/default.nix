@@ -37,13 +37,13 @@ in
     messages = {
       gridOn = mkOption {
         type = types.str;
-        default = "Power grid is ON";
+        default = "💡 🟰 🟢";
         description = "Message to send when grid power is restored";
       };
 
       gridOff = mkOption {
         type = types.str;
-        default = "Power grid is OFF";
+        default = "💡 🟰 🔴";
         description = "Message to send when grid power is lost";
       };
     };
@@ -88,7 +88,7 @@ in
     ];
 
     # Generate and link telegram notification configuration
-    systemd.services.home-assistant.preStart =
+    systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         telegramYaml = pkgs.replaceVars ./telegram_grid_notifications.yaml {
           gridEntity = cfg.gridEntity;
@@ -99,6 +99,7 @@ in
       in
       ''
         ln -fns ${telegramYaml} ${haCfg.dataDir}/packages/telegram_grid_notifications.yaml
-      '';
+      ''
+    );
   };
 }

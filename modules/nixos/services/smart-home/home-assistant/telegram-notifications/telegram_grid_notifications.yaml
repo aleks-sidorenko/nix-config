@@ -69,9 +69,8 @@ automation:
           seconds: 30  # Wait for sensors to initialize
       - service: notify.telegram_grid_notify
         data:
-          message: >
-            🏠 Home Assistant started.
-            Grid status: {{ 'ON ⚡' if is_state('@gridEntity@', 'on') else 'OFF 🔋' }}
+          message: >            
+            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
       - service: logbook.log
         data:
           name: Telegram Grid Notification

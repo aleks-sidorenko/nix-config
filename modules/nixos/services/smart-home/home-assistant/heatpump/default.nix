@@ -156,7 +156,7 @@ in
     };
 
     # Generate and link heatpump package configuration with templated values
-    systemd.services.home-assistant.preStart =
+    systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         heatpumpYaml = pkgs.replaceVars ./heatpump.yaml {
           off_temperature_from = toString cfg.modes.off.temperature_from;
@@ -167,6 +167,7 @@ in
       in
       ''
         ln -fns ${heatpumpYaml} ${haCfg.dataDir}/packages/heatpump.yaml
-      '';
+      ''
+    );
   };
 }
