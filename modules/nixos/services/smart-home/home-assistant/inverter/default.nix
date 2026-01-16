@@ -132,7 +132,7 @@ in
                 "sensor.inverter_battery_voltage"
                 "sensor.inverter_total_battery_life_cycles"
               ];
-            }            
+            }
             # Power Production Card
             {
               type = "entities";

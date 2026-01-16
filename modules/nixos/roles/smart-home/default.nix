@@ -75,7 +75,7 @@ in
               serialNumber = "2988661222";
             };
             telegram-notifications = {
-              enable = true;              
+              enable = true;
               notifyOnStartup = false;
             };
           };
