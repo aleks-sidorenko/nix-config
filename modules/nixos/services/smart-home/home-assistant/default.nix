@@ -123,6 +123,7 @@ in
           "esphome"
           "google_translate"
           "history"
+          "isal"
           "logbook"
           "mobile_app"
 
@@ -225,26 +226,39 @@ in
         let
           # Generate secret write commands from the secrets attribute set
           secretCommands = lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (
-              name: secretPath: ''echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"''
-            ) cfg.secrets
+            lib.mapAttrsToList (name: secretPath: ''
+              if [ -f "${secretPath}" ]; then
+                echo "${name}: $(cat ${secretPath})" >> "${cfg.dataDir}/secrets.yaml"
+              else
+                echo "Warning: Secret file ${secretPath} not found for ${name}" >&2
+              fi
+            '') cfg.secrets
           );
         in
         ''
           # Create secrets.yaml file that Home Assistant can reference
+          echo "Generating secrets.yaml with ${toString (builtins.length (builtins.attrNames cfg.secrets))} secrets..."
+
           # Clear existing file and write all secrets
           : > "${cfg.dataDir}/secrets.yaml"
           ${secretCommands}
+
+          # Ensure the file is valid YAML (at minimum an empty dict)
+          if [ ! -s "${cfg.dataDir}/secrets.yaml" ]; then
+            echo "# No secrets configured" > "${cfg.dataDir}/secrets.yaml"
+          fi
+
+          echo "secrets.yaml generated successfully"
         '';
+
+      # Ensure all SOPS secrets are available before starting
+      after = [ "sops-nix.service" ] ++ optional cfg.mosquitto.enable "mosquitto.service";
+      wants = [ "sops-nix.service" ] ++ optional cfg.mosquitto.enable "mosquitto.service";
 
       serviceConfig = {
         User = mkForce cfg.user;
         Group = mkForce cfg.group;
       };
-    }
-    // mkIf cfg.mosquitto.enable {
-      after = [ "mosquitto.service" ];
-      wants = [ "mosquitto.service" ];
     };
 
     # Add packages to system

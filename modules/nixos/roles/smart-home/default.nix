@@ -74,6 +74,10 @@ in
               enable = true;
               serialNumber = "2988661222";
             };
+            telegram-notifications = {
+              enable = true;
+              notifyOnStartup = false;
+            };
           };
           mosquitto = enabled;
           zigbee2mqtt = {

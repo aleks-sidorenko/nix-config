@@ -1,0 +1,123 @@
+# Telegram Grid Notifications
+# Sends notifications to a Telegram group when power grid status changes
+
+# Input boolean to enable/disable notifications
+input_boolean:
+  telegram_grid_notifications:
+    name: "Telegram Grid Notifications"
+    icon: mdi:telegram
+    initial: true
+
+# Input button to manually send test notification
+input_button:
+  telegram_grid_manual_notification:
+    name: "Send Manual Notification"
+    icon: mdi:send
+
+# Configure Telegram bot
+telegram_bot:
+  - platform: polling
+    api_key: !secret telegram_bot_token
+    allowed_chat_ids:
+      - !secret telegram_chat_id
+
+# Configure notification service
+notify:
+  - platform: telegram
+    name: telegram_grid_notify
+    chat_id: !secret telegram_chat_id
+
+# Reusable script to send telegram notification
+script:
+  send_telegram_grid_notification:
+    alias: "Telegram: Send Grid Notification"
+    mode: queued
+    max: 10
+    fields:
+      message:
+        description: "Message to send via Telegram"
+        example: "💡 🟰 🟢"
+      log_message:
+        description: "Message to log in the logbook"
+        example: "Grid power restored"
+        default: "Notification sent"
+    sequence:
+      - condition: state
+        entity_id: input_boolean.telegram_grid_notifications
+        state: "on"
+      - service: notify.telegram_grid_notify
+        data:
+          message: "{{ message }}"
+      - service: logbook.log
+        data:
+          name: Telegram Grid Notification
+          message: "{{ log_message }}"
+
+# Automations for grid status changes
+automation:
+  # Notify when grid power is restored (ON)
+  - id: telegram_grid_on_notification
+    alias: "Telegram: Grid Power Restored"
+    description: "Send Telegram notification when grid power is restored"
+    trigger:
+      - platform: state
+        entity_id: "@gridEntity@"
+        from: "off"
+        to: "on"
+    action:
+      - service: script.send_telegram_grid_notification
+        data:
+          message: "@gridOnMessage@"
+          log_message: "Grid power restored"
+    mode: single
+
+  # Notify when grid power is lost (OFF)
+  - id: telegram_grid_off_notification
+    alias: "Telegram: Grid Power Lost"
+    description: "Send Telegram notification when grid power is lost"
+    trigger:
+      - platform: state
+        entity_id: "@gridEntity@"
+        from: "on"
+        to: "off"
+    action:
+      - service: script.send_telegram_grid_notification
+        data:
+          message: "@gridOffMessage@"
+          log_message: "Grid power lost"
+    mode: single
+
+  # Optional: Notify on Home Assistant startup with current grid status
+  - id: telegram_grid_startup_notification
+    alias: "Telegram: Grid Status on Startup"
+    description: "Send Telegram notification with current grid status on HA startup"
+    trigger:
+      - platform: homeassistant
+        event: start
+    condition:
+      - condition: template
+        value_template: "{{ @notifyOnStartup@ }}"
+    action:
+      - delay:
+          seconds: 30  # Wait for sensors to initialize
+      - service: script.send_telegram_grid_notification
+        data:
+          message: >            
+            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
+          log_message: "Startup notification with current grid status"
+    mode: single
+  
+  # Manual test notification button
+  - id: telegram_grid_manual_notification
+    alias: "Telegram: Send Manual Notification"
+    description: "Send a manual notification when button is pressed"
+    trigger:
+      - platform: state
+        entity_id: input_button.telegram_grid_manual_notification
+    action:
+      - service: script.send_telegram_grid_notification
+        data:
+          message: >
+            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
+          log_message: "Manual notification sent with current grid status"
+    mode: single

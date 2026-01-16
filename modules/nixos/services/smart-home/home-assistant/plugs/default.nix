@@ -316,7 +316,7 @@ in
       ++ (lib.concatMap mkPlugAssertions enabledPlugs);
 
     # Generate and link plug automation configurations
-    systemd.services.home-assistant.preStart =
+    systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         # Generate a YAML file for each enabled plug
         plugYamlFiles = map (plug: {
@@ -329,6 +329,7 @@ in
           ln -fns ${p.yaml} ${haCfg.dataDir}/packages/plug_${p.name}.yaml
         '') plugYamlFiles;
       in
-      symlinkCommands;
+      symlinkCommands
+    );
   };
 }

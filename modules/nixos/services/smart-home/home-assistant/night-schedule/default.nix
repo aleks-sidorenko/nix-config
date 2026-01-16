@@ -32,7 +32,7 @@ in
 
   config = mkIf (haCfg.enable && cfg.enable) {
     # Generate and link night schedule automation configuration with templated values
-    systemd.services.home-assistant.preStart =
+    systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         nightScheduleYaml = pkgs.replaceVars ./night_schedule.yaml {
           nightOnTime = cfg.nightOnTime;
@@ -41,6 +41,7 @@ in
       in
       ''
         ln -fns ${nightScheduleYaml} ${haCfg.dataDir}/packages/night_schedule.yaml
-      '';
+      ''
+    );
   };
 }

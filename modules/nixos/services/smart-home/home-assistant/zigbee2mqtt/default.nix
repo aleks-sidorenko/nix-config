@@ -207,7 +207,7 @@ in
 
     };
 
-    systemd.services.home-assistant.preStart = ''
+    systemd.services.home-assistant.preStart = lib.mkAfter ''
       ln -fns ${./zigbee2mqtt.yaml} ${haCfg.dataDir}/packages/zigbee2mqtt.yaml
     '';
   };
