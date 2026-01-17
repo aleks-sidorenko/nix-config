@@ -29,7 +29,7 @@ in
               }
             ];
             serverProperties = {
-              difficulty = "hard";              
+              difficulty = "hard";
             };
             # Gamerules applied via datapack on world load
             gamerules = {

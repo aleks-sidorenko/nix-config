@@ -89,9 +89,9 @@ in
     exclude = mkOpt (types.listOf types.str) exclude "List of patterns to exclude from backup";
 
     timerConfig = mkOpt types.attrs {
-      OnCalendar = "daily";
-      Persistent = true;
-      RandomizedDelaySec = "1h";
+      OnCalendar = "*-*-* 03:00:00"; # Run at 03:00 every day
+      Persistent = false; # Don't run missed backups after wake/boot
+      RandomizedDelaySec = "30m"; # Random delay up to 30 min to avoid thundering herd
     } "Systemd timer configuration for automatic backups";
 
     pruneOpts = mkOpt (types.listOf types.str) [
