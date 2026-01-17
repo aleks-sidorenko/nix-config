@@ -28,6 +28,9 @@ in
                 bypassesPlayerLimit = true;
               }
             ];
+            serverProperties = {
+              difficulty = "hard";              
+            };
             # Gamerules applied via datapack on world load
             gamerules = {
               keep_inventory = true;
