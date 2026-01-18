@@ -1,13 +1,14 @@
 # Telegram Grid Notifications Module
 #
-# Sends notifications to a Telegram group chat when the power grid status changes.
-# Uses the binary_sensor.inverter_grid entity from the inverter module.
+# Sends notifications to a Telegram group chat when a binary sensor state changes.
+# By default, monitors binary_sensor.inverter_grid_debounced from the inverter module.
 #
 # Prerequisites:
-# 1. Create a Telegram bot via @BotFather
-# 2. Add the bot to your group chat
-# 3. Get the chat ID (group IDs are negative numbers)
-# 4. Add secrets to SOPS:
+# 1. A binary sensor entity to monitor (e.g., binary_sensor.inverter_grid_debounced)
+# 2. Create a Telegram bot via @BotFather
+# 3. Add the bot to your group chat
+# 4. Get the chat ID (group IDs are negative numbers)
+# 5. Add secrets to SOPS:
 #    - service-home-assistant-telegram-bot-token
 #    - service-home-assistant-telegram-chat-id
 {
@@ -29,9 +30,9 @@ in
 
     gridEntity = mkOption {
       type = types.str;
-      default = "binary_sensor.inverter_grid";
-      description = "Entity ID of the grid status binary sensor";
-      example = "binary_sensor.inverter_grid";
+      default = "binary_sensor.inverter_grid_debounced";
+      description = "Entity ID of the grid status binary sensor to monitor";
+      example = "binary_sensor.inverter_grid_debounced";
     };
 
     messages = {
@@ -81,7 +82,7 @@ in
       };
     };
 
-    # Add Telegram component
+    # Add Telegram components
     services.home-assistant.extraComponents = [
       "telegram"
       "telegram_bot"

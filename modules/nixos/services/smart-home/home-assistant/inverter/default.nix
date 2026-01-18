@@ -83,6 +83,18 @@ in
       default = 60;
       description = "Update interval in seconds";
     };
+
+    inverterGridDebounceSeconds = mkOption {
+      type = types.int;
+      default = 70;
+      description = ''
+        Debounce delay in seconds for the binary_sensor.inverter_grid_debounced sensor.
+        The grid state must be stable for this duration before the sensor changes state.
+        This prevents false alarms from brief grid outages or flickering.
+        Recommended: 70 seconds (inverter reconnect time is 60 seconds).
+      '';
+      example = 70;
+    };
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
@@ -99,6 +111,7 @@ in
       extraComponents = [
         "sensor"
         "switch"
+        "template"
       ];
 
       # Add inverter view to dashboard
@@ -113,7 +126,14 @@ in
               type = "entities";
               title = "Grid Status";
               entities = [
-                "binary_sensor.inverter_grid"
+                {
+                  entity = "binary_sensor.inverter_grid_debounced";
+                  name = "Grid (Debounced)";
+                }
+                {
+                  entity = "binary_sensor.inverter_grid";
+                  name = "Grid (Raw)";
+                }
                 "sensor.inverter_grid_l1_voltage"
                 "sensor.inverter_grid_l2_voltage"
                 "sensor.inverter_grid_l3_voltage"
@@ -216,6 +236,18 @@ in
     systemd.tmpfiles.rules = [
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
+
+    # Generate and link inverter grid debounced template sensor configuration
+    systemd.services.home-assistant.preStart = lib.mkAfter (
+      let
+        inverterGridDebouncedYaml = pkgs.replaceVars ./inverter_grid_debounced.yaml {
+          delaySeconds = toString cfg.inverterGridDebounceSeconds;
+        };
+      in
+      ''
+        ln -fns ${inverterGridDebouncedYaml} ${haCfg.dataDir}/packages/inverter_grid_debounced.yaml
+      ''
+    );
 
   };
 }
