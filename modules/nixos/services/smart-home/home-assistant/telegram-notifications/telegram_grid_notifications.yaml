@@ -1,6 +1,6 @@
 # Telegram Grid Notifications
 # Sends notifications to a Telegram group when power grid status changes
-# Monitors a configurable binary sensor entity (default: binary_sensor.inverter_grid_debounced)
+# Monitors a configurable binary sensor entity (default: binary_sensor.grid_status_debounced)
 
 # Input boolean to enable/disable notifications
 input_boolean:

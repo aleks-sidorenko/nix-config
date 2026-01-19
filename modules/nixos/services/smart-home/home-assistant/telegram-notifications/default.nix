@@ -1,10 +1,10 @@
 # Telegram Grid Notifications Module
 #
 # Sends notifications to a Telegram group chat when a binary sensor state changes.
-# By default, monitors binary_sensor.inverter_grid_debounced from the inverter module.
+# By default, monitors binary_sensor.grid_status_debounced from the inverter module.
 #
 # Prerequisites:
-# 1. A binary sensor entity to monitor (e.g., binary_sensor.inverter_grid_debounced)
+# 1. A binary sensor entity to monitor (e.g., binary_sensor.grid_status_debounced)
 # 2. Create a Telegram bot via @BotFather
 # 3. Add the bot to your group chat
 # 4. Get the chat ID (group IDs are negative numbers)
@@ -30,9 +30,9 @@ in
 
     gridEntity = mkOption {
       type = types.str;
-      default = "binary_sensor.inverter_grid_debounced";
+      default = "binary_sensor.grid_status_debounced";
       description = "Entity ID of the grid status binary sensor to monitor";
-      example = "binary_sensor.inverter_grid_debounced";
+      example = "binary_sensor.grid_status_debounced";
     };
 
     messages = {

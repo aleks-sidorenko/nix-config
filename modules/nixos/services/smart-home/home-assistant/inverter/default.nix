@@ -84,13 +84,13 @@ in
       description = "Update interval in seconds";
     };
 
-    inverterGridDebounceSeconds = mkOption {
+    gridStatusDebounceSeconds = mkOption {
       type = types.int;
       default = 70;
       description = ''
-        Debounce delay in seconds for the binary_sensor.inverter_grid_debounced sensor.
+        Debounce delay in seconds for the binary_sensor.grid_status_debounced sensor.
         The grid state must be stable for this duration before the sensor changes state.
-        This prevents false alarms from brief grid outages or flickering.
+        This prevents false alarms from brief grid outages or voltage fluctuations.
         Recommended: 70 seconds (inverter reconnect time is 60 seconds).
       '';
       example = 70;
@@ -138,16 +138,16 @@ in
               title = "Grid Status";
               entities = [
                 {
+                  entity = "binary_sensor.grid_status_debounced";
+                  name = "Grid Status (Debounced)";
+                }
+                {
                   entity = "binary_sensor.grid_status";
                   name = "Grid Status (Voltage-based)";
                 }
                 {
-                  entity = "binary_sensor.inverter_grid_debounced";
-                  name = "Grid (Debounced)";
-                }
-                {
                   entity = "binary_sensor.inverter_grid";
-                  name = "Grid (Raw)";
+                  name = "Inverter Grid (Raw)";
                 }
                 "sensor.inverter_grid_l1_voltage"
                 "sensor.inverter_grid_l2_voltage"
@@ -252,19 +252,19 @@ in
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
 
-    # Generate and link inverter grid debounced template sensor configuration
+    # Generate and link grid status template sensor configurations
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
-        inverterGridDebouncedYaml = pkgs.replaceVars ./inverter_grid_debounced.yaml {
-          delaySeconds = toString cfg.inverterGridDebounceSeconds;
-        };
         gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
           voltageThreshold = toString cfg.gridStatusVoltageThreshold;
         };
+        gridStatusDebouncedYaml = pkgs.replaceVars ./grid_status_debounced.yaml {
+          delaySeconds = toString cfg.gridStatusDebounceSeconds;
+        };
       in
       ''
-        ln -fns ${inverterGridDebouncedYaml} ${haCfg.dataDir}/packages/inverter_grid_debounced.yaml
         ln -fns ${gridStatusYaml} ${haCfg.dataDir}/packages/inverter_grid_status.yaml
+        ln -fns ${gridStatusDebouncedYaml} ${haCfg.dataDir}/packages/inverter_grid_status_debounced.yaml
       ''
     );
 
