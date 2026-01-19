@@ -83,6 +83,47 @@ in
       default = 60;
       description = "Update interval in seconds";
     };
+
+    sensors = {
+      gridStatus = {
+        voltageThreshold = mkOption {
+          type = types.int;
+          default = 0;
+          description = ''
+            Minimum voltage threshold (in volts) for binary_sensor.grid_status.
+            If any phase voltage is above this threshold, the grid is considered present.
+            Set to 0 to detect any voltage, or higher (e.g., 50) to ignore noise.
+          '';
+          example = 50;
+        };
+      };
+
+      gridStatusDebounced = {
+        delayOnSeconds = mkOption {
+          type = types.int;
+          default = 2;
+          description = ''
+            Debounce delay in seconds when grid status changes from OFF to ON.
+            The grid state must be stable (ON) for this duration before the sensor turns on.
+            This prevents false alarms from brief grid reconnections.
+            Recommended: 60 seconds (inverter reconnect time).
+          '';
+          example = 2;
+        };
+
+        delayOffSeconds = mkOption {
+          type = types.int;
+          default = 60;
+          description = ''
+            Debounce delay in seconds when grid status changes from ON to OFF.
+            The grid state must be stable (OFF) for this duration before the sensor turns off.
+            This prevents false alarms from brief voltage fluctuations or inverter disconnects.
+            Recommended: 60 seconds (inverter reconnect time).
+          '';
+          example = 60;
+        };
+      };
+    };
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
@@ -99,6 +140,7 @@ in
       extraComponents = [
         "sensor"
         "switch"
+        "template"
       ];
 
       # Add inverter view to dashboard
@@ -113,7 +155,18 @@ in
               type = "entities";
               title = "Grid Status";
               entities = [
-                "binary_sensor.inverter_grid"
+                {
+                  entity = "binary_sensor.grid_status_debounced";
+                  name = "Grid Status (Debounced)";
+                }
+                {
+                  entity = "binary_sensor.grid_status";
+                  name = "Grid Status (Voltage-based)";
+                }
+                {
+                  entity = "binary_sensor.inverter_grid";
+                  name = "Inverter Grid (Raw)";
+                }
                 "sensor.inverter_grid_l1_voltage"
                 "sensor.inverter_grid_l2_voltage"
                 "sensor.inverter_grid_l3_voltage"
@@ -216,6 +269,23 @@ in
     systemd.tmpfiles.rules = [
       "d ${haCfg.dataDir}/custom_components 0755 ${haCfg.user} ${haCfg.group} -"
     ];
+
+    # Generate and link grid status template sensor configurations
+    systemd.services.home-assistant.preStart = lib.mkAfter (
+      let
+        gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
+          voltageThreshold = toString cfg.sensors.gridStatus.voltageThreshold;
+        };
+        gridStatusDebouncedYaml = pkgs.replaceVars ./grid_status_debounced.yaml {
+          delayOnSeconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
+          delayOffSeconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
+        };
+      in
+      ''
+        ln -fns ${gridStatusYaml} ${haCfg.dataDir}/packages/inverter_grid_status.yaml
+        ln -fns ${gridStatusDebouncedYaml} ${haCfg.dataDir}/packages/inverter_grid_status_debounced.yaml
+      ''
+    );
 
   };
 }

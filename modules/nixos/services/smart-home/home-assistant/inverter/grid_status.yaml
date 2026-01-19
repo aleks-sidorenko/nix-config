@@ -1,0 +1,42 @@
+# Grid Status Composite Sensor
+# This sensor monitors all three phase voltages and reports ON if any phase has voltage.
+# This helps distinguish between a true grid outage (no voltage on any phase) and
+# a temporary inverter disconnection where the grid is still present.
+
+template:
+  - binary_sensor:
+      - name: "Grid Status"
+        unique_id: grid_status
+        device_class: power
+        state: >
+          {% set l1_voltage = states('sensor.inverter_grid_l1_voltage') | float(0) %}
+          {% set l2_voltage = states('sensor.inverter_grid_l2_voltage') | float(0) %}
+          {% set l3_voltage = states('sensor.inverter_grid_l3_voltage') | float(0) %}
+          {% set threshold = @voltageThreshold@ %}
+          
+          {# Grid is ON if any phase has voltage above threshold #}
+          {{ l1_voltage > threshold or l2_voltage > threshold or l3_voltage > threshold }}
+        availability: >
+          {{ states('sensor.inverter_grid_l1_voltage') not in ['unknown', 'unavailable'] and
+             states('sensor.inverter_grid_l2_voltage') not in ['unknown', 'unavailable'] and
+             states('sensor.inverter_grid_l3_voltage') not in ['unknown', 'unavailable'] }}
+        icon: >
+          {% if is_state('binary_sensor.grid_status', 'on') %}
+            mdi:power-plug
+          {% else %}
+            mdi:power-plug-off
+          {% endif %}
+        attributes:
+          l1_voltage: "{{ states('sensor.inverter_grid_l1_voltage') }}"
+          l2_voltage: "{{ states('sensor.inverter_grid_l2_voltage') }}"
+          l3_voltage: "{{ states('sensor.inverter_grid_l3_voltage') }}"
+          phases_with_power: >
+            {% set l1 = states('sensor.inverter_grid_l1_voltage') | float(0) %}
+            {% set l2 = states('sensor.inverter_grid_l2_voltage') | float(0) %}
+            {% set l3 = states('sensor.inverter_grid_l3_voltage') | float(0) %}
+            {% set threshold = @voltageThreshold@ %}
+            {% set phases = [] %}
+            {% if l1 > threshold %}{% set phases = phases + ['L1'] %}{% endif %}
+            {% if l2 > threshold %}{% set phases = phases + ['L2'] %}{% endif %}
+            {% if l3 > threshold %}{% set phases = phases + ['L3'] %}{% endif %}
+            {{ phases | join(', ') if phases | length > 0 else 'None' }}

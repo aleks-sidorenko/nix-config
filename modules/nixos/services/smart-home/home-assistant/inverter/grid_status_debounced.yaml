@@ -1,0 +1,20 @@
+# Grid Status Debounced Template Sensor
+# Creates a debounced binary sensor based on binary_sensor.grid_status that only changes
+# state after the grid status has been stable for a configured duration.
+# This prevents false triggers from brief outages or voltage fluctuations.
+
+template:
+  - binary_sensor:
+      - name: "Grid Status Debounced"
+        unique_id: grid_status_debounced
+        device_class: power
+        state: "{{ is_state('binary_sensor.grid_status', 'on') }}"
+        delay_on: @delayOnSeconds@  # Only turn on after being stable for this many seconds
+        delay_off: @delayOffSeconds@  # Only turn off after being stable for this many seconds
+        icon: >
+          {% if is_state('binary_sensor.grid_status_debounced', 'on') %}
+            mdi:transmission-tower
+          {% else %}
+            mdi:transmission-tower-off
+          {% endif %}
+        availability: "{{ not is_state('binary_sensor.grid_status', 'unavailable') }}"
