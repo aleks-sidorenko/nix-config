@@ -62,13 +62,13 @@ automation:
     description: "Send Telegram notification when stable grid power is restored"
     trigger:
       - platform: state
-        entity_id: "@gridEntity@"
+        entity_id: "@grid_status_sensor@"
         from: "off"
         to: "on"
     action:
       - service: script.send_telegram_grid_notification
         data:
-          message: "@gridOnMessage@"
+          message: "@grid_on_message@"
           log_message: "Grid power restored"
     mode: single
 
@@ -78,13 +78,13 @@ automation:
     description: "Send Telegram notification when stable grid power is lost"
     trigger:
       - platform: state
-        entity_id: "@gridEntity@"
+        entity_id: "@grid_status_sensor@"
         from: "on"
         to: "off"
     action:
       - service: script.send_telegram_grid_notification
         data:
-          message: "@gridOffMessage@"
+          message: "@grid_off_message@"
           log_message: "Grid power lost"
     mode: single
 
@@ -97,14 +97,14 @@ automation:
         event: start
     condition:
       - condition: template
-        value_template: "{{ @notifyOnStartup@ }}"
+        value_template: "{{ @notify_on_startup@ }}"
     action:
       - delay:
           seconds: 30  # Wait for sensors to initialize
       - service: script.send_telegram_grid_notification
         data:
           message: >            
-            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
+            {{ "@grid_on_message@" if is_state('@grid_status_sensor@', 'on') else "@grid_off_message@" }}
           log_message: "Startup notification with current grid status"
     mode: single
   
@@ -119,6 +119,6 @@ automation:
       - service: script.send_telegram_grid_notification
         data:
           message: >
-            {{ "@gridOnMessage@" if is_state('@gridEntity@', 'on') else "@gridOffMessage@" }}
+            {{ "@grid_on_message@" if is_state('@grid_status_sensor@', 'on') else "@grid_off_message@" }}
           log_message: "Manual notification sent with current grid status"
     mode: single

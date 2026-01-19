@@ -35,8 +35,8 @@ in
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         nightScheduleYaml = pkgs.replaceVars ./night_schedule.yaml {
-          nightOnTime = cfg.nightOnTime;
-          nightOffTime = cfg.nightOffTime;
+          night_on_time = cfg.nightOnTime;
+          night_off_time = cfg.nightOffTime;
         };
       in
       ''

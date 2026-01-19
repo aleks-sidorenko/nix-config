@@ -8,13 +8,13 @@ input_datetime:
     name: "Night Schedule On Time"
     has_date: false
     has_time: true
-    initial: "@nightOnTime@"
+    initial: "@night_on_time@"
   
   night_schedule_off_time:
     name: "Night Schedule Off Time"
     has_date: false
     has_time: true
-    initial: "@nightOffTime@"
+    initial: "@night_off_time@"
 
 # Template sensor that determines if we're in night mode
 template:

@@ -222,7 +222,7 @@ automation:
     description: "Turn off heatpump when grid status changes to Off-Grid"
     trigger:
       - platform: state
-        entity_id: binary_sensor.inverter_grid
+        entity_id: "@grid_status_sensor@"
         to: "off"
     action:
       - service: switch.turn_off
@@ -240,7 +240,7 @@ automation:
     description: "Turn on heatpump when grid status changes to Grid Connected"
     trigger:
       - platform: state
-        entity_id: binary_sensor.inverter_grid
+        entity_id: "@grid_status_sensor@"
         to: "on"
     condition:
       - condition: state

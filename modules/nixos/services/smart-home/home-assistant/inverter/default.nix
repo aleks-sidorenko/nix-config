@@ -274,11 +274,11 @@ in
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
-          voltageThreshold = toString cfg.sensors.gridStatus.voltageThreshold;
+          voltage_threshold = toString cfg.sensors.gridStatus.voltageThreshold;
         };
         gridStatusDebouncedYaml = pkgs.replaceVars ./grid_status_debounced.yaml {
-          delayOnSeconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
-          delayOffSeconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
+          delay_on_seconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
+          delay_off_seconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
         };
       in
       ''

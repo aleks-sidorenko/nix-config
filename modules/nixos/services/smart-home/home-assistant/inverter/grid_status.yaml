@@ -12,7 +12,7 @@ template:
           {% set l1_voltage = states('sensor.inverter_grid_l1_voltage') | float(0) %}
           {% set l2_voltage = states('sensor.inverter_grid_l2_voltage') | float(0) %}
           {% set l3_voltage = states('sensor.inverter_grid_l3_voltage') | float(0) %}
-          {% set threshold = @voltageThreshold@ %}
+          {% set threshold = @voltage_threshold@ %}
           
           {# Grid is ON if any phase has voltage above threshold #}
           {{ l1_voltage > threshold or l2_voltage > threshold or l3_voltage > threshold }}
@@ -34,7 +34,7 @@ template:
             {% set l1 = states('sensor.inverter_grid_l1_voltage') | float(0) %}
             {% set l2 = states('sensor.inverter_grid_l2_voltage') | float(0) %}
             {% set l3 = states('sensor.inverter_grid_l3_voltage') | float(0) %}
-            {% set threshold = @voltageThreshold@ %}
+            {% set threshold = @voltage_threshold@ %}
             {% set phases = [] %}
             {% if l1 > threshold %}{% set phases = phases + ['L1'] %}{% endif %}
             {% if l2 > threshold %}{% set phases = phases + ['L2'] %}{% endif %}
