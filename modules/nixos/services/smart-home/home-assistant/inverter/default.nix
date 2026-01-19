@@ -84,27 +84,45 @@ in
       description = "Update interval in seconds";
     };
 
-    gridStatusDebounceSeconds = mkOption {
-      type = types.int;
-      default = 70;
-      description = ''
-        Debounce delay in seconds for the binary_sensor.grid_status_debounced sensor.
-        The grid state must be stable for this duration before the sensor changes state.
-        This prevents false alarms from brief grid outages or voltage fluctuations.
-        Recommended: 70 seconds (inverter reconnect time is 60 seconds).
-      '';
-      example = 70;
-    };
+    sensors = {
+      gridStatus = {
+        voltageThreshold = mkOption {
+          type = types.int;
+          default = 0;
+          description = ''
+            Minimum voltage threshold (in volts) for binary_sensor.grid_status.
+            If any phase voltage is above this threshold, the grid is considered present.
+            Set to 0 to detect any voltage, or higher (e.g., 50) to ignore noise.
+          '';
+          example = 50;
+        };
+      };
 
-    gridStatusVoltageThreshold = mkOption {
-      type = types.int;
-      default = 0;
-      description = ''
-        Minimum voltage threshold (in volts) for binary_sensor.grid_status.
-        If any phase voltage is above this threshold, the grid is considered present.
-        Set to 0 to detect any voltage, or higher (e.g., 50) to ignore noise.
-      '';
-      example = 50;
+      gridStatusDebounced = {
+        delayOnSeconds = mkOption {
+          type = types.int;
+          default = 2;
+          description = ''
+            Debounce delay in seconds when grid status changes from OFF to ON.
+            The grid state must be stable (ON) for this duration before the sensor turns on.
+            This prevents false alarms from brief grid reconnections.
+            Recommended: 60 seconds (inverter reconnect time).
+          '';
+          example = 2;
+        };
+
+        delayOffSeconds = mkOption {
+          type = types.int;
+          default = 60;
+          description = ''
+            Debounce delay in seconds when grid status changes from ON to OFF.
+            The grid state must be stable (OFF) for this duration before the sensor turns off.
+            This prevents false alarms from brief voltage fluctuations or inverter disconnects.
+            Recommended: 60 seconds (inverter reconnect time).
+          '';
+          example = 60;
+        };
+      };
     };
   };
 
@@ -256,10 +274,11 @@ in
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
-          voltageThreshold = toString cfg.gridStatusVoltageThreshold;
+          voltageThreshold = toString cfg.sensors.gridStatus.voltageThreshold;
         };
         gridStatusDebouncedYaml = pkgs.replaceVars ./grid_status_debounced.yaml {
-          delaySeconds = toString cfg.gridStatusDebounceSeconds;
+          delayOnSeconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
+          delayOffSeconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
         };
       in
       ''
