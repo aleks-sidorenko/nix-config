@@ -95,6 +95,17 @@ in
       '';
       example = 70;
     };
+
+    gridStatusVoltageThreshold = mkOption {
+      type = types.int;
+      default = 0;
+      description = ''
+        Minimum voltage threshold (in volts) for binary_sensor.grid_status.
+        If any phase voltage is above this threshold, the grid is considered present.
+        Set to 0 to detect any voltage, or higher (e.g., 50) to ignore noise.
+      '';
+      example = 50;
+    };
   };
 
   config = mkIf (haCfg.enable && cfg.enable) {
@@ -126,6 +137,10 @@ in
               type = "entities";
               title = "Grid Status";
               entities = [
+                {
+                  entity = "binary_sensor.grid_status";
+                  name = "Grid Status (Voltage-based)";
+                }
                 {
                   entity = "binary_sensor.inverter_grid_debounced";
                   name = "Grid (Debounced)";
@@ -243,9 +258,13 @@ in
         inverterGridDebouncedYaml = pkgs.replaceVars ./inverter_grid_debounced.yaml {
           delaySeconds = toString cfg.inverterGridDebounceSeconds;
         };
+        gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
+          voltageThreshold = toString cfg.gridStatusVoltageThreshold;
+        };
       in
       ''
         ln -fns ${inverterGridDebouncedYaml} ${haCfg.dataDir}/packages/inverter_grid_debounced.yaml
+        ln -fns ${gridStatusYaml} ${haCfg.dataDir}/packages/inverter_grid_status.yaml
       ''
     );
 
