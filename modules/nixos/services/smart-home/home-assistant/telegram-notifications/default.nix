@@ -28,10 +28,10 @@ in
   options.${namespace}.services.smart-home.home-assistant.telegram-notifications = {
     enable = mkEnableOption "Enable Telegram notifications for grid status changes";
 
-    gridEntity = mkOption {
+    gridStatusSensor = mkOption {
       type = types.str;
       default = "binary_sensor.grid_status_debounced";
-      description = "Entity ID of the grid status binary sensor to monitor";
+      description = "Entity ID of the grid status sensor to monitor";
       example = "binary_sensor.grid_status_debounced";
     };
 
@@ -92,10 +92,10 @@ in
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         telegramYaml = pkgs.replaceVars ./telegram_grid_notifications.yaml {
-          gridEntity = cfg.gridEntity;
-          gridOnMessage = cfg.messages.gridOn;
-          gridOffMessage = cfg.messages.gridOff;
-          notifyOnStartup = if cfg.notifyOnStartup then "true" else "false";
+          grid_status_sensor = cfg.gridStatusSensor;
+          grid_on_message = cfg.messages.gridOn;
+          grid_off_message = cfg.messages.gridOff;
+          notify_on_startup = if cfg.notifyOnStartup then "true" else "false";
         };
       in
       ''

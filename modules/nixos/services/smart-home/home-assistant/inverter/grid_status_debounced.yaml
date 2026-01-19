@@ -9,8 +9,8 @@ template:
         unique_id: grid_status_debounced
         device_class: power
         state: "{{ is_state('binary_sensor.grid_status', 'on') }}"
-        delay_on: @delayOnSeconds@  # Only turn on after being stable for this many seconds
-        delay_off: @delayOffSeconds@  # Only turn off after being stable for this many seconds
+        delay_on: @delay_on_seconds@  # Only turn on after being stable for this many seconds
+        delay_off: @delay_off_seconds@  # Only turn off after being stable for this many seconds
         icon: >
           {% if is_state('binary_sensor.grid_status_debounced', 'on') %}
             mdi:transmission-tower

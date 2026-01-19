@@ -28,6 +28,13 @@ in
   options.${namespace}.services.smart-home.home-assistant.heatpump = {
     enable = mkEnableOption "Enable heatpump integration and dashboard";
 
+    gridStatusSensor = mkOption {
+      type = types.str;
+      default = "binary_sensor.grid_status_debounced";
+      description = "Entity ID of the grid status sensor to monitor";
+      example = "binary_sensor.grid_status_debounced";
+    };
+
     modes = {
       off = mkOption {
         type = modeType;
@@ -163,6 +170,7 @@ in
           off_temperature_to = toString cfg.modes.off.temperature_to;
           on_temperature_from = toString cfg.modes.on.temperature_from;
           on_temperature_to = toString cfg.modes.on.temperature_to;
+          grid_status_sensor = cfg.gridStatusSensor;
         };
       in
       ''

@@ -101,19 +101,19 @@ in
       gridStatusDebounced = {
         delayOnSeconds = mkOption {
           type = types.int;
-          default = 2;
+          default = 10;
           description = ''
             Debounce delay in seconds when grid status changes from OFF to ON.
             The grid state must be stable (ON) for this duration before the sensor turns on.
             This prevents false alarms from brief grid reconnections.
             Recommended: 60 seconds (inverter reconnect time).
           '';
-          example = 2;
+          example = 60;
         };
 
         delayOffSeconds = mkOption {
           type = types.int;
-          default = 60;
+          default = 90;
           description = ''
             Debounce delay in seconds when grid status changes from ON to OFF.
             The grid state must be stable (OFF) for this duration before the sensor turns off.
@@ -274,11 +274,11 @@ in
     systemd.services.home-assistant.preStart = lib.mkAfter (
       let
         gridStatusYaml = pkgs.replaceVars ./grid_status.yaml {
-          voltageThreshold = toString cfg.sensors.gridStatus.voltageThreshold;
+          voltage_threshold = toString cfg.sensors.gridStatus.voltageThreshold;
         };
         gridStatusDebouncedYaml = pkgs.replaceVars ./grid_status_debounced.yaml {
-          delayOnSeconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
-          delayOffSeconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
+          delay_on_seconds = toString cfg.sensors.gridStatusDebounced.delayOnSeconds;
+          delay_off_seconds = toString cfg.sensors.gridStatusDebounced.delayOffSeconds;
         };
       in
       ''
