@@ -181,7 +181,7 @@ in
                 {
                   entity = "input_boolean.heatpump_grid_only";
                   name = "Grid Only";
-                }                
+                }
                 {
                   entity = "input_number.heatpump_battery_minimal_soc";
                   name = "Battery: Minimal SOC";
