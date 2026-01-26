@@ -35,6 +35,12 @@ in
       example = "binary_sensor.grid_status_debounced";
     };
 
+    reactToGridEvents = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to automatically react to grid_on and grid_off events";
+    };
+
     modes = {
       off = mkOption {
         type = modeType;
@@ -129,6 +135,10 @@ in
                   name = "Heatpump";
                 }
                 {
+                  entity = "input_boolean.heatpump_grid_only";
+                  name = "React to Grid Events";
+                }
+                {
                   entity = "input_number.heatpump_temperature_from";
                   name = "Temperature From";
                 }
@@ -149,9 +159,10 @@ in
                 - **Night Schedule Off**: Uses Off Mode settings (configured in Nix)
                 - **Night Schedule On**: Uses On Mode settings (adjustable above)
 
-                ### Grid Status
-                - **Grid Off**: Automatically switches to Off Mode to conserve power
-                - **Grid On**: Automatically switches to On Mode to heat the house if Night Schedule is On
+                ### Grid Status (optional)
+                - **React to Grid Events**: Enable/disable automatic response to grid status changes
+                - **Grid Off**: Automatically switches to Off Mode to conserve power (when enabled)
+                - **Grid On**: Automatically switches to On Mode to heat the house if Night Schedule is On (when enabled)
 
                 You can adjust the On Mode temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
               '';
@@ -171,6 +182,7 @@ in
           on_temperature_from = toString cfg.modes.on.temperature_from;
           on_temperature_to = toString cfg.modes.on.temperature_to;
           grid_status_sensor = cfg.gridStatusSensor;
+          react_to_grid_events = if cfg.reactToGridEvents then "true" else "false";
         };
       in
       ''

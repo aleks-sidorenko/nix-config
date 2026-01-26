@@ -11,6 +11,13 @@ input_text:
     name: ThingSpeak Channel
     initial: !secret thingspeak_channel
 
+# Input boolean to control grid event reactions
+input_boolean:
+  heatpump_grid_only:
+    name: "React to Grid Events"
+    icon: mdi:transmission-tower
+    initial: @react_to_grid_events@
+
 # Input numbers for temperature control
 input_number:
   heatpump_temperature_from:
@@ -224,6 +231,10 @@ automation:
       - platform: state
         entity_id: "@grid_status_sensor@"
         to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.heatpump_grid_only
+        state: "on"
     action:
       - service: switch.turn_off
         target:
@@ -243,6 +254,9 @@ automation:
         entity_id: "@grid_status_sensor@"
         to: "on"
     condition:
+      - condition: state
+        entity_id: input_boolean.heatpump_grid_only
+        state: "on"
       - condition: state
         entity_id: binary_sensor.night_schedule
         state: "on"
