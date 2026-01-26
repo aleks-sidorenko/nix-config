@@ -140,6 +140,22 @@ in
                   name = "Temperature To";
                 }
                 {
+                  entity = "sensor.heatpump_supply_temperature";
+                  name = "Supply Temperature";
+                }
+                {
+                  entity = "sensor.heatpump_return_temperature";
+                  name = "Return Temperature";
+                }
+                {
+                  entity = "sensor.heatpump_overheat";
+                  name = "Overheat";
+                }
+                {
+                  entity = "sensor.heatpump_evaporation";
+                  name = "Evaporation";
+                }
+                {
                   entity = "sensor.heatpump_last_update";
                   name = "Last Update";
                 }
@@ -183,17 +199,27 @@ in
             {
               type = "markdown";
               content = ''
+                ## Heatpump Monitoring
+
+                The following temperature sensors are monitored from ThingSpeak:
+                - **Supply Temperature (СО)**: Heating system supply temperature (field1)
+                - **Temperature From**: Lower temperature setpoint (field2)
+                - **Temperature To**: Upper temperature setpoint (field3)
+                - **Return Temperature (СО)**: Heating system return temperature (field4)
+                - **Overheat**: Overheat temperature (field5)
+                - **Evaporation**: Evaporation temperature (field6)
+
                 ## Heatpump Schedule
 
                 The heatpump temperatures are automatically adjusted based on:
 
                 ### Night Schedule (optional)
-                - **React to Night Schedule**: Enable/disable automatic response to night schedule changes
+                - **Night Mode**: Enable/disable automatic response to night schedule changes
                 - **Night Schedule Off**: Uses Off Mode settings (configured in Nix) (when enabled)
                 - **Night Schedule On**: Uses On Mode settings (adjustable above) (when enabled)
 
                 ### Grid Status (optional)
-                - **React to Grid Events**: Enable/disable automatic response to grid status changes
+                - **Grid Only**: Enable/disable automatic response to grid status changes
                 - **Battery Minimal SOC**: Minimum battery percentage required for heatpump operation during grid off
                 - **Grid Off**: Saves current state and turns off heatpump if battery SOC is below threshold (when enabled)
                 - **Grid On**: Restores previous state if Night Schedule is On (when enabled)

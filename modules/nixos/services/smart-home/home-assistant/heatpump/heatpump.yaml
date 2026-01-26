@@ -149,13 +149,22 @@ sensor:
     value_template: "{{ value_json.feeds[0].entry_id if value_json.feeds else 'unavailable' }}"
     json_attributes_path: "$.feeds[0]"
     json_attributes:
+      - field1
       - field2
       - field3
+      - field4
+      - field5
+      - field6
       - created_at
 
 # Template sensors (modern format)
 template:
   - sensor:
+      - name: "Heatpump Supply Temperature"
+        unique_id: heatpump_supply_temperature
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.heatpump_data', 'field1') | float(0) }}"
+      
       - name: "Heatpump Temperature From"
         unique_id: heatpump_temperature_from
         unit_of_measurement: "°C"
@@ -165,6 +174,21 @@ template:
         unique_id: heatpump_temperature_to
         unit_of_measurement: "°C"
         state: "{{ state_attr('sensor.heatpump_data', 'field3') | int(0) }}"
+      
+      - name: "Heatpump Return Temperature"
+        unique_id: heatpump_return_temperature
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.heatpump_data', 'field4') | float(0) }}"
+      
+      - name: "Heatpump Overheat"
+        unique_id: heatpump_overheat
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.heatpump_data', 'field5') | float(0) }}"
+      
+      - name: "Heatpump Evaporation"
+        unique_id: heatpump_evaporation
+        unit_of_measurement: "°C"
+        state: "{{ state_attr('sensor.heatpump_data', 'field6') | float(0) }}"
       
       - name: "Heatpump Last Update"
         unique_id: heatpump_last_update
@@ -214,6 +238,7 @@ automation:
       - platform: state
         entity_id: binary_sensor.night_schedule
         to: "off"
+        from: "on"
     condition:
       - condition: state
         entity_id: input_boolean.heatpump_night_mode
@@ -236,6 +261,7 @@ automation:
       - platform: state
         entity_id: binary_sensor.night_schedule
         to: "on"
+        from: "off"
     condition:
       - condition: state
         entity_id: input_boolean.heatpump_night_mode
@@ -258,12 +284,15 @@ automation:
       - platform: state
         entity_id: "@grid_status_sensor@"
         to: "off"
+        from: "on"
     condition:
       - condition: state
         entity_id: input_boolean.heatpump_grid_only
         state: "on"
     action:
-      - service: input_boolean.turn_{{ 'on' if is_state('switch.heatpump', 'on') else 'off' }}
+      - variables:
+          heatpump_current_state: "{{ states('switch.heatpump') }}"
+      - service: input_boolean.turn_{{ 'on' if heatpump_current_state == 'on' else 'off' }}
         target:
           entity_id: input_boolean.heatpump_state_before_grid_off
       - service: switch.turn_off
@@ -272,7 +301,7 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: saving state ({{ states('switch.heatpump') }}) and turning off heatpump (grid_only mode)"
+          message: "Grid off detected: saving state ({{ heatpump_current_state }}) and turning off heatpump (grid_only mode)"
     mode: single
 
   # Check battery SOC when grid goes off (independent of grid_only)
@@ -283,6 +312,7 @@ automation:
       - platform: state
         entity_id: "@grid_status_sensor@"
         to: "off"
+        from: "on"
     condition:
       - condition: template
         value_template: >
@@ -333,13 +363,12 @@ automation:
       - platform: state
         entity_id: "@grid_status_sensor@"
         to: "on"
+        from: "off"
     condition:
       - condition: state
         entity_id: input_boolean.heatpump_grid_only
         state: "on"
-      - condition: state
-        entity_id: binary_sensor.night_schedule
-        state: "on"
+      
     action:
       - choose:
           - conditions:
@@ -362,4 +391,27 @@ automation:
             data:
               name: Heatpump
               message: "Grid on detected: heatpump already in desired state ({{ states('switch.heatpump') }}), no action needed"
+    mode: single
+
+  # Clear saved state when grid comes on (always runs to ensure cleanup)
+  - id: heatpump_grid_on_cleanup
+    alias: "Heatpump: Grid On Cleanup"
+    description: "Clear saved state when grid comes on and grid_only is enabled"
+    trigger:
+      - platform: state
+        entity_id: "@grid_status_sensor@"
+        to: "on"
+        from: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.heatpump_grid_only
+        state: "on"
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.heatpump_state_before_grid_off
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Grid on detected: cleared saved state (grid_only mode)"
     mode: single
