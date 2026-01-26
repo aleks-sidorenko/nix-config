@@ -30,6 +30,15 @@ input_boolean:
 
 # Input numbers for temperature control
 input_number:
+  heatpump_battery_minimal_soc:
+    name: "Battery Minimal SOC"
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+    icon: mdi:battery-50
+    initial: @battery_minimal_soc@
+
   heatpump_temperature_from:
     name: "Temperature From"
     min: 10
@@ -244,7 +253,7 @@ automation:
   # Listen to grid status changes - Set to off mode when grid off
   - id: heatpump_grid_off
     alias: "Heatpump: Grid Off"
-    description: "Turn off heatpump when grid status changes to Off-Grid"
+    description: "Save heatpump state and turn off when grid goes off-grid"
     trigger:
       - platform: state
         entity_id: "@grid_status_sensor@"
@@ -263,7 +272,57 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: saving state ({{ states('switch.heatpump') }}) and turning off heatpump"
+          message: "Grid off detected: saving state ({{ states('switch.heatpump') }}) and turning off heatpump (grid_only mode)"
+    mode: single
+
+  # Check battery SOC when grid goes off (independent of grid_only)
+  - id: heatpump_battery_protection_on_grid_off
+    alias: "Heatpump: Battery Protection on Grid Off"
+    description: "Turn off heatpump when grid goes off and battery SOC is below threshold"
+    trigger:
+      - platform: state
+        entity_id: "@grid_status_sensor@"
+        to: "off"
+    condition:
+      - condition: template
+        value_template: >
+          {{ states('@battery_soc_sensor@') | float(0) < states('input_number.heatpump_battery_minimal_soc') | float(50) }}
+      - condition: state
+        entity_id: switch.heatpump
+        state: "on"
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.heatpump
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Grid off detected: battery SOC ({{ states('@battery_soc_sensor@') }}%) below threshold ({{ states('input_number.heatpump_battery_minimal_soc') }}%), turning off heatpump (battery protection)"
+    mode: single
+
+  # Monitor battery SOC during grid off (independent of grid_only)
+  - id: heatpump_battery_low
+    alias: "Heatpump: Battery Low During Grid Off"
+    description: "Turn off heatpump when battery SOC drops below threshold during grid off"
+    trigger:
+      - platform: numeric_state
+        entity_id: "@battery_soc_sensor@"
+        below: input_number.heatpump_battery_minimal_soc
+    condition:
+      - condition: state
+        entity_id: "@grid_status_sensor@"
+        state: "off"
+      - condition: state
+        entity_id: switch.heatpump
+        state: "on"
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.heatpump
+      - service: logbook.log
+        data:
+          name: Heatpump
+          message: "Battery SOC dropped to {{ states('@battery_soc_sensor@') }}% (below {{ states('input_number.heatpump_battery_minimal_soc') }}%), turning off heatpump (battery protection)"
     mode: single
 
   # Listen to grid status changes - Set to on mode when grid on
