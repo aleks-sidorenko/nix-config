@@ -35,10 +35,16 @@ in
       example = "binary_sensor.grid_status_debounced";
     };
 
-    reactToGridEvents = mkOption {
+    gridOnly = mkOption {
       type = types.bool;
       default = true;
       description = "Whether to automatically react to grid_on and grid_off events";
+    };
+
+    nightMode = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to automatically react to night schedule on and off events";
     };
 
     modes = {
@@ -135,6 +141,10 @@ in
                   name = "Heatpump";
                 }
                 {
+                  entity = "input_boolean.heatpump_night_mode";
+                  name = "React to Night Schedule";
+                }
+                {
                   entity = "input_boolean.heatpump_grid_only";
                   name = "React to Grid Events";
                 }
@@ -155,14 +165,15 @@ in
 
                 The heatpump temperatures are automatically adjusted based on:
 
-                ### Night Schedule
-                - **Night Schedule Off**: Uses Off Mode settings (configured in Nix)
-                - **Night Schedule On**: Uses On Mode settings (adjustable above)
+                ### Night Schedule (optional)
+                - **React to Night Schedule**: Enable/disable automatic response to night schedule changes
+                - **Night Schedule Off**: Uses Off Mode settings (configured in Nix) (when enabled)
+                - **Night Schedule On**: Uses On Mode settings (adjustable above) (when enabled)
 
                 ### Grid Status (optional)
                 - **React to Grid Events**: Enable/disable automatic response to grid status changes
-                - **Grid Off**: Automatically switches to Off Mode to conserve power (when enabled)
-                - **Grid On**: Automatically switches to On Mode to heat the house if Night Schedule is On (when enabled)
+                - **Grid Off**: Saves current state and turns off heatpump to conserve power (when enabled)
+                - **Grid On**: Restores previous state if Night Schedule is On (when enabled)
 
                 You can adjust the On Mode temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
               '';
@@ -182,7 +193,8 @@ in
           on_temperature_from = toString cfg.modes.on.temperature_from;
           on_temperature_to = toString cfg.modes.on.temperature_to;
           grid_status_sensor = cfg.gridStatusSensor;
-          react_to_grid_events = if cfg.reactToGridEvents then "true" else "false";
+          grid_only = if cfg.gridOnly then "true" else "false";
+          night_mode = if cfg.nightMode then "true" else "false";
         };
       in
       ''

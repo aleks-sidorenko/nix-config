@@ -13,10 +13,20 @@ input_text:
 
 # Input boolean to control grid event reactions
 input_boolean:
+  heatpump_night_mode:
+    name: "React to Night Schedule"
+    icon: mdi:weather-night
+    initial: @night_mode@
+
   heatpump_grid_only:
     name: "React to Grid Events"
     icon: mdi:transmission-tower
-    initial: @react_to_grid_events@
+    initial: @grid_only@
+
+  heatpump_state_before_grid_off:
+    name: "Heatpump State Before Grid Off"
+    icon: mdi:memory
+    initial: false
 
 # Input numbers for temperature control
 input_number:
@@ -195,6 +205,10 @@ automation:
       - platform: state
         entity_id: binary_sensor.night_schedule
         to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.heatpump_night_mode
+        state: "on"
     action:
       - service: switch.turn_off
         target:
@@ -213,6 +227,10 @@ automation:
       - platform: state
         entity_id: binary_sensor.night_schedule
         to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.heatpump_night_mode
+        state: "on"
     action:
       - service: switch.turn_on
         target:
@@ -236,19 +254,22 @@ automation:
         entity_id: input_boolean.heatpump_grid_only
         state: "on"
     action:
+      - service: input_boolean.turn_{{ 'on' if is_state('switch.heatpump', 'on') else 'off' }}
+        target:
+          entity_id: input_boolean.heatpump_state_before_grid_off
       - service: switch.turn_off
         target:
           entity_id: switch.heatpump
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: turning off heatpump"
+          message: "Grid off detected: saving state ({{ states('switch.heatpump') }}) and turning off heatpump"
     mode: single
 
   # Listen to grid status changes - Set to on mode when grid on
   - id: heatpump_grid_on
     alias: "Heatpump: Grid On"
-    description: "Turn on heatpump when grid status changes to Grid Connected"
+    description: "Restore heatpump state when grid comes back online"
     trigger:
       - platform: state
         entity_id: "@grid_status_sensor@"
@@ -261,11 +282,25 @@ automation:
         entity_id: binary_sensor.night_schedule
         state: "on"
     action:
-      - service: switch.turn_on
-        target:
-          entity_id: switch.heatpump
-      - service: logbook.log
-        data:
-          name: Heatpump
-          message: "Grid on detected: turning on heatpump"
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.heatpump_state_before_grid_off
+                state: "on"
+              - condition: state
+                entity_id: switch.heatpump
+                state: "off"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: switch.heatpump
+              - service: logbook.log
+                data:
+                  name: Heatpump
+                  message: "Grid on detected: restoring heatpump to ON"
+        default:
+          - service: logbook.log
+            data:
+              name: Heatpump
+              message: "Grid on detected: heatpump already in desired state ({{ states('switch.heatpump') }}), no action needed"
     mode: single
