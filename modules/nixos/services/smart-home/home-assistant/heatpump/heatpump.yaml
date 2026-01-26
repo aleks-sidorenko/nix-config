@@ -23,11 +23,6 @@ input_boolean:
     icon: mdi:transmission-tower
     initial: @grid_only@
 
-  heatpump_state_before_grid_off:
-    name: "Heatpump State Before Grid Off"
-    icon: mdi:memory
-    initial: false
-
 # Input numbers for temperature control
 input_number:
   heatpump_battery_minimal_soc:
@@ -279,7 +274,7 @@ automation:
   # Listen to grid status changes - Set to off mode when grid off
   - id: heatpump_grid_off
     alias: "Heatpump: Grid Off"
-    description: "Save heatpump state and turn off when grid goes off-grid"
+    description: "Turn off heatpump when grid goes off-grid"
     trigger:
       - platform: state
         entity_id: "@grid_status_sensor@"
@@ -290,18 +285,13 @@ automation:
         entity_id: input_boolean.heatpump_grid_only
         state: "on"
     action:
-      - variables:
-          heatpump_current_state: "{{ states('switch.heatpump') }}"
-      - service: input_boolean.turn_{{ 'on' if heatpump_current_state == 'on' else 'off' }}
-        target:
-          entity_id: input_boolean.heatpump_state_before_grid_off
       - service: switch.turn_off
         target:
           entity_id: switch.heatpump
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: saving state ({{ heatpump_current_state }}) and turning off heatpump (grid_only mode)"
+          message: "Grid off detected: turning off heatpump (grid_only mode)"
     mode: single
 
   # Check battery SOC when grid goes off (independent of grid_only)
@@ -358,45 +348,7 @@ automation:
   # Listen to grid status changes - Set to on mode when grid on
   - id: heatpump_grid_on
     alias: "Heatpump: Grid On"
-    description: "Restore heatpump state when grid comes back online"
-    trigger:
-      - platform: state
-        entity_id: "@grid_status_sensor@"
-        to: "on"
-        from: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.heatpump_grid_only
-        state: "on"
-      
-    action:
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: input_boolean.heatpump_state_before_grid_off
-                state: "on"
-              - condition: state
-                entity_id: switch.heatpump
-                state: "off"
-            sequence:
-              - service: switch.turn_on
-                target:
-                  entity_id: switch.heatpump
-              - service: logbook.log
-                data:
-                  name: Heatpump
-                  message: "Grid on detected: restoring heatpump to ON"
-        default:
-          - service: logbook.log
-            data:
-              name: Heatpump
-              message: "Grid on detected: heatpump already in desired state ({{ states('switch.heatpump') }}), no action needed"
-    mode: single
-
-  # Clear saved state when grid comes on (always runs to ensure cleanup)
-  - id: heatpump_grid_on_cleanup
-    alias: "Heatpump: Grid On Cleanup"
-    description: "Clear saved state when grid comes on and grid_only is enabled"
+    description: "Turn on heatpump when grid comes back online"
     trigger:
       - platform: state
         entity_id: "@grid_status_sensor@"
@@ -407,11 +359,11 @@ automation:
         entity_id: input_boolean.heatpump_grid_only
         state: "on"
     action:
-      - service: input_boolean.turn_off
+      - service: switch.turn_on
         target:
-          entity_id: input_boolean.heatpump_state_before_grid_off
+          entity_id: switch.heatpump
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid on detected: cleared saved state (grid_only mode)"
+          message: "Grid on detected: turning on heatpump (grid_only mode)"
     mode: single

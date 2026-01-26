@@ -221,8 +221,8 @@ in
                 ### Grid Status (optional)
                 - **Grid Only**: Enable/disable automatic response to grid status changes
                 - **Battery Minimal SOC**: Minimum battery percentage required for heatpump operation during grid off
-                - **Grid Off**: Saves current state and turns off heatpump if battery SOC is below threshold (when enabled)
-                - **Grid On**: Restores previous state if Night Schedule is On (when enabled)
+                - **Grid Off**: Turns off heatpump (when enabled)
+                - **Grid On**: Turns on heatpump (when enabled)
                 - **Battery Protection**: Automatically turns off heatpump if battery drops below threshold during grid off
 
                 You can adjust the On Mode temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
