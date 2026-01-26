@@ -294,16 +294,20 @@ automation:
           message: "Grid off detected: turning off heatpump (grid_only mode)"
     mode: single
 
-  # Check battery SOC when grid goes off (independent of grid_only)
+  # Check battery SOC continuously when grid is off (independent of grid_only)
   - id: heatpump_battery_protection_on_grid_off
-    alias: "Heatpump: Battery Protection on Grid Off"
-    description: "Turn off heatpump when grid goes off and battery SOC is below threshold"
+    alias: "Heatpump: Battery Protection While Grid Off"
+    description: "Turn off heatpump when battery SOC is below threshold while grid is off"
     trigger:
       - platform: state
-        entity_id: "@grid_status_sensor@"
-        to: "off"
-        from: "on"
+        entity_id: "@battery_soc_sensor@"
+      - platform: state
+        entity_id: switch.heatpump
+        to: "on"
     condition:
+      - condition: state
+        entity_id: "@grid_status_sensor@"
+        state: "off"
       - condition: template
         value_template: >
           {{ states('@battery_soc_sensor@') | float(0) < states('input_number.heatpump_battery_minimal_soc') | float(50) }}
@@ -317,7 +321,7 @@ automation:
       - service: logbook.log
         data:
           name: Heatpump
-          message: "Grid off detected: battery SOC ({{ states('@battery_soc_sensor@') }}%) below threshold ({{ states('input_number.heatpump_battery_minimal_soc') }}%), turning off heatpump (battery protection)"
+          message: "Battery SOC ({{ states('@battery_soc_sensor@') }}%) below threshold ({{ states('input_number.heatpump_battery_minimal_soc') }}%) while grid is off, turning off heatpump (battery protection)"
     mode: single
 
   # Monitor battery SOC during grid off (independent of grid_only)
