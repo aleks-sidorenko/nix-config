@@ -77,7 +77,7 @@ in
                     {
                       name = "default";
                       start = "08:00";
-                      end = "23:59";
+                      end = "22:59";
                     }
                   ];
                 }
@@ -91,7 +91,7 @@ in
                     {
                       name = "default";
                       start = "08:00";
-                      end = "23:59";
+                      end = "22:59";
                     }
                   ];
                 }

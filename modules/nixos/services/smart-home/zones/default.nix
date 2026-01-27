@@ -150,7 +150,7 @@ in
         floor = "floor1";
         zone = "garage";
       };
-      
+
       floor1_hall = {
         floor = "floor1";
         zone = "hall";
