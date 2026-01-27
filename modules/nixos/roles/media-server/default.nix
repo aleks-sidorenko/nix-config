@@ -13,15 +13,9 @@ let
   categories = rec {
     movies = "Movies";
     series = "Series";
-    audio = "Audio";
-    books = "Books";
-    software = "Software";
     all = [
       movies
       series
-      audio
-      books
-      software
     ];
   };
 

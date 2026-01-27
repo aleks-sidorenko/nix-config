@@ -125,21 +125,11 @@ in
 
     downloadDir = mkOpt types.str "/data/torrents" "Base download directory for qBittorrent";
 
-    uploadSpeedLimit = mkOpt types.int 500 "Global upload speed limit in KB/s (0 for unlimited)";
+    uploadSpeedLimit = mkOpt types.int 200 "Global upload speed limit in KB/s (0 for unlimited)";
 
     tags = mkOption {
       type = types.listOf types.str;
       default = [
-        "Action"
-        "Comedy"
-        "Drama"
-        "Horror"
-        "Thriller"
-        "Sci-Fi"
-        "Documentary"
-        "Animation"
-        "Family"
-        "Kids"
       ];
       example = [
         "Action"
@@ -150,6 +140,8 @@ in
         "Sci-Fi"
         "Documentary"
         "Animation"
+        "Family"
+        "Kids"
       ];
       description = ''
         List of tags for qBittorrent torrents. These tags can be used to organize and filter torrents.
