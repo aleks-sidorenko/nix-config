@@ -85,6 +85,11 @@ in
             zone = "main";
           };
 
+          floor1_hall = {
+            floor = "floor1";
+            zone = "hall";
+          };
+
           floor1_kitchen = {
             floor = "floor1";
             zone = "kitchen";
@@ -144,6 +149,11 @@ in
       floor1_garage = {
         floor = "floor1";
         zone = "garage";
+      };
+
+      floor1_hall = {
+        floor = "floor1";
+        zone = "hall";
       };
 
       floor1_kitchen = {

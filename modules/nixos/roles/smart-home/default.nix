@@ -68,6 +68,33 @@ in
                     }
                   ];
                 }
+                {
+                  enable = true;
+                  name = "hall_mirror";
+                  displayName = "Hall Mirror";
+                  entity_id = "switch.floor2_hall_plug_mirror";
+                  intervals = [
+                    {
+                      name = "default";
+                      start = "08:00";
+                      end = "22:59";
+                    }
+                  ];
+                }
+
+                {
+                  enable = true;
+                  name = "kids_door";
+                  displayName = "Kids Door";
+                  entity_id = "switch.floor2_kids_plug_door";
+                  intervals = [
+                    {
+                      name = "default";
+                      start = "08:00";
+                      end = "22:59";
+                    }
+                  ];
+                }
               ];
             };
             inverter = {

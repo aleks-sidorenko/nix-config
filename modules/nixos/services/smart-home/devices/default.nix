@@ -174,18 +174,38 @@ in
       }
 
       {
-        zoneName = "floor2_hall";
+        zoneName = "floor1_hall";
         name = "main";
         type = "router";
         ieee = "0xe0798dfffe839bdd";
       }
 
       {
+        zoneName = "floor2_hall";
+        name = "mirror";
+        type = "plug";
+        ieee = "0xa4c138feea147d0a";
+
+      }
+
+      {
+        zoneName = "floor2_kids";
+        name = "door";
+        type = "plug";
+        ieee = "0xa4c1386ccab5bb01";
+
+      }
+      {
+        zoneName = "floor2_office";
+        name = "pc";
+        type = "plug";
+        ieee = "0xa4c13858eeced295";
+      }
+      {
         zoneName = "floor2_office";
         name = "sensor";
         type = "temperature";
         ieee = "0x00158d0007e496fc";
-
       }
 
       {
@@ -202,6 +222,7 @@ in
         ieee = "0xe0798dfffec9b072";
 
       }
+
     ];
 
   };
