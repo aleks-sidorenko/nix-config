@@ -35,6 +35,32 @@ in
       example = "binary_sensor.grid_status_debounced";
     };
 
+    batterySocSensor = mkOption {
+      type = types.str;
+      default = "sensor.inverter_battery";
+      description = "Entity ID of the battery state of charge sensor";
+      example = "sensor.inverter_battery";
+    };
+
+    batteryMinimalSOC = mkOption {
+      type = types.int;
+      default = 50;
+      description = "Minimum battery SOC percentage required to allow heatpump operation during grid off";
+      example = 50;
+    };
+
+    gridOnly = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to automatically react to grid_on and grid_off events";
+    };
+
+    nightMode = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to automatically react to night schedule on and off events";
+    };
+
     modes = {
       off = mkOption {
         type = modeType;
@@ -114,8 +140,28 @@ in
                   name = "Temperature To";
                 }
                 {
+                  entity = "sensor.heatpump_supply_temperature";
+                  name = "Supply Temperature";
+                }
+                {
+                  entity = "sensor.heatpump_return_temperature";
+                  name = "Return Temperature";
+                }
+                {
+                  entity = "sensor.heatpump_overheat";
+                  name = "Overheat";
+                }
+                {
+                  entity = "sensor.heatpump_evaporation";
+                  name = "Evaporation";
+                }
+                {
                   entity = "sensor.heatpump_last_update";
                   name = "Last Update";
+                }
+                {
+                  entity = cfg.batterySocSensor;
+                  name = "Battery: Current SOC";
                 }
               ];
             }
@@ -127,6 +173,18 @@ in
                 {
                   entity = "switch.heatpump";
                   name = "Heatpump";
+                }
+                {
+                  entity = "input_boolean.heatpump_night_mode";
+                  name = "Night Mode";
+                }
+                {
+                  entity = "input_boolean.heatpump_grid_only";
+                  name = "Grid Only";
+                }
+                {
+                  entity = "input_number.heatpump_battery_minimal_soc";
+                  name = "Battery: Minimal SOC";
                 }
                 {
                   entity = "input_number.heatpump_temperature_from";
@@ -141,17 +199,31 @@ in
             {
               type = "markdown";
               content = ''
+                ## Heatpump Monitoring
+
+                The following temperature sensors are monitored from ThingSpeak:
+                - **Supply Temperature (СО)**: Heating system supply temperature (field1)
+                - **Temperature From**: Lower temperature setpoint (field2)
+                - **Temperature To**: Upper temperature setpoint (field3)
+                - **Return Temperature (СО)**: Heating system return temperature (field4)
+                - **Overheat**: Overheat temperature (field5)
+                - **Evaporation**: Evaporation temperature (field6)
+
                 ## Heatpump Schedule
 
                 The heatpump temperatures are automatically adjusted based on:
 
-                ### Night Schedule
-                - **Night Schedule Off**: Uses Off Mode settings (configured in Nix)
-                - **Night Schedule On**: Uses On Mode settings (adjustable above)
+                ### Night Schedule (optional)
+                - **Night Mode**: Enable/disable automatic response to night schedule changes
+                - **Night Schedule Off**: Uses Off Mode settings (configured in Nix) (when enabled)
+                - **Night Schedule On**: Uses On Mode settings (adjustable above) (when enabled)
 
-                ### Grid Status
-                - **Grid Off**: Automatically switches to Off Mode to conserve power
-                - **Grid On**: Automatically switches to On Mode to heat the house if Night Schedule is On
+                ### Grid Status (optional)
+                - **Grid Only**: Enable/disable automatic response to grid status changes
+                - **Battery Minimal SOC**: Minimum battery percentage required for heatpump operation during grid off
+                - **Grid Off**: Turns off heatpump (when enabled)
+                - **Grid On**: Turns on heatpump (when enabled)
+                - **Battery Protection**: Automatically turns off heatpump if battery drops below threshold during grid off
 
                 You can adjust the On Mode temperatures using the controls above. Changes take effect when the night schedule status or grid status changes.
               '';
@@ -171,6 +243,10 @@ in
           on_temperature_from = toString cfg.modes.on.temperature_from;
           on_temperature_to = toString cfg.modes.on.temperature_to;
           grid_status_sensor = cfg.gridStatusSensor;
+          battery_soc_sensor = cfg.batterySocSensor;
+          battery_minimal_soc = toString cfg.batteryMinimalSOC;
+          grid_only = if cfg.gridOnly then "true" else "false";
+          night_mode = if cfg.nightMode then "true" else "false";
         };
       in
       ''
