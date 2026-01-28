@@ -44,7 +44,7 @@ in
 
     batteryMinimalSOC = mkOption {
       type = types.int;
-      default = 50;
+      default = 70;
       description = "Minimum battery SOC percentage required to allow heatpump operation during grid off";
       example = 50;
     };
@@ -57,7 +57,7 @@ in
 
     nightMode = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
       description = "Whether to automatically react to night schedule on and off events";
     };
 
@@ -68,16 +68,16 @@ in
           temperature_from = 15;
           temperature_to = 18;
         };
-        description = "Off heating mode (used during morning)";
+        description = "Off heating mode";
       };
 
       on = mkOption {
         type = modeType;
         default = {
-          temperature_from = 23;
-          temperature_to = 28;
+          temperature_from = 24;
+          temperature_to = 27;
         };
-        description = "On heating mode (used during night)";
+        description = "On heating mode";
       };
     };
   };
