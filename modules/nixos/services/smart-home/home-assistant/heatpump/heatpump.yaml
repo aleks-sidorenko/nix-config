@@ -158,32 +158,32 @@ template:
       - name: "Heatpump Supply Temperature"
         unique_id: heatpump_supply_temperature
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field1') | float(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field1') | float(0) | round(1) }}"
       
       - name: "Heatpump Temperature From"
         unique_id: heatpump_temperature_from
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field2') | int(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field2') | float(0) | round(1) }}"
       
       - name: "Heatpump Temperature To"
         unique_id: heatpump_temperature_to
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field3') | int(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field3') | float(0) | round(1) }}"
       
       - name: "Heatpump Return Temperature"
         unique_id: heatpump_return_temperature
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field4') | float(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field4') | float(0) | round(1) }}"
       
       - name: "Heatpump Overheat"
         unique_id: heatpump_overheat
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field5') | float(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field5') | float(0) | round(1) }}"
       
       - name: "Heatpump Evaporation"
         unique_id: heatpump_evaporation
         unit_of_measurement: "°C"
-        state: "{{ state_attr('sensor.heatpump_data', 'field6') | float(0) }}"
+        state: "{{ state_attr('sensor.heatpump_data', 'field6') | float(0) | round(1) }}"
       
       - name: "Heatpump Last Update"
         unique_id: heatpump_last_update
