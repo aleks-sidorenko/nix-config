@@ -23,8 +23,10 @@ in
         homebrew.enable = true;
       };
 
-      cli.tools = {
-        nh = {
+      cli = {
+        terminals.ghostty.enable = true;
+
+        tools.nh = {
           enable = true;
           clean.enable = true;
         };
