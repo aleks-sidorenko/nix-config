@@ -90,13 +90,22 @@ in
 
         # nix
         nhh = "nh home switch";
-        nho = "nh os switch";
-        nhu = "nh os --update";
-
         nd = "nix develop";
         nfu = "nix flake update";
         hms = "home-manager switch --flake ~/.${namespace}#${config.${namespace}.user.name}@${host}";
+      }
+      // optionalAttrs pkgs.stdenv.isLinux {
+        # NixOS-specific
+        nho = "nh os switch";
+        nhu = "nh os --update";
         nrs = "sudo nixos-rebuild switch --flake ~/.${namespace}#${host}";
+      }
+      // optionalAttrs pkgs.stdenv.isDarwin {
+        # macOS-specific
+        nhd = "nh darwin switch";
+        drs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
+      }
+      // {
 
         # new commads
         weather = "curl wttr.in/Kyiv";

@@ -23,6 +23,8 @@ let
       python.enable = lib.mkIf (cfg.development.python) (lib.mkForce true);
       go.enable = lib.mkIf (cfg.development.go) (lib.mkForce true);
       typescript.enable = lib.mkIf (cfg.development.typescript) (lib.mkForce true);
+      scala.enable = lib.mkIf (cfg.development.scala) (lib.mkForce true);
+      java.enable = lib.mkIf (cfg.development.java) (lib.mkForce true);
     };
     # Pass AI options from the home configuration
     config.ai = {
@@ -43,6 +45,8 @@ in
       python = mkEnableOption "Enable Python development support in Neovim.";
       go = mkEnableOption "Enable Go development support in Neovim.";
       typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
+      scala = mkEnableOption "Enable Scala development support in Neovim.";
+      java = mkEnableOption "Enable Java development support in Neovim.";
     };
 
     ai = {

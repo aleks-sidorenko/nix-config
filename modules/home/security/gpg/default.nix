@@ -73,7 +73,7 @@ in
 
     };
 
-    systemd.user.tmpfiles.rules = [
+    systemd.user.tmpfiles.rules = mkIf pkgs.stdenv.isLinux [
       "L+ %h/.gnupg-sockets - - - - /run/user/%U/gnupg"
     ];
 

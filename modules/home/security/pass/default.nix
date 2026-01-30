@@ -31,7 +31,7 @@ in
       ]);
     };
 
-    services.pass-secret-service = {
+    services.pass-secret-service = mkIf pkgs.stdenv.isLinux {
       enable = true;
       storePath = passwordStore;
     };

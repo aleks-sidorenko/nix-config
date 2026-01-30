@@ -67,33 +67,37 @@ in
     };
 
     # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
-    systemd.user.targets.tray = {
+    # Linux-only systemd target
+    systemd.user.targets.tray = mkIf pkgs.stdenv.isLinux {
       Unit = {
         Description = "Home Manager System Tray";
         Requires = [ "graphical-session-pre.target" ];
       };
     };
 
-    home.sessionVariables = {
+    # Linux/Wayland-specific session variables
+    home.sessionVariables = mkIf pkgs.stdenv.isLinux {
       MOZ_ENABLE_WAYLAND = 1;
       QT_QPA_PLATFORM = "wayland;xcb";
       LIBSEAT_BACKEND = "logind";
     };
 
-    # TODO: move this to somewhere
-    home.packages = with pkgs; [
+    # Linux-only packages (Wayland tools)
+    home.packages = mkIf pkgs.stdenv.isLinux (
+      with pkgs;
+      [
+        brightnessctl # for brightness control
+        xdg-utils # for xdg-open
+        wl-clipboard # for clipboard
+        clipse # for clipboard
+        pamixer # for volume control
+        playerctl # for media control
 
-      brightnessctl # for brightness control
-      xdg-utils # for xdg-open
-      wl-clipboard # for clipboard
-      clipse # for clipboard
-      pamixer # for volume control
-      playerctl # for media control
-
-      grimblast # for screenshots
-      slurp # for screenshots
-      sway-contrib.grimshot # for screenshots
-      satty # for brightness control
-    ];
+        grimblast # for screenshots
+        slurp # for screenshots
+        sway-contrib.grimshot # for screenshots
+        satty # for brightness control
+      ]
+    );
   };
 }
