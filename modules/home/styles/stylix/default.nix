@@ -8,6 +8,35 @@
 }:
 let
   cfg = config.${namespace}.styles.stylix;
+
+  # Shared font configuration (works on both platforms)
+  fontConfig = {
+    sizes = {
+      terminal = 14;
+      applications = 12;
+      popups = 12;
+    };
+
+    monospace = {
+      name = "FiraMono Nerd Font";
+      package = pkgs.nerd-fonts.fira-mono;
+    };
+
+    sansSerif = {
+      name = "Fira Sans";
+      package = pkgs.fira;
+    };
+
+    serif = {
+      name = "Source Serif";
+      package = pkgs.source-serif;
+    };
+
+    emoji = {
+      package = pkgs.noto-fonts-color-emoji;
+      name = "Noto Color Emoji";
+    };
+  };
 in
 {
   imports = with inputs; [
@@ -19,59 +48,63 @@ in
     enable = lib.mkEnableOption "Enable stylix style manager.";
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    # Common config for all platforms
+    {
+      catppuccin.flavor = "mocha";
+    }
 
-    catppuccin.flavor = "mocha";
-
-    stylix = {
-      enable = true;
-      autoEnable = true;
-      base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
-
-      image = pkgs.${namespace}.wallpapers.earth;
-
-      iconTheme = {
+    # Linux: full stylix configuration
+    (lib.mkIf pkgs.stdenv.isLinux {
+      stylix = {
         enable = true;
-        package = pkgs.catppuccin-papirus-folders.override {
-          flavor = "mocha";
-          accent = "lavender";
+        autoEnable = true;
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+
+        image = pkgs.${namespace}.wallpapers.earth;
+
+        iconTheme = {
+          enable = true;
+          package = pkgs.catppuccin-papirus-folders.override {
+            flavor = "mocha";
+            accent = "lavender";
+          };
+          dark = "Papirus-Dark";
         };
-        dark = "Papirus-Dark";
+
+        cursor = {
+          name = "Bibata-Modern-Classic";
+          package = pkgs.bibata-cursors;
+          size = 24;
+        };
+
+        fonts = fontConfig;
+      };
+    })
+
+    # macOS: minimal safe stylix (no autoEnable, only fonts)
+    (lib.mkIf pkgs.stdenv.isDarwin {
+      stylix = {
+        enable = true;
+        # IMPORTANT: autoEnable pulls in Linux-only dependencies (xdotool, etc.)
+        autoEnable = false;
+        base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
+
+        # Wallpaper (for reference, macOS manages wallpapers separately)
+        image = pkgs.${namespace}.wallpapers.earth;
+
+        # Only fonts - icons and cursors have Linux-only dependencies
+        fonts = fontConfig;
       };
 
-      cursor = {
-        name = "Bibata-Modern-Classic";
-        package = pkgs.bibata-cursors;
-        size = 24;
+      # Manually enable safe targets for macOS
+      stylix.targets = {
+        # Terminal emulators (config-based, no package dependencies)
+        bat.enable = true;
+        fzf.enable = true;
+        lazygit.enable = true;
+        # Neovim handled separately via nixvim
       };
-
-      fonts = {
-        sizes = {
-          terminal = 14;
-          applications = 12;
-          popups = 12;
-        };
-
-        monospace = {
-          name = "FiraMono Nerd Font";
-          package = pkgs.nerd-fonts.fira-mono;
-        };
-
-        sansSerif = {
-          name = "Fira Sans";
-          package = pkgs.fira;
-        };
-
-        serif = {
-          name = "Source Serif";
-          package = pkgs.source-serif;
-        };
-
-        emoji = {
-          package = pkgs.noto-fonts-color-emoji;
-          name = "Noto Color Emoji";
-        };
-      };
-    };
-  };
+    })
+  ]);
 }
