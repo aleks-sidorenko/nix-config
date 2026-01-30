@@ -25,8 +25,8 @@ in
       package = pkgs.fish;
     };
 
-    # Styles
-    stylix.targets.fish.enable = true; # Enable Stylix
+    # Styles (fish target is safe on all platforms)
+    stylix.targets.fish.enable = mkIf config.${namespace}.styles.stylix.enable true;
     catppuccin.fish.enable = true;
 
     programs.fish = {

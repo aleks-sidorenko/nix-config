@@ -21,7 +21,10 @@ in
 
       roles.development = {
         enable = true;
-        ai.claude-code = true;
+        ai = {
+          claude-code = true;
+          copilot = false;
+        };
         languages = {
           scala = true;
           java = true;

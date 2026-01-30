@@ -31,7 +31,7 @@ in
         maven
       ]
       ++ optionals cfg.ide [
-        jetbrains.idea-community
+        jetbrains.idea
       ];
   };
 }

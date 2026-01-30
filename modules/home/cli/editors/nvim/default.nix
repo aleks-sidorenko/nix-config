@@ -71,7 +71,8 @@ in
     # Covered with nixvim.vimdiffAlias
     home.shellAliases.vimdiff = "nvim -d";
 
-    stylix.targets.nixvim.enable = true; # Enable Stylix for Neovim
+    # Enable Stylix for Neovim (nixvim target is safe on all platforms)
+    stylix.targets.nixvim.enable = mkIf config.${namespace}.styles.stylix.enable true;
 
     xdg.desktopEntries = lib.optionalAttrs config.${namespace}.desktops.addons.xdg.enable {
       neovim = {

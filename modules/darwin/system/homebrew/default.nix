@@ -12,6 +12,7 @@ in
 {
   options.${namespace}.system.homebrew = with types; {
     enable = mkBoolOpt false "Whether to manage Homebrew";
+    brews = mkOpt (listOf str) [ ] "Homebrew formulae to install";
     casks = mkOpt (listOf str) [ ] "Homebrew casks to install";
   };
 
@@ -23,6 +24,7 @@ in
         cleanup = "zap"; # Remove unlisted casks
         upgrade = false; # Don't auto-upgrade
       };
+      brews = cfg.brews;
       casks = cfg.casks;
     };
   };

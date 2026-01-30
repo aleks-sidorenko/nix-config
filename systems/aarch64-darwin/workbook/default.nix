@@ -7,8 +7,8 @@ with lib;
 with lib.${namespace};
 {
   ${namespace} = {
-    # Use workstation role (includes common + homebrew + defaults)
-    roles.workstation = {
+    # Use work role (includes common + homebrew + defaults)
+    roles.work = {
       enable = true;
     };
 
@@ -16,5 +16,5 @@ with lib.${namespace};
     user.name = "oleksandrsy";
   };
 
-  system.stateVersion = 5;
+  system.stateVersion = "25.05";
 }

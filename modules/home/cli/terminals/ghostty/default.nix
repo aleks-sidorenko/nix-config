@@ -168,11 +168,10 @@ let
   };
 
   # Convert settings to ghostty config format for macOS
-  formatValue = v:
-    if isBool v then (if v then "true" else "false")
-    else toString v;
+  formatValue = v: if isBool v then (if v then "true" else "false") else toString v;
 
-  formatSetting = name: value:
+  formatSetting =
+    name: value:
     if isList value then
       concatMapStringsSep "\n" (v: "${name} = ${formatValue v}") value
     else

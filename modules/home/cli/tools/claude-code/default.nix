@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.tools.claude-code;
+  isDarwin = pkgs.stdenv.isDarwin;
 in
 {
   options.${namespace}.cli.tools.claude-code = with types; {
@@ -16,8 +17,13 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      claude-code
-    ];
+    # On Darwin, installation is handled by the darwin system module via Homebrew
+    # On Linux, install via nixpkgs
+    home.packages = mkIf (!isDarwin) (
+      with pkgs;
+      [
+        claude-code
+      ]
+    );
   };
 }

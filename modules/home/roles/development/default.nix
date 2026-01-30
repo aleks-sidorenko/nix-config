@@ -77,7 +77,7 @@ in
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;
-          claude-code.enable = true;
+          claude-code.enable = cfg.ai.claude-code;
           database.enable = true;
           direnv.enable = true;
           eza.enable = true;
