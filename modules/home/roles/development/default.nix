@@ -30,6 +30,12 @@ in
       python = mkEnableOption "Enable Python development support";
       go = mkEnableOption "Enable Go development support";
       typescript = mkEnableOption "Enable TypeScript development support";
+      scala = mkEnableOption "Enable Scala development support";
+      java = mkEnableOption "Enable Java development support";
+    };
+
+    jvm = {
+      version = mkOpt types.str "21" "JDK version (17 or 21)";
     };
   };
 
@@ -40,9 +46,12 @@ in
 
     ${namespace} = {
       development = {
-        haskell = {
-          enable = cfg.languages.haskell;
+        haskell.enable = cfg.languages.haskell;
+        java = {
+          enable = cfg.languages.java;
+          version = cfg.jvm.version;
         };
+        scala.enable = cfg.languages.scala;
       };
       cli = {
         editors.nvim = {
@@ -57,6 +66,8 @@ in
             python = cfg.languages.python;
             go = cfg.languages.go;
             typescript = cfg.languages.typescript;
+            scala = cfg.languages.scala;
+            java = cfg.languages.java;
           };
         };
         multiplexers.zellij.enable = true;
