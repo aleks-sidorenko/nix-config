@@ -22,7 +22,7 @@ in
       roles.development = {
         enable = true;
         ai = {
-          claude-code = true;
+          claude-code = false;
           copilot = false;
         };
         languages = {

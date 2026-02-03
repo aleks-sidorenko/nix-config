@@ -16,5 +16,5 @@ with lib.${namespace};
     user.name = "oleksandrsy";
   };
 
-  system.stateVersion = "25.05";
+  system.stateVersion = 5;
 }

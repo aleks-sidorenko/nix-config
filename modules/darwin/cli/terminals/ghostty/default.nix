@@ -15,6 +15,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    homebrew.casks = [ "ghostty" ];
+    ${namespace}.system.homebrew.casks = [ "ghostty" ];
   };
 }

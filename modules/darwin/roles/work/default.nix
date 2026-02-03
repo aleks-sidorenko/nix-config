@@ -12,11 +12,6 @@ in
 {
   options.${namespace}.roles.work = with types; {
     enable = mkEnableOption "Enable work configuration";
-
-    homebrew = {
-      brews = mkOpt (listOf str) [ ] "Additional Homebrew formulae";
-      casks = mkOpt (listOf str) [ ] "Additional Homebrew casks";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -24,15 +19,11 @@ in
       # Inherit common configuration
       roles.common = enabled;
 
-      # Homebrew for CLI tools and GUI apps
-      system.homebrew = {
-        enable = true;
-        brews = cfg.homebrew.brews;
-        casks = cfg.homebrew.casks;
+      cli = {
+        tools = {
+          claude-code = enabled;
+        };
       };
-
-      # Enable claude-code CLI for development
-      cli.tools.claude-code.enable = true;
     };
   };
 }
