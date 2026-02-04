@@ -24,25 +24,36 @@ in
     ];
 
     ${namespace} = {
-      roles.common = enabled; # Reuse common CLI tools
+      roles = {
+        common = enabled; # Reuse common CLI tools
 
-      roles.development = {
-        enable = true;
-        ai = {
-          claude-code = false;
-          copilot = false;
-        };
-        languages = {
-          scala = true;
-          java = true;
+        development = {
+          enable = true;
+          ai = {
+            claude-code = false;
+            copilot = false;
+          };
+          languages = {
+            scala = true;
+            java = true;
+          };
+          editors = {
+            code = true;
+            cursor = true;
+            idea = true;
+          };
         };
       };
-
+      
       cli = {
         tools = {
-          k8s.enable = true;
+          k8s.enable = false;
         };
       };
+
+      browsers = {
+        chrome.enable = true;
+      };      
     };
 
   };

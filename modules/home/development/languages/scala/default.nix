@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.development.scala;
+  cfg = config.${namespace}.development.languages.scala;
 in
 {
-  options.${namespace}.development.scala = {
+  options.${namespace}.development.languages.scala = {
     enable = mkOpt types.bool false "Whether to configure Scala development.";
   };
 

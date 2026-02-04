@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.development.haskell;
+  cfg = config.${namespace}.development.languages.haskell;
 in
 {
-  options.${namespace}.development.haskell = {
+  options.${namespace}.development.languages.haskell = {
     enable = mkOpt types.bool false "Whether to configure Haskell development.";
   };
 

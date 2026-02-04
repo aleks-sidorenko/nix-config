@@ -37,6 +37,12 @@ in
     jvm = {
       version = mkOpt types.str "21" "JDK version (17 or 21)";
     };
+
+    editors = {
+      code = mkEnableOption "Enable Visual Studio Code";
+      cursor = mkEnableOption "Enable Cursor editor";
+      idea = mkEnableOption "Enable JetBrains IDEA";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -46,12 +52,19 @@ in
 
     ${namespace} = {
       development = {
-        haskell.enable = cfg.languages.haskell;
-        java = {
-          enable = cfg.languages.java;
-          version = cfg.jvm.version;
+        languages = {
+          haskell.enable = cfg.languages.haskell;
+          java = {
+            enable = cfg.languages.java;
+            version = cfg.jvm.version;
+          };
+          scala.enable = cfg.languages.scala;
         };
-        scala.enable = cfg.languages.scala;
+        editors = {
+          code.enable = cfg.editors.code;
+          cursor.enable = cfg.editors.cursor;
+          idea.enable = cfg.editors.idea;
+        };
       };
       cli = {
         editors.nvim = {

@@ -34,6 +34,11 @@ in
       };
 
       cli = {
+        shells.fish = {
+          enable = true;
+          default = true;
+        };
+
         terminals.ghostty.enable = true;
 
         tools.nh = {
