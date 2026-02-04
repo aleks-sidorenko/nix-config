@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.disks.hibernation = {
-    enable = mkBoolOpt false "Whether or not to enable hibernation.";
+    enable = mkBoolOpt false "Whether or not to enable hibernation";
     device = mkStringOpt defaults.disks.root "The resume device name";
   };
 

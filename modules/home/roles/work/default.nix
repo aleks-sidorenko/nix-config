@@ -19,7 +19,7 @@ in
     assertions = [
       {
         assertion = pkgs.stdenv.isDarwin;
-        message = "The work role is only supported on Darwin (macOS) systems.";
+        message = "The work role is only supported on Darwin (macOS) systems";
       }
     ];
 
@@ -41,6 +41,12 @@ in
             code = true;
             cursor = true;
             idea = true;
+          };
+          build = {
+            bazel = true;
+          };
+          database = {
+            mysql = true;
           };
         };
       };

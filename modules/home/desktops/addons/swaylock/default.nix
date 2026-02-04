@@ -13,11 +13,11 @@ in
 {
   options.${namespace}.desktops.addons.swaylock = {
     enable = mkEnableOption "Enable swaylock lock management";
-    blur = mkOpt (types.nullOr types.str) "7x5" "radius x times blur the image.";
-    vignette = mkOpt (types.nullOr types.str) "0.5x0.5" "base:factor apply vignette effect.";
+    blur = mkOpt (types.nullOr types.str) "7x5" "radius x times blur the image";
+    vignette = mkOpt (types.nullOr types.str) "0.5x0.5" "base:factor apply vignette effect";
     binary =
       mkOpt (types.nullOr types.str) "${pkgs.swaylock-effects}/bin/swaylock"
-        "Location of the binary to use for swaylock.";
+        "Location of the binary to use for swaylock";
   };
 
   config = mkIf cfg.enable {

@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.cli.tools.nix-ld = with types; {
-    enable = mkBoolOpt false "Whether or not to enable nix-ld.";
+    enable = mkBoolOpt false "Whether or not to enable nix-ld";
   };
 
   config = mkIf cfg.enable {

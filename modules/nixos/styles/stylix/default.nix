@@ -10,7 +10,7 @@ let
 in
 {
   options.${namespace}.styles.stylix = {
-    enable = lib.mkEnableOption "Enable stylix theme management on the system level.";
+    enable = lib.mkEnableOption "Enable stylix theme management on the system level";
   };
 
   config = lib.mkIf cfg.enable {

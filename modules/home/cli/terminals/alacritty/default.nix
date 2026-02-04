@@ -12,8 +12,8 @@ let
 in
 {
   options.${namespace}.cli.terminals.alacritty = with types; {
-    enable = mkEnableOption "Enable alacritty terminal emulator.";
-    default = mkBoolOpt false "Whether or not to use alacritty as the default terminal.";
+    enable = mkEnableOption "Enable alacritty terminal emulator";
+    default = mkBoolOpt false "Whether or not to use alacritty as the default terminal";
   };
 
   config = mkIf cfg.enable {

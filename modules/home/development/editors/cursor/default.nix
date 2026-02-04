@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.development.editors.cursor = {
-    enable = mkOpt types.bool false "Whether to install Cursor editor.";
+    enable = mkEnableOption "Whether to install Cursor editor";
   };
 
   config = mkIf cfg.enable {

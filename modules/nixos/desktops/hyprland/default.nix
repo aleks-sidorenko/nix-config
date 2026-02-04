@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.desktops.hyprland = with types; {
-    enable = mkBoolOpt false "Enable or disable the hyprland window manager.";
+    enable = mkBoolOpt false "Enable or disable the hyprland window manager";
   };
 
   config = mkIf cfg.enable {

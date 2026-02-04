@@ -14,9 +14,9 @@ let
 in
 {
   options.${namespace}.user = {
-    enable = mkOpt types.bool false "Whether to configure the user account.";
-    home = mkOpt (types.nullOr types.str) defaultHome "The user's home directory.";
-    name = mkOpt (types.nullOr types.str) defaults.user "The user account.";
+    enable = mkEnableOption "Whether to configure the user account";
+    home = mkOpt (types.nullOr types.str) defaultHome "The user's home directory";
+    name = mkOpt (types.nullOr types.str) defaults.user "The user account";
   };
 
   config = mkIf cfg.enable (mkMerge [

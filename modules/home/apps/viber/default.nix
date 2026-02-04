@@ -13,11 +13,11 @@ let
 in
 {
   options.${namespace}.apps.viber = {
-    enable = mkEnableOption "Enable the Viber desktop client.";
+    enable = mkEnableOption "Enable the Viber desktop client";
     autostart = mkOption {
       type = types.bool;
       default = true;
-      description = "Autostart Viber on login.";
+      description = "Autostart Viber on login";
     };
   };
 

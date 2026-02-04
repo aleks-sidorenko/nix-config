@@ -14,9 +14,9 @@ let
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
-    enable = mkEnableOption "Enable ghostty terminal emulator.";
-    default = mkBoolOpt false "Whether or not to use ghostty as the default terminal.";
-    package = mkPackageOpt pkgs.ghostty "Package to use for ghostty terminal.";
+    enable = mkEnableOption "Enable ghostty terminal emulator";
+    default = mkBoolOpt false "Whether or not to use ghostty as the default terminal";
+    package = mkPackageOpt pkgs.ghostty "Package to use for ghostty terminal";
   };
 
   config = mkIf cfg.enable {

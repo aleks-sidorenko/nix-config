@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.services.gaming = {
-    enable = mkBoolOpt enabled "Enable gaming services.";
+    enable = mkBoolOpt enabled "Enable gaming services";
     group = mkOpt types.str "gaming" "Group to run gaming services as";
   };
 

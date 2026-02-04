@@ -13,7 +13,7 @@ with lib.${namespace};
     };
 
     # Override user name for this machine
-    user.name = "oleksandrsy";
+    user.name = mkForce "oleksandrsy";
   };
 
   system.stateVersion = 5;

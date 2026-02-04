@@ -45,7 +45,7 @@ in
   ];
 
   options.${namespace}.styles.stylix = {
-    enable = lib.mkEnableOption "Enable stylix style manager.";
+    enable = lib.mkEnableOption "Enable stylix style manager";
   };
 
   config = lib.mkIf cfg.enable (

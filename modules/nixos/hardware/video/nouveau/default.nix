@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.hardware.video.nouveau = with types; {
-    enable = mkBoolOpt false "Enable or disable hardware video support using Nouveau drivers.";
+    enable = mkBoolOpt false "Enable or disable hardware video support using Nouveau drivers";
   };
 
   config = mkIf cfg.enable {

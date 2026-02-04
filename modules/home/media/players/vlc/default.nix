@@ -15,8 +15,8 @@ let
 in
 {
   options.${namespace}.media.players.vlc = {
-    enable = mkEnableOption "Enable or disable the VLC media player.";
-    default = mkBoolOpt false "Whether or not to use VLC as the default media player.";
+    enable = mkEnableOption "Enable or disable the VLC media player";
+    default = mkBoolOpt false "Whether or not to use VLC as the default media player";
   };
 
   config = mkIf cfg.enable {

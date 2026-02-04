@@ -27,14 +27,14 @@ let
 in
 {
   options.${namespace}.system.locale = with types; {
-    enable = mkBoolOpt false "Whether or not to manage locale settings.";
+    enable = mkBoolOpt false "Whether or not to manage locale settings";
     locales =
       mkOpt (listOf str) defaults.locale.locales
-        "Locales to support. First entry becomes the system locale.";
+        "Locales to support. First entry becomes the system locale";
     layouts =
       mkOpt (listOf str) defaults.locale.layouts
-        "Keyboard layouts to configure. First entry becomes the default layout.";
-    timeZone = mkOpt str defaults.locale.timeZone "The system time-zone.";
+        "Keyboard layouts to configure. First entry becomes the default layout";
+    timeZone = mkOpt str defaults.locale.timeZone "The system time-zone";
   };
 
   config = mkIf cfg.enable {

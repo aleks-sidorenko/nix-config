@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.development.editors.idea = {
-    enable = mkOpt types.bool false "Whether to install JetBrains IDEA.";
+    enable = mkEnableOption "Whether to install JetBrains IDEA";
   };
 
   config = mkIf cfg.enable {

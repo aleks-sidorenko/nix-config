@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.security.yubikey = with types; {
-    enable = mkBoolOpt false "Whether to enable yubikey for auth.";
+    enable = mkBoolOpt false "Whether to enable yubikey for auth";
   };
 
   config = mkIf cfg.enable {

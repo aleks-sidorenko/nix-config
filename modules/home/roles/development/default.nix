@@ -34,14 +34,22 @@ in
       java = mkEnableOption "Enable Java development support";
     };
 
-    jvm = {
-      version = mkOpt types.str "21" "JDK version (17 or 21)";
+    platforms = {
+      jvm = mkEnableOption "Enable JVM platform support";
     };
 
     editors = {
       code = mkEnableOption "Enable Visual Studio Code";
       cursor = mkEnableOption "Enable Cursor editor";
       idea = mkEnableOption "Enable JetBrains IDEA";
+    };
+
+    build = {
+      bazel = mkEnableOption "Enable bazel build tool";
+    };
+
+    database = {
+      mysql = mkEnableOption "Enable MySQL database client";
     };
   };
 
@@ -54,16 +62,25 @@ in
       development = {
         languages = {
           haskell.enable = cfg.languages.haskell;
-          java = {
-            enable = cfg.languages.java;
-            version = cfg.jvm.version;
-          };
+          java.enable = cfg.languages.java;
           scala.enable = cfg.languages.scala;
+        };
+        platforms = {
+          jvm.enable = cfg.platforms.jvm || cfg.languages.java || cfg.languages.scala;
         };
         editors = {
           code.enable = cfg.editors.code;
           cursor.enable = cfg.editors.cursor;
           idea.enable = cfg.editors.idea;
+        };
+        ai = {
+          claude-code.enable = cfg.ai.claude-code;
+        };
+        build = {
+          bazel.enable = cfg.build.bazel;
+        };
+        database = {
+          mysql.enable = cfg.database.mysql;
         };
       };
       cli = {
@@ -90,8 +107,6 @@ in
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;
-          claude-code.enable = cfg.ai.claude-code;
-          database.enable = true;
           direnv.enable = true;
           eza.enable = true;
           fzf.enable = true;

@@ -12,8 +12,8 @@ let
 in
 {
   options.${namespace}.cli.shells.fish = with types; {
-    enable = mkEnableOption "Whether or not to enable fish shell on host level.";
-    default = mkBoolOpt false "Whether or not to use fish as the default shell.";
+    enable = mkEnableOption "Whether or not to enable fish shell on host level";
+    default = mkBoolOpt false "Whether or not to use fish as the default shell";
   };
 
   config = mkIf cfg.enable {

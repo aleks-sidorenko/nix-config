@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.security.doas = {
-    enable = mkBoolOpt false "Whether or not to replace sudo with doas.";
+    enable = mkBoolOpt false "Whether or not to replace sudo with doas";
   };
 
   config = mkIf cfg.enable {

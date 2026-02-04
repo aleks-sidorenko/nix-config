@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.disks.boot = with types; {
-    enable = mkBoolOpt false "Whether or not to enable booting.";
+    enable = mkBoolOpt false "Whether or not to enable booting";
     debug = mkBoolOpt false "Enable debug mode";
     configurationLimit = mkOpt int 3 "Maximum number of configurations in boot menu";
   };

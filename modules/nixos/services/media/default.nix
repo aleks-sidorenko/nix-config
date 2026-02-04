@@ -18,7 +18,7 @@ let
 in
 {
   options.${namespace}.services.media = {
-    enable = mkBoolOpt enabled "Enable media media services.";
+    enable = mkBoolOpt enabled "Enable media media services";
     group = mkOpt types.str "media" "Group to run media services as";
   };
 

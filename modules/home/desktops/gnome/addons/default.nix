@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.desktops.gnome.addons = {
-    enable = mkEnableOption "Enable the GNOME desktop environment addons and extras.";
+    enable = mkEnableOption "Enable the GNOME desktop environment addons and extras";
   };
 
   config = mkIf cfg.enable {

@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.development.languages.scala = {
-    enable = mkOpt types.bool false "Whether to configure Scala development.";
+    enable = mkEnableOption "Whether to configure Scala development";
   };
 
   config = mkIf cfg.enable {

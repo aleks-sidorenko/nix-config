@@ -19,8 +19,8 @@ let
 in
 {
   options.${namespace}.browsers.chromium = {
-    enable = mkEnableOption "Enable or disable the Chromium browser.";
-    default = mkBoolOpt false "Whether or not to use Chromium as the default browser.";
+    enable = mkEnableOption "Enable or disable the Chromium browser";
+    default = mkBoolOpt false "Whether or not to use Chromium as the default browser";
   };
 
   config = mkIf cfg.enable {

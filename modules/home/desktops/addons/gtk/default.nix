@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.desktops.addons.gtk = {
-    enable = mkEnableOption "Enable GTK theme management.";
+    enable = mkEnableOption "Enable GTK theme management";
   };
 
   config = mkIf cfg.enable {

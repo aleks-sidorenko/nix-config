@@ -36,22 +36,22 @@ in
 {
 
   options.${namespace}.cli.editors.nvim = with types; {
-    enable = mkEnableOption "Enable neovim editor.";
-    default = mkBoolOpt false "Whether or not to use neovim as the default shell.";
+    enable = mkEnableOption "Enable neovim editor";
+    default = mkBoolOpt false "Whether or not to use neovim as the default shell";
 
     development = {
-      haskell = mkEnableOption "Enable Haskell development support in Neovim.";
-      rust = mkEnableOption "Enable Rust development support in Neovim.";
-      python = mkEnableOption "Enable Python development support in Neovim.";
-      go = mkEnableOption "Enable Go development support in Neovim.";
-      typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
-      scala = mkEnableOption "Enable Scala development support in Neovim.";
-      java = mkEnableOption "Enable Java development support in Neovim.";
+      haskell = mkEnableOption "Enable Haskell development support in Neovim";
+      rust = mkEnableOption "Enable Rust development support in Neovim";
+      python = mkEnableOption "Enable Python development support in Neovim";
+      go = mkEnableOption "Enable Go development support in Neovim";
+      typescript = mkEnableOption "Enable TypeScript development support in Neovim";
+      scala = mkEnableOption "Enable Scala development support in Neovim";
+      java = mkEnableOption "Enable Java development support in Neovim";
     };
 
     ai = {
-      copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim.";
-      claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim.";
+      copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim";
+      claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim";
     };
   };
 

@@ -34,15 +34,15 @@ let
 in
 {
   options.${namespace}.media.players.default = with types; {
-    enable = mkEnableOption "Whether or not to enable the default media player.";
-    name = mkStringOpt' "The name of the default media player to use.";
+    enable = mkEnableOption "Whether or not to enable the default media player";
+    name = mkStringOpt' "The name of the default media player to use";
   };
 
   config = mkIf cfg.enable {
     assertions = [
       {
         assertion = cfg.name != null;
-        message = "Please specify a media player name in ${namespace}.media.players.default.";
+        message = "Please specify a media player name in ${namespace}.media.players.default";
       }
     ];
 

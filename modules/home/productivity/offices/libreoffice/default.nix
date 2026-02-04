@@ -15,8 +15,8 @@ let
 in
 {
   options.${namespace}.productivity.offices.libreoffice = {
-    enable = mkEnableOption "Enable or disable the LibreOffice.";
-    default = mkBoolOpt false "Whether or not to use LibreOffice as the default office program.";
+    enable = mkEnableOption "Enable or disable the LibreOffice";
+    default = mkBoolOpt false "Whether or not to use LibreOffice as the default office program";
   };
 
   config = mkIf cfg.enable {

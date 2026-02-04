@@ -29,7 +29,7 @@ in
     assertions = [
       {
         assertion = !config.${namespace}.services.virtualisation.kvm.enable;
-        message = "VirtualBox and KVM cannot be enabled simultaneously as they conflict with each other.";
+        message = "VirtualBox and KVM cannot be enabled simultaneously as they conflict with each other";
       }
     ];
 

@@ -20,7 +20,7 @@ in
     assertions = [
       {
         assertion = pkgs.stdenv.isLinux;
-        message = "The desktop role is only supported on NixOS (Linux) systems.";
+        message = "The desktop role is only supported on NixOS (Linux) systems";
       }
     ];
 

@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.desktops.addons.wlogout = {
-    enable = mkEnableOption "Enable wlogout screen for managing sessions.";
+    enable = mkEnableOption "Enable wlogout screen for managing sessions";
   };
 
   config = mkIf cfg.enable {

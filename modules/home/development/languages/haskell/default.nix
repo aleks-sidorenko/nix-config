@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.development.languages.haskell = {
-    enable = mkOpt types.bool false "Whether to configure Haskell development.";
+    enable = mkEnableOption "Whether to configure Haskell development";
   };
 
   config = mkIf cfg.enable {

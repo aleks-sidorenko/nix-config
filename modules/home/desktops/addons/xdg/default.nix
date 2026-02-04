@@ -79,7 +79,7 @@ let
 in
 {
   options.${namespace}.desktops.addons.xdg = with types; {
-    enable = mkBoolOpt false "Enable XDG config. This includes user directories, session variables, and MIME type associations.";
+    enable = mkBoolOpt false "Enable XDG config. This includes user directories, session variables, and MIME type associations";
     associations = mkOption {
       type = attrsOf (listOf str);
       default = { };

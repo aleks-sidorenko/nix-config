@@ -13,11 +13,11 @@ let
 in
 {
   options.${namespace}.apps.telegram = {
-    enable = mkEnableOption "Enable the Telegram desktop client.";
+    enable = mkEnableOption "Enable the Telegram desktop client";
     autostart = mkOption {
       type = types.bool;
       default = true;
-      description = "Autostart Telegram on login.";
+      description = "Autostart Telegram on login";
     };
   };
 

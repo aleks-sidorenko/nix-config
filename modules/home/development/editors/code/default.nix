@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.development.editors.code = {
-    enable = mkOpt types.bool false "Whether to install Visual Studio Code.";
+    enable = mkEnableOption "Whether to install Visual Studio Code";
   };
 
   config = mkIf cfg.enable {

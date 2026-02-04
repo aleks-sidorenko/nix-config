@@ -12,8 +12,8 @@ let
 in
 {
   options.${namespace}.cli.terminals.kitty = with types; {
-    enable = mkBoolOpt false "Enable kitty terminal emulator.";
-    default = mkBoolOpt false "Whether or not to use kitty as the default terminal.";
+    enable = mkBoolOpt false "Enable kitty terminal emulator";
+    default = mkBoolOpt false "Whether or not to use kitty as the default terminal";
   };
 
   config = mkIf cfg.enable {

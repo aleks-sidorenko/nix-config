@@ -8,15 +8,15 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.cli.tools.claude-code;
+  cfg = config.${namespace}.development.ai.claude-code;
   isDarwin = pkgs.stdenv.isDarwin;
 in
 {
-  options.${namespace}.cli.tools.claude-code = with types; {
-    enable = mkBoolOpt false "Whether or not to enable claude-code CLI";
+  options.${namespace}.development.ai.claude-code = with types; {
+    enable = mkEnableOption "Whether or not to enable claude-code";
   };
 
-  config = mkIf cfg.enable {    
+  config = mkIf cfg.enable {
     home.packages = (
       with pkgs;
       [

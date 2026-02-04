@@ -23,8 +23,8 @@ let
 in
 {
   options.${namespace}.browsers.chrome = {
-    enable = mkEnableOption "Enable or disable the Chrome browser.";
-    default = mkBoolOpt false "Whether or not to use Chrome as the default browser.";
+    enable = mkEnableOption "Enable or disable the Chrome browser";
+    default = mkBoolOpt false "Whether or not to use Chrome as the default browser";
   };
 
   config = mkIf cfg.enable {
