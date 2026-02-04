@@ -18,6 +18,7 @@ let
   extensionIds = {
     ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
     browserpass = "naepdomgkenhinolocfifgehidddafch";
+    raindrop = "ldgfbffkinooeloadekpmfoklnobpien";
   };
 in
 {
@@ -45,6 +46,10 @@ in
         "--v=1"
       ];
 
+      # ----------------------------------------------------------------------
+      # Chrome doesn't allow exntensions to be installed via command line args, 
+      # so we have to use the "external extensions" mechanism
+
       /*
         extensions = [
           # uBlock Origin
@@ -54,6 +59,7 @@ in
           { id = extensionIds.browserpass; }
         ];
       */
+      # ----------------------------------------------------------------------
     };
 
     xdg.mimeApps.defaultApplications = {

@@ -30,7 +30,7 @@ in
         development = {
           enable = true;
           ai = {
-            claude-code = false;
+            claude-code = true;
             copilot = false;
           };
           languages = {
@@ -53,7 +53,10 @@ in
 
       browsers = {
         chrome.enable = true;
-        chromium.enable = true;
+        chromium = {
+          enable = true;
+          default = true;
+        };
       };
     };
 

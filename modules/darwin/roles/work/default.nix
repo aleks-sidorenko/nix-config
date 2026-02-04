@@ -17,13 +17,7 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       # Inherit common configuration
-      roles.common = enabled;
-
-      cli = {
-        tools = {
-          claude-code = enabled;
-        };
-      };
+      roles.common = enabled;      
     };
   };
 }

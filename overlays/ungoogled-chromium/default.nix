@@ -15,13 +15,13 @@ _final: prev: {
 
   ungoogled-chromium-macos = prev.stdenv.mkDerivation rec {
     pname = "ungoogled-chromium-macos";
-    version = "138.0.7204.183-1.1";
+    version = "144.0.7559.96-1.1";
 
     src = prev.fetchurl (
       if prev.stdenv.isAarch64 then
         {
           url = "https://github.com/ungoogled-software/ungoogled-chromium-macos/releases/download/${version}/ungoogled-chromium_${version}_arm64-macos.dmg";
-          sha256 = "sha256-vTdhq+NmlzXVqC6wqE1Es+XolZfIlcoeS6gPzwhajRI=";
+          sha256 = "sha256-TMgjb/6s+NzzukNCLPjTw+4ovw5uqwSYsl5ikGlSvpo=";
         }
       else
         {
