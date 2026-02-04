@@ -53,6 +53,7 @@ in
 
       browsers = {
         chrome.enable = true;
+        chromium.enable = true;
       };
     };
 
