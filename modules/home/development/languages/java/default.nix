@@ -26,6 +26,11 @@ in
       jdk
       gradle
       maven
+      bazelisk
     ];
+
+    home.shellAliases = {
+      bazel = "bazelisk";
+    };
   };
 }
