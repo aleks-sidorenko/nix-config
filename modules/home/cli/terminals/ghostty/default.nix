@@ -12,7 +12,7 @@ let
   shell = config.${namespace}.cli.shells.default.name;
   prefix = "ctrl+a";
 
-  # Ghostty settings shared between Linux and macOS
+  # Ghostty settings shared between NixOS (Linux) and Darwin (macOS)
   ghosttySettings = {
     command = shell;
     gtk-titlebar = false;
@@ -167,7 +167,7 @@ let
     ];
   };
 
-  # Convert settings to ghostty config format for macOS
+  # Convert settings to ghostty config format for Darwin (macOS)
   formatValue = v: if isBool v then (if v then "true" else "false") else toString v;
 
   formatSetting =
@@ -186,7 +186,7 @@ in
   };
 
   config = mkIf cfg.enable (mkMerge [
-    # Linux: use home-manager programs.ghostty module
+    # NixOS (Linux): use home-manager programs.ghostty module
     (mkIf pkgs.stdenv.isLinux {
       catppuccin.ghostty.enable = true;
 
@@ -204,7 +204,7 @@ in
       };
     })
 
-    # macOS: write config file directly (ghostty installed via Homebrew)
+    # Darwin (macOS): write config file directly (ghostty installed via Homebrew)
     (mkIf pkgs.stdenv.isDarwin {
       xdg.configFile."ghostty/config".text = configText;
     })

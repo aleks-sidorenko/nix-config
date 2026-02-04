@@ -16,6 +16,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = pkgs.stdenv.isDarwin;
+        message = "The work role is only supported on Darwin (macOS) systems.";
+      }
+    ];
+
     ${namespace} = {
       roles.common = enabled; # Reuse common CLI tools
 
@@ -36,9 +43,6 @@ in
           k8s.enable = true;
         };
       };
-
-      # Disable Linux-specific features
-      security.sops.enable = mkForce false;
     };
 
   };

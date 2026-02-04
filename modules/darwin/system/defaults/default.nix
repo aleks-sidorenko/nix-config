@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.system.defaults = with types; {
-    enable = mkBoolOpt false "Whether to manage macOS defaults (MDM may override)";
+    enable = mkBoolOpt false "Whether to manage Darwin (macOS) defaults (MDM may override)";
   };
 
   config = mkIf cfg.enable {

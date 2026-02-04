@@ -95,13 +95,13 @@ in
         hms = "home-manager switch --flake ~/.${namespace}#${config.${namespace}.user.name}@${host}";
       }
       // optionalAttrs pkgs.stdenv.isLinux {
-        # NixOS-specific
+        # NixOS (Linux)-specific
         nho = "nh os switch";
         nhu = "nh os --update";
         nrs = "sudo nixos-rebuild switch --flake ~/.${namespace}#${host}";
       }
       // optionalAttrs pkgs.stdenv.isDarwin {
-        # macOS-specific
+        # Darwin (macOS)-specific
         nhd = "nh darwin switch";
         drs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
       }

@@ -26,7 +26,7 @@ in
     # Set flake directory for nh
     environment.variables.FLAKE = flakeDir config;
 
-    # Configure nix GC via launchd (darwin equivalent of systemd timer)
+    # Configure nix GC via launchd (Darwin (macOS) equivalent of systemd timer)
     nix.gc = mkIf cfg.clean.enable {
       automatic = true;
       interval = {

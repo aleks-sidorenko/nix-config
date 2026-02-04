@@ -17,8 +17,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    # On Darwin, installation is handled by the darwin system module via Homebrew
-    # On Linux, install via nixpkgs
+    # On Darwin (macOS), installation is handled by the darwin system module via Homebrew
+    # On NixOS (Linux), install via nixpkgs
     home.packages = mkIf (!isDarwin) (
       with pkgs;
       [

@@ -55,7 +55,7 @@ in
         catppuccin.flavor = "mocha";
       }
 
-      # Linux: full stylix configuration
+      # NixOS (Linux): full stylix configuration
       (lib.mkIf pkgs.stdenv.isLinux {
         stylix = {
           enable = true;
@@ -83,28 +83,28 @@ in
         };
       })
 
-      # macOS: minimal safe stylix (no autoEnable, only fonts)
+      # Darwin (macOS): minimal safe stylix (no autoEnable, only fonts)
       (lib.mkIf pkgs.stdenv.isDarwin {
         stylix = {
           enable = true;
-          # IMPORTANT: autoEnable pulls in Linux-only dependencies (xdotool, etc.)
+          # IMPORTANT: autoEnable pulls in NixOS (Linux)-only dependencies (xdotool, etc.)
           autoEnable = false;
           base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
-          # Wallpaper (for reference, macOS manages wallpapers separately)
+          # Wallpaper (for reference, Darwin (macOS) manages wallpapers separately)
           image = pkgs.${namespace}.wallpapers.earth;
 
-          # Only fonts - icons and cursors have Linux-only dependencies
+          # Only fonts - icons and cursors have NixOS (Linux)-only dependencies
           fonts = fontConfig;
         };
 
-        # Manually enable safe targets for macOS
+        # Manually enable safe targets for Darwin (macOS)
         stylix.targets = {
           # Terminal emulators (config-based, no package dependencies)
           bat.enable = true;
           fzf.enable = true;
           lazygit.enable = true;
-          # These are safe as they only generate config files, no Linux-specific packages
+          # These are safe as they only generate config files, no NixOS (Linux)-specific packages
           fish.enable = true;
           nixvim.enable = true;
         };

@@ -22,7 +22,7 @@ in
     ${namespace} = {
       system = {
         nix.enable = true;
-        # macOS UI preferences (MDM may override some)
+        # Darwin (macOS) UI preferences (MDM may override some)
         defaults.enable = true;
 
         # Homebrew for CLI tools and GUI apps

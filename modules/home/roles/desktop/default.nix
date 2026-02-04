@@ -17,6 +17,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = pkgs.stdenv.isLinux;
+        message = "The desktop role is only supported on NixOS (Linux) systems.";
+      }
+    ];
+
     ${namespace} = {
       roles = {
         common = enabled;
@@ -67,37 +74,33 @@ in
     };
 
     # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
-    # Linux-only systemd target
-    systemd.user.targets.tray = mkIf pkgs.stdenv.isLinux {
+    systemd.user.targets.tray = {
       Unit = {
         Description = "Home Manager System Tray";
         Requires = [ "graphical-session-pre.target" ];
       };
     };
 
-    # Linux/Wayland-specific session variables
-    home.sessionVariables = mkIf pkgs.stdenv.isLinux {
+    # Wayland-specific session variables
+    home.sessionVariables = {
       MOZ_ENABLE_WAYLAND = 1;
       QT_QPA_PLATFORM = "wayland;xcb";
       LIBSEAT_BACKEND = "logind";
     };
 
-    # Linux-only packages (Wayland tools)
-    home.packages = mkIf pkgs.stdenv.isLinux (
-      with pkgs;
-      [
-        brightnessctl # for brightness control
-        xdg-utils # for xdg-open
-        wl-clipboard # for clipboard
-        clipse # for clipboard
-        pamixer # for volume control
-        playerctl # for media control
+    # Wayland tools
+    home.packages = with pkgs; [
+      brightnessctl # for brightness control
+      xdg-utils # for xdg-open
+      wl-clipboard # for clipboard
+      clipse # for clipboard
+      pamixer # for volume control
+      playerctl # for media control
 
-        grimblast # for screenshots
-        slurp # for screenshots
-        sway-contrib.grimshot # for screenshots
-        satty # for brightness control
-      ]
-    );
+      grimblast # for screenshots
+      slurp # for screenshots
+      sway-contrib.grimshot # for screenshots
+      satty # for brightness control
+    ];
   };
 }
