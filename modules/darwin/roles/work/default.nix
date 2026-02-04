@@ -17,7 +17,7 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       # Inherit common configuration
-      roles.common = enabled;      
+      roles.common = enabled;
     };
   };
 }

@@ -16,10 +16,8 @@ in
     enable = mkBoolOpt false "Whether or not to enable claude-code CLI";
   };
 
-  config = mkIf cfg.enable {
-    # On Darwin (macOS), installation is handled by the darwin system module via Homebrew
-    # On NixOS (Linux), install via nixpkgs
-    home.packages = mkIf (!isDarwin) (
+  config = mkIf cfg.enable {    
+    home.packages = (
       with pkgs;
       [
         claude-code

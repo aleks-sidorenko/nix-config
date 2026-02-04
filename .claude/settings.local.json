@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(just format:*)"
+      "Bash(just format:*)",
+      "Bash(cat:*)"
     ]
   }
 }

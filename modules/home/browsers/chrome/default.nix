@@ -47,7 +47,7 @@ in
       ];
 
       # ----------------------------------------------------------------------
-      # Chrome doesn't allow exntensions to be installed via command line args, 
+      # Chrome doesn't allow exntensions to be installed via command line args,
       # so we have to use the "external extensions" mechanism
 
       /*
