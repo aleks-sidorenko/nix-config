@@ -38,6 +38,7 @@ in
         terminals.ghostty = {
           enable = true;
           default = true;
+          package = if pkgs.stdenv.isLinux then pkgs.ghostty else pkgs.ghostty-bin;
         };
 
         editors.nvim = {

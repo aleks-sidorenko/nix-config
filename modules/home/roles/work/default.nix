@@ -44,7 +44,7 @@ in
           };
         };
       };
-      
+
       cli = {
         tools = {
           k8s.enable = false;
@@ -53,7 +53,7 @@ in
 
       browsers = {
         chrome.enable = true;
-      };      
+      };
     };
 
   };

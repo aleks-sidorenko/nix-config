@@ -39,8 +39,6 @@ in
           default = true;
         };
 
-        terminals.ghostty.enable = true;
-
         tools.nh = {
           enable = true;
           clean.enable = true;

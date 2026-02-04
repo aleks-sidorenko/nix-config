@@ -45,7 +45,8 @@ in
       extensions = [
         # uBlock Origin
         { id = extensionIds.ublock-origin; }
-      ] ++ lib.optionals passCfg.enable [
+      ]
+      ++ lib.optionals passCfg.enable [
         { id = extensionIds.browserpass; }
       ];
     };
