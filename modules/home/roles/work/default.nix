@@ -26,7 +26,7 @@ in
     ${namespace} = {
       roles = {
         common = enabled; # Reuse common CLI tools
-
+        
         development = {
           enable = true;
           ai = {

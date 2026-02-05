@@ -8,11 +8,11 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.apps.telegram;
+  cfg = config.${namespace}.communication.telegram;
   telegram = lib.getExe' pkgs.telegram-desktop "Telegram";
 in
 {
-  options.${namespace}.apps.telegram = {
+  options.${namespace}.communication.telegram = {
     enable = mkEnableOption "Enable the Telegram desktop client";
     autostart = mkOption {
       type = types.bool;

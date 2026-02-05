@@ -44,7 +44,7 @@ in
         media = enabled;
         mobile = enabled;
         gaming = enabled;
-        social = enabled;
+        communication = enabled;
       };
 
       services = {

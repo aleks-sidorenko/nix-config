@@ -8,11 +8,11 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.apps.viber;
+  cfg = config.${namespace}.communication.viber;
   viber = lib.getExe pkgs.viber;
 in
 {
-  options.${namespace}.apps.viber = {
+  options.${namespace}.communication.viber = {
     enable = mkEnableOption "Enable the Viber desktop client";
     autostart = mkOption {
       type = types.bool;
@@ -20,7 +20,7 @@ in
       description = "Autostart Viber on login";
     };
   };
-
+  
   config = mkIf cfg.enable {
     home.packages = [ pkgs.viber ];
 

@@ -17,7 +17,16 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       # Inherit common configuration
-      roles.common = enabled;
+      roles.common = {
+        enable = true;
+        homebrew.casks = [
+          # communications
+          "telegram"
+          "slack"
+          "viber"
+          "zoom"
+        ];
+      };
     };
   };
 }
