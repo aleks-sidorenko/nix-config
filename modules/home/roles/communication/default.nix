@@ -20,7 +20,7 @@ in
     ${namespace} = {
       communication = {
         telegram = enabled;
-        viber = enabled;        
+        viber = enabled;
       };
     };
 
