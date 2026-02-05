@@ -9,7 +9,8 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
-  shell = config.${namespace}.cli.shells.default.name;
+  shellCfg = config.${namespace}.cli.shells.default;
+  shell = lib.getExe shellCfg.package;
   prefix = "ctrl+a";
 in
 {
