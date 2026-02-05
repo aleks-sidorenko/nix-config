@@ -20,7 +20,7 @@ in
       description = "Autostart Viber on login";
     };
   };
-  
+
   config = mkIf cfg.enable {
     home.packages = [ pkgs.viber ];
 

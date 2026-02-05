@@ -20,13 +20,18 @@ in
       roles.common = {
         enable = true;
         homebrew.casks = [
-          # communications
-          "telegram"
-          "slack"
-          "viber"
-          "zoom"
         ];
       };
+
+      communication = {
+        viber = enabled;
+        telegram = enabled;
+        zoom = enabled;
+        slack = enabled;
+      };
+
+      # Virtualisation
+      services.virtualisation.podman.enable = true;
     };
   };
 }

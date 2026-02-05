@@ -82,6 +82,7 @@ in
         database = {
           mysql.enable = cfg.database.mysql;
         };
+        testing.testcontainers.enable = true;
       };
       cli = {
         editors.nvim = {
@@ -115,12 +116,13 @@ in
           modern-unix.enable = true;
           network-tools.enable = true;
           nix-index.enable = true;
-          podman.enable = true;
           starship.enable = true;
           yazi.enable = true;
           zoxide.enable = true;
         };
       };
+
+      services.virtualization.podman.enable = true;
     };
   };
 }
