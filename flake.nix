@@ -153,6 +153,32 @@
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Darwin (macOS)
+    darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-homebrew = {
+      url = "github:zhaofengli-wip/nix-homebrew";
+    };
+
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
+    };
+
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+
   };
 
   outputs =
@@ -185,6 +211,9 @@
           disko.nixosModules.disko
           impermanence.nixosModules.impermanence
           sops-nix.nixosModules.sops
+        ];
+        modules.darwin = with inputs; [
+          home-manager.darwinModules.home-manager
         ];
         hosts = {
           # hosts specific modules

@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.services.printing = with types; {
-    enable = mkBoolOpt false "Whether or not to configure printing support.";
+    enable = mkBoolOpt false "Whether or not to configure printing support";
   };
 
   config = mkIf cfg.enable {

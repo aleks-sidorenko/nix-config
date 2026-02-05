@@ -13,8 +13,8 @@ let
 in
 {
   options.${namespace}.cli.multiplexers.default = with types; {
-    enable = mkEnableOption "Whether or not to enable the default multiplexer configuration.";
-    name = mkStringOpt' "The name of the default multiplexer to use.";
+    enable = mkEnableOption "Whether or not to enable the default multiplexer configuration";
+    name = mkStringOpt' "The name of the default multiplexer to use";
 
   };
 
@@ -22,7 +22,7 @@ in
     assertions = [
       {
         assertion = cfg.name != null;
-        message = "Please specify a multiplexer name in ${namespace}.cli.multiplexers.default.";
+        message = "Please specify a multiplexer name in ${namespace}.cli.multiplexers.default";
       }
     ];
 

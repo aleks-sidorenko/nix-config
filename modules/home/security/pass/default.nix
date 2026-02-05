@@ -15,7 +15,7 @@ let
 in
 {
   options.${namespace}.security.pass = with types; {
-    enable = mkBoolOpt false "Whether to enable pass for password management.";
+    enable = mkBoolOpt false "Whether to enable pass for password management";
   };
 
   config = mkIf cfg.enable {
@@ -31,7 +31,7 @@ in
       ]);
     };
 
-    services.pass-secret-service = {
+    services.pass-secret-service = mkIf pkgs.stdenv.isLinux {
       enable = true;
       storePath = passwordStore;
     };

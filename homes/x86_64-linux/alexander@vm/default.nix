@@ -12,7 +12,6 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
-      # social = enabled;
     };
 
     user = {

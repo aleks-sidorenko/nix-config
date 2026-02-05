@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.roles.backup = {
-    enable = mkEnableOption "Enable backup client role.";
+    enable = mkEnableOption "Enable backup client role";
   };
 
   config = mkIf cfg.enable {

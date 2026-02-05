@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -8,12 +9,14 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.user;
+  # Platform-aware home directory
+  defaultHome = if pkgs.stdenv.isDarwin then "/Users/${cfg.name}" else "/home/${cfg.name}";
 in
 {
   options.${namespace}.user = {
-    enable = mkOpt types.bool false "Whether to configure the user account.";
-    home = mkOpt (types.nullOr types.str) "/home/${cfg.name}" "The user's home directory.";
-    name = mkOpt (types.nullOr types.str) defaults.user "The user account.";
+    enable = mkEnableOption "Whether to configure the user account";
+    home = mkOpt (types.nullOr types.str) defaultHome "The user's home directory";
+    name = mkOpt (types.nullOr types.str) defaults.user "The user account";
   };
 
   config = mkIf cfg.enable (mkMerge [

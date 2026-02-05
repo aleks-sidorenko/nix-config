@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.roles.smart-home = {
-    enable = mkEnableOption "Enable smart home role with Home Assistant and Zigbee support.";
+    enable = mkEnableOption "Enable smart home role with Home Assistant and Zigbee support";
   };
 
   config = mkIf cfg.enable {

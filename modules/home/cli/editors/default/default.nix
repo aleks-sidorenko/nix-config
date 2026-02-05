@@ -25,8 +25,8 @@ let
 in
 {
   options.${namespace}.cli.editors.default = with types; {
-    enable = mkEnableOption "Whether or not to enable the default editor configuration.";
-    name = mkStringOpt' "The name of the default editor to use.";
+    enable = mkEnableOption "Whether or not to enable the default editor configuration";
+    name = mkStringOpt' "The name of the default editor to use";
 
   };
 
@@ -34,7 +34,7 @@ in
     assertions = [
       {
         assertion = cfg.name != null;
-        message = "Please specify a editor name in ${namespace}.cli.editors.default.";
+        message = "Please specify a editor name in ${namespace}.cli.editors.default";
       }
     ];
 

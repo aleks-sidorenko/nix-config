@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.hardware.video.nvidia = with types; {
-    enable = mkBoolOpt false "Enable or disable hardware video support for NVidia GPUs.";
+    enable = mkBoolOpt false "Enable or disable hardware video support for NVidia GPUs";
   };
 
   config = mkIf cfg.enable {

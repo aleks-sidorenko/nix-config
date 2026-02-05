@@ -15,7 +15,7 @@ let
 in
 {
   options.${namespace}.games.minecraft = {
-    enable = mkEnableOption "Enable or disable Minecraft.";
+    enable = mkEnableOption "Enable or disable Minecraft";
 
   };
 

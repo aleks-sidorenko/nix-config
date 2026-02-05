@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.desktops.addons.nautilus = with types; {
-    enable = mkBoolOpt false "Whether to enable the GNOME file manager.";
+    enable = mkBoolOpt false "Whether to enable the GNOME file manager";
   };
 
   config = mkIf cfg.enable {

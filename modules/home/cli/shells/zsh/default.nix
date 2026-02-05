@@ -13,8 +13,8 @@ let
 in
 {
   options.${namespace}.cli.shells.zsh = with types; {
-    enable = mkEnableOption "Enable zsh shell.";
-    default = mkBoolOpt false "Whether or not to use zsh as the default shell.";
+    enable = mkEnableOption "Enable zsh shell";
+    default = mkBoolOpt false "Whether or not to use zsh as the default shell";
   };
 
   config = mkIf cfg.enable {

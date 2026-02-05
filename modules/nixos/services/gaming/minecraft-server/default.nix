@@ -26,7 +26,7 @@ let
       level = mkOption {
         type = types.ints.between 1 4;
         default = 4;
-        description = "Operator level (1-4). Level 4 is full access.";
+        description = "Operator level (1-4). Level 4 is full access";
       };
       bypassesPlayerLimit = mkOption {
         type = types.bool;
@@ -98,7 +98,7 @@ in
 
     dataDir = mkOpt types.str "/var/lib/minecraft" "Data directory for world and config";
 
-    eula = mkBoolOpt true "Accept Minecraft EULA (required to run).";
+    eula = mkBoolOpt true "Accept Minecraft EULA (required to run)";
 
     jvmOpts = mkOpt types.str "-Xms2G -Xmx2G" "JVM options for the server process";
 

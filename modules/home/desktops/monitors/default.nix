@@ -83,7 +83,7 @@ in
       {
         assertion =
           ((lib.length cfg.devices) != 0) -> ((lib.length (lib.filter (m: m.primary) cfg.devices)) == 1);
-        message = "Exactly one monitor must be set to primary.";
+        message = "Exactly one monitor must be set to primary";
       }
     ];
   };

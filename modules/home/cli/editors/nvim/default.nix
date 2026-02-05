@@ -23,6 +23,8 @@ let
       python.enable = lib.mkIf (cfg.development.python) (lib.mkForce true);
       go.enable = lib.mkIf (cfg.development.go) (lib.mkForce true);
       typescript.enable = lib.mkIf (cfg.development.typescript) (lib.mkForce true);
+      scala.enable = lib.mkIf (cfg.development.scala) (lib.mkForce true);
+      java.enable = lib.mkIf (cfg.development.java) (lib.mkForce true);
     };
     # Pass AI options from the home configuration
     config.ai = {
@@ -34,20 +36,22 @@ in
 {
 
   options.${namespace}.cli.editors.nvim = with types; {
-    enable = mkEnableOption "Enable neovim editor.";
-    default = mkBoolOpt false "Whether or not to use neovim as the default shell.";
+    enable = mkEnableOption "Enable neovim editor";
+    default = mkBoolOpt false "Whether or not to use neovim as the default shell";
 
     development = {
-      haskell = mkEnableOption "Enable Haskell development support in Neovim.";
-      rust = mkEnableOption "Enable Rust development support in Neovim.";
-      python = mkEnableOption "Enable Python development support in Neovim.";
-      go = mkEnableOption "Enable Go development support in Neovim.";
-      typescript = mkEnableOption "Enable TypeScript development support in Neovim.";
+      haskell = mkEnableOption "Enable Haskell development support in Neovim";
+      rust = mkEnableOption "Enable Rust development support in Neovim";
+      python = mkEnableOption "Enable Python development support in Neovim";
+      go = mkEnableOption "Enable Go development support in Neovim";
+      typescript = mkEnableOption "Enable TypeScript development support in Neovim";
+      scala = mkEnableOption "Enable Scala development support in Neovim";
+      java = mkEnableOption "Enable Java development support in Neovim";
     };
 
     ai = {
-      copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim.";
-      claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim.";
+      copilot = mkEnableOption "Enable GitHub Copilot AI assistant in Neovim";
+      claude-code = mkEnableOption "Enable Claude Code AI assistant in Neovim";
     };
   };
 
@@ -67,7 +71,8 @@ in
     # Covered with nixvim.vimdiffAlias
     home.shellAliases.vimdiff = "nvim -d";
 
-    stylix.targets.nixvim.enable = true; # Enable Stylix for Neovim
+    # Enable Stylix for Neovim (nixvim target is safe on all platforms)
+    stylix.targets.nixvim.enable = mkIf config.${namespace}.styles.stylix.enable true;
 
     xdg.desktopEntries = lib.optionalAttrs config.${namespace}.desktops.addons.xdg.enable {
       neovim = {

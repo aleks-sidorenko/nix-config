@@ -16,13 +16,18 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      nixgl.nixGLIntel
-      nix-output-monitor
-      nvd
-    ];
+    home.packages =
+      with pkgs;
+      [
+        nix-output-monitor
+        nvd
+      ]
+      ++ optionals pkgs.stdenv.isLinux [
+        nixgl.nixGLIntel # Linux-only
+      ];
 
-    systemd.user.startServices = "sd-switch";
+    # systemd is Linux-only
+    systemd.user.startServices = mkIf pkgs.stdenv.isLinux "sd-switch";
 
     programs = {
       home-manager.enable = true;

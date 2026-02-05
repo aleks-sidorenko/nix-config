@@ -18,9 +18,9 @@ let
 in
 {
   options.${namespace}.cli.tools.git = with types; {
-    enable = mkBoolOpt false "Whether or not to enable git.";
-    email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git.";
-    fullName = mkOpt (nullOr str) "Alexander Sidorenko" "The full name to use with git.";
+    enable = mkEnableOption "Whether or not to enable git";
+    email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git";
+    fullName = mkOpt (nullOr str) "Alexander Sidorenko" "The full name to use with git";
     urlRewrites = mkOpt (attrsOf str) { } "url we need to rewrite i.e. ssh to http";
     allowedSigners = mkOpt str "~/.ssh/id_ed25519.pub" "The public key used for signing commits";
   };

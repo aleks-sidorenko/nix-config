@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.roles.gaming-server = {
-    enable = mkEnableOption "Enable gaming server role.";
+    enable = mkEnableOption "Enable gaming server role";
   };
 
   config = mkIf cfg.enable {

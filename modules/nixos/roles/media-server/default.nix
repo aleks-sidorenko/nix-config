@@ -29,7 +29,7 @@ let
 in
 {
   options.${namespace}.roles.media-server = {
-    enable = mkEnableOption "Enable media server role.";
+    enable = mkEnableOption "Enable media server role";
   };
 
   config = mkIf cfg.enable {
@@ -38,7 +38,7 @@ in
     assertions = [
       {
         assertion = (dirOf dirs.downloadRoot) == (dirOf dirs.mediaRoot);
-        message = "downloadRoot (${dirs.downloadRoot}) and mediaRoot (${dirs.mediaRoot}) must be in the same parent directory. Currently: downloadRoot parent is '${dirOf dirs.downloadRoot}', mediaRoot parent is '${dirOf dirs.mediaRoot}'.";
+        message = "downloadRoot (${dirs.downloadRoot}) and mediaRoot (${dirs.mediaRoot}) must be in the same parent directory. Currently: downloadRoot parent is '${dirOf dirs.downloadRoot}', mediaRoot parent is '${dirOf dirs.mediaRoot}'";
       }
     ];
 

@@ -15,7 +15,7 @@ in
 {
   options.${namespace}.cli.shells.fish = with types; {
     enable = mkEnableOption "Enable fish shell";
-    default = mkBoolOpt false "Whether or not to use fish as the default shell.";
+    default = mkBoolOpt false "Whether or not to use fish as the default shell";
   };
 
   config = mkIf cfg.enable {
@@ -25,8 +25,8 @@ in
       package = pkgs.fish;
     };
 
-    # Styles
-    stylix.targets.fish.enable = true; # Enable Stylix
+    # Styles (fish target is safe on all platforms)
+    stylix.targets.fish.enable = mkIf config.${namespace}.styles.stylix.enable true;
     catppuccin.fish.enable = true;
 
     programs.fish = {
@@ -90,13 +90,22 @@ in
 
         # nix
         nhh = "nh home switch";
-        nho = "nh os switch";
-        nhu = "nh os --update";
-
         nd = "nix develop";
         nfu = "nix flake update";
         hms = "home-manager switch --flake ~/.${namespace}#${config.${namespace}.user.name}@${host}";
+      }
+      // optionalAttrs pkgs.stdenv.isLinux {
+        # NixOS (Linux)-specific
+        nho = "nh os switch";
+        nhu = "nh os --update";
         nrs = "sudo nixos-rebuild switch --flake ~/.${namespace}#${host}";
+      }
+      // optionalAttrs pkgs.stdenv.isDarwin {
+        # Darwin (macOS)-specific
+        nhd = "nh darwin switch";
+        drs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
+      }
+      // {
 
         # new commads
         weather = "curl wttr.in/Kyiv";

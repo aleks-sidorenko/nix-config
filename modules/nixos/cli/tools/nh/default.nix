@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.cli.tools.nh = with types; {
-    enable = mkBoolOpt false "Whether or not to enable nh.";
+    enable = mkBoolOpt false "Whether or not to enable nh";
   };
 
   config = mkIf cfg.enable {

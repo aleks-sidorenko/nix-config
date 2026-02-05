@@ -25,6 +25,8 @@ nixvim'.makeNixvimWithModule {
         python.enable = lib.mkEnableOption "Python development support";
         go.enable = lib.mkEnableOption "Go development support";
         typescript.enable = lib.mkEnableOption "TypeScript development support";
+        scala.enable = lib.mkEnableOption "Scala development support";
+        java.enable = lib.mkEnableOption "Java development support";
       };
       ai = {
         copilot.enable = lib.mkEnableOption "GitHub Copilot AI assistant";
@@ -40,6 +42,8 @@ nixvim'.makeNixvimWithModule {
         python.enable = lib.mkDefault false;
         go.enable = lib.mkDefault false;
         typescript.enable = lib.mkDefault false;
+        scala.enable = lib.mkDefault false;
+        java.enable = lib.mkDefault false;
       };
       ai = {
         copilot.enable = lib.mkDefault false;

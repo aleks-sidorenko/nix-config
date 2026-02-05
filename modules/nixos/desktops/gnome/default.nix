@@ -12,7 +12,7 @@ let
 in
 {
   options.${namespace}.desktops.gnome = with types; {
-    enable = mkBoolOpt false "Enable the GNOME desktop environment and its addons.";
+    enable = mkBoolOpt false "Enable the GNOME desktop environment and its addons";
   };
 
   config = mkIf cfg.enable {

@@ -18,8 +18,8 @@ let
 in
 {
   options.${namespace}.browsers.firefox = {
-    enable = mkEnableOption "Enable the Firefox browser.";
-    default = mkBoolOpt false "Whether or not to use Firefox as the default browser.";
+    enable = mkEnableOption "Enable the Firefox browser";
+    default = mkBoolOpt false "Whether or not to use Firefox as the default browser";
   };
 
   config = mkIf cfg.enable {

@@ -12,8 +12,8 @@ let
 in
 {
   options.${namespace}.cli.terminals.foot = with types; {
-    enable = mkBoolOpt false "Enable foot terminal emulator.";
-    default = mkBoolOpt false "Whether or not to use foot as the default terminal.";
+    enable = mkBoolOpt false "Enable foot terminal emulator";
+    default = mkBoolOpt false "Whether or not to use foot as the default terminal";
   };
 
   config = mkIf cfg.enable {

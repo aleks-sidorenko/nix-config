@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.security.sops = with types; {
-    enable = mkBoolOpt false "Whether to enable sop for secrets management.";
+    enable = mkBoolOpt false "Whether to enable sop for secrets management";
   };
 
   imports = with inputs; [

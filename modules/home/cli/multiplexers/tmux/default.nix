@@ -23,7 +23,7 @@ let
 in
 {
   options.${namespace}.cli.multiplexers.tmux = with types; {
-    enable = mkEnableOption "Whether or not to enable the tmux multiplexer.";
+    enable = mkEnableOption "Whether or not to enable the tmux multiplexer";
   };
 
   config = mkIf cfg.enable {

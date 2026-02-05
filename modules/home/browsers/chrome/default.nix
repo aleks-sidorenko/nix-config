@@ -18,12 +18,13 @@ let
   extensionIds = {
     ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
     browserpass = "naepdomgkenhinolocfifgehidddafch";
+    raindrop = "ldgfbffkinooeloadekpmfoklnobpien";
   };
 in
 {
   options.${namespace}.browsers.chrome = {
-    enable = mkEnableOption "Enable or disable the Chrome browser.";
-    default = mkBoolOpt false "Whether or not to use Chrome as the default browser.";
+    enable = mkEnableOption "Enable or disable the Chrome browser";
+    default = mkBoolOpt false "Whether or not to use Chrome as the default browser";
   };
 
   config = mkIf cfg.enable {
@@ -45,6 +46,10 @@ in
         "--v=1"
       ];
 
+      # ----------------------------------------------------------------------
+      # Chrome doesn't allow exntensions to be installed via command line args,
+      # so we have to use the "external extensions" mechanism
+
       /*
         extensions = [
           # uBlock Origin
@@ -54,6 +59,7 @@ in
           { id = extensionIds.browserpass; }
         ];
       */
+      # ----------------------------------------------------------------------
     };
 
     xdg.mimeApps.defaultApplications = {

@@ -12,8 +12,8 @@ let
 in
 {
   options.${namespace}.cli.shells = with types; {
-    enable = mkBoolOpt false "Whether or not to enable the default shell configuration.";
-    shell = mkPackageOpt pkgs.fish "The default shell package to use for the current user.";
+    enable = mkBoolOpt false "Whether or not to enable the default shell configuration";
+    shell = mkPackageOpt pkgs.fish "The default shell package to use for the current user";
   };
 
   config = {

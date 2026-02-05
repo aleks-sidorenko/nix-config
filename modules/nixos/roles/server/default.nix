@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.roles.server = {
-    enable = mkEnableOption "Enable server role.";
+    enable = mkEnableOption "Enable server role";
   };
 
   config = mkIf cfg.enable {

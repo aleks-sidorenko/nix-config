@@ -9,20 +9,22 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.terminals.ghostty;
-  shell = config.${namespace}.cli.shells.default.name;
+  shellCfg = config.${namespace}.cli.shells.default;
+  shell = lib.getExe shellCfg.package;
   prefix = "ctrl+a";
 in
 {
   options.${namespace}.cli.terminals.ghostty = {
-    enable = mkEnableOption "Enable ghostty terminal emulator.";
-    default = mkBoolOpt false "Whether or not to use ghostty as the default terminal.";
+    enable = mkEnableOption "Enable ghostty terminal emulator";
+    default = mkBoolOpt false "Whether or not to use ghostty as the default terminal";
+    package = mkPackageOpt pkgs.ghostty "Package to use for ghostty terminal";
   };
 
   config = mkIf cfg.enable {
     ${namespace}.cli.terminals.default = mkIf cfg.default {
       enable = true;
       name = "ghostty";
-      package = pkgs.ghostty;
+      package = cfg.package;
     };
 
     # Enable Catppuccin theme for Ghostty
@@ -31,7 +33,7 @@ in
     programs.ghostty = {
       enable = true;
       enableFishIntegration = true;
-
+      package = cfg.package;
       settings = {
 
         command = shell;

@@ -24,11 +24,11 @@ let
 in
 {
   options.${namespace}.user = with types; {
-    enable = mkOpt bool true "Whether to configure the user account.";
+    enable = mkOpt bool true "Whether to configure the user account";
     name = mkOpt str defaults.user "The name of the user's account";
     initialPassword = mkOpt (nullOr str) null "The initial password to use";
     hashedPasswordFile = mkOpt (nullOr str) null "The path to the hashed password file";
-    extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned.";
+    extraGroups = mkOpt (listOf str) [ ] "Groups for the user to be assigned";
     extraOptions = mkOpt attrs { } "Extra options passed to users.users.<n>";
   };
 

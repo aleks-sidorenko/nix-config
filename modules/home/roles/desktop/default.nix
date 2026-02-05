@@ -17,6 +17,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = pkgs.stdenv.isLinux;
+        message = "The desktop role is only supported on NixOS (Linux) systems";
+      }
+    ];
+
     ${namespace} = {
       roles = {
         common = enabled;
@@ -37,7 +44,7 @@ in
         media = enabled;
         mobile = enabled;
         gaming = enabled;
-        social = enabled;
+        communication = enabled;
       };
 
       services = {
@@ -74,15 +81,15 @@ in
       };
     };
 
+    # Wayland-specific session variables
     home.sessionVariables = {
       MOZ_ENABLE_WAYLAND = 1;
       QT_QPA_PLATFORM = "wayland;xcb";
       LIBSEAT_BACKEND = "logind";
     };
 
-    # TODO: move this to somewhere
+    # Wayland tools
     home.packages = with pkgs; [
-
       brightnessctl # for brightness control
       xdg-utils # for xdg-open
       wl-clipboard # for clipboard

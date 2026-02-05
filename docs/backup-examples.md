@@ -419,7 +419,7 @@ Edit `modules/nixos/secrets.yaml`:
 
 ```bash
 # Edit the secrets file
-cd /Users/oleksandrsy/Projects/Self/nix-config
+cd $FLAKE_DIR
 sops modules/nixos/secrets.yaml
 ```
 
@@ -492,7 +492,7 @@ Or use label:
 
 ```bash
 # On server
-cd /Users/oleksandrsy/Projects/Self/nix-config
+cd $FLAKE_DIR
 just deploy server
 
 # On desktop

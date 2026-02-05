@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.services.smart-home = {
-    enable = mkBoolOpt enabled "Enable smart home services.";
+    enable = mkBoolOpt enabled "Enable smart home services";
     group = mkOpt types.str "smart-home" "Group to run smart home services as";
   };
 

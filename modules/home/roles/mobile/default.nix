@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.roles.mobile = with types; {
-    enable = mkEnableOption "Whether or not to enable mobile integration support for both android and ios.";
+    enable = mkEnableOption "Whether or not to enable mobile integration support for both android and ios";
   };
 
   config = mkIf cfg.enable {

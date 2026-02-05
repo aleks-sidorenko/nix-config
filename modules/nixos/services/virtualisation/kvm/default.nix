@@ -20,7 +20,7 @@ in
     assertions = [
       {
         assertion = !config.${namespace}.services.virtualisation.virtualbox.enable;
-        message = "KVM and VirtualBox cannot be enabled simultaneously as they conflict with each other.";
+        message = "KVM and VirtualBox cannot be enabled simultaneously as they conflict with each other";
       }
     ];
     ${namespace}.user.extraGroups = [

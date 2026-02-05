@@ -30,6 +30,26 @@ in
       python = mkEnableOption "Enable Python development support";
       go = mkEnableOption "Enable Go development support";
       typescript = mkEnableOption "Enable TypeScript development support";
+      scala = mkEnableOption "Enable Scala development support";
+      java = mkEnableOption "Enable Java development support";
+    };
+
+    platforms = {
+      jvm = mkEnableOption "Enable JVM platform support";
+    };
+
+    editors = {
+      code = mkEnableOption "Enable Visual Studio Code";
+      cursor = mkEnableOption "Enable Cursor editor";
+      idea = mkEnableOption "Enable JetBrains IDEA";
+    };
+
+    build = {
+      bazel = mkEnableOption "Enable bazel build tool";
+    };
+
+    database = {
+      mysql = mkEnableOption "Enable MySQL database client";
     };
   };
 
@@ -40,9 +60,29 @@ in
 
     ${namespace} = {
       development = {
-        haskell = {
-          enable = cfg.languages.haskell;
+        languages = {
+          haskell.enable = cfg.languages.haskell;
+          java.enable = cfg.languages.java;
+          scala.enable = cfg.languages.scala;
         };
+        platforms = {
+          jvm.enable = cfg.platforms.jvm || cfg.languages.java || cfg.languages.scala;
+        };
+        editors = {
+          code.enable = cfg.editors.code;
+          cursor.enable = cfg.editors.cursor;
+          idea.enable = cfg.editors.idea;
+        };
+        ai = {
+          claude-code.enable = cfg.ai.claude-code;
+        };
+        build = {
+          bazel.enable = cfg.build.bazel;
+        };
+        database = {
+          mysql.enable = cfg.database.mysql;
+        };
+        testing.testcontainers.enable = true;
       };
       cli = {
         editors.nvim = {
@@ -57,6 +97,8 @@ in
             python = cfg.languages.python;
             go = cfg.languages.go;
             typescript = cfg.languages.typescript;
+            scala = cfg.languages.scala;
+            java = cfg.languages.java;
           };
         };
         multiplexers.zellij.enable = true;
@@ -66,8 +108,6 @@ in
           atuin.enable = true;
           bat.enable = true;
           bottom.enable = true;
-          claude-code.enable = true;
-          database.enable = true;
           direnv.enable = true;
           eza.enable = true;
           fzf.enable = true;
@@ -76,12 +116,13 @@ in
           modern-unix.enable = true;
           network-tools.enable = true;
           nix-index.enable = true;
-          podman.enable = true;
           starship.enable = true;
           yazi.enable = true;
           zoxide.enable = true;
         };
       };
+
+      services.virtualization.podman.enable = true;
     };
   };
 }

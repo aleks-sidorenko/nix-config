@@ -13,7 +13,7 @@ let
 in
 {
   options.${namespace}.roles.media = with types; {
-    enable = mkEnableOption "Whether or not to enable media applications.";
+    enable = mkEnableOption "Whether or not to enable media applications";
   };
 
   config = mkIf cfg.enable {

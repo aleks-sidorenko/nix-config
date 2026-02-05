@@ -21,12 +21,17 @@ in
       enableFishIntegration = true;
     };
 
-    home.packages = with pkgs; [
-      imagemagick
-      ffmpegthumbnailer
-      fontpreview
-      unar
-      poppler
-    ];
+    home.packages =
+      with pkgs;
+      [
+        imagemagick
+        ffmpegthumbnailer
+        unar
+        poppler
+      ]
+      ++ optionals stdenv.isLinux [
+        # fontpreview depends on xdotool which is Linux-only
+        fontpreview
+      ];
   };
 }
