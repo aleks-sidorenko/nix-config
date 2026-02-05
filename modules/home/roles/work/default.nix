@@ -58,7 +58,7 @@ in
       };
 
       browsers = {
-        chrome.enable = true;        
+        chrome.enable = true;
       };
     };
 

@@ -29,8 +29,8 @@ in
         zoom = enabled;
         slack = enabled;
       };
-      
-      browsers = {        
+
+      browsers = {
         chromium = enabled;
       };
 

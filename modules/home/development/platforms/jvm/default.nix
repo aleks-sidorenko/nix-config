@@ -19,7 +19,7 @@ in
 
   config = mkIf cfg.enable {
     home.sessionVariables = {
-      JAVA_HOME = if pkgs.stdenv.isDarwin then "${jdk}/lib/openjdk" else "${jdk}";
+      JAVA_HOME = "${jdk}";
     };
 
     home.packages = with pkgs; [

@@ -31,7 +31,7 @@ in
     };
 
     programs.browserpass.enable = mkIf passCfg.enable true;
-   
+
     programs.chromium = {
       enable = true;
       package = pkgs.ungoogled-chromium;
