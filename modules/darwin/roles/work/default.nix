@@ -29,6 +29,10 @@ in
         zoom = enabled;
         slack = enabled;
       };
+      
+      browsers = {        
+        chromium = enabled;
+      };
 
       # Virtualisation
       services.virtualisation.podman.enable = true;

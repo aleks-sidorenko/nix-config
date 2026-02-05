@@ -58,11 +58,7 @@ in
       };
 
       browsers = {
-        chrome.enable = true;
-        chromium = {
-          enable = true;
-          default = true;
-        };
+        chrome.enable = true;        
       };
     };
 

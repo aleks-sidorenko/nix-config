@@ -31,14 +31,8 @@ in
     };
 
     programs.browserpass.enable = mkIf passCfg.enable true;
-
-    # On Darwin (macOS), install the pre-built app directly
-    home.packages = mkIf (pkgs.stdenv.isDarwin) [
-      pkgs.ungoogled-chromium-macos
-    ];
-
-    # On NixOS (Linux), configure via program
-    programs.chromium = mkIf (pkgs.stdenv.isLinux) {
+   
+    programs.chromium = {
       enable = true;
       package = pkgs.ungoogled-chromium;
       commandLineArgs = [
