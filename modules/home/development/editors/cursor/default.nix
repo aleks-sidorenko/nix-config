@@ -16,8 +16,9 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      code-cursor
-    ];
+    ${namespace}.development.editors.code = {
+      enable = mkForce true;
+      package = mkForce pkgs.code-cursor;
+    };
   };
 }

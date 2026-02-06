@@ -13,11 +13,14 @@ in
 {
   options.${namespace}.development.editors.code = {
     enable = mkEnableOption "Whether to install Visual Studio Code";
+    package = mkPackageOpt pkgs.vscode "The VS Code package to use";
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      vscode
-    ];
+
+    programs.vscode = {
+      enable = true;
+      package = cfg.package;
+    };
   };
 }

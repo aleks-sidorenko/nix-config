@@ -38,7 +38,6 @@ in
             java = true;
           };
           editors = {
-            code = true;
             cursor = true;
             idea = true;
           };
