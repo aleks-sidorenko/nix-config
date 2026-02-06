@@ -8,6 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.virtualisation.podman;
+  dockerHost = "/var/run/docker.sock";
 in
 {
   options.${namespace}.services.virtualisation.podman = with types; {
@@ -15,8 +16,17 @@ in
   };
 
   config = mkIf cfg.enable {
-    ${namespace}.system.homebrew.brews = [
-      "podman"
-    ];
+
+    ${namespace} = {
+
+      user.extraGroups = [
+        "podman"
+      ];
+
+      system.homebrew.brews = [
+        "podman"
+      ];
+    };
+
   };
 }

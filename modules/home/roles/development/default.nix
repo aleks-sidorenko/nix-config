@@ -82,7 +82,6 @@ in
         database = {
           mysql.enable = cfg.database.mysql;
         };
-        testing.testcontainers.enable = true;
       };
       cli = {
         editors.nvim = {

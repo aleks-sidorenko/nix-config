@@ -4,7 +4,8 @@
       "Bash(tree:*)",
       "Bash(just format:*)",
       "Bash(cat:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(podman machine inspect:*)"
     ]
   }
 }

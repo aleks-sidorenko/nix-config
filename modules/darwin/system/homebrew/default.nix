@@ -30,5 +30,7 @@ in
       brews = cfg.brews;
       casks = cfg.casks;
     };
+
+    environment.systemPath = [ "${homebrew.binPath}" ];
   };
 }
