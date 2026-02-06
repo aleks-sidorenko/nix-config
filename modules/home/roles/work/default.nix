@@ -50,12 +50,6 @@ in
         };
       };
 
-      cli = {
-        tools = {
-          k8s.enable = false;
-        };
-      };
-
       browsers = {
         chrome.enable = true;
       };

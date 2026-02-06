@@ -121,7 +121,11 @@ in
         };
       };
 
-      services.virtualization.podman.enable = true;
+      virtualization = {
+        podman.enable = true;
+        k8s.enable = true;
+      };
+
     };
   };
 }

@@ -24,6 +24,7 @@ in
       ];
 
       system.homebrew.brews = [
+        "docker-credential-helper"
         "podman"
       ];
     };

@@ -21,7 +21,7 @@ in
     ${namespace} = {
 
       services.virtualisation = {
-        docker = enabled;
+        podman = enabled;
         lima = enabled;
       };
 

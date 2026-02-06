@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.cli.tools.k8s;
+  cfg = config.${namespace}.virtualization.k8s;
 in
 {
-  options.${namespace}.cli.tools.k8s = with types; {
+  options.${namespace}.virtualization.k8s = with types; {
     enable = mkBoolOpt false "Whether or not to manage kubernetes";
   };
 

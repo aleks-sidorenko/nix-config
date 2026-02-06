@@ -17,16 +17,12 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      user.extraGroups = [
-        "docker"
-      ];
+
+      services.virtualisation.podman.enable = true;
 
       system.homebrew = {
         brews = [
           "colima"
-          "docker-credential-helper"
-          "docker" # Docker CLI
-          "docker-compose"
         ];
       };
     };

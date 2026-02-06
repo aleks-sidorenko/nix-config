@@ -8,10 +8,10 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.virtualization.podman;
+  cfg = config.${namespace}.virtualization.podman;
 in
 {
-  options.${namespace}.services.virtualization.podman = with types; {
+  options.${namespace}.virtualization.podman = with types; {
     enable = mkBoolOpt false "Whether or not to manage podman";
   };
   config = mkIf cfg.enable {
