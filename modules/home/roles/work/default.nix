@@ -38,7 +38,6 @@ in
             java = true;
           };
           editors = {
-            code = true;
             cursor = true;
             idea = true;
           };
@@ -48,12 +47,9 @@ in
           database = {
             mysql = true;
           };
-        };
-      };
-
-      cli = {
-        tools = {
-          k8s.enable = false;
+          testing = {
+            testcontainers = false;
+          };
         };
       };
 

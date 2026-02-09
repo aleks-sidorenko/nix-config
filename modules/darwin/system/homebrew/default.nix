@@ -12,20 +12,25 @@ in
 {
   options.${namespace}.system.homebrew = with types; {
     enable = mkBoolOpt false "Whether to manage Homebrew";
+    autoUpdate = mkBoolOpt false "Whether to auto-update Homebrew on activation";
+    upgrade = mkBoolOpt false "Whether to upgrade packages on activation";
+    cleanup = mkOpt str "zap" "Cleanup strategy: 'none', 'uninstall', or 'zap'";
     brews = mkOpt (listOf str) [ ] "Homebrew formulae to install";
-    casks = mkOpt (listOf str) [ ] "Homebrew casks to install";
+    casks = mkOpt (listOf (either str attrs)) [ ] "Homebrew casks to install";
   };
 
   config = mkIf cfg.enable {
     homebrew = {
       enable = true;
       onActivation = {
-        autoUpdate = false; # Don't auto-update on activation
-        cleanup = "zap"; # Remove unlisted casks
-        upgrade = false; # Don't auto-upgrade
+        autoUpdate = cfg.autoUpdate;
+        cleanup = cfg.cleanup;
+        upgrade = cfg.upgrade;
       };
       brews = cfg.brews;
       casks = cfg.casks;
     };
+
+    environment.systemPath = [ "${homebrew.binPath}" ];
   };
 }

@@ -19,6 +19,8 @@ in
 
     home.packages = with pkgs; [
       bazelisk
+      buildifier
+      buildozer
     ];
 
     home.shellAliases = {

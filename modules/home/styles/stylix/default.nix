@@ -107,6 +107,7 @@ in
           # These are safe as they only generate config files, no NixOS (Linux)-specific packages
           fish.enable = true;
           nixvim.enable = true;
+          vscode.enable = true;
         };
       })
     ]

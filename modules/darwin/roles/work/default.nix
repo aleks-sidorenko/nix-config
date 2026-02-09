@@ -35,7 +35,7 @@ in
       };
 
       # Virtualisation
-      services.virtualisation.podman.enable = true;
+      services.virtualisation.rancher.enable = true;
     };
   };
 }

@@ -39,4 +39,10 @@ rec {
 
   };
 
+  homebrew = {
+    path = "/opt/homebrew";
+    binPath = "${homebrew.path}/bin";
+    getExe = name: "${homebrew.binPath}/${name}";
+  };
+
 }

@@ -15,6 +15,7 @@ in
     name = mkOpt str defaults.user "Username (must match existing account)";
     uid = mkOpt int 501 "User ID (required for knownUsers)";
     shell = mkOpt (nullOr package) null "Default shell package for the user";
+    extraGroups = mkOpt (listOf str) [ ] "Additional groups for the user";
   };
 
   config = mkIf cfg.enable {
@@ -30,6 +31,14 @@ in
       home = "/Users/${cfg.name}";
       shell = mkIf (cfg.shell != null) cfg.shell;
     };
+
+    # Add user to extra groups
+    users.groups = builtins.listToAttrs (
+      map (group: {
+        name = group;
+        value.members = [ cfg.name ];
+      }) cfg.extraGroups
+    );
 
     home-manager = {
       useGlobalPkgs = true;

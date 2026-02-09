@@ -7,11 +7,11 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.virtualisation.docker;
+  cfg = config.${namespace}.services.virtualisation.podman;
 in
 {
-  options.${namespace}.services.virtualisation.docker = with types; {
-    enable = mkBoolOpt false "Enable docker via Homebrew";
+  options.${namespace}.services.virtualisation.podman = with types; {
+    enable = mkBoolOpt false "Enable podman via Homebrew";
   };
 
   config = mkIf cfg.enable {
@@ -26,7 +26,7 @@ in
         "docker"
         "docker-compose"
         "docker-credential-helper"
-
+        "podman"
       ];
     };
 

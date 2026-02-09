@@ -51,6 +51,10 @@ in
     database = {
       mysql = mkEnableOption "Enable MySQL database client";
     };
+
+    testing = {
+      testcontainers = mkEnableOption "Enable testcontainers support";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -82,7 +86,11 @@ in
         database = {
           mysql.enable = cfg.database.mysql;
         };
-        testing.testcontainers.enable = true;
+
+        testing = {
+          testcontainers.enable = cfg.testing.testcontainers;
+        };
+
       };
       cli = {
         editors.nvim = {
@@ -122,7 +130,11 @@ in
         };
       };
 
-      services.virtualization.podman.enable = true;
+      virtualization = {
+        podman.enable = true;
+        k8s.enable = true;
+      };
+
     };
   };
 }
