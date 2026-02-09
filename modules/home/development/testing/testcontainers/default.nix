@@ -13,13 +13,15 @@ in
 {
   options.${namespace}.development.testing.testcontainers = with types; {
     enable = mkBoolOpt false "Configure environment for Testcontainers with Podman";
+    colima.enable = mkBoolOpt false "Set TESTCONTAINERS_HOST_OVERRIDE from Colima address";
   };
 
   config = mkIf cfg.enable {
     home.sessionVariables = {
-      DOCKER_HOST = "unix:///var/run/docker.sock";
       TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = "/var/run/docker.sock";
-      TESTCONTAINERS_RYUK_DISABLED = "true";
+    }
+    // optionalAttrs cfg.colima.enable {
+      TESTCONTAINERS_HOST_OVERRIDE = "$(colima ls -j | jq -r '.address')";
     };
   };
 }

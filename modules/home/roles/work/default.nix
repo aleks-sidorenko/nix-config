@@ -47,6 +47,9 @@ in
           database = {
             mysql = true;
           };
+          testing = {
+            testcontainers = false;
+          };
         };
       };
 

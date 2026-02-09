@@ -16,9 +16,13 @@ in
   };
 
   config = mkIf cfg.enable {
+
     ${namespace} = {
 
-      services.virtualisation.podman.enable = true;
+      services.virtualisation = {
+        docker.enable = true;
+        podman.enable = true;
+      };
 
       system.homebrew = {
         brews = [
@@ -38,6 +42,7 @@ in
           (homebrew.getExe "colima")
           "start"
           "--foreground"
+          "--network-address"
         ];
         RunAtLoad = true;
         KeepAlive = false;

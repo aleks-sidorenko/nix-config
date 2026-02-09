@@ -27,7 +27,10 @@ in
 
       system.homebrew = {
         casks = [
-          "rancher"
+          {
+            name = "rancher";
+            greedy = false;
+          }
         ];
       };
     };
