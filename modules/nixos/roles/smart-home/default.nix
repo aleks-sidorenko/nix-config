@@ -95,6 +95,19 @@ in
                     }
                   ];
                 }
+                {
+                  enable = true;
+                  name = "pc";
+                  displayName = "PC";
+                  entity_id = "switch.floor2_office_plug_pc";
+                  intervals = [
+                    {
+                      name = "daytime";
+                      start = "10:00";
+                      end = "18:00";
+                    }
+                  ];
+                }
               ];
             };
             inverter = {
