@@ -73,8 +73,22 @@ in
           jvm.enable = cfg.platforms.jvm || cfg.languages.java || cfg.languages.scala;
         };
         editors = {
-          code.enable = cfg.editors.code;
-          cursor.enable = cfg.editors.cursor;
+          code = {
+            enable = cfg.editors.code;
+            languages = {
+              haskell = cfg.languages.haskell;
+              java = cfg.languages.java;
+              scala = cfg.languages.scala;
+            };
+          };
+          cursor = {
+            enable = cfg.editors.cursor;
+            languages = {
+              haskell = cfg.languages.haskell;
+              java = cfg.languages.java;
+              scala = cfg.languages.scala;
+            };
+          };
           idea.enable = cfg.editors.idea;
         };
         ai = {

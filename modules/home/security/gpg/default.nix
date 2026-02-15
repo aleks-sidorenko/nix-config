@@ -17,6 +17,11 @@ in
 {
   options.${namespace}.security.gpg = with types; {
     enable = mkBoolOpt false "Whether or not to enable gpg";
+    cacheTtl = mkOption {
+      type = types.int;
+      default = 86400;
+      description = "Cache TTL for GPG and SSH keys in seconds (default: 24 hours)";
+    };
     publicKeys = mkOption {
       type = types.listOf types.str;
       default = [ (toString ./gpg.asc) ];
@@ -36,8 +41,10 @@ in
       enableSshSupport = true;
       enableExtraSocket = true;
       sshKeys = cfg.sshKeys;
-      defaultCacheTtl = 1800;
-      defaultCacheTtlSsh = 1800;
+      defaultCacheTtl = cfg.cacheTtl;
+      defaultCacheTtlSsh = cfg.cacheTtl;
+      maxCacheTtl = cfg.cacheTtl;
+      maxCacheTtlSsh = cfg.cacheTtl;
       pinentry.package = pkgs.pinentry-curses;
       extraConfig = ''
         allow-preset-passphrase

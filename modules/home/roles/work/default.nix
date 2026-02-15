@@ -36,6 +36,7 @@ in
           languages = {
             scala = true;
             java = true;
+            haskell = true;
           };
           editors = {
             cursor = true;

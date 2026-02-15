@@ -49,6 +49,12 @@ in
           difftastic.cmd = "difft \"$LOCAL\" \"$REMOTE\"";
         };
 
+        merge.tool = "nvimdiff";
+        mergetool = {
+          prompt = false;
+          keepBackup = false;
+        };
+
         log = {
           showSignature = "true";
         };
