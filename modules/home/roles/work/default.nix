@@ -52,6 +52,8 @@ in
             testcontainers = false;
           };
         };
+
+        router-manager = enabled;
       };
 
       browsers = {

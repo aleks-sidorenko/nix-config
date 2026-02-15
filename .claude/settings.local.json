@@ -7,8 +7,6 @@
       "WebSearch",
       "Bash(podman machine inspect:*)",
       "Bash(sops:*)",
-      "Bash(modules/darwin/secrets.yaml)",
-      "Bash(sudo ssh-keygen:*)"
     ]
   }
 }
