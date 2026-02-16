@@ -48,7 +48,8 @@ in
       };
 
       services = {
-        kdeconnect.enable = false;
+        teamviewer = enabled;
+        kdeconnect = disabled;
       };
 
       desktops = {

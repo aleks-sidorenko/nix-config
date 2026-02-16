@@ -57,6 +57,11 @@ in
       browsers = {
         chrome.enable = true;
       };
+
+      services = {
+        teamviewer = enabled;
+      };
+
     };
 
   };
