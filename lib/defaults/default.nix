@@ -43,10 +43,16 @@ rec {
       dhcpRange = "10.0.0.50-10.0.0.250";
       hosts = {
         router = "10.0.0.1";
+        cap1 = "10.0.0.11";
+        cap2 = "10.0.0.12";
         monitor = "10.0.0.30";
+        ajax = "10.0.0.31";
+        doorbell = "10.0.0.35";
         server = "10.0.0.40";
         tv = "10.0.0.50";
         tv-wifi = "10.0.0.51";
+        inverter = "10.0.0.52";
+        heatpump = "10.0.0.53";
       };
       domains = {
         local = "local";

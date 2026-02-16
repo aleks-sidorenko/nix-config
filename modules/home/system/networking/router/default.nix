@@ -235,6 +235,35 @@ let
       <(grep -v "^# " "$TEMP" | sort) || true
   '';
 
+  router-cmd = pkgs.writeShellScriptBin "router-cmd" ''
+    set -euo pipefail
+
+    ROUTER="${cfg.sshAlias}"
+
+    usage() {
+      echo "Usage: router-cmd <command> [command...]"
+      echo ""
+      echo "Execute RouterOS commands on the router via SSH"
+      echo ""
+      echo "Examples:"
+      echo "  router-cmd '/ip firewall filter print'"
+      echo "  router-cmd '/system resource print'"
+      echo "  router-cmd '/ip dhcp-server lease print'"
+      echo "  router-cmd '/ip address add address=10.0.0.100/24 interface=bridge'"
+      exit 0
+    }
+
+    if [[ $# -eq 0 ]]; then
+      usage
+    fi
+
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+      usage
+    fi
+
+    ssh "$ROUTER" "$@"
+  '';
+
   # ===========================================
   # Option Types
   # ===========================================
@@ -357,6 +386,7 @@ in
       router-export
       router-import
       router-diff
+      router-cmd
     ];
 
     # Generate configuration file

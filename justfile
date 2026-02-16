@@ -328,6 +328,10 @@ router-import *opts="":
 router-diff:
     router-diff
 
+# Execute a RouterOS command on the router
+router-cmd *cmd="":
+    router-cmd {{cmd}}
+
 # Show router management help
 router-help:
     @echo "Router Management Commands:"
@@ -336,6 +340,7 @@ router-help:
     @echo "  just router-import            Import Nix-generated config to router"
     @echo "  just router-import --dry-run  Preview config without importing"
     @echo "  just router-diff              Compare Nix config vs current router"
+    @echo "  just router-cmd <command>     Execute a RouterOS command on the router"
     @echo ""
     @echo "Prerequisites:"
     @echo "  - SSH alias 'router' configured (~/.ssh/config)"

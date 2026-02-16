@@ -8,79 +8,89 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.roles.router-manager;
+  ips = defaults.network.hosts;
 in
 {
   options.${namespace}.roles.router-manager = {
     enable = mkEnableOption "Enable router manager configuration";
-
-    # Connection
-    sshAlias = mkStringOpt "router" "SSH config alias";
-
-    # Network
-    subnet = mkStringOpt defaults.network.subnet "Network subnet (CIDR)";
-    gateway = mkStringOpt defaults.network.gateway "Gateway IP";
-    dhcpRange = mkStringOpt defaults.network.dhcpRange "DHCP pool range";
-
-    # WiFi
-    wifi = {
-      ssid = mkStringOpt defaults.network.wifi.ssid "WiFi SSID";
-    };
-
-    # DNS
-    dns = {
-      upstream = mkOpt (types.listOf types.str) defaults.network.dns.upstream "Upstream DNS servers";
-    };
-
-    # Hardware
-    bridge = {
-      adminMac = mkStringOpt "08:55:31:E9:21:73" "Bridge admin MAC address";
-    };
-
-    lte = {
-      apn = mkStringOpt "ks" "LTE APN";
-      name = mkStringOpt "Kyivstar" "LTE provider name";
-    };
-
-    ovpn = {
-      macAddress = mkStringOpt "FE:24:A6:AA:80:85" "OpenVPN server MAC address";
-    };
-
-    # System
-    timezone = mkStringOpt defaults.locale.timeZone "Router timezone";
-
-    # Network hosts
-    hosts = mkOpt (types.attrsOf
-      config.${namespace}.system.networking.router.options.hosts.type.nestedTypes.elemType
-    ) { } "Network hosts - generates DHCP leases and DNS records";
-
-    # Firewall
-    firewallAddressLists = mkOpt (types.attrsOf (
-      types.listOf types.str
-    )) { } "Firewall address lists (e.g. { TV = [ \"10.0.0.50/32\" ]; })";
-
-    # Extra
-    extraSections = mkOpt types.attrs { } "Additional RouterOS sections";
   };
 
   config = mkIf cfg.enable {
     ${namespace}.system.networking.router = {
       enable = true;
-      sshAlias = cfg.sshAlias;
-      subnet = cfg.subnet;
-      gateway = cfg.gateway;
-      dhcpRange = cfg.dhcpRange;
-      wifi.ssid = cfg.wifi.ssid;
-      dns.upstream = cfg.dns.upstream;
-      bridge.adminMac = cfg.bridge.adminMac;
-      lte = {
-        apn = cfg.lte.apn;
-        name = cfg.lte.name;
+
+      hosts = {
+        cap1 = {
+          ip = ips.cap1;
+          mac = "DC:2C:6E:18:C7:69";
+          dns = false;
+          comment = "cAP floor 1";
+        };
+        cap2 = {
+          ip = ips.cap2;
+          mac = "DC:2C:6E:18:C0:AB";
+          dns = false;
+          comment = "cAP floor 2";
+        };
+        monitor = {
+          ip = ips.monitor;
+          mac = "00:12:17:DC:98:99";
+          comment = "Monitor";
+        };
+        ajax = {
+          ip = ips.ajax;
+          mac = "38:B8:EB:C2:54:53";
+          comment = "Ajax";
+        };
+        doorbell = {
+          ip = ips.doorbell;
+          mac = "3C:E3:6B:4B:21:94";
+          comment = "Doorbell, doesn't use DHCP";
+          dns = false;
+        };
+        server = {
+          ip = ips.server;
+          mac = "D8:3A:DD:D7:30:67";
+          aliases = [
+            "radarr"
+            "jellyfin"
+            "qbittorrent"
+            "prowlarr"
+            "minidlna"
+            "sonarr"
+            "home-assistant"
+            "zigbee2mqtt"
+            "minecraft"
+            "restic"
+          ];
+        };
+        tv = {
+          ip = ips.tv;
+          mac = "0C:CA:FB:0B:47:EE";
+          comment = "tv lan";
+        };
+        tv-wifi = {
+          ip = ips.tv-wifi;
+          mac = "04:39:26:B6:FB:6C";
+          comment = "tv wifi";
+          dns = false;
+        };
+        inverter = {
+          ip = ips.inverter;
+          mac = "D4:27:87:27:B8:3E";
+        };
+        heatpump = {
+          ip = ips.heatpump;
+          mac = "EC:FA:BC:C2:EC:C6";
+        };
       };
-      ovpn.macAddress = cfg.ovpn.macAddress;
-      timezone = cfg.timezone;
-      hosts = cfg.hosts;
-      firewallAddressLists = cfg.firewallAddressLists;
-      extraSections = cfg.extraSections;
+
+      firewallAddressLists = {
+        tv = [
+          "${ips.tv}/32"
+          "${ips.tv-wifi}/32"
+        ];
+      };
     };
   };
 }

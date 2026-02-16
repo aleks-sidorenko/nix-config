@@ -16,9 +16,7 @@ in
   options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Whether or not to enable ssh";
 
-    user =
-      mkStringOpt lib.${namespace}.defaults.user
-        "Username to use when connecting to remote hosts";
+    user = mkStringOpt lib.${namespace}.defaults.user "Username to use when connecting to remote hosts";
 
     publicKeyPath = mkOption {
       type = str;

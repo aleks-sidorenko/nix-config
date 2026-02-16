@@ -446,7 +446,7 @@ cfg: {
       chain = "forward";
       comment = "drop TV external traffic";
       out-interface-list = "WAN";
-      src-address-list = "TV";
+      src-address-list = "tv";
     }
   ];
 
