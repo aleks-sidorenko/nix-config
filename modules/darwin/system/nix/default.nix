@@ -9,13 +9,21 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.nix;
+  sopsEnabled = config.${namespace}.security.sops.enable;
 in
 {
   options.${namespace}.system.nix = with types; {
     enable = mkBoolOpt false "Whether to manage nix configuration";
+    githubAuth = mkBoolOpt false "Whether to enable GitHub authentication for Nix";
   };
 
   config = mkIf cfg.enable {
+    # Configure SOPS secret for GitHub token
+    sops.secrets."system-github-token" = mkIf (sopsEnabled && cfg.githubAuth) {
+      sopsFile = ../../secrets.yaml;
+      mode = "0440";
+    };
+
     nix = {
       settings = {
         experimental-features = [
@@ -33,9 +41,14 @@ in
           "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         ];
       };
-    };
 
-    # Configure registry for flakes
-    nix.registry.nixpkgs.flake = inputs.nixpkgs;
+      # Configure GitHub access token for Nix
+      extraOptions = mkIf (sopsEnabled && cfg.githubAuth) ''
+        !include ${config.sops.secrets."system-github-token".path}
+      '';
+
+      # Configure registry for flakes
+      registry.nixpkgs.flake = inputs.nixpkgs;
+    };
   };
 }

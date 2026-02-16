@@ -20,8 +20,13 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
+      security.sops.enable = true;
+
       system = {
-        nix.enable = true;
+        nix = {
+          enable = true;
+          githubAuth = true;
+        };
         # Darwin (macOS) UI preferences (MDM may override some)
         defaults.enable = true;
 

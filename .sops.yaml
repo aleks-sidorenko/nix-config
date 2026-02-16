@@ -22,6 +22,7 @@ keys:
   - &hosts:
     - &desktop age1kjlpt0mu072vqk8txgkfs7yvehkvk0kysawyqvy96zcqmf49wgkq3hlsag
     - &server age1qap92qp262npfhtqwwccu7jaxmjfyc22aeqwu5fv2kft828eaypqjzxx86
+    - &workbook age123w5drucfk50cvw26lt6mrhhnmrdjshg7waqsp4ufnm69ujc04gqhu4h3r
 
 creation_rules:
   - path_regex: modules/nixos/secrets.ya?ml$
@@ -38,3 +39,10 @@ creation_rules:
           - *alexander
         age:
           - *desktop
+
+  - path_regex: modules/darwin/secrets.ya?ml$
+    key_groups:
+      - pgp:
+          - *alexander
+        age:
+          - *workbook

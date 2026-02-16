@@ -214,6 +214,7 @@
         ];
         modules.darwin = with inputs; [
           home-manager.darwinModules.home-manager
+          sops-nix.darwinModules.sops
         ];
         hosts = {
           # hosts specific modules

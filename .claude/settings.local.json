@@ -5,7 +5,10 @@
       "Bash(just format:*)",
       "Bash(cat:*)",
       "WebSearch",
-      "Bash(podman machine inspect:*)"
+      "Bash(podman machine inspect:*)",
+      "Bash(sops:*)",
+      "Bash(modules/darwin/secrets.yaml)",
+      "Bash(sudo ssh-keygen:*)"
     ]
   }
 }
