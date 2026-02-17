@@ -67,21 +67,23 @@ in
         tv = {
           ip = ips.tv;
           mac = "0C:CA:FB:0B:47:EE";
-          comment = "tv lan";
+          comment = "TV lan";
         };
         tv-wifi = {
           ip = ips.tv-wifi;
           mac = "04:39:26:B6:FB:6C";
-          comment = "tv wifi";
+          comment = "TV wifi";
           dns = false;
         };
         inverter = {
           ip = ips.inverter;
           mac = "D4:27:87:27:B8:3E";
+          comment = "Deye inverter";
         };
         heatpump = {
           ip = ips.heatpump;
           mac = "EC:FA:BC:C2:EC:C6";
+          comment = "Heatpump";
         };
       };
 

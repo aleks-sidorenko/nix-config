@@ -13,6 +13,8 @@ let
   net = lib.${namespace};
   localDomain = defaults.network.domains.local;
 
+  wifiPasswordPath = config.sops.secrets."system-network-wifi-password".path;
+
   # ===========================================
   # RouterOS Config Generation (nix-mikrotik style)
   # ===========================================
@@ -138,17 +140,11 @@ let
 
     # Get WiFi password from SOPS secret
     WIFI_PASSWORD=""
-    SECRETS_PATHS=(
-      "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/secrets/system-network-wifi-password"
-      "$HOME/.config/sops-nix/secrets/system-network-wifi-password"
-    )
+    SECRET_PATH="${toString wifiPasswordPath}"
 
-    for path in "''${SECRETS_PATHS[@]}"; do
-      if [[ -f "$path" ]]; then
-        WIFI_PASSWORD=$(cat "$path")
-        break
-      fi
-    done
+    if [[ -n "$SECRET_PATH" && -f "$SECRET_PATH" ]]; then
+      WIFI_PASSWORD=$(cat "$SECRET_PATH")
+    fi
 
     if [[ -z "$WIFI_PASSWORD" ]]; then
       echo "Warning: WiFi password not found in SOPS secrets"
@@ -344,6 +340,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    sops.secrets."system-network-wifi-password" = {
+      sopsFile = ../../../secrets.yaml;
+    };
+
     # Initialize derived/computed values
     ${namespace}.system.networking.router = {
       dhcpLeases = mapAttrsToList (name: host: {
