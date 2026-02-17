@@ -114,6 +114,8 @@ let
   # Computed values passed to config.nix
   # ===========================================
 
+  configDir = "\${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik";
+
   networkAddress = net.networkAddress cfg.gateway;
   prefixLength = net.prefixLength cfg.subnet;
 
@@ -144,11 +146,55 @@ let
   # Scripts
   # ===========================================
 
+  router-backup = pkgs.writeShellScriptBin "router-backup" ''
+    set -euo pipefail
+
+    ROUTER="${cfg.sshAlias}"
+    BACKUP_DIR="${configDir}"
+
+    usage() {
+      echo "Usage: router-backup [OPTIONS]"
+      echo ""
+      echo "Create a backup of the MikroTik router and download it"
+      echo ""
+      echo "Options:"
+      echo "  -o, --output DIR  Backup directory (default: \$XDG_CONFIG_HOME/mikrotik)"
+      echo "  -h, --help        Show this help"
+      exit 0
+    }
+
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        -o|--output) BACKUP_DIR="$2"; shift 2 ;;
+        -h|--help) usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+      esac
+    done
+
+    mkdir -p "$BACKUP_DIR"
+
+    BACKUP_NAME="nix-$(date +%Y%m%d-%H%M%S)"
+
+    echo "Creating backup on router..."
+    ssh "$ROUTER" "/system backup save name=$BACKUP_NAME" || {
+      echo "Error: Backup failed"
+      exit 1
+    }
+
+    echo "Downloading backup to $BACKUP_DIR/$BACKUP_NAME.backup..."
+    scp "$ROUTER:/$BACKUP_NAME.backup" "$BACKUP_DIR/$BACKUP_NAME.backup" || {
+      echo "Error: Failed to download backup file"
+      exit 1
+    }
+
+    echo "Backup saved to: $BACKUP_DIR/$BACKUP_NAME.backup"
+  '';
+
   router-export = pkgs.writeShellScriptBin "router-export" ''
     set -euo pipefail
 
     ROUTER="${cfg.sshAlias}"
-    OUTPUT="''${1:-''${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik/exported.rsc}"
+    OUTPUT="''${1:-${configDir}/exported.rsc}"
 
     echo "Exporting configuration from $ROUTER..."
     ssh "$ROUTER" "/export compact" > "$OUTPUT"
@@ -161,7 +207,7 @@ let
     set -euo pipefail
 
     ROUTER="${cfg.sshAlias}"
-    CONFIG="''${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik/config.rsc"
+    CONFIG="${configDir}/config.rsc"
     DRY_RUN=false
     BACKUP=true
 
@@ -219,17 +265,9 @@ let
       exit 0
     fi
 
-    BACKUP_NAME=""
-    BACKUP_DIR="''${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik"
     if [[ "$BACKUP" == "true" ]]; then
-      echo "Creating backup on router..."
-      BACKUP_NAME="nix-$(date +%Y%m%d-%H%M%S)"
-      ssh "$ROUTER" "/system backup save name=$BACKUP_NAME" || {
+      ${router-backup}/bin/router-backup || {
         echo "Warning: Backup failed, continuing anyway"
-      }
-      echo "Downloading backup to $BACKUP_DIR/$BACKUP_NAME.backup..."
-      scp "$ROUTER:/$BACKUP_NAME.backup" "$BACKUP_DIR/$BACKUP_NAME.backup" || {
-        echo "Warning: Failed to download backup file"
       }
     fi
 
@@ -252,9 +290,6 @@ let
 
     echo ""
     echo "Router is rebooting and will apply the new configuration on startup."
-    if [[ -n "$BACKUP_NAME" ]]; then
-      echo "Backup saved on router as: $BACKUP_NAME"
-    fi
   '';
 
   router-cmd = pkgs.writeShellScriptBin "router-cmd" ''
@@ -412,6 +447,7 @@ in
 
     # Install management scripts
     home.packages = [
+      router-backup
       router-export
       router-import
       router-cmd
