@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   config,
   namespace,
   ...
@@ -16,6 +17,8 @@ in
   };
 
   config = mkIf cfg.enable {
+    home.packages = [ pkgs.winbox4 ];
+
     ${namespace}.system.networking.router = {
       enable = true;
 
