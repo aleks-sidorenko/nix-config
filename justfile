@@ -324,10 +324,6 @@ router-export *output="":
 router-import *opts="":
     router-import {{opts}}
 
-# Compare Nix-generated config with current router config
-router-diff:
-    router-diff
-
 # Execute a RouterOS command on the router
 router-cmd *cmd="":
     router-cmd {{cmd}}
@@ -339,16 +335,16 @@ router-help:
     @echo "  just router-export [file]     Export current router config (default: ./exported.rsc)"
     @echo "  just router-import            Import Nix-generated config to router"
     @echo "  just router-import --dry-run  Preview config without importing"
-    @echo "  just router-diff              Compare Nix config vs current router"
     @echo "  just router-cmd <command>     Execute a RouterOS command on the router"
     @echo ""
     @echo "Prerequisites:"
     @echo "  - SSH alias 'router' configured (~/.ssh/config)"
     @echo "  - Router module enabled in home-manager config"
-    @echo "  - Run 'home-manager switch' to generate config"
+    @echo "  - WiFi password in home-manager SOPS secrets (system-network-wifi-password)"
+    @echo "  - Run 'nh home switch' to generate config and decrypt secrets"
     @echo ""
     @echo "Workflow:"
     @echo "  1. Edit topology in your home-manager config"
-    @echo "  2. Run 'home-manager switch' to generate config"
-    @echo "  3. Run 'just router-diff' to preview changes"
+    @echo "  2. Run 'nh home switch' to generate config"
+    @echo "  3. Run 'just router-import --dry-run' to preview changes"
     @echo "  4. Run 'just router-import' to apply changes"

@@ -134,45 +134,36 @@ let
 
     if [[ ! -f "$CONFIG" ]]; then
       echo "Error: Config not found at $CONFIG"
-      echo "Run 'home-manager switch' first"
+      echo "Run 'nh home switch' first"
       exit 1
     fi
 
     # Get WiFi password from SOPS secret
     WIFI_PASSWORD=""
     SECRET_PATH="${toString wifiPasswordPath}"
-
-    if [[ -n "$SECRET_PATH" && -f "$SECRET_PATH" ]]; then
-      WIFI_PASSWORD=$(cat "$SECRET_PATH")
+    if [[ "$(uname)" == "Darwin" ]]; then
+      SECRET_PATH="''${SECRET_PATH//%r/$(getconf DARWIN_USER_TEMP_DIR)}"
+    else
+      SECRET_PATH="''${SECRET_PATH//%r/''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}"
     fi
 
-    if [[ -z "$WIFI_PASSWORD" ]]; then
-      echo "Warning: WiFi password not found in SOPS secrets"
-      read -sp "Enter WiFi password (or leave empty): " WIFI_PASSWORD
-      echo
+    if [[ ! -f "$SECRET_PATH" ]]; then
+      echo "Error: WiFi password not found at $SECRET_PATH"
+      echo "Ensure 'system-network-wifi-password' exists in home-manager SOPS secrets and run 'nh home switch'"
+      exit 1
     fi
+    WIFI_PASSWORD=$(cat "$SECRET_PATH")
 
     # Create temp config with password substituted
     TEMP=$(mktemp)
     trap "rm -f $TEMP" EXIT
-
-    if [[ -n "$WIFI_PASSWORD" ]]; then
-      WIFI_PASSWORD="$WIFI_PASSWORD" envsubst '$WIFI_PASSWORD' < "$CONFIG" > "$TEMP"
-    else
-      cp "$CONFIG" "$TEMP"
-    fi
+    sed "s/\$WIFI_PASSWORD/$WIFI_PASSWORD/g" "$CONFIG" > "$TEMP"
 
     if [[ "$DRY_RUN" == "true" ]]; then
       echo "=== DRY RUN - Config preview ==="
       cat "$TEMP"
       exit 0
     fi
-
-    echo "Creating backup on router..."
-    BACKUP_NAME="pre-nix-$(date +%Y%m%d-%H%M%S)"
-    ssh "$ROUTER" "/system backup save name=$BACKUP_NAME" || {
-      echo "Warning: Backup failed, continuing anyway"
-    }
 
     echo ""
     echo "WARNING: This will import configuration to the router."
@@ -189,7 +180,7 @@ let
 
     echo "Importing configuration..."
     ssh "$ROUTER" "/import file-name=nix-config.rsc" || {
-      echo "Import failed. Backup available: $BACKUP_NAME"
+      echo "Import failed."
       exit 1
     }
 
@@ -198,37 +189,6 @@ let
 
     echo ""
     echo "Configuration imported successfully!"
-    echo "Backup saved as: $BACKUP_NAME"
-  '';
-
-  router-diff = pkgs.writeShellScriptBin "router-diff" ''
-    set -euo pipefail
-
-    ROUTER="${cfg.sshAlias}"
-    CONFIG="''${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik/config.rsc"
-
-    if [[ ! -f "$CONFIG" ]]; then
-      echo "Error: Config not found at $CONFIG"
-      echo "Run 'home-manager switch' first"
-      exit 1
-    fi
-
-    TEMP=$(mktemp)
-    trap "rm -f $TEMP" EXIT
-
-    echo "Fetching current configuration from $ROUTER..."
-    ssh "$ROUTER" "/export compact" > "$TEMP"
-
-    echo ""
-    echo "=== DIFF (local Nix config vs router) ==="
-    echo "< = Nix generated"
-    echo "> = Current router"
-    echo ""
-
-    # Normalize for comparison: remove timestamps, sort
-    diff --color=auto -u \
-      <(grep -v "^# " "$CONFIG" | grep -v "^\$WIFI_PASSWORD" | sort) \
-      <(grep -v "^# " "$TEMP" | sort) || true
   '';
 
   router-cmd = pkgs.writeShellScriptBin "router-cmd" ''
@@ -385,7 +345,6 @@ in
     home.packages = [
       router-export
       router-import
-      router-diff
       router-cmd
     ];
 
