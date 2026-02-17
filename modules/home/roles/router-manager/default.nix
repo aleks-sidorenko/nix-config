@@ -26,13 +26,11 @@ in
         cap1 = {
           ip = ips.cap1;
           mac = "DC:2C:6E:18:C7:69";
-          dns = false;
           comment = "cAP floor 1";
         };
         cap2 = {
           ip = ips.cap2;
           mac = "DC:2C:6E:18:C0:AB";
-          dns = false;
           comment = "cAP floor 2";
         };
         monitor = {
@@ -48,7 +46,7 @@ in
         doorbell = {
           ip = ips.doorbell;
           mac = "3C:E3:6B:4B:21:94";
-          comment = "Doorbell, doesn't use DHCP";
+          comment = "Doorbell";
           dns = false;
         };
         server = {
