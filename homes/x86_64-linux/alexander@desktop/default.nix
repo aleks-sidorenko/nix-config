@@ -19,8 +19,6 @@ with lib.${namespace};
       enable = true;
     };
 
-    security.sops.enable = mkForce false;
-
     desktops.monitors = {
       enable = true;
       devices = [

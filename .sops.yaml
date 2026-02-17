@@ -39,6 +39,7 @@ creation_rules:
           - *alexander
         age:
           - *desktop
+          - *workbook
 
   - path_regex: modules/darwin/secrets.ya?ml$
     key_groups:

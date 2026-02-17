@@ -75,15 +75,21 @@ bootstrap-disk hostname mode="--dry-run":
         exit 1; \
     fi
 
-# Deploy to a specific host using deploy-rs
+# Deploy to a specific host using deploy-rs (or router-import for router)
 # Usage:
 #   just deploy hostname                            # Deploy with local build
 #   just deploy hostname --remote-build             # Deploy with remote build
 #   just deploy hostname --dry-run                  # Local build with dry-run
 #   just deploy hostname --remote-build  --verbose  # Remote build with verbose output
+#   just deploy router                              # Deploy to MikroTik router
 deploy hostname *extra_opts="":
-    @echo "🚢 Deploying to {{hostname}}..."    
-    deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
+    @if [ "{{hostname}}" = "router" ]; then \
+        echo "🌐 Deploying to MikroTik router..."; \
+        router-import {{extra_opts}}; \
+    else \
+        echo "🚢 Deploying to {{hostname}}..."; \
+        deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
+    fi
     
 
 # Build and switch to a new generation locally (for testing)
@@ -304,3 +310,41 @@ bootstrap-targets:
     @echo "🎯 Available bootstrap targets:"
     @echo "NixOS configurations that can be bootstrapped:"
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -v "install-iso" | sed 's/^/  /'
+
+# ============================================
+# Router Management (MikroTik)
+# Scripts provided by home-manager router module
+# ============================================
+
+# Export current router configuration
+router-export *output="":
+    router-export {{output}}
+
+# Import Nix-generated configuration to router
+router-import *opts="":
+    router-import {{opts}}
+
+# Execute a RouterOS command on the router
+router-cmd *cmd="":
+    router-cmd {{cmd}}
+
+# Show router management help
+router-help:
+    @echo "Router Management Commands:"
+    @echo ""
+    @echo "  just router-export [file]     Export current router config (default: ./exported.rsc)"
+    @echo "  just router-import            Import Nix-generated config to router"
+    @echo "  just router-import --dry-run  Preview config without importing"
+    @echo "  just router-cmd <command>     Execute a RouterOS command on the router"
+    @echo ""
+    @echo "Prerequisites:"
+    @echo "  - SSH alias 'router' configured (~/.ssh/config)"
+    @echo "  - Router module enabled in home-manager config"
+    @echo "  - WiFi password in home-manager SOPS secrets (system-network-wifi-password)"
+    @echo "  - Run 'nh home switch' to generate config and decrypt secrets"
+    @echo ""
+    @echo "Workflow:"
+    @echo "  1. Edit topology in your home-manager config"
+    @echo "  2. Run 'nh home switch' to generate config"
+    @echo "  3. Run 'just router-import --dry-run' to preview changes"
+    @echo "  4. Run 'just router-import' to apply changes"
