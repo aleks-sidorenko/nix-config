@@ -66,6 +66,7 @@ in
             "minecraft"
             "restic"
           ];
+          comment = "Server";
         };
         tv = {
           ip = ips.tv;

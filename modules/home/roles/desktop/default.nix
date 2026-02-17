@@ -45,6 +45,7 @@ in
         mobile = enabled;
         gaming = enabled;
         communication = enabled;
+        router-manager = enabled;
       };
 
       services = {
