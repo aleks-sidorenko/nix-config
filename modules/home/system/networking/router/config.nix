@@ -401,7 +401,6 @@ cfg: {
         "established"
         "related"
       ];
-      hw-offload = true;
     }
     {
       action = "accept";

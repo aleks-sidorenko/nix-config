@@ -220,11 +220,16 @@ let
     fi
 
     BACKUP_NAME=""
+    BACKUP_DIR="''${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik"
     if [[ "$BACKUP" == "true" ]]; then
       echo "Creating backup on router..."
       BACKUP_NAME="nix-$(date +%Y%m%d-%H%M%S)"
       ssh "$ROUTER" "/system backup save name=$BACKUP_NAME" || {
         echo "Warning: Backup failed, continuing anyway"
+      }
+      echo "Downloading backup to $BACKUP_DIR/$BACKUP_NAME.backup..."
+      scp "$ROUTER:/$BACKUP_NAME.backup" "$BACKUP_DIR/$BACKUP_NAME.backup" || {
+        echo "Warning: Failed to download backup file"
       }
     fi
 

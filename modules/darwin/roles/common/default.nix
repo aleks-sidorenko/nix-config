@@ -29,6 +29,8 @@ in
         };
         # Darwin (macOS) UI preferences (MDM may override some)
         defaults.enable = true;
+        # /etc/hosts with local network entries
+        networking.enable = true;
 
         # Homebrew for CLI tools and GUI apps
         homebrew = {
