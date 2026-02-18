@@ -24,6 +24,7 @@ in
       mode = "0440";
     };
 
+    # Nix
     nix = {
       settings = {
         experimental-features = [

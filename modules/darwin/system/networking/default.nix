@@ -33,25 +33,28 @@ in
     };
 
     # Blocked by https://github.com/nix-darwin/nix-darwin/issues/1035
-    environment.etc."hosts" = {
-      text =
-        let
-          hostsEntries = lib.mapAttrsToList (
-            host: ip: "${ip} ${host} ${host}.${cfg.domains.local}"
-          ) defaults.network.hosts;
-        in
-        ''
-          ##
-          # Host Database
-          ##
-          127.0.0.1 localhost
-          255.255.255.255 broadcasthost
-          ::1 localhost
+    /*
+      Disabled until the issue is fixed
+      environment.etc."hosts" = {
+        text =
+          let
+            hostsEntries = lib.mapAttrsToList (
+              host: ip: "${ip} ${host} ${host}.${cfg.domains.local}"
+            ) defaults.network.hosts;
+          in
+          ''
+            ##
+            # Host Database
+            ##
+            127.0.0.1 localhost
+            255.255.255.255 broadcasthost
+            ::1 localhost
 
-          # Local network hosts
-        ''
-        + lib.concatStringsSep "\n" hostsEntries
-        + "\n";
-    };
+            # Local network hosts
+          ''
+          + lib.concatStringsSep "\n" hostsEntries
+          + "\n";
+      };
+    */
   };
 }
