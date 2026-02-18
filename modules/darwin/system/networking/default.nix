@@ -12,6 +12,7 @@ in
 {
   options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networking";
+    knownNetworkServices = mkOpt (listOf str) [ "Wi-Fi" ] "List of macOS network services to configure";
     domains = {
       local = mkOpt str defaults.network.domains.local "Local domain for intranet resolution";
       public = mkOpt str defaults.network.domains.public "Public domain to search for";
@@ -20,8 +21,14 @@ in
 
   config = mkIf cfg.enable {
     networking = {
-      knownNetworkServices = [
-        "Wi-Fi"
+      knownNetworkServices = cfg.knownNetworkServices;
+
+      dns = [
+        defaults.network.gateway
+      ];
+
+      search = [
+        cfg.domains.local
       ];
     };
 

@@ -14,6 +14,15 @@ with lib.${namespace};
 
     # Override user name for this machine
     user.name = mkForce "oleksandrsy";
+
+    system.networking = {
+      knownNetworkServices = [
+        "Wi-Fi"
+        "USB 10/100/1000 LAN"
+        "ThinkPad TBT 3 Dock"
+        "Thunderbolt Bridge"
+      ];
+    };
   };
 
   system.stateVersion = 5;
