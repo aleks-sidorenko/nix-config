@@ -34,6 +34,20 @@ in
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
 
+        # Track current nix profile target to detect rebuilds in running shells
+        set -g __nix_profile_target (readlink ~/.nix-profile)
+
+        # Before each command, check if the nix profile changed (rebuild happened)
+        # and restart fish to pick up new paths (skip in nix shells to avoid killing the session)
+        function __check_nix_profile --on-event fish_preexec
+          if not set -q IN_NIX_SHELL
+            set -l current (readlink ~/.nix-profile)
+            if test "$current" != "$__nix_profile_target"
+              exec fish
+            end
+          end
+        end
+
         set -gx PATH /usr/local/bin /usr/bin ~/.local/bin $PATH
 
         # fifc setup
