@@ -87,6 +87,11 @@ in
           mac = "EC:FA:BC:C2:EC:C6";
           comment = "Heatpump";
         };
+        "1c-key" = {
+          ip = ips."1c-key";
+          mac = "08:00:27:98:89:98";
+          comment = "1C HASP Licence Manager";
+        };
       };
 
       firewallAddressLists = {
