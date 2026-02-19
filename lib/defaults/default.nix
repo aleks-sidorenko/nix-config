@@ -53,6 +53,7 @@ rec {
         tv-wifi = "10.0.0.51";
         inverter = "10.0.0.52";
         heatpump = "10.0.0.53";
+        "1c-key" = "10.0.0.60";
       };
       domains = {
         local = "local";
