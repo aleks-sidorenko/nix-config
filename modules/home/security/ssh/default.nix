@@ -9,8 +9,8 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
 
-  publicKey = "id_ed25519.pub";
-  relativePublicKeyPath = ".ssh/${publicKey}";
+  publicKeyFile = "id_ed25519.pub";
+  relativePublicKeyPath = ".ssh/${publicKeyFile}";
 in
 {
   options.${namespace}.security.ssh = with types; {
@@ -23,6 +23,13 @@ in
       default = "${config.home.homeDirectory}/${relativePublicKeyPath}";
       readOnly = true;
       description = "Path to the public SSH key";
+    };
+
+    publicKey = mkOption {
+      type = str;
+      default = builtins.readFile ./${publicKeyFile};
+      readOnly = true;
+      description = "Content of the public SSH key";
     };
   };
 
@@ -48,6 +55,6 @@ in
       '';
     };
 
-    home.file."${relativePublicKeyPath}".source = ./${publicKey};
+    home.file."${relativePublicKeyPath}".source = ./${publicKeyFile};
   };
 }

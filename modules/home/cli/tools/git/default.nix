@@ -22,11 +22,18 @@ in
     email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git";
     fullName = mkOpt (nullOr str) "Alexander Sidorenko" "The full name to use with git";
     urlRewrites = mkOpt (attrsOf str) { } "url we need to rewrite i.e. ssh to http";
-    allowedSigners = mkOpt str "~/.ssh/id_ed25519.pub" "The public key used for signing commits";
+    signingKey =
+      mkOpt str config.${namespace}.security.ssh.publicKey
+        "The public key content used for verifying commit signatures";
+    signingKeyPath =
+      mkOpt str config.${namespace}.security.ssh.publicKeyPath
+        "Path to the public key file used for signing commits";
   };
 
   config = mkIf cfg.enable {
-    home.file.".ssh/allowed_signers".text = "* ${cfg.allowedSigners}";
+    home.file.".ssh/allowed_signers".text = mkIf (
+      cfg.signingKey != ""
+    ) "${cfg.email} ${lib.strings.trim cfg.signingKey}";
 
     programs.git = {
       enable = true;
@@ -41,7 +48,7 @@ in
         gpg.format = "ssh";
         gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         commit.gpgsign = true;
-        user.signingkey = cfg.allowedSigners;
+        user.signingkey = cfg.signingKeyPath;
 
         diff.tool = "difftastic";
         difftool = {
@@ -178,7 +185,7 @@ in
 
       signing = {
         signByDefault = true;
-        key = cfg.allowedSigners;
+        key = cfg.signingKeyPath;
       };
 
       ignores = [
