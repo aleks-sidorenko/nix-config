@@ -2,11 +2,11 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace the custom `.rsc` script generator with a terranix/terraform approach using `packages/router/` and `modules/terraform/routeros/`.
+**Goal:** Replace the custom `.rsc` script generator with a terranix/OpenTofu approach using `packages/router/` and `modules/terraform/routeros/`.
 
-**Architecture:** Terranix modules define RouterOS terraform resources in Nix. A `mkTerranixDerivation` library function wraps terraform commands as passthru scripts on a nix package. The `packages/router/` package assembles config data from `lib/defaults` and passes it to terranix modules via `extraArgs`.
+**Architecture:** Terranix modules define RouterOS resources in Nix. A `mkTerranixDerivation` library function wraps OpenTofu commands as passthru scripts on a nix package. The `packages/router/` package assembles config data from `lib/defaults` and passes it to terranix modules via `extraArgs`.
 
-**Tech Stack:** terranix, terraform, terraform-routeros/routeros provider (old API), snowfall-lib, SOPS for secrets
+**Tech Stack:** terranix, OpenTofu (`pkgs.opentofu`), terraform-routeros/routeros provider (old API), snowfall-lib, SOPS for secrets, OpenTofu native state encryption (PBKDF2 + AES-GCM)
 
 ---
 
@@ -47,6 +47,8 @@ git commit -m "feat(router): add terranix flake input"
 
 **Step 1: Create the library module**
 
+OpenTofu handles state encryption natively via the `terraform.encryption` block in the terranix config. The scripts just need to copy `config.tf.json` into `stateDir` and run `tofu` there.
+
 ```nix
 {
   lib,
@@ -74,6 +76,7 @@ rec {
     scanDir path;
 
   # Create a terranix derivation with passthru scripts for plan/apply/destroy
+  # Uses OpenTofu for native state encryption (configured in terranix modules)
   mkTerranixDerivation =
     {
       pkgs,
@@ -82,6 +85,11 @@ rec {
       modules,
       terraformModulesPath ? null,
       stateDir ? ".",
+      envVars ? [
+        "TF_VAR_routeros_password"
+        "TF_VAR_wifi_password"
+        "TF_VAR_state_passphrase"
+      ],
     }:
     let
       globalModules =
@@ -95,25 +103,20 @@ rec {
         modules = globalModules ++ modules;
       };
 
-      envCheck = ''
-        if [[ -z "''${TF_VAR_routeros_password:-}" ]]; then
-          echo "Error: TF_VAR_routeros_password not set"
-          echo "Run: export TF_VAR_routeros_password=\$(sops -d --extract '[\"router-api-password\"]' modules/home/secrets.yaml)"
-          exit 1
-        fi
-        if [[ -z "''${TF_VAR_wifi_password:-}" ]]; then
-          echo "Error: TF_VAR_wifi_password not set"
-          echo "Run: export TF_VAR_wifi_password=\$(sops -d --extract '[\"system-network-wifi-password\"]' modules/home/secrets.yaml)"
-          exit 1
-        fi
-      '';
+      tofu = "${pkgs.opentofu}/bin/tofu";
+
+      envCheck = lib.concatMapStringsSep "\n" (
+        var: ''
+          if [[ -z "''${${var}:-}" ]]; then
+            echo "Error: ${var} not set"
+            exit 1
+          fi
+        ''
+      ) envVars;
 
       tfSetup = ''
-        STATE_DIR="${stateDir}"
-        mkdir -p "$STATE_DIR"
-        cd "$STATE_DIR"
-        if [[ -e config.tf.json ]]; then rm -f config.tf.json; fi
-        cp ${terraformConfiguration} config.tf.json
+        cd "${stateDir}"
+        cp -f ${terraformConfiguration} config.tf.json
       '';
 
       show = pkgs.writeShellScriptBin "show" ''
@@ -125,24 +128,24 @@ rec {
         set -euo pipefail
         ${envCheck}
         ${tfSetup}
-        ${pkgs.terraform}/bin/terraform init -input=false
-        ${pkgs.terraform}/bin/terraform plan
+        ${tofu} init -input=false
+        ${tofu} plan
       '';
 
       apply = pkgs.writeShellScriptBin "apply" ''
         set -euo pipefail
         ${envCheck}
         ${tfSetup}
-        ${pkgs.terraform}/bin/terraform init -input=false
-        ${pkgs.terraform}/bin/terraform apply
+        ${tofu} init -input=false
+        ${tofu} apply
       '';
 
       destroy = pkgs.writeShellScriptBin "destroy" ''
         set -euo pipefail
         ${envCheck}
         ${tfSetup}
-        ${pkgs.terraform}/bin/terraform init -input=false
-        ${pkgs.terraform}/bin/terraform destroy
+        ${tofu} init -input=false
+        ${tofu} destroy
       '';
     in
     show
@@ -177,6 +180,8 @@ git commit -m "feat(router): add mkTerranixDerivation library"
 
 **Step 1: Create provider configuration**
 
+Includes OpenTofu native state encryption via PBKDF2 + AES-GCM. The passphrase is passed via `TF_VAR_state_passphrase` from SOPS.
+
 ```nix
 { routerConfig, ... }:
 {
@@ -186,8 +191,20 @@ git commit -m "feat(router): add mkTerranixDerivation library"
       version = "~> 1.99";
     };
 
-    backend.local = {
-      path = "terraform.tfstate";
+    # OpenTofu native state encryption
+    encryption = {
+      key_provider.pbkdf2.state = {
+        passphrase = "\${var.state_passphrase}";
+      };
+      method.aes_gcm.state = {
+        keys = "\${key_provider.pbkdf2.state}";
+      };
+      state = {
+        method = "\${method.aes_gcm.state}";
+      };
+      # Uncomment for initial migration from unencrypted state:
+      # method.unencrypted.migration = {};
+      # state.fallback.method = "\${method.unencrypted.migration}";
     };
   };
 
@@ -212,6 +229,11 @@ git commit -m "feat(router): add mkTerranixDerivation library"
       type = "string";
       sensitive = true;
       description = "WiFi password for CAPsMAN security";
+    };
+    state_passphrase = {
+      type = "string";
+      sensitive = true;
+      description = "Passphrase for OpenTofu state encryption (min 16 chars)";
     };
   };
 }
@@ -1177,8 +1199,6 @@ let
     };
   };
 
-  stateDir = "\${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik";
-
   base = mkTerranixDerivation {
     inherit pkgs system;
     extraArgs = {
@@ -1186,12 +1206,12 @@ let
     };
     terraformModulesPath = ../../modules/terraform/routeros;
     modules = [ ];
-    inherit stateDir;
+    stateDir = toString ./.; # State lives here, encrypted by OpenTofu natively
   };
 
   # SSH-based backup script (preserved from old module)
   sshAlias = "router";
-  configDir = stateDir;
+  configDir = "\${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik";
 
   backup = pkgs.writeShellScriptBin "backup" ''
     set -euo pipefail
@@ -1259,7 +1279,27 @@ git commit -m "feat(router): add packages/router entry point"
 
 ---
 
-## Task 14: Create import configuration
+## Task 14: Add SOPS secrets for router
+
+**Files:**
+- Modify: `modules/home/secrets.yaml` (via `sops`)
+
+**Step 1: Add secrets**
+
+Run `sops modules/home/secrets.yaml` and add:
+- `router-api-password` -- the password for the RouterOS API user
+- `router-state-passphrase` -- passphrase for OpenTofu state encryption (min 16 chars, generate with `openssl rand -base64 32`)
+
+**Step 2: Commit**
+
+```bash
+git add modules/home/secrets.yaml
+git commit -m "feat(router): add SOPS secrets for router API and state encryption"
+```
+
+---
+
+## Task 15: Create import configuration (manual, requires router access)
 
 **Files:**
 - Create: `packages/router/imports.nix`
@@ -1323,6 +1363,7 @@ Then run:
 ```bash
 export TF_VAR_routeros_password=$(sops -d --extract '["router-api-password"]' modules/home/secrets.yaml)
 export TF_VAR_wifi_password=$(sops -d --extract '["system-network-wifi-password"]' modules/home/secrets.yaml)
+export TF_VAR_state_passphrase=$(sops -d --extract '["router-state-passphrase"]' modules/home/secrets.yaml)
 nix run .#router.apply
 ```
 
@@ -1335,16 +1376,18 @@ Expected: "No changes. Your infrastructure matches the configuration."
 
 Remove `./imports.nix` from the modules list in `packages/router/default.nix` (revert to `modules = [ ];`).
 
-**Step 6: Commit**
+**Step 6: Commit state and import config**
+
+After a successful import, the OpenTofu-encrypted state file `packages/router/terraform.tfstate` will have been created.
 
 ```bash
-git add packages/router/imports.nix packages/router/default.nix
-git commit -m "feat(router): import existing router state into terraform"
+git add packages/router/imports.nix packages/router/default.nix packages/router/terraform.tfstate
+git commit -m "feat(router): import existing router state into OpenTofu"
 ```
 
 ---
 
-## Task 15: Update justfile
+## Task 16: Update justfile
 
 **Files:**
 - Modify: `justfile:78-93` (deploy recipe router case)
@@ -1374,7 +1417,7 @@ Replace lines 314-351 with:
 
 ```just
 # ============================================
-# Router Management (MikroTik via Terraform)
+# Router Management (MikroTik via OpenTofu)
 # ============================================
 
 # Show generated terraform JSON for router
@@ -1402,10 +1445,11 @@ router-env:
     @echo "Run the following to set up environment:"
     @echo '  export TF_VAR_routeros_password=$$(sops -d --extract '"'"'["router-api-password"]'"'"' modules/home/secrets.yaml)'
     @echo '  export TF_VAR_wifi_password=$$(sops -d --extract '"'"'["system-network-wifi-password"]'"'"' modules/home/secrets.yaml)'
+    @echo '  export TF_VAR_state_passphrase=$$(sops -d --extract '"'"'["router-state-passphrase"]'"'"' modules/home/secrets.yaml)'
 
 # Show router management help
 router-help:
-    @echo "Router Management Commands (Terraform-based):"
+    @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
     @echo "  just router-env              Show environment setup for secrets"
     @echo "  just router-show             Show generated terraform JSON"
@@ -1416,25 +1460,30 @@ router-help:
     @echo ""
     @echo "Prerequisites:"
     @echo "  - Old API enabled on router (/ip service set api disabled=no address=10.0.0.0/24)"
-    @echo "  - SOPS secrets: router-api-password, system-network-wifi-password"
+    @echo "  - SOPS secrets: router-api-password, system-network-wifi-password, router-state-passphrase"
     @echo "  - Environment: run 'just router-env' and follow instructions"
+    @echo ""
+    @echo "State Management:"
+    @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at packages/router/terraform.tfstate"
+    @echo "  - Commit the updated state file after apply: git add packages/router/terraform.tfstate && git commit"
     @echo ""
     @echo "Workflow:"
     @echo "  1. Run 'just router-env' and export the secrets"
     @echo "  2. Run 'just router-plan' to preview changes"
     @echo "  3. Run 'just router-apply' to apply changes"
+    @echo "  4. Commit updated state: git add packages/router/terraform.tfstate && git commit"
 ```
 
 **Step 3: Commit**
 
 ```bash
 git add justfile
-git commit -m "feat(router): update justfile for terraform workflow"
+git commit -m "feat(router): update justfile for OpenTofu workflow"
 ```
 
 ---
 
-## Task 16: Simplify router-manager role
+## Task 17: Simplify router-manager role
 
 **Files:**
 - Modify: `modules/home/roles/router-manager/default.nix`
@@ -1476,7 +1525,7 @@ git commit -m "refactor(router): simplify router-manager role to winbox4 only"
 
 ---
 
-## Task 17: Delete old router module
+## Task 18: Delete old router module
 
 **Files:**
 - Delete: `modules/home/system/networking/router/default.nix`
@@ -1511,7 +1560,7 @@ git commit -m "refactor(router): remove old .rsc script generator"
 
 ---
 
-## Task 18: Final verification
+## Task 19: Final verification
 
 **Step 1: Format all new files**
 
@@ -1544,8 +1593,8 @@ git commit -m "style(router): format terranix modules"
 ## Execution Order Summary
 
 1. Add terranix flake input
-2. Create `lib/terraform/default.nix`
-3. Create `modules/terraform/routeros/provider/default.nix`
+2. Create `lib/terraform/default.nix` (mkTerranixDerivation with OpenTofu)
+3. Create `modules/terraform/routeros/provider/default.nix` (with encryption config)
 4. Create `modules/terraform/routeros/bridge/default.nix`
 5. Create `modules/terraform/routeros/interfaces/default.nix`
 6. Create `modules/terraform/routeros/capsman/default.nix`
@@ -1556,8 +1605,9 @@ git commit -m "style(router): format terranix modules"
 11. Create `modules/terraform/routeros/misc/default.nix`
 12. Create `packages/router/hosts.nix`
 13. Create `packages/router/default.nix` + verify build
-14. Create import config + run migration (manual, requires router access)
-15. Update justfile
-16. Simplify router-manager role
-17. Delete old router module
-18. Final verification + formatting
+14. Add SOPS secrets (`router-api-password`, `router-state-passphrase`)
+15. Create import config + run migration (manual, requires router access)
+16. Update justfile
+17. Simplify router-manager role
+18. Delete old router module
+19. Final verification + formatting
