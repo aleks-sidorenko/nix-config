@@ -23,16 +23,22 @@ rec {
     in
     scanDir path;
 
-  # Create a terranix derivation with passthru scripts for plan/apply/destroy
-  # Uses OpenTofu for native state encryption (configured in terranix modules)
+  # Create a terranix derivation with passthru scripts for show/plan/apply/destroy.
+  # Uses OpenTofu for native state encryption (configured in terranix modules).
   #
-  # secrets: attrset mapping TF_VAR env names to SOPS key names
-  #   e.g. { TF_VAR_routeros_password = "router-api-password"; }
-  # secretsFile: path to the SOPS-encrypted secrets.yaml
+  # name:               derivation name (used in `nix run .#<name>`)
+  # modules:            list of terranix module paths
+  # terraformModulesPath: directory to auto-discover default.nix modules from
+  # stateDir:           directory where OpenTofu state and config.tf.json live
+  # secretsFile:        path to SOPS-encrypted secrets.yaml
+  # secrets:            attrset mapping env var names to SOPS key names
+  #                     e.g. { TF_VAR_password = "my-password"; }
+  # extraArgs:          extra arguments passed to terranix modules
   mkTerranixDerivation =
     {
       pkgs,
       system,
+      name ? "infra",
       extraArgs ? { },
       modules,
       terraformModulesPath ? null,
@@ -72,12 +78,12 @@ rec {
         cp -f ${terraformConfiguration} config.tf.json
       '';
 
-      show = pkgs.writeShellScriptBin "show" ''
+      show = pkgs.writeShellScriptBin "${name}-show" ''
         set -euo pipefail
         cat ${terraformConfiguration} | ${pkgs.jq}/bin/jq
       '';
 
-      plan = pkgs.writeShellScriptBin "plan" ''
+      plan = pkgs.writeShellScriptBin "${name}-plan" ''
         set -euo pipefail
         ${loadSecrets}
         ${tfSetup}
@@ -85,7 +91,7 @@ rec {
         ${tofu} plan
       '';
 
-      apply = pkgs.writeShellScriptBin "apply" ''
+      apply = pkgs.writeShellScriptBin "${name}-apply" ''
         set -euo pipefail
         ${loadSecrets}
         ${tfSetup}
@@ -93,7 +99,7 @@ rec {
         ${tofu} apply
       '';
 
-      destroy = pkgs.writeShellScriptBin "destroy" ''
+      destroy = pkgs.writeShellScriptBin "${name}-destroy" ''
         set -euo pipefail
         ${loadSecrets}
         ${tfSetup}

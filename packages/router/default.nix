@@ -58,6 +58,7 @@ let
 
   base = mkTerranixDerivation {
     inherit pkgs system;
+    name = "router";
     extraArgs = {
       inherit routerConfig;
     };
