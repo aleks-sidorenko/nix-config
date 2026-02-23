@@ -85,7 +85,7 @@ bootstrap-disk hostname mode="--dry-run":
 deploy hostname *extra_opts="":
     @if [ "{{hostname}}" = "router" ]; then \
         echo "🌐 Deploying to MikroTik router..."; \
-        router-import {{extra_opts}}; \
+        nix run .#router.apply; \
     else \
         echo "🚢 Deploying to {{hostname}}..."; \
         deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
@@ -312,39 +312,58 @@ bootstrap-targets:
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -v "install-iso" | sed 's/^/  /'
 
 # ============================================
-# Router Management (MikroTik)
-# Scripts provided by home-manager router module
+# Router Management (MikroTik via OpenTofu)
 # ============================================
 
-# Export current router configuration
-router-export *output="":
-    router-export {{output}}
+# Show generated terraform JSON for router
+router-show:
+    nix run .#router
 
-# Import Nix-generated configuration to router
-router-import *opts="":
-    router-import {{opts}}
+# Plan router configuration changes (dry-run)
+router-plan:
+    nix run .#router.plan
 
-# Execute a RouterOS command on the router
-router-cmd *cmd="":
-    router-cmd {{cmd}}
+# Apply router configuration changes
+router-apply:
+    nix run .#router.apply
+
+# Destroy router terraform state (dangerous!)
+router-destroy:
+    nix run .#router.destroy
+
+# Create SSH backup of router
+router-backup *opts="":
+    nix run .#router.backup -- {{opts}}
+
+# Show environment setup for router secrets
+router-env:
+    @echo "Run the following to set up environment:"
+    @echo '  export TF_VAR_routeros_password=$$(sops -d --extract '"'"'["router-api-password"]'"'"' modules/home/secrets.yaml)'
+    @echo '  export TF_VAR_wifi_password=$$(sops -d --extract '"'"'["system-network-wifi-password"]'"'"' modules/home/secrets.yaml)'
+    @echo '  export TF_VAR_state_passphrase=$$(sops -d --extract '"'"'["router-state-passphrase"]'"'"' modules/home/secrets.yaml)'
 
 # Show router management help
 router-help:
-    @echo "Router Management Commands:"
+    @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
-    @echo "  just router-export [file]     Export current router config (default: ./exported.rsc)"
-    @echo "  just router-import            Import Nix-generated config to router"
-    @echo "  just router-import --dry-run  Preview config without importing"
-    @echo "  just router-cmd <command>     Execute a RouterOS command on the router"
+    @echo "  just router-env              Show environment setup for secrets"
+    @echo "  just router-show             Show generated terraform JSON"
+    @echo "  just router-plan             Plan changes (dry-run)"
+    @echo "  just router-apply            Apply changes to router"
+    @echo "  just router-backup           Create SSH backup of router"
+    @echo "  just router-destroy          Destroy terraform state (dangerous!)"
     @echo ""
     @echo "Prerequisites:"
-    @echo "  - SSH alias 'router' configured (~/.ssh/config)"
-    @echo "  - Router module enabled in home-manager config"
-    @echo "  - WiFi password in home-manager SOPS secrets (system-network-wifi-password)"
-    @echo "  - Run 'nh home switch' to generate config and decrypt secrets"
+    @echo "  - Old API enabled on router (/ip service set api disabled=no address=10.0.0.0/24)"
+    @echo "  - SOPS secrets: router-api-password, system-network-wifi-password, router-state-passphrase"
+    @echo "  - Environment: run 'just router-env' and follow instructions"
+    @echo ""
+    @echo "State Management:"
+    @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at packages/router/terraform.tfstate"
+    @echo "  - Commit the updated state file after apply: git add packages/router/terraform.tfstate && git commit"
     @echo ""
     @echo "Workflow:"
-    @echo "  1. Edit topology in your home-manager config"
-    @echo "  2. Run 'nh home switch' to generate config"
-    @echo "  3. Run 'just router-import --dry-run' to preview changes"
-    @echo "  4. Run 'just router-import' to apply changes"
+    @echo "  1. Run 'just router-env' and export the secrets"
+    @echo "  2. Run 'just router-plan' to preview changes"
+    @echo "  3. Run 'just router-apply' to apply changes"
+    @echo "  4. Commit updated state: git add packages/router/terraform.tfstate && git commit"
