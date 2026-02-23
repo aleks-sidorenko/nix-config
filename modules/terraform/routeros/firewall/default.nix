@@ -146,24 +146,19 @@ in
     lib.concatLists (
       lib.mapAttrsToList (
         listName: addresses:
-        lib.imap0 (
-          idx: addr:
-          {
-            name = "${builtins.replaceStrings [ "-" ] [ "_" ] listName}_${toString idx}";
-            value = {
-              address = addr;
-              list = listName;
-            };
-          }
-        ) addresses
+        lib.imap0 (idx: addr: {
+          name = "${builtins.replaceStrings [ "-" ] [ "_" ] listName}_${toString idx}";
+          value = {
+            address = addr;
+            list = listName;
+          };
+        }) addresses
       ) routerConfig.firewallAddressLists
     )
   );
 
   # Firewall filter rules (ordered via place_before chaining)
-  resource.routeros_ip_firewall_filter = builtins.listToAttrs (
-    builtins.genList mkRule ruleCount
-  );
+  resource.routeros_ip_firewall_filter = builtins.listToAttrs (builtins.genList mkRule ruleCount);
 
   # NAT rules
   resource.routeros_ip_firewall_nat = {

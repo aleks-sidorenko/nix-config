@@ -33,17 +33,14 @@ in
     }
     # A records from hosts
     // builtins.listToAttrs (
-      lib.mapAttrsToList (
-        name: host:
-        {
-          name = builtins.replaceStrings [ "-" "." ] [ "_" "_" ] name;
-          value = {
-            address = host.ip;
-            name = "${name}.${localDomain}";
-            type = "A";
-          };
-        }
-      ) primaryRecords
+      lib.mapAttrsToList (name: host: {
+        name = builtins.replaceStrings [ "-" "." ] [ "_" "_" ] name;
+        value = {
+          address = host.ip;
+          name = "${name}.${localDomain}";
+          type = "A";
+        };
+      }) primaryRecords
     )
     # A records from aliases
     // builtins.listToAttrs (

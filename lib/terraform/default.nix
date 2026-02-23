@@ -12,9 +12,9 @@ rec {
         dir:
         let
           entries = builtins.readDir dir;
-          files = builtins.filter (
-            name: entries.${name} == "regular" && name == "default.nix"
-          ) (builtins.attrNames entries);
+          files = builtins.filter (name: entries.${name} == "regular" && name == "default.nix") (
+            builtins.attrNames entries
+          );
           filePaths = builtins.map (file: "${dir}/${file}") files;
           subDirs = builtins.filter (name: entries.${name} == "directory") (builtins.attrNames entries);
           subDirPaths = builtins.concatLists (builtins.map (subDir: scanDir "${dir}/${subDir}") subDirs);
@@ -47,20 +47,19 @@ rec {
         inherit system;
         extraArgs = {
           inherit lib pkgs;
-        } // extraArgs;
+        }
+        // extraArgs;
         modules = globalModules ++ modules;
       };
 
       tofu = "${pkgs.opentofu}/bin/tofu";
 
-      envCheck = lib.concatMapStringsSep "\n" (
-        var: ''
-          if [[ -z "''${${var}:-}" ]]; then
-            echo "Error: ${var} not set"
-            exit 1
-          fi
-        ''
-      ) envVars;
+      envCheck = lib.concatMapStringsSep "\n" (var: ''
+        if [[ -z "''${${var}:-}" ]]; then
+          echo "Error: ${var} not set"
+          exit 1
+        fi
+      '') envVars;
 
       tfSetup = ''
         cd "${stateDir}"

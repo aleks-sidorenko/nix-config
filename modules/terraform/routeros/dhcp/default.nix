@@ -27,17 +27,14 @@
 
   # DHCP leases generated from hosts
   resource.routeros_ip_dhcp_server_lease = builtins.listToAttrs (
-    lib.mapAttrsToList (
-      name: host:
-      {
-        name = builtins.replaceStrings [ "-" ] [ "_" ] name;
-        value = {
-          address = host.ip;
-          mac_address = lib.toUpper host.mac;
-          comment = if host.comment != "" then host.comment else name;
-          server = "defconf";
-        };
-      }
-    ) routerConfig.hosts
+    lib.mapAttrsToList (name: host: {
+      name = builtins.replaceStrings [ "-" ] [ "_" ] name;
+      value = {
+        address = host.ip;
+        mac_address = lib.toUpper host.mac;
+        comment = if host.comment != "" then host.comment else name;
+        server = "defconf";
+      };
+    }) routerConfig.hosts
   );
 }
