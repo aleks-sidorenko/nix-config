@@ -25,6 +25,10 @@ rec {
 
   # Create a terranix derivation with passthru scripts for plan/apply/destroy
   # Uses OpenTofu for native state encryption (configured in terranix modules)
+  #
+  # secrets: attrset mapping TF_VAR env names to SOPS key names
+  #   e.g. { TF_VAR_routeros_password = "router-api-password"; }
+  # secretsFile: path to the SOPS-encrypted secrets.yaml
   mkTerranixDerivation =
     {
       pkgs,
@@ -33,11 +37,8 @@ rec {
       modules,
       terraformModulesPath ? null,
       stateDir ? ".",
-      envVars ? [
-        "TF_VAR_routeros_password"
-        "TF_VAR_wifi_password"
-        "TF_VAR_state_passphrase"
-      ],
+      secretsFile ? null,
+      secrets ? { },
     }:
     let
       globalModules =
@@ -53,13 +54,18 @@ rec {
       };
 
       tofu = "${pkgs.opentofu}/bin/tofu";
+      sops = "${pkgs.sops}/bin/sops";
 
-      envCheck = lib.concatMapStringsSep "\n" (var: ''
-        if [[ -z "''${${var}:-}" ]]; then
-          echo "Error: ${var} not set"
-          exit 1
-        fi
-      '') envVars;
+      # Generate shell code to decrypt secrets from SOPS and export as env vars
+      loadSecrets =
+        if secretsFile != null && secrets != { } then
+          lib.concatStringsSep "\n" (
+            lib.mapAttrsToList (
+              envVar: sopsKey: ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "${secretsFile}")''
+            ) secrets
+          )
+        else
+          "";
 
       tfSetup = ''
         cd "${stateDir}"
@@ -73,7 +79,7 @@ rec {
 
       plan = pkgs.writeShellScriptBin "plan" ''
         set -euo pipefail
-        ${envCheck}
+        ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false
         ${tofu} plan
@@ -81,7 +87,7 @@ rec {
 
       apply = pkgs.writeShellScriptBin "apply" ''
         set -euo pipefail
-        ${envCheck}
+        ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false
         ${tofu} apply
@@ -89,7 +95,7 @@ rec {
 
       destroy = pkgs.writeShellScriptBin "destroy" ''
         set -euo pipefail
-        ${envCheck}
+        ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false
         ${tofu} destroy

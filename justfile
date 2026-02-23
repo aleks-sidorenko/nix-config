@@ -335,35 +335,31 @@ router-destroy:
 router-backup *opts="":
     nix run .#router.backup -- {{opts}}
 
-# Show environment setup for router secrets
-router-env:
-    @echo "Run the following to set up environment:"
-    @echo '  export TF_VAR_routeros_password=$$(sops -d --extract '"'"'["router-api-password"]'"'"' modules/home/secrets.yaml)'
-    @echo '  export TF_VAR_wifi_password=$$(sops -d --extract '"'"'["system-network-wifi-password"]'"'"' modules/home/secrets.yaml)'
-    @echo '  export TF_VAR_state_passphrase=$$(sops -d --extract '"'"'["router-state-passphrase"]'"'"' modules/home/secrets.yaml)'
+# Edit router SOPS secrets
+router-secrets:
+    sops packages/router/secrets.yaml
 
 # Show router management help
 router-help:
     @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
-    @echo "  just router-env              Show environment setup for secrets"
     @echo "  just router-show             Show generated terraform JSON"
     @echo "  just router-plan             Plan changes (dry-run)"
     @echo "  just router-apply            Apply changes to router"
     @echo "  just router-backup           Create SSH backup of router"
+    @echo "  just router-secrets          Edit router SOPS secrets"
     @echo "  just router-destroy          Destroy terraform state (dangerous!)"
     @echo ""
     @echo "Prerequisites:"
     @echo "  - Old API enabled on router (/ip service set api disabled=no address=10.0.0.0/24)"
-    @echo "  - SOPS secrets: router-api-password, system-network-wifi-password, router-state-passphrase"
-    @echo "  - Environment: run 'just router-env' and follow instructions"
+    @echo "  - SOPS secrets in packages/router/secrets.yaml:"
+    @echo "    router-api-password, wifi-password, state-passphrase"
     @echo ""
     @echo "State Management:"
     @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at packages/router/terraform.tfstate"
     @echo "  - Commit the updated state file after apply: git add packages/router/terraform.tfstate && git commit"
     @echo ""
     @echo "Workflow:"
-    @echo "  1. Run 'just router-env' and export the secrets"
-    @echo "  2. Run 'just router-plan' to preview changes"
-    @echo "  3. Run 'just router-apply' to apply changes"
-    @echo "  4. Commit updated state: git add packages/router/terraform.tfstate && git commit"
+    @echo "  1. Run 'just router-plan' to preview changes"
+    @echo "  2. Run 'just router-apply' to apply changes"
+    @echo "  3. Commit updated state: git add packages/router/terraform.tfstate && git commit"

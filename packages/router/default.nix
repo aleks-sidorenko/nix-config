@@ -64,6 +64,12 @@ let
     terraformModulesPath = ../../modules/terraform/routeros;
     modules = [ ];
     stateDir = toString ./.;
+    secretsFile = toString ./secrets.yaml;
+    secrets = {
+      TF_VAR_routeros_password = "router-api-password";
+      TF_VAR_wifi_password = "wifi-password";
+      TF_VAR_state_passphrase = "state-passphrase";
+    };
   };
 
   # SSH-based backup script (preserved from old module)
