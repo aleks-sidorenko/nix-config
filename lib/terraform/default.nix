@@ -76,7 +76,8 @@ rec {
         if secretsFile != null && secrets != { } then
           lib.concatStringsSep "\n" (
             lib.mapAttrsToList (
-              envVar: sopsKey: ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")''
+              envVar: sopsKey:
+              ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")''
             ) secrets
           )
         else
