@@ -17,7 +17,7 @@ bootstrap-secrets hostname disk_password="":
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
 
-# Deploy using existing keys directory (Step 2 of bootstrap process)  
+# Deploy using existing keys directory (Step 2 of bootstrap process)
 bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts="":
     @echo "🚀 Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
     @if [ -z "{{keysdir}}" ]; then \
@@ -90,7 +90,7 @@ deploy hostname *extra_opts="":
         echo "🚢 Deploying to {{hostname}}..."; \
         deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
     fi
-    
+
 
 # Build and switch to a new generation locally (for testing)
 build-local:
@@ -131,7 +131,7 @@ list-configs:
     @echo "🖥️  Available NixOS configurations:"
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
 
-# List available home-manager configurations  
+# List available home-manager configurations
 list-homes:
     @echo "🏠 Available home-manager configurations:"
     @nix eval --json .#homeConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
@@ -191,7 +191,7 @@ secrets-list:
     @echo "🔐 SOPS secrets:"
     @echo "NixOS secrets:"
     @sops --decrypt modules/nixos/secrets.yaml | yq '.data | keys' | sed 's/^/  /'
-    @echo "Home-manager secrets:"  
+    @echo "Home-manager secrets:"
     @sops --decrypt modules/home/secrets.yaml | yq '.data | keys' | sed 's/^/  /' 2>/dev/null || echo "  No home secrets found"
 
 # Edit SOPS secrets
@@ -303,7 +303,7 @@ bootstrap-help:
     @echo "  scripts/common.sh       - Shared utilities and logging functions"
     @echo "  scripts/secrets.sh      - SSH keys and secrets preparation (supports --disk-password)"
     @echo "  scripts/deploy.sh       - NixOS deployment with nixos-anywhere"
-    
+
 
 # Show all hosts that can be bootstrapped
 bootstrap-targets:

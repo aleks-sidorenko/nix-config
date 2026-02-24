@@ -9,6 +9,9 @@ with lib;
 with lib.${namespace};
 let
   routerConfig = {
+    # User
+    username = defaults.user;
+
     # Network (from lib/defaults)
     subnet = defaults.network.subnet;
     gateway = defaults.network.gateway;
@@ -50,8 +53,8 @@ let
     # Firewall address lists
     firewallAddressLists = {
       tv = [
-        "${defaults.network.hosts.tv}/32"
-        "${defaults.network.hosts.tv-wifi}/32"
+        defaults.network.hosts.tv
+        defaults.network.hosts.tv-wifi
       ];
     };
   };
@@ -64,8 +67,8 @@ let
     };
     terraformModulesPath = ../../modules/terraform/routeros;
     modules = [ ];
-    stateDir = toString ./.;
-    secretsFile = toString ./secrets.yaml;
+    stateDir = "packages/router";
+    secretsFile = "packages/router/secrets.yaml";
     secrets = {
       TF_VAR_routeros_password = "router-api-password";
       TF_VAR_wifi_password = "wifi-password";

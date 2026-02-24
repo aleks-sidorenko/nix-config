@@ -34,7 +34,11 @@ in
     # A records from hosts
     // builtins.listToAttrs (
       lib.mapAttrsToList (name: host: {
-        name = builtins.replaceStrings [ "-" "." ] [ "_" "_" ] name;
+        name =
+          let
+            sanitized = builtins.replaceStrings [ "-" "." ] [ "_" "_" ] name;
+          in
+          if builtins.match "[0-9].*" sanitized != null then "_${sanitized}" else sanitized;
         value = {
           address = host.ip;
           name = "${name}.${localDomain}";

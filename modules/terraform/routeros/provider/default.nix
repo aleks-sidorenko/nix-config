@@ -6,21 +6,8 @@
       version = "~> 1.99";
     };
 
-    # OpenTofu native state encryption
-    encryption = {
-      key_provider.pbkdf2.state = {
-        passphrase = "\${var.state_passphrase}";
-      };
-      method.aes_gcm.state = {
-        keys = "\${key_provider.pbkdf2.state}";
-      };
-      state = {
-        method = "\${method.aes_gcm.state}";
-      };
-      # Uncomment for initial migration from unencrypted state:
-      # method.unencrypted.migration = {};
-      # state.fallback.method = "\${method.unencrypted.migration}";
-    };
+    # NOTE: State encryption is configured via packages/router/encryption.tf.hcl
+    # because OpenTofu encryption references are not expressible in JSON/terranix.
   };
 
   provider.routeros = {
@@ -32,7 +19,7 @@
   variable = {
     routeros_username = {
       type = "string";
-      default = "admin";
+      default = routerConfig.username;
       description = "RouterOS API username";
     };
     routeros_password = {

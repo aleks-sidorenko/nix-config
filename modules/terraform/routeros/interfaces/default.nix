@@ -1,6 +1,7 @@
 { routerConfig, ... }:
 {
   resource.routeros_interface_ethernet.ether1 = {
+    name = "ether1";
     factory_name = "ether1";
     comment = "WAN1";
   };
@@ -41,9 +42,6 @@
     use_network_apn = false;
   };
 
-  resource.routeros_interface_ovpn_server.ovpn_server1 = {
-    enabled = true;
-    auth = "sha1,md5";
-    mac_address = routerConfig.ovpn.macAddress;
-  };
+  # NOTE: routeros_ovpn_server doesn't work via API mode (api://).
+  # The OVPN server config is managed manually on the router.
 }

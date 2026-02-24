@@ -33,9 +33,13 @@
   resource.routeros_capsman_configuration = {
     config_2G = {
       name = "2G";
-      channel = "2G";
+      channel = {
+        config = "2G";
+      };
       country = "ukraine";
-      datapath = "datapath";
+      datapath = {
+        config = "datapath";
+      };
       installation = "any";
       mode = "ap";
       rx_chains = [
@@ -44,7 +48,9 @@
         2
         3
       ];
-      security = "security";
+      security = {
+        config = "security";
+      };
       ssid = routerConfig.wifi.ssid;
       tx_chains = [
         0
@@ -55,9 +61,13 @@
     };
     config_5G = {
       name = "5G";
-      channel = "5G";
+      channel = {
+        config = "5G";
+      };
       country = "ukraine";
-      datapath = "datapath";
+      datapath = {
+        config = "datapath";
+      };
       installation = "any";
       mode = "ap";
       rx_chains = [
@@ -66,7 +76,9 @@
         2
         3
       ];
-      security = "security";
+      security = {
+        config = "security";
+      };
       ssid = routerConfig.wifi.ssid;
       tx_chains = [
         0
@@ -90,14 +102,14 @@
   resource.routeros_capsman_provisioning = {
     prov_5G = {
       action = "create-dynamic-enabled";
-      hw_supported_modes = "ac";
+      hw_supported_modes = [ "ac" ];
       master_configuration = "5G";
       name_format = "prefix-identity";
       name_prefix = "5G";
     };
     prov_2G = {
       action = "create-dynamic-enabled";
-      hw_supported_modes = "gn";
+      hw_supported_modes = [ "gn" ];
       master_configuration = "2G";
       name_format = "prefix-identity";
       name_prefix = "2G";

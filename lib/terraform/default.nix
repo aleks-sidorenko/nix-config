@@ -29,8 +29,8 @@ rec {
   # name:               derivation name (used in `nix run .#<name>`)
   # modules:            list of terranix module paths
   # terraformModulesPath: directory to auto-discover default.nix modules from
-  # stateDir:           directory where OpenTofu state and config.tf.json live
-  # secretsFile:        path to SOPS-encrypted secrets.yaml
+  # stateDir:           relative path from repo root where OpenTofu state lives
+  # secretsFile:        relative path from repo root to SOPS-encrypted secrets
   # secrets:            attrset mapping env var names to SOPS key names
   #                     e.g. { TF_VAR_password = "my-password"; }
   # extraArgs:          extra arguments passed to terranix modules
@@ -62,19 +62,28 @@ rec {
       tofu = "${pkgs.opentofu}/bin/tofu";
       sops = "${pkgs.sops}/bin/sops";
 
+      # Resolve repo root at runtime so paths work outside the nix store
+      resolveRoot = ''
+        if [[ -z "''${FLAKE_DIR:-}" ]]; then
+          echo "Error: FLAKE_DIR not set. Export it to the flake root directory."
+          exit 1
+        fi
+        REPO_ROOT="$FLAKE_DIR"
+      '';
+
       # Generate shell code to decrypt secrets from SOPS and export as env vars
       loadSecrets =
         if secretsFile != null && secrets != { } then
           lib.concatStringsSep "\n" (
             lib.mapAttrsToList (
-              envVar: sopsKey: ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "${secretsFile}")''
+              envVar: sopsKey: ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")''
             ) secrets
           )
         else
           "";
 
       tfSetup = ''
-        cd "${stateDir}"
+        cd "$REPO_ROOT/${stateDir}"
         cp -f ${terraformConfiguration} config.tf.json
       '';
 
@@ -85,6 +94,7 @@ rec {
 
       plan = pkgs.writeShellScriptBin "${name}-plan" ''
         set -euo pipefail
+        ${resolveRoot}
         ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false
@@ -93,6 +103,7 @@ rec {
 
       apply = pkgs.writeShellScriptBin "${name}-apply" ''
         set -euo pipefail
+        ${resolveRoot}
         ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false
@@ -101,6 +112,7 @@ rec {
 
       destroy = pkgs.writeShellScriptBin "${name}-destroy" ''
         set -euo pipefail
+        ${resolveRoot}
         ${loadSecrets}
         ${tfSetup}
         ${tofu} init -input=false

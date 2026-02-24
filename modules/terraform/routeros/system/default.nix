@@ -20,31 +20,38 @@
   resource.routeros_ip_service = {
     ftp = {
       numbers = "ftp";
+      port = 21;
       disabled = true;
     };
     ssh = {
       numbers = "ssh";
+      port = 22;
       address = routerConfig.subnet;
     };
     telnet = {
       numbers = "telnet";
+      port = 23;
       disabled = true;
     };
     www = {
       numbers = "www";
+      port = 80;
       disabled = true;
     };
     winbox = {
       numbers = "winbox";
+      port = 8291;
       address = routerConfig.subnet;
     };
     api = {
       numbers = "api";
+      port = 8728;
       disabled = false;
       address = routerConfig.subnet;
     };
     api_ssl = {
       numbers = "api-ssl";
+      port = 8729;
       disabled = true;
     };
   };
@@ -58,7 +65,7 @@
   };
 
   resource.routeros_ipv6_settings.default = {
-    accept_router_advertisements = true;
+    accept_router_advertisements = "yes";
     disable_ipv6 = true;
     max_neighbor_entries = 8192;
   };
