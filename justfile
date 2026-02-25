@@ -10,9 +10,9 @@ default:
 bootstrap-secrets hostname disk_password="":
     @echo "🔐 Preparing secrets and SSH keys for {{hostname}}..."
     @if [ -n "{{disk_password}}" ]; then \
-        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
     else \
-        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
@@ -25,7 +25,7 @@ bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts=""
         echo "💡 Run 'just bootstrap-secrets <hostname>' first, or provide keysdir explicitly"; \
         exit 1; \
     fi
-    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{extra_opts}}
+    ./scripts/bootstrap/bootstrap-deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{extra_opts}}
 
 # Complete bootstrap process (secrets + deploy in one command)
 bootstrap hostname username="$USER" disk_password="" *extra_opts="":
@@ -34,14 +34,14 @@ bootstrap hostname username="$USER" disk_password="" *extra_opts="":
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
-        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
     else \
         echo "🔐 Generating secrets..."; \
-        KEYSDIR=$(./scripts/secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "🚀 Proceeding with deployment..."; \
-    ./scripts/deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{extra_opts}}
+    ./scripts/bootstrap/bootstrap-deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{extra_opts}}
 
 # Bootstrap Raspberry Pi firmware via SSH
 bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version="v1.42":
@@ -49,7 +49,7 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
     @echo "📡 Target directory: {{target_dir}}"
     @echo "📦 Firmware version: {{version}}"
     @echo "🔗 Connecting via SSH and executing firmware installation script..."
-    ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/rpi/firmware.sh
+    ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/bootstrap/bootstrap-rpi-firmware.sh
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
 
 # Format disks with disko configuration
@@ -213,9 +213,9 @@ disk-usage:
 bootstrap-validate:
     @echo "🔍 Validating bootstrap scripts..."
     shellcheck scripts/common.sh
-    shellcheck scripts/secrets.sh
-    shellcheck scripts/deploy.sh
-    shellcheck scripts/rpi/firmware.sh
+    shellcheck scripts/bootstrap/bootstrap-secrets.sh
+    shellcheck scripts/bootstrap/bootstrap-deploy.sh
+    shellcheck scripts/bootstrap/bootstrap-rpi-firmware.sh
     @echo "✅ Bootstrap scripts validation passed"
 
 # Show bootstrap script help
@@ -294,15 +294,16 @@ bootstrap-help:
     @echo "  5. Configure LUKS encryption if password provided (disko phase only)"
     @echo ""
     @echo "Manual two-step process:"
-    @echo "  ./scripts/secrets.sh myserver                              # Returns KEYSDIR=/tmp/keysXXX"
-    @echo "  ./scripts/secrets.sh myserver --disk-password mypassword   # With disk password"
-    @echo "  ./scripts/deploy.sh alexander myserver /tmp/keysXXX        # Deploy using prepared keys"
-    @echo "  ./scripts/deploy.sh alexander myserver /tmp/keysXXX --build-on-remote  # With extra options"
+    @echo "  ./scripts/bootstrap/bootstrap-secrets.sh myserver                              # Returns KEYSDIR=/tmp/keysXXX"
+    @echo "  ./scripts/bootstrap/bootstrap-secrets.sh myserver --disk-password mypassword   # With disk password"
+    @echo "  ./scripts/bootstrap/bootstrap-deploy.sh alexander myserver /tmp/keysXXX        # Deploy using prepared keys"
+    @echo "  ./scripts/bootstrap/bootstrap-deploy.sh alexander myserver /tmp/keysXXX --build-on-remote  # With extra options"
     @echo ""
     @echo "Scripts structure:"
-    @echo "  scripts/common.sh       - Shared utilities and logging functions"
-    @echo "  scripts/secrets.sh      - SSH keys and secrets preparation (supports --disk-password)"
-    @echo "  scripts/deploy.sh       - NixOS deployment with nixos-anywhere"
+    @echo "  scripts/common.sh                          - Shared utilities and logging functions"
+    @echo "  scripts/bootstrap/bootstrap-secrets.sh     - SSH keys and secrets preparation (supports --disk-password)"
+    @echo "  scripts/bootstrap/bootstrap-deploy.sh      - NixOS deployment with nixos-anywhere"
+    @echo "  scripts/bootstrap/bootstrap-rpi-firmware.sh - Raspberry Pi firmware installation"
 
 
 # Show all hosts that can be bootstrapped

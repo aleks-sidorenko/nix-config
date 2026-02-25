@@ -260,9 +260,10 @@ IaC configurations in `infra/`:
 - `flake.nix` - Flake inputs and outputs, snowfall-lib integration
 - `justfile` - All automation commands
 - `.sops.yaml` - SOPS age keys configuration
-- `scripts/secrets.sh` - Secret and SSH key preparation
-- `scripts/deploy.sh` - nixos-anywhere deployment wrapper
 - `scripts/common.sh` - Shared script utilities
+- `scripts/bootstrap/bootstrap-secrets.sh` - Secret and SSH key preparation
+- `scripts/bootstrap/bootstrap-deploy.sh` - nixos-anywhere deployment wrapper
+- `scripts/bootstrap/bootstrap-rpi-firmware.sh` - Raspberry Pi firmware installation
 
 ## Bootstrap Prerequisites
 
