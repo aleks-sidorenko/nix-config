@@ -1,13 +1,13 @@
 {
   lib,
   pkgs,
-  system,
   namespace,
   ...
 }:
 with lib;
 with lib.${namespace};
 let
+  system = pkgs.stdenv.hostPlatform.system;
   hosts = import ./hosts.nix { inherit defaults; };
 
   routerConfig = {
