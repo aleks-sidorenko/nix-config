@@ -63,6 +63,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up QEMU for aarch64 emulation
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq qemu-user-static binfmt-support
+          sudo update-binfmts --enable
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v21
         with:
@@ -127,8 +133,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up QEMU for aarch64 emulation
+        if: matrix.system == 'aarch64-linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq qemu-user-static binfmt-support
+          sudo update-binfmts --enable
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v21
+        with:
+          extra-conf: ${{ matrix.system == 'aarch64-linux' && 'extra-platforms = aarch64-linux' || '' }}
 
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v13
