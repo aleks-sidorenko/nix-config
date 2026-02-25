@@ -260,11 +260,20 @@
         let
           pkgs = channels.nixpkgs;
           system = pkgs.system;
+          # Construct system-lib matching what snowfall-lib passes to packages:
+          # base nixpkgs.lib extended with user lib under the namespace.
+          # The outer `lib` (from mkLib) has user lib functions at the top level;
+          # packages expect them under `lib.nix-config`.
+          router-lib = pkgs.lib // {
+            "nix-config" = lib;
+            snowfall = lib.snowfall;
+          };
         in
         {
           formatter = pkgs.nixfmt-tree;
           packages.router = import ./infra/router {
-            inherit lib pkgs system;
+            lib = router-lib;
+            inherit pkgs system;
             namespace = "nix-config";
           };
         };
