@@ -255,14 +255,12 @@
         system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
       ) inputs.deploy-rs.lib;
 
-      outputs-builder =
-        channels:
-        {
-          formatter = channels.nixpkgs.nixfmt-tree;
-          packages = lib.snowfall.package.create-packages {
-            inherit channels;
-            src = ./infra;
-          };
+      outputs-builder = channels: {
+        formatter = channels.nixpkgs.nixfmt-tree;
+        packages = lib.snowfall.package.create-packages {
+          inherit channels;
+          src = ./infra;
         };
+      };
     };
 }
