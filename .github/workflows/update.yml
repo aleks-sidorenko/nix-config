@@ -25,6 +25,11 @@ jobs:
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v13
 
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Update flake inputs
         run: |
           nix flake update --commit-lock-file
