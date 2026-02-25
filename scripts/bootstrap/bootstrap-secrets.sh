@@ -9,7 +9,7 @@ set -euo pipefail
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common.sh"
+source "$SCRIPT_DIR/../common.sh"
 
 # SSH key constants
 readonly SSH_PRIVATE_KEY_NAME="ssh_host_ed25519_key"

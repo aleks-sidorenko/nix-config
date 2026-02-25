@@ -59,10 +59,9 @@ Since `infra/` is not a snowfall-lib auto-discovered directory, the router deriv
 - `config.rsc` — obsolete MikroTik config replaced by terranix
 - `modules/terraform/` — empty after moving routeros/ into infra/router/modules/
 
-### 5. No changes to scripts/ or packages/
+### 5. No changes to packages/
 
-- `scripts/` stays as-is — bootstrap scripts that run before nix is available
-- `packages/install/` stays — it's a real nix derivation
+- `scripts/bootstrap/` — bootstrap scripts that run before nix is available
 - `packages/nvim/` stays — it's a real nix derivation
 - `packages/wallpapers/` stays — it's a real nix derivation
 
@@ -87,7 +86,7 @@ Since `infra/` is not a snowfall-lib auto-discovered directory, the router deriv
     install/
     nvim/
     wallpapers/
-  scripts/         # bootstrap shell scripts
+  scripts/         # shared utilities and bootstrap shell scripts
   shells/          # snowfall-lib: dev shells
   systems/         # snowfall-lib: system configurations
 ```

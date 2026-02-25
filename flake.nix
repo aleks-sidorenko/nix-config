@@ -271,6 +271,7 @@
         in
         {
           formatter = pkgs.nixfmt-tree;
+          # TODO: could this be generic? infra/**/name1 should be imported as package
           packages.router = import ./infra/router {
             lib = router-lib;
             inherit pkgs system;
