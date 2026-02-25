@@ -2,15 +2,15 @@ name: "Deployment Check"
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ["master"]
     paths:
       - 'systems/**'
       - 'modules/nixos/**'
       - 'flake.nix'
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ["master"]
     paths:
-      - 'systems/**' 
+      - 'systems/**'
       - 'modules/nixos/**'
       - 'flake.nix'
 
