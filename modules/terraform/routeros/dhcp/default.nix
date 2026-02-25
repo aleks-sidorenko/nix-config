@@ -40,6 +40,6 @@
         comment = if host.comment != "" then host.comment else name;
         server = "defconf";
       };
-    }) routerConfig.hosts
+    }) (lib.filterAttrs (_: host: host.dhcp or true) routerConfig.hosts)
   );
 }

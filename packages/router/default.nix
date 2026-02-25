@@ -8,6 +8,8 @@
 with lib;
 with lib.${namespace};
 let
+  hosts = import ./hosts.nix { inherit defaults; };
+
   routerConfig = {
     # User
     username = defaults.user;
@@ -32,7 +34,7 @@ let
 
     # Hardware
     bridge = {
-      adminMac = "08:55:31:E9:21:73";
+      adminMac = hosts.router.bridge.mac;
     };
 
     lte = {
@@ -41,14 +43,14 @@ let
     };
 
     ovpn = {
-      macAddress = "FE:24:A6:AA:80:85";
+      macAddress = hosts.router.ovpn.mac;
     };
 
     # System
     timezone = defaults.locale.timeZone;
 
     # Hosts
-    hosts = import ./hosts.nix { inherit defaults; };
+    inherit hosts;
 
     # Firewall address lists
     firewallAddressLists = {

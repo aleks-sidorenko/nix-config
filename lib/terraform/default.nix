@@ -3,26 +3,7 @@
   inputs,
   ...
 }:
-rec {
-  # Recursively find all default.nix files in a directory tree
-  findDefaultNixFiles =
-    path:
-    let
-      scanDir =
-        dir:
-        let
-          entries = builtins.readDir dir;
-          files = builtins.filter (name: entries.${name} == "regular" && name == "default.nix") (
-            builtins.attrNames entries
-          );
-          filePaths = builtins.map (file: "${dir}/${file}") files;
-          subDirs = builtins.filter (name: entries.${name} == "directory") (builtins.attrNames entries);
-          subDirPaths = builtins.concatLists (builtins.map (subDir: scanDir "${dir}/${subDir}") subDirs);
-        in
-        filePaths ++ subDirPaths;
-    in
-    scanDir path;
-
+{
   # Create a terranix derivation with passthru scripts for show/plan/apply/destroy.
   # Uses OpenTofu for native state encryption (configured in terranix modules).
   #
@@ -48,7 +29,10 @@ rec {
     }:
     let
       globalModules =
-        if terraformModulesPath != null then findDefaultNixFiles terraformModulesPath else [ ];
+        if terraformModulesPath != null then
+          lib.snowfall.fs.get-default-nix-files-recursive terraformModulesPath
+        else
+          [ ];
 
       terraformConfiguration = inputs.terranix.lib.terranixConfiguration {
         inherit system;

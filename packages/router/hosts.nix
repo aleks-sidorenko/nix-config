@@ -3,6 +3,18 @@ let
   ips = defaults.network.hosts;
 in
 {
+
+  router = {
+    ip = ips.router;
+    mac = "08:55:31:E9:21:7A";
+    bridge.mac = "08:55:31:E9:21:73";
+    ovpn.mac = "FE:24:A6:AA:80:85";
+    comment = "Router";
+    dhcp = false;
+    dns = true;
+    aliases = [ "gateway" ];
+  };
+
   cap1 = {
     ip = ips.cap1;
     mac = "DC:2C:6E:18:C7:69";
@@ -88,7 +100,7 @@ in
     ip = ips."1c-key";
     mac = "08:00:27:98:89:98";
     comment = "1C HASP Licence Manager";
-    dns = true;
+    dns = false;
     aliases = [ ];
   };
 }
