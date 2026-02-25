@@ -2,106 +2,159 @@
 [![Update Dependencies](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml)
 [![Deploy Check](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml)
 
-## 🚀 Features
+## About
 
-Some features of my config:
+Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-lib](https://github.com/snowfallorg/lib). Manages multiple systems across three architectures with declarative, role-based configuration, encrypted secrets, and opt-in persistence.
 
-- Structured with **snowfall** 
-- Declarative disk layout with **disko**
-- **Custom** live ISO for installing NixOS, including SD image for Rasbperry PI
-- **Styling** with stylix
-- **Opt-in persistance** through **impermanence** + blank snapshot
-- **Encrypted BTRFS partition**
-- **sops-nix** for secrets management
-- Different environments like **hyprland** and **gnome**
-- Custom **Neovim** setup declaratively using **nixvim**
-- Homelab all configured in nix.
-- **Automated CI/CD** with GitHub Actions for testing and validation
+## Features
 
+**Structure & Tooling**
+- Modular organization with **snowfall-lib** and role-based composition
+- Custom **Neovim** setup via **nixvim** (AI assistants, multi-language support)
+- Multiple terminals (ghostty, kitty, alacritty, foot), shells (fish, zsh), and multiplexers (zellij, tmux)
 
-## 💽 Usage
+**System Management**
+- Declarative disk layout with **disko** (BTRFS + LUKS encryption)
+- **Opt-in persistence** through **impermanence** + blank snapshot
+- **SOPS-nix** secrets management with per-host age keys
+- Remote deployment via **deploy-rs**, fresh installs via **nixos-anywhere**
 
-### Prepare
-#### Set up environment
-```bash
-export GITHUB_USER=aleks-sidorenko
-export NIX_CONFIG_REPO_NAME=nix-config
-export FLAKE_DIR=$HOME/.nix-config
+**Desktop**
+- **Hyprland** (hypridle, hyprlock, hyprpaper, pyprland) and **GNOME** desktop environments
+- **Stylix** system-wide theming with **Catppuccin** color scheme
+- Waybar, swaync, rofi, wlogout, kanshi
 
-git clone git@github.com:$GITHUB_USER/$NIX_CONFIG_REPO_NAME.git ~/$FLAKE_DIR/
-cd $FLAKE_DIR
+**Homelab**
+- **Home Assistant** with 9 sub-modules (climate, heatpump, inverter, zigbee2mqtt, telegram, weather, plugs, night-schedule, zones)
+- Media stack: **Jellyfin**, Sonarr, Radarr, Prowlarr, qBittorrent, MiniDLNA
+- **k3s** (Kubernetes), **Podman**, **Tailscale** VPN, nginx, Minecraft server
+- **Restic** backup with client-server architecture
+
+**macOS**
+- **nix-darwin** with Homebrew integration
+- Colima/Lima/Rancher virtualization
+
+**Infrastructure**
+- **MikroTik RouterOS** managed via **terranix**/OpenTofu
+- **CI/CD**: GitHub Actions (flake check, system builds, deploy check, security scan, weekly auto-update)
+- Custom live ISO for NixOS installation
+
+## Configurations
+
+| Hostname | Architecture | Hardware | Role | OS | State |
+|:--------:|:----------:|:---------|:----:|:--:|:-----:|
+| `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
+| `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
+| `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
+| `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
+| `minimal` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
+
+## Architecture
 
 ```
-### Deploy/update
-#### Locally
+.
+├── systems/          # System configs: desktop, server, vm, workbook, minimal
+├── homes/            # Home-manager configs: alexander@desktop, alexander@vm, oleksandrsy@workbook
+├── modules/
+│   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
+│   ├── home/         # Home-manager modules (roles, desktops, cli, development, browsers, media)
+│   └── darwin/       # nix-darwin modules (roles, system, services, cli)
+├── packages/         # Custom packages: nvim (nixvim), install ISO, wallpapers
+├── overlays/         # Nixpkgs overlays
+├── lib/              # Library: module helpers, context detection, deploy config, network utils
+├── infra/            # Infrastructure-as-code: MikroTik router (terranix/OpenTofu)
+└── scripts/          # Bootstrap and utility scripts
+```
+
+All modules use the `nix-config` namespace (`config.nix-config.*`). Roles compose related modules: e.g., `home-server` enables server + media-server + smart-home + gaming-server + backup.
+
+See [docs/architecture.md](docs/architecture.md) for the full role hierarchy, library functions, and flake inputs.
+
+## Usage
+
+### Getting Started
+
 ```bash
-# To build system configuration (uses hostname to build flake)
+git clone git@github.com:aleks-sidorenko/nix-config.git ~/.nix-config
+cd ~/.nix-config
+```
+
+Prerequisites: Nix installed, git. For secrets management: `pass` configured, PGP key available.
+
+### Local Deploy
+
+```bash
+# NixOS system configuration (uses hostname to find flake)
 nh os switch
 
-# To build user configuration (uses hostname and username to build flake)
+# Home-manager user configuration (uses hostname + username)
 nh home switch
+
+# Alternative without nh
+sudo nixos-rebuild switch --flake .
 ```
 
-### Remotely
+### Remote Deploy
+
 ```bash
-# Deploy config to VM (using SSH)
-deploy .#vm --hostname vm --ssh-opts="-p 2222" --skip-checks
-
-# Deploy config to server (using SSH)
-deploy .#server --hostname server  --skip-checks
+just deploy <hostname>                     # Deploy (remote build by default)
+just deploy <hostname> --dry-run           # Preview changes
+just deploy router                         # Deploy MikroTik router config
 ```
 
-### Bootstrap
-[Bootstrap](./docs/howto.md)
+For fresh installations on new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
 
+### Secrets
 
-## 🏠 Configurations
+Secrets are encrypted with [SOPS](https://github.com/getsops/sops) using age keys derived from each host's SSH key.
 
+```bash
+just secrets-list                          # List all secrets
+just secrets-edit nixos                    # Edit NixOS secrets
+just secrets-edit home                     # Edit home-manager secrets
+```
 
-| Hostname  |                Board                |                                 CPU                                 |  RAM  |              Primary GPU              | Role  |  OS   | State |
-| :-------: | :---------------------------------: | :-----------------------------------------------------------------: | :---: | :-----------------------------------: | :---: | :---: | :---: |
-| `desktop` | ASUS P8P67 PRO (REV 3.0) P67/ s1155 |                         Intel Core i7-2600K                         | 32GB  | Asus PCI-Ex GeForce GTX 560 Ti 1024MB |   🖥️   |   ❄️   |   ✅   |
-| `server`  |        Rasberry PI 4 model B        | Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.8GHz |  8GB  |              Integrated               |   ☁️   |   ❄️   |   ✅   |
+Secrets files:
+- `modules/nixos/secrets.yaml` - system secrets (user passwords, API keys, WiFi)
+- `modules/home/secrets.yaml` - user secrets
+- `infra/router/secrets.yaml` - router secrets
 
+To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#adding-a-new-host-to-sops).
 
-**Key**
+### Maintenance
 
-- 🖥️ : Desktop
-- 💻️ : Laptop
-- 🎮️ : Games Machine
-- 🐄 : Virtual Machine
-- ☁️ : Server
+```bash
+just update                                # Update flake inputs
+just cleanup                               # Garbage collect old generations
+just lint                                  # Format + statix + deadnix
+just lint-fix                              # Auto-fix linting issues
+just check                                 # nix flake check
+just info                                  # Show system info
+just disk-usage                            # Show nix store usage
+```
 
+## Development
 
-## Appendix
+```bash
+# Typical workflow
+just format                                # Format nix files
+just lint-check                            # Verify code quality (CI-friendly)
+just build-test                            # Test build without switching
+just deploy <hostname>                     # Deploy
+```
 
-- <a href="https://www.flaticon.com/free-icons/dot" title="dot icons">Dot icons created by Roundicons - Flaticon</a>
-- [Wallpaper From Catppuccin Discord](https://discord.com/channels/907385605422448742/1199293891392852009)
-  - Galaxy: https://discord.com/channels/907385605422448742/1199293891392852009
-  - Old Catppuccin wallpaper: https://github.com/Gingeh/wallpapers
-  - Catppuccino: https://discord.com/channels/907385605422448742/1130546126374838342
-  - Catppuccino: https://discord.com/channels/907385605422448742/1130546126374838342
+CI runs on push/PR to master: flake check, formatting, security scan (Trivy). Full system and home-manager builds run on master branch only. Flake inputs are auto-updated weekly.
 
-### Inspired By
+## Documentation
 
-- hmajid2301 config, snowfall based https://github.com/hmajid2301/nixicle
-- jakehamilton config, snowfall based, mature config with big amount of modules https://github.com/jakehamilton/config/tree/main
-- 8bitbuddhist config, snowfall based https://github.com/8bitbuddhist/nix-configuration
-- Misterio77 config https://github.com/Misterio77/nix-config
-- EmergentMind config https://github.com/EmergentMind/nix-config
-- Nice nixvim config https://github.com/dc-tec/nixvim
-- Dev oriented nixvim config https://github.com/khaneliman/khanelivim/tree/main
-- Rasbperry PI 4 https://github.com/Stunkymonkey/nixos
-- Home-Assistant https://github.com/azuwis/nix-config/tree/master/nixos/hass
-- Home-Assistant https://github.com/nathan-gs/nix-conf/tree/main/smarthome
+| Document | Description |
+|----------|-------------|
+| [docs/architecture.md](docs/architecture.md) | Repository structure, role hierarchy, library functions, flake inputs |
+| [docs/bootstrap.md](docs/bootstrap.md) | Fresh installation, bootstrap process, disk formatting, RPi4 setup |
+| [docs/homelab.md](docs/homelab.md) | Homelab services overview, network layout |
+| [docs/router.md](docs/router.md) | MikroTik router management with terranix/OpenTofu |
+| [docs/references.md](docs/references.md) | Inspirations, NixOS resources, credits |
 
-### Resources
+## Credits
 
-- https://snowfall.org/guides/lib/modules/
-- https://nixos.wiki/wiki/NixOS_modules
-- https://nix.dev/tutorials/module-system/deep-dive
-- https://nixos.asia/en/nix-modules
-- https://github.com/Stunkymonkey/nixos
-- https://github.com/nix-community/nixos-anywhere/
-- https://github.com/nix-community/disko
-- https://github.com/Mic92/sops-nix
+See [docs/references.md](docs/references.md) for inspirations, resources, and wallpaper credits.
