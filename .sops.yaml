@@ -48,7 +48,7 @@ creation_rules:
         age:
           - *workbook
 
-  - path_regex: packages/router/secrets.ya?ml$
+  - path_regex: infra/router/secrets.ya?ml$
     key_groups:
       - pgp:
           - *alexander

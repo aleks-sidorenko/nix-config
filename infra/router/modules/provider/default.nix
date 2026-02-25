@@ -6,7 +6,7 @@
       version = "~> 1.99";
     };
 
-    # NOTE: State encryption is configured via packages/router/encryption.tf.hcl
+    # NOTE: State encryption is configured via infra/router/encryption.tf
     # because OpenTofu encryption references are not expressible in JSON/terranix.
   };
 

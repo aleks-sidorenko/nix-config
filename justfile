@@ -337,7 +337,7 @@ router-backup *opts="":
 
 # Edit router SOPS secrets
 router-secrets:
-    sops packages/router/secrets.yaml
+    sops infra/router/secrets.yaml
 
 # Show router management help
 router-help:
@@ -352,14 +352,14 @@ router-help:
     @echo ""
     @echo "Prerequisites:"
     @echo "  - Old API enabled on router (/ip service set api disabled=no address=10.0.0.0/24)"
-    @echo "  - SOPS secrets in packages/router/secrets.yaml:"
+    @echo "  - SOPS secrets in infra/router/secrets.yaml:"
     @echo "    router-api-password, wifi-password, state-passphrase"
     @echo ""
     @echo "State Management:"
-    @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at packages/router/terraform.tfstate"
-    @echo "  - Commit the updated state file after apply: git add packages/router/terraform.tfstate && git commit"
+    @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at infra/router/terraform.tfstate"
+    @echo "  - Commit the updated state file after apply: git add infra/router/terraform.tfstate && git commit"
     @echo ""
     @echo "Workflow:"
     @echo "  1. Run 'just router-plan' to preview changes"
     @echo "  2. Run 'just router-apply' to apply changes"
-    @echo "  3. Commit updated state: git add packages/router/terraform.tfstate && git commit"
+    @echo "  3. Commit updated state: git add infra/router/terraform.tfstate && git commit"
