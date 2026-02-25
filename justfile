@@ -17,7 +17,7 @@ bootstrap-secrets hostname disk_password="":
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
 
-# Deploy using existing keys directory (Step 2 of bootstrap process)  
+# Deploy using existing keys directory (Step 2 of bootstrap process)
 bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts="":
     @echo "🚀 Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
     @if [ -z "{{keysdir}}" ]; then \
@@ -85,12 +85,12 @@ bootstrap-disk hostname mode="--dry-run":
 deploy hostname *extra_opts="":
     @if [ "{{hostname}}" = "router" ]; then \
         echo "🌐 Deploying to MikroTik router..."; \
-        router-import {{extra_opts}}; \
+        nix run .#router.apply; \
     else \
         echo "🚢 Deploying to {{hostname}}..."; \
         deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
     fi
-    
+
 
 # Build and switch to a new generation locally (for testing)
 build-local:
@@ -131,7 +131,7 @@ list-configs:
     @echo "🖥️  Available NixOS configurations:"
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
 
-# List available home-manager configurations  
+# List available home-manager configurations
 list-homes:
     @echo "🏠 Available home-manager configurations:"
     @nix eval --json .#homeConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
@@ -191,7 +191,7 @@ secrets-list:
     @echo "🔐 SOPS secrets:"
     @echo "NixOS secrets:"
     @sops --decrypt modules/nixos/secrets.yaml | yq '.data | keys' | sed 's/^/  /'
-    @echo "Home-manager secrets:"  
+    @echo "Home-manager secrets:"
     @sops --decrypt modules/home/secrets.yaml | yq '.data | keys' | sed 's/^/  /' 2>/dev/null || echo "  No home secrets found"
 
 # Edit SOPS secrets
@@ -303,7 +303,7 @@ bootstrap-help:
     @echo "  scripts/common.sh       - Shared utilities and logging functions"
     @echo "  scripts/secrets.sh      - SSH keys and secrets preparation (supports --disk-password)"
     @echo "  scripts/deploy.sh       - NixOS deployment with nixos-anywhere"
-    
+
 
 # Show all hosts that can be bootstrapped
 bootstrap-targets:
@@ -312,39 +312,54 @@ bootstrap-targets:
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -v "install-iso" | sed 's/^/  /'
 
 # ============================================
-# Router Management (MikroTik)
-# Scripts provided by home-manager router module
+# Router Management (MikroTik via OpenTofu)
 # ============================================
 
-# Export current router configuration
-router-export *output="":
-    router-export {{output}}
+# Show generated terraform JSON for router
+router-show:
+    nix run .#router
 
-# Import Nix-generated configuration to router
-router-import *opts="":
-    router-import {{opts}}
+# Plan router configuration changes (dry-run)
+router-plan:
+    nix run .#router.plan
 
-# Execute a RouterOS command on the router
-router-cmd *cmd="":
-    router-cmd {{cmd}}
+# Apply router configuration changes
+router-apply:
+    nix run .#router.apply
+
+# Destroy router terraform state (dangerous!)
+router-destroy:
+    nix run .#router.destroy
+
+# Create SSH backup of router
+router-backup *opts="":
+    nix run .#router.backup -- {{opts}}
+
+# Edit router SOPS secrets
+router-secrets:
+    sops packages/router/secrets.yaml
 
 # Show router management help
 router-help:
-    @echo "Router Management Commands:"
+    @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
-    @echo "  just router-export [file]     Export current router config (default: ./exported.rsc)"
-    @echo "  just router-import            Import Nix-generated config to router"
-    @echo "  just router-import --dry-run  Preview config without importing"
-    @echo "  just router-cmd <command>     Execute a RouterOS command on the router"
+    @echo "  just router-show             Show generated terraform JSON"
+    @echo "  just router-plan             Plan changes (dry-run)"
+    @echo "  just router-apply            Apply changes to router"
+    @echo "  just router-backup           Create SSH backup of router"
+    @echo "  just router-secrets          Edit router SOPS secrets"
+    @echo "  just router-destroy          Destroy terraform state (dangerous!)"
     @echo ""
     @echo "Prerequisites:"
-    @echo "  - SSH alias 'router' configured (~/.ssh/config)"
-    @echo "  - Router module enabled in home-manager config"
-    @echo "  - WiFi password in home-manager SOPS secrets (system-network-wifi-password)"
-    @echo "  - Run 'nh home switch' to generate config and decrypt secrets"
+    @echo "  - Old API enabled on router (/ip service set api disabled=no address=10.0.0.0/24)"
+    @echo "  - SOPS secrets in packages/router/secrets.yaml:"
+    @echo "    router-api-password, wifi-password, state-passphrase"
+    @echo ""
+    @echo "State Management:"
+    @echo "  - State is natively encrypted by OpenTofu (PBKDF2 + AES-GCM) at packages/router/terraform.tfstate"
+    @echo "  - Commit the updated state file after apply: git add packages/router/terraform.tfstate && git commit"
     @echo ""
     @echo "Workflow:"
-    @echo "  1. Edit topology in your home-manager config"
-    @echo "  2. Run 'nh home switch' to generate config"
-    @echo "  3. Run 'just router-import --dry-run' to preview changes"
-    @echo "  4. Run 'just router-import' to apply changes"
+    @echo "  1. Run 'just router-plan' to preview changes"
+    @echo "  2. Run 'just router-apply' to apply changes"
+    @echo "  3. Commit updated state: git add packages/router/terraform.tfstate && git commit"

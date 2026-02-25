@@ -1,0 +1,747 @@
+{
+  "provider": {
+    "routeros": {
+      "hosturl": "api://10.0.0.1",
+      "password": "${var.routeros_password}",
+      "username": "${var.routeros_username}"
+    }
+  },
+  "resource": {
+    "routeros_capsman_channel": {
+      "channel_2G": {
+        "band": "2ghz-b/g/n",
+        "control_channel_width": "20mhz",
+        "name": "2G"
+      },
+      "channel_5G": {
+        "band": "5ghz-a/n/ac",
+        "control_channel_width": "20mhz",
+        "name": "5G"
+      }
+    },
+    "routeros_capsman_configuration": {
+      "config_2G": {
+        "channel": {
+          "config": "2G"
+        },
+        "country": "ukraine",
+        "datapath": {
+          "config": "datapath"
+        },
+        "installation": "any",
+        "mode": "ap",
+        "name": "2G",
+        "rx_chains": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "security": {
+          "config": "security"
+        },
+        "ssid": "SWEET-HOME",
+        "tx_chains": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "config_5G": {
+        "channel": {
+          "config": "5G"
+        },
+        "country": "ukraine",
+        "datapath": {
+          "config": "datapath"
+        },
+        "installation": "any",
+        "mode": "ap",
+        "name": "5G",
+        "rx_chains": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "security": {
+          "config": "security"
+        },
+        "ssid": "SWEET-HOME",
+        "tx_chains": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "routeros_capsman_datapath": {
+      "datapath": {
+        "bridge": "bridge",
+        "client_to_client_forwarding": true,
+        "local_forwarding": true,
+        "name": "datapath"
+      }
+    },
+    "routeros_capsman_manager": {
+      "manager": {
+        "enabled": true,
+        "upgrade_policy": "require-same-version"
+      }
+    },
+    "routeros_capsman_manager_interface": {
+      "bridge": {
+        "disabled": false,
+        "interface": "bridge"
+      }
+    },
+    "routeros_capsman_provisioning": {
+      "prov_2G": {
+        "action": "create-dynamic-enabled",
+        "hw_supported_modes": [
+          "gn"
+        ],
+        "master_configuration": "2G",
+        "name_format": "prefix-identity",
+        "name_prefix": "2G"
+      },
+      "prov_5G": {
+        "action": "create-dynamic-enabled",
+        "hw_supported_modes": [
+          "ac"
+        ],
+        "master_configuration": "5G",
+        "name_format": "prefix-identity",
+        "name_prefix": "5G"
+      }
+    },
+    "routeros_capsman_security": {
+      "security": {
+        "authentication_types": [
+          "wpa-psk",
+          "wpa2-psk"
+        ],
+        "encryption": [
+          "aes-ccm"
+        ],
+        "name": "security",
+        "passphrase": "${var.wifi_password}"
+      }
+    },
+    "routeros_dns": {
+      "settings": {
+        "allow_remote_requests": true,
+        "servers": [
+          "8.8.8.8",
+          "4.4.4.4"
+        ]
+      }
+    },
+    "routeros_interface_bridge": {
+      "bridge": {
+        "admin_mac": "08:55:31:E9:21:73",
+        "auto_mac": false,
+        "comment": "defconf",
+        "name": "bridge",
+        "port_cost_mode": "short"
+      }
+    },
+    "routeros_interface_bridge_port": {
+      "ether10": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether10",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether2": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether2",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether3": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether3",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether4": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether4",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether5": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether5",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether6": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether6",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether7": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether7",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether8": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether8",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "ether9": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "ether9",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      },
+      "sfp1": {
+        "bridge": "bridge",
+        "comment": "defconf",
+        "ingress_filtering": false,
+        "interface": "sfp1",
+        "internal_path_cost": 10,
+        "path_cost": 10
+      }
+    },
+    "routeros_interface_ethernet": {
+      "ether1": {
+        "comment": "WAN1",
+        "factory_name": "ether1",
+        "name": "ether1"
+      }
+    },
+    "routeros_interface_list": {
+      "LAN": {
+        "comment": "defconf",
+        "name": "LAN"
+      },
+      "WAN": {
+        "comment": "defconf",
+        "name": "WAN"
+      }
+    },
+    "routeros_interface_list_member": {
+      "bridge_LAN": {
+        "comment": "defconf",
+        "interface": "bridge",
+        "list": "LAN"
+      },
+      "ether1_WAN": {
+        "comment": "defconf",
+        "interface": "ether1",
+        "list": "WAN"
+      },
+      "lte1_WAN": {
+        "interface": "lte1",
+        "list": "WAN"
+      }
+    },
+    "routeros_interface_lte_apn": {
+      "default": {
+        "apn": "ks",
+        "ip_type": "ipv4",
+        "ipv6_interface": "bridge",
+        "name": "Kyivstar",
+        "use_network_apn": false
+      }
+    },
+    "routeros_ip_address": {
+      "bridge": {
+        "address": "10.0.0.1/24",
+        "comment": "defconf",
+        "interface": "bridge",
+        "network": "10.0.0.0"
+      }
+    },
+    "routeros_ip_dhcp_client": {
+      "ether1": {
+        "comment": "defconf",
+        "interface": "ether1"
+      }
+    },
+    "routeros_ip_dhcp_server": {
+      "defconf": {
+        "address_pool": "dhcp",
+        "dynamic_lease_identifiers": "client-mac,client-id",
+        "interface": "bridge",
+        "lease_time": "1d",
+        "name": "defconf"
+      }
+    },
+    "routeros_ip_dhcp_server_lease": {
+      "_1c_key": {
+        "address": "10.0.0.60",
+        "comment": "1C HASP Licence Manager",
+        "mac_address": "08:00:27:98:89:98",
+        "server": "defconf"
+      },
+      "ajax": {
+        "address": "10.0.0.31",
+        "comment": "Ajax",
+        "mac_address": "38:B8:EB:C2:54:53",
+        "server": "defconf"
+      },
+      "cap1": {
+        "address": "10.0.0.11",
+        "comment": "cAP floor 1",
+        "mac_address": "DC:2C:6E:18:C7:69",
+        "server": "defconf"
+      },
+      "cap2": {
+        "address": "10.0.0.12",
+        "comment": "cAP floor 2",
+        "mac_address": "DC:2C:6E:18:C0:AB",
+        "server": "defconf"
+      },
+      "doorbell": {
+        "address": "10.0.0.35",
+        "comment": "Doorbell",
+        "mac_address": "3C:E3:6B:4B:21:94",
+        "server": "defconf"
+      },
+      "heatpump": {
+        "address": "10.0.0.53",
+        "comment": "Heatpump",
+        "mac_address": "EC:FA:BC:C2:EC:C6",
+        "server": "defconf"
+      },
+      "inverter": {
+        "address": "10.0.0.52",
+        "comment": "Deye inverter",
+        "mac_address": "D4:27:87:27:B8:3E",
+        "server": "defconf"
+      },
+      "monitor": {
+        "address": "10.0.0.30",
+        "comment": "Monitor",
+        "mac_address": "00:12:17:DC:98:99",
+        "server": "defconf"
+      },
+      "server": {
+        "address": "10.0.0.40",
+        "comment": "Server",
+        "mac_address": "D8:3A:DD:D7:30:67",
+        "server": "defconf"
+      },
+      "tv": {
+        "address": "10.0.0.50",
+        "comment": "TV lan",
+        "mac_address": "0C:CA:FB:0B:47:EE",
+        "server": "defconf"
+      },
+      "tv_wifi": {
+        "address": "10.0.0.51",
+        "comment": "TV wifi",
+        "mac_address": "04:39:26:B6:FB:6C",
+        "server": "defconf"
+      }
+    },
+    "routeros_ip_dhcp_server_network": {
+      "defconf": {
+        "address": "10.0.0.0/24",
+        "comment": "defconf",
+        "dns_server": [
+          "10.0.0.1"
+        ],
+        "gateway": "10.0.0.1",
+        "netmask": "24"
+      }
+    },
+    "routeros_ip_dns_record": {
+      "ajax": {
+        "address": "10.0.0.31",
+        "name": "ajax.local",
+        "type": "A"
+      },
+      "alias_gateway": {
+        "address": "10.0.0.1",
+        "name": "gateway.local",
+        "type": "A"
+      },
+      "alias_home_assistant": {
+        "address": "10.0.0.40",
+        "name": "home-assistant.local",
+        "type": "A"
+      },
+      "alias_jellyfin": {
+        "address": "10.0.0.40",
+        "name": "jellyfin.local",
+        "type": "A"
+      },
+      "alias_minecraft": {
+        "address": "10.0.0.40",
+        "name": "minecraft.local",
+        "type": "A"
+      },
+      "alias_minidlna": {
+        "address": "10.0.0.40",
+        "name": "minidlna.local",
+        "type": "A"
+      },
+      "alias_prowlarr": {
+        "address": "10.0.0.40",
+        "name": "prowlarr.local",
+        "type": "A"
+      },
+      "alias_qbittorrent": {
+        "address": "10.0.0.40",
+        "name": "qbittorrent.local",
+        "type": "A"
+      },
+      "alias_radarr": {
+        "address": "10.0.0.40",
+        "name": "radarr.local",
+        "type": "A"
+      },
+      "alias_restic": {
+        "address": "10.0.0.40",
+        "name": "restic.local",
+        "type": "A"
+      },
+      "alias_sonarr": {
+        "address": "10.0.0.40",
+        "name": "sonarr.local",
+        "type": "A"
+      },
+      "alias_zigbee2mqtt": {
+        "address": "10.0.0.40",
+        "name": "zigbee2mqtt.local",
+        "type": "A"
+      },
+      "cap1": {
+        "address": "10.0.0.11",
+        "name": "cap1.local",
+        "type": "A"
+      },
+      "cap2": {
+        "address": "10.0.0.12",
+        "name": "cap2.local",
+        "type": "A"
+      },
+      "heatpump": {
+        "address": "10.0.0.53",
+        "name": "heatpump.local",
+        "type": "A"
+      },
+      "inverter": {
+        "address": "10.0.0.52",
+        "name": "inverter.local",
+        "type": "A"
+      },
+      "local_fwd": {
+        "forward_to": "10.0.0.1",
+        "regexp": ".*\\\\.local$$",
+        "type": "FWD"
+      },
+      "monitor": {
+        "address": "10.0.0.30",
+        "name": "monitor.local",
+        "type": "A"
+      },
+      "router": {
+        "address": "10.0.0.1",
+        "name": "router.local",
+        "type": "A"
+      },
+      "server": {
+        "address": "10.0.0.40",
+        "name": "server.local",
+        "type": "A"
+      },
+      "tv": {
+        "address": "10.0.0.50",
+        "name": "tv.local",
+        "type": "A"
+      }
+    },
+    "routeros_ip_firewall_addr_list": {
+      "tv_0": {
+        "address": "10.0.0.50",
+        "list": "tv"
+      },
+      "tv_1": {
+        "address": "10.0.0.51",
+        "list": "tv"
+      }
+    },
+    "routeros_ip_firewall_connection_tracking": {
+      "default": {
+        "udp_timeout": "10s"
+      }
+    },
+    "routeros_ip_firewall_filter": {
+      "forward_accept_established": {
+        "action": "accept",
+        "chain": "forward",
+        "comment": "defconf: accept established,related, untracked",
+        "connection_state": "established,related,untracked",
+        "place_before": "${routeros_ip_firewall_filter.forward_drop_invalid.id}"
+      },
+      "forward_accept_ipsec_in": {
+        "action": "accept",
+        "chain": "forward",
+        "comment": "defconf: accept in ipsec policy",
+        "ipsec_policy": "in,ipsec",
+        "place_before": "${routeros_ip_firewall_filter.forward_accept_ipsec_out.id}"
+      },
+      "forward_accept_ipsec_out": {
+        "action": "accept",
+        "chain": "forward",
+        "comment": "defconf: accept out ipsec policy",
+        "ipsec_policy": "out,ipsec",
+        "place_before": "${routeros_ip_firewall_filter.forward_fasttrack.id}"
+      },
+      "forward_drop_invalid": {
+        "action": "drop",
+        "chain": "forward",
+        "comment": "defconf: drop invalid",
+        "connection_state": "invalid",
+        "place_before": "${routeros_ip_firewall_filter.forward_drop_wan_not_dstnat.id}"
+      },
+      "forward_drop_tv_external": {
+        "action": "drop",
+        "chain": "forward",
+        "comment": "drop TV external traffic",
+        "out_interface_list": "WAN",
+        "src_address_list": "tv"
+      },
+      "forward_drop_wan_not_dstnat": {
+        "action": "drop",
+        "chain": "forward",
+        "comment": "defconf: drop all from WAN not DSTNATed",
+        "connection_nat_state": "!dstnat",
+        "connection_state": "new",
+        "in_interface_list": "WAN",
+        "place_before": "${routeros_ip_firewall_filter.input_drop_dns_tcp.id}"
+      },
+      "forward_fasttrack": {
+        "action": "fasttrack-connection",
+        "chain": "forward",
+        "comment": "defconf: fasttrack",
+        "connection_state": "established,related",
+        "place_before": "${routeros_ip_firewall_filter.forward_accept_established.id}"
+      },
+      "input_accept_established": {
+        "action": "accept",
+        "chain": "input",
+        "comment": "defconf: accept established,related,untracked",
+        "connection_state": "established,related,untracked",
+        "place_before": "${routeros_ip_firewall_filter.input_drop_invalid.id}"
+      },
+      "input_accept_icmp": {
+        "action": "accept",
+        "chain": "input",
+        "comment": "defconf: accept ICMP",
+        "place_before": "${routeros_ip_firewall_filter.input_accept_loopback.id}",
+        "protocol": "icmp"
+      },
+      "input_accept_loopback": {
+        "action": "accept",
+        "chain": "input",
+        "comment": "defconf: accept to local loopback (for CAPsMAN)",
+        "dst_address": "127.0.0.1",
+        "place_before": "${routeros_ip_firewall_filter.input_drop_non_lan.id}"
+      },
+      "input_drop_dns_tcp": {
+        "action": "drop",
+        "chain": "input",
+        "dst_port": 53,
+        "in_interface_list": "WAN",
+        "place_before": "${routeros_ip_firewall_filter.input_drop_dns_udp.id}",
+        "protocol": "tcp"
+      },
+      "input_drop_dns_udp": {
+        "action": "drop",
+        "chain": "input",
+        "dst_port": 53,
+        "in_interface_list": "WAN",
+        "place_before": "${routeros_ip_firewall_filter.forward_drop_tv_external.id}",
+        "protocol": "udp"
+      },
+      "input_drop_invalid": {
+        "action": "drop",
+        "chain": "input",
+        "comment": "defconf: drop invalid",
+        "connection_state": "invalid",
+        "place_before": "${routeros_ip_firewall_filter.input_accept_icmp.id}"
+      },
+      "input_drop_non_lan": {
+        "action": "drop",
+        "chain": "input",
+        "comment": "defconf: drop all not coming from LAN",
+        "in_interface_list": "!LAN",
+        "place_before": "${routeros_ip_firewall_filter.forward_accept_ipsec_in.id}"
+      }
+    },
+    "routeros_ip_firewall_nat": {
+      "dns_redirect": {
+        "action": "redirect",
+        "chain": "dstnat",
+        "dst_port": 53,
+        "protocol": "udp",
+        "to_addresses": "10.0.0.1",
+        "to_ports": 53
+      },
+      "masquerade": {
+        "action": "masquerade",
+        "chain": "srcnat",
+        "comment": "defconf: masquerade",
+        "ipsec_policy": "out,none",
+        "out_interface_list": "WAN"
+      }
+    },
+    "routeros_ip_ipsec_profile": {
+      "default": {
+        "dpd_interval": "2m",
+        "dpd_maximum_failures": 5,
+        "name": "default"
+      }
+    },
+    "routeros_ip_neighbor_discovery_settings": {
+      "default": {
+        "discover_interface_list": "LAN"
+      }
+    },
+    "routeros_ip_pool": {
+      "dhcp": {
+        "name": "dhcp",
+        "ranges": [
+          "10.0.0.50-10.0.0.250"
+        ]
+      }
+    },
+    "routeros_ip_service": {
+      "api": {
+        "address": "10.0.0.0/24",
+        "disabled": false,
+        "numbers": "api",
+        "port": 8728
+      },
+      "api_ssl": {
+        "disabled": true,
+        "numbers": "api-ssl",
+        "port": 8729
+      },
+      "ftp": {
+        "disabled": true,
+        "numbers": "ftp",
+        "port": 21
+      },
+      "ssh": {
+        "address": "10.0.0.0/24",
+        "numbers": "ssh",
+        "port": 22
+      },
+      "telnet": {
+        "disabled": true,
+        "numbers": "telnet",
+        "port": 23
+      },
+      "winbox": {
+        "address": "10.0.0.0/24",
+        "numbers": "winbox",
+        "port": 8291
+      },
+      "www": {
+        "disabled": true,
+        "numbers": "www",
+        "port": 80
+      }
+    },
+    "routeros_ip_settings": {
+      "default": {
+        "max_neighbor_entries": 8192
+      }
+    },
+    "routeros_ipv6_settings": {
+      "default": {
+        "accept_router_advertisements": "yes",
+        "disable_ipv6": true,
+        "max_neighbor_entries": 8192
+      }
+    },
+    "routeros_routing_bfd_configuration": {
+      "default": {
+        "disabled": false
+      }
+    },
+    "routeros_system_clock": {
+      "default": {
+        "time_zone_autodetect": false,
+        "time_zone_name": "Europe/Kyiv"
+      }
+    },
+    "routeros_system_identity": {
+      "router": {
+        "name": "Router"
+      }
+    },
+    "routeros_tool_mac_server": {
+      "default": {
+        "allowed_interface_list": "LAN"
+      }
+    },
+    "routeros_tool_mac_server_winbox": {
+      "default": {
+        "allowed_interface_list": "LAN"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "routeros": {
+        "source": "terraform-routeros/routeros",
+        "version": "~> 1.99"
+      }
+    }
+  },
+  "variable": {
+    "routeros_password": {
+      "description": "RouterOS API password",
+      "sensitive": true,
+      "type": "string"
+    },
+    "routeros_username": {
+      "default": "alexander",
+      "description": "RouterOS API username",
+      "type": "string"
+    },
+    "state_passphrase": {
+      "description": "Passphrase for OpenTofu state encryption (min 16 chars)",
+      "sensitive": true,
+      "type": "string"
+    },
+    "wifi_password": {
+      "description": "WiFi password for CAPsMAN security",
+      "sensitive": true,
+      "type": "string"
+    }
+  }
+}

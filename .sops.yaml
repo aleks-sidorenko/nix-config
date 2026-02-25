@@ -47,3 +47,11 @@ creation_rules:
           - *alexander
         age:
           - *workbook
+
+  - path_regex: packages/router/secrets.ya?ml$
+    key_groups:
+      - pgp:
+          - *alexander
+        age:
+          - *desktop
+          - *workbook
