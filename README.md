@@ -102,6 +102,12 @@ just deploy <hostname> --dry-run           # Preview changes
 just deploy router                         # Deploy MikroTik router config
 ```
 
+### Build Installer ISO
+
+```bash
+nix build .#install-isoConfigurations.minimal   # Build minimal NixOS installer ISO
+```
+
 For fresh installations on new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
 
 ### Secrets

@@ -100,6 +100,7 @@ just disk-usage            # Show nix store disk usage
 This config uses **snowfall-lib** conventions for automatic module discovery:
 
 - **`systems/<arch>/<hostname>/`**: System configurations (NixOS/darwin)
+- **`systems/<arch>-<format>/<hostname>/`**: Special format systems (e.g., `x86_64-install-iso/minimal/` produces `install-isoConfigurations` via nixos-generators)
 - **`homes/<arch>/<user>@<hostname>/`**: Home-manager configurations
 - **`modules/nixos/`**: NixOS modules
 - **`modules/home/`**: Home-manager modules
@@ -221,6 +222,7 @@ Supports multiple desktop environments:
 ### Multi-Architecture Support
 
 - **x86_64-linux**: Desktop, VM
+- **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal`)
 - **aarch64-linux**: Raspberry Pi 4 server
 - **aarch64-darwin**: macOS workbook
 

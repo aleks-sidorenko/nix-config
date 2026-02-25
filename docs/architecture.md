@@ -160,7 +160,7 @@ Generates `show`, `plan`, `apply`, `destroy` scripts. Auto-discovers modules fro
 | `x86_64-linux` | desktop, vm | Desktop workstation, test VM |
 | `aarch64-linux` | server | Raspberry Pi 4 home server |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
-| `x86_64-install-iso` | minimal | Custom NixOS installer image |
+| `x86_64-install-iso` | minimal | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal`) |
 
 ## Key Flake Inputs
 

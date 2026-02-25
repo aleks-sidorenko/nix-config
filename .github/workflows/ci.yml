@@ -2,9 +2,9 @@ name: "CI"
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
   workflow_dispatch:
 
 concurrency:
@@ -91,7 +91,8 @@ jobs:
               nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
               ;;
             "minimal")
-              nix build .#nixosConfigurations.$system.config.system.build.isoImage --show-trace
+              # Snowfall-lib creates install-isoConfigurations from systems/x86_64-install-iso/
+              nix build .#install-isoConfigurations.$system --show-trace
               ;;
           esac
 
@@ -152,10 +153,10 @@ jobs:
         run: |
           # Build nvim package
           nix build .#packages.${{ matrix.system }}.nvim --show-trace || echo "nvim package not available for ${{ matrix.system }}"
-          
+
           # Build install package
           nix build .#packages.${{ matrix.system }}.install --show-trace || echo "install package not available for ${{ matrix.system }}"
-          
+
           # Build wallpapers package
           nix build .#packages.${{ matrix.system }}.wallpapers --show-trace || echo "wallpapers package not available for ${{ matrix.system }}"
 
@@ -177,7 +178,7 @@ jobs:
         run: |
           # Check if deploy configurations are valid
           nix flake show --json | jq -r '.deploy // empty'
-          
+
           # Build deploy-rs checks if available
           nix build .#checks.x86_64-linux.deploy-rs --show-trace || echo "deploy-rs checks not available"
 
@@ -216,21 +217,21 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
 
   summary:
     name: "CI Summary"
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - flake-check
       - formatting
       - build-systems
@@ -244,19 +245,19 @@ jobs:
       - name: Check results
         run: |
           echo "## CI Results Summary" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.flake-check.result }}" == "success" ]]; then
             echo "✅ Flake check passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Flake check failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.formatting.result }}" == "success" ]]; then
             echo "✅ Formatting check passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Formatting check failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             # On master branch - check build results
             if [[ "${{ needs.build-systems.result }}" == "success" ]]; then
@@ -264,13 +265,13 @@ jobs:
             elif [[ "${{ needs.build-systems.result }}" == "failure" ]]; then
               echo "❌ NixOS systems build failed" >> $GITHUB_STEP_SUMMARY
             fi
-            
+
             if [[ "${{ needs.build-home-manager.result }}" == "success" ]]; then
               echo "✅ Home Manager configurations built successfully" >> $GITHUB_STEP_SUMMARY
             elif [[ "${{ needs.build-home-manager.result }}" == "failure" ]]; then
               echo "❌ Home Manager configurations build failed" >> $GITHUB_STEP_SUMMARY
             fi
-            
+
             if [[ "${{ needs.build-packages.result }}" == "success" ]]; then
               echo "✅ Custom packages built successfully" >> $GITHUB_STEP_SUMMARY
             elif [[ "${{ needs.build-packages.result }}" == "failure" ]]; then
@@ -280,24 +281,24 @@ jobs:
             # On feature branch - builds are skipped
             echo "🏗️ Build jobs skipped (only run on master branch)" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.check-deployment.result }}" == "success" ]]; then
             echo "✅ Deployment checks passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Deployment checks failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.check-dev-shells.result }}" == "success" ]]; then
             echo "✅ Development shells checked" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Development shells check failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [[ "${{ needs.security-scan.result }}" == "success" ]]; then
             echo "✅ Security scan completed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Security scan failed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Build completed at:** $(date)" >> $GITHUB_STEP_SUMMARY
