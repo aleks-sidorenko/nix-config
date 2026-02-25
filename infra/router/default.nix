@@ -67,10 +67,10 @@ let
     extraArgs = {
       inherit routerConfig;
     };
-    terraformModulesPath = ../../modules/terraform/routeros;
+    terraformModulesPath = ./modules;
     modules = [ ];
-    stateDir = "packages/router";
-    secretsFile = "packages/router/secrets.yaml";
+    stateDir = "infra/router";
+    secretsFile = "infra/router/secrets.yaml";
     secrets = {
       TF_VAR_routeros_password = "router-api-password";
       TF_VAR_wifi_password = "wifi-password";
