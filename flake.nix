@@ -255,6 +255,18 @@
         system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
       ) inputs.deploy-rs.lib;
 
-      outputs-builder = channels: { formatter = channels.nixpkgs.nixfmt-tree; };
+      outputs-builder =
+        channels:
+        let
+          pkgs = channels.nixpkgs;
+          system = pkgs.system;
+        in
+        {
+          formatter = pkgs.nixfmt-tree;
+          packages.router = import ./infra/router {
+            inherit lib pkgs system;
+            namespace = "nix-config";
+          };
+        };
     };
 }
