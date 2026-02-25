@@ -8,16 +8,16 @@ All homelab services run on the `server` host (Raspberry Pi 4, aarch64-linux) us
 
 Full home automation platform with the following sub-modules:
 
-| Sub-module | Purpose |
-|-----------|---------|
-| **climate** | HVAC and climate control |
-| **heatpump** | Heat pump integration and monitoring |
-| **inverter** | Deye solar inverter monitoring |
-| **night-schedule** | Scheduled automations (time-based) |
-| **plugs** | Smart plug control (TV, Fireplace, Hall Mirror, Kids Door, PC) |
-| **telegram-notifications** | Telegram bot alerts and notifications |
-| **weather** | Weather data integration |
-| **zigbee2mqtt** | Zigbee device bridge integration |
+| Sub-module                 | Purpose                                                        |
+| -------------------------- | -------------------------------------------------------------- |
+| **climate**                | HVAC and climate control                                       |
+| **heatpump**               | Heat pump integration and monitoring                           |
+| **inverter**               | Deye solar inverter monitoring                                 |
+| **night-schedule**         | Scheduled automations (time-based)                             |
+| **plugs**                  | Smart plug control (TV, Fireplace, Hall Mirror, Kids Door, PC) |
+| **telegram-notifications** | Telegram bot alerts and notifications                          |
+| **weather**                | Weather data integration                                       |
+| **zigbee2mqtt**            | Zigbee device bridge integration                               |
 
 Configuration: `modules/nixos/services/smart-home/home-assistant/`
 
@@ -56,10 +56,12 @@ Torrent and Usenet indexer manager. Provides unified search across indexers for 
 ### qBittorrent
 
 Torrent client. Downloads are organized into:
+
 - `/data/torrents/Movies/`
 - `/data/torrents/Series/`
 
 Media files are served from:
+
 - `/data/media/Movies/`
 - `/data/media/Series/`
 
@@ -120,8 +122,6 @@ Restic-based backup system with client-server architecture:
 - **Restic client** (`modules/nixos/services/backup/restic/`) - Scheduled backups with retention policies
 - **Restic server** (`modules/nixos/services/backup/restic-server/`) - REST API server for receiving backups
 
-For detailed backup configuration, see [`modules/nixos/services/backup/README.md`](../modules/nixos/services/backup/README.md).
-
 ## Enabling Services
 
 Services are typically enabled through the role system:
@@ -144,13 +144,13 @@ nix-config.services.backup.restic.enable = true;
 
 All homelab devices have static IPs managed by the router (see [docs/router.md](router.md)):
 
-| Device | IP | Purpose |
-|--------|-----|---------|
-| server | 10.0.0.40 | Main server (all services) |
-| router | 10.0.0.1 | MikroTik gateway |
-| cap1/cap2 | 10.0.0.11-12 | WiFi access points |
-| monitor | 10.0.0.30 | Security camera |
-| ajax | 10.0.0.31 | Security hub |
-| tv / tv-wifi | 10.0.0.50-51 | Smart TVs |
-| inverter | 10.0.0.52 | Solar inverter |
-| heatpump | 10.0.0.53 | Heat pump |
+| Device       | IP           | Purpose                    |
+| ------------ | ------------ | -------------------------- |
+| server       | 10.0.0.40    | Main server (all services) |
+| router       | 10.0.0.1     | MikroTik gateway           |
+| cap1/cap2    | 10.0.0.11-12 | WiFi access points         |
+| monitor      | 10.0.0.30    | Security camera            |
+| ajax         | 10.0.0.31    | Security hub               |
+| tv / tv-wifi | 10.0.0.50-51 | Smart TVs                  |
+| inverter     | 10.0.0.52    | Solar inverter             |
+| heatpump     | 10.0.0.53    | Heat pump                  |
