@@ -107,6 +107,7 @@ This config uses **snowfall-lib** conventions for automatic module discovery:
 - **`packages/`**: Custom packages
 - **`overlays/`**: Nixpkgs overlays
 - **`lib/`**: Custom library functions
+- **`infra/`**: Infrastructure-as-code (terranix/OpenTofu, not auto-discovered by snowfall-lib)
 
 ### Custom Namespace
 
@@ -234,6 +235,16 @@ Services in `modules/nixos/services/`:
 - `backup/` - Backup services
 - `virtualisation/podman/` - Container runtime
 - `networking/tailscale/` - VPN mesh
+
+### Infrastructure-as-Code
+
+IaC configurations in `infra/`:
+- `router/` - MikroTik RouterOS managed via terranix/OpenTofu
+  - `default.nix` - terranix derivation and backup script
+  - `modules/` - terraform modules (bridge, capsman, dhcp, dns, firewall, interfaces, etc.)
+  - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just router-*` commands
 
 ## Development Workflow
 
