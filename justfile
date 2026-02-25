@@ -362,4 +362,4 @@ router-help:
     @echo "Workflow:"
     @echo "  1. Run 'just router-plan' to preview changes"
     @echo "  2. Run 'just router-apply' to apply changes"
-    @echo "  3. Commit updated state: git add packages/router/terraform.tfstate && git commit"
+    @echo "  3. Commit updated state: git add infra/router/terraform.tfstate && git commit"
