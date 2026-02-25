@@ -20,7 +20,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      security.sops.enable = true;
+      security = {
+        pam.enable = true;
+        sops.enable = true;
+      };
 
       system = {
         nix = {

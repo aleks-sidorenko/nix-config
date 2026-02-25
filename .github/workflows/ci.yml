@@ -157,6 +157,32 @@ jobs:
           # Build wallpapers package
           nix build .#packages.${{ matrix.system }}.wallpapers --show-trace || echo "wallpapers package not available for ${{ matrix.system }}"
 
+  build-darwin:
+    name: "Build Darwin"
+    runs-on: macos-latest
+    needs: [flake-check]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v13
+
+      - name: Build darwin system configuration
+        run: |
+          nix build .#darwinConfigurations.workbook.system --show-trace
+
+      - name: Build darwin Home Manager configuration
+        run: |
+          nix build .#homeConfigurations."oleksandrsy@workbook".activationPackage --show-trace
+
+      - name: Build darwin packages
+        run: |
+          nix build .#packages.aarch64-darwin.nvim --show-trace || echo "nvim package not available for aarch64-darwin"
+
   check-deployment:
     name: "Check Deployment"
     runs-on: ubuntu-latest
@@ -234,6 +260,7 @@ jobs:
       - build-systems
       - build-home-manager
       - build-packages
+      - build-darwin
       - check-deployment
       - check-dev-shells
       - security-scan
@@ -271,6 +298,12 @@ jobs:
             echo "✅ Custom packages built successfully" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.build-packages.result }}" == "failure" ]]; then
             echo "❌ Custom packages build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.build-darwin.result }}" == "success" ]]; then
+            echo "✅ Darwin configuration built successfully" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-darwin.result }}" == "failure" ]]; then
+            echo "❌ Darwin configuration build failed" >> $GITHUB_STEP_SUMMARY
           fi
 
           if [[ "${{ needs.check-deployment.result }}" == "success" ]]; then

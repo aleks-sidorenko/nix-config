@@ -19,8 +19,15 @@ in
       # Inherit common configuration
       roles.common = {
         enable = true;
-        homebrew.casks = [
-        ];
+        homebrew = {
+          brews = [
+            "mas" # Mac App Store CLI
+          ];
+          casks = [
+            "rectangle" # Window management
+            "raycast" # Spotlight replacement
+          ];
+        };
       };
 
       communication = {
