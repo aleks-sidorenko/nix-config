@@ -30,7 +30,7 @@
     let
       globalModules =
         if terraformModulesPath != null then
-          lib.snowfall.fs.get-default-nix-files-recursive terraformModulesPath
+          lib.snowfall.fs.get-nix-files-recursive terraformModulesPath
         else
           [ ];
 
