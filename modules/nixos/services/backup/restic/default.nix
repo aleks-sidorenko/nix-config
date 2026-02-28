@@ -26,6 +26,10 @@ let
     "/var/tmp"
     "/var/log"
 
+    # User media files, we backup them on separate media
+    "/home/*/Pictures"
+    "/home/*/Videos"
+
     # User cache directories
     "/home/*/.cache"
     "/home/*/.local/cache"
