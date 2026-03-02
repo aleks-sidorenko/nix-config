@@ -23,6 +23,7 @@ in
       security = {
         pam.enable = true;
         sops.enable = true;
+        ssh.enable = true;
       };
 
       system = {
