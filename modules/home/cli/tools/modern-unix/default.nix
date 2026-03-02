@@ -44,6 +44,7 @@ in
       tailspin
       gtrash
       ripgrep
+      gnused
       sd
       xcp
       yq-go
