@@ -9,10 +9,10 @@ with lib;
 with lib.${namespace};
 let
 
-  cfg = config.${namespace}.disks.hibernation;
+  cfg = config.${namespace}.system.hibernation;
 in
 {
-  options.${namespace}.disks.hibernation = {
+  options.${namespace}.system.hibernation = {
     enable = mkBoolOpt false "Whether or not to enable hibernation";
     device = mkStringOpt defaults.disks.root "The resume device name";
   };

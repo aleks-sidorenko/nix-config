@@ -43,9 +43,7 @@ in
         };
       };
 
-      disks = {
-        hibernation.enable = true;
-      };
+      system.hibernation.enable = true;
 
       user = {
         # we need this for desktop

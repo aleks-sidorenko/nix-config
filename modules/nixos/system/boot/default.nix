@@ -9,10 +9,10 @@ with lib;
 with lib.${namespace};
 let
 
-  cfg = config.${namespace}.disks.boot;
+  cfg = config.${namespace}.system.boot;
 in
 {
-  options.${namespace}.disks.boot = with types; {
+  options.${namespace}.system.boot = with types; {
     enable = mkBoolOpt false "Whether or not to enable booting";
     debug = mkBoolOpt false "Enable debug mode";
     configurationLimit = mkOpt int 3 "Maximum number of configurations in boot menu";
