@@ -6,7 +6,7 @@
       "Bash(cat:*)",
       "WebSearch",
       "Bash(podman machine inspect:*)",
-      "Bash(sops:*)",
+      "Bash(sops:*)"
     ]
   }
 }

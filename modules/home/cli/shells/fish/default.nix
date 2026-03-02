@@ -134,7 +134,7 @@ in
       };
 
       functions = {
-        fish_greeting = '''';
+        fish_greeting = "";
 
         _zellij_update_tabname = ''
           if set -q ZELLIJ
