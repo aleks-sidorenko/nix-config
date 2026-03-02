@@ -29,6 +29,7 @@ in
         };
         locale.enable = true;
         networking.enable = true;
+        boot.enable = true;
       };
 
       cli = {
@@ -39,7 +40,6 @@ in
       };
 
       disks = {
-        boot.enable = true;
         impermanence.enable = true;
       };
 
