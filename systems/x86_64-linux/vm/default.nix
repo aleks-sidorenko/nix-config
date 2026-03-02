@@ -33,7 +33,9 @@ in
 
   boot = {
 
-    kernelPackages = pkgs.linuxPackages_latest;
+    # There is issue with latest 6.19 kernel & nvidia drivers https://github.com/nixos/nixpkgs/issues/489947
+    # TODO - move to latest once it is resolved
+    kernelPackages = pkgs.linuxPackages_6_18; # pkgs.linuxPackages_latest;
 
   };
 
