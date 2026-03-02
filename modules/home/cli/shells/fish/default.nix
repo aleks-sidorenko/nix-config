@@ -48,7 +48,7 @@ in
           end
         end
 
-        set -gx PATH /usr/local/bin /usr/bin ~/.local/bin $PATH
+        set -gx PATH ~/.local/bin $PATH /usr/local/bin /usr/bin
 
         # fifc setup
         set -Ux fifc_editor nvim
