@@ -56,6 +56,8 @@ in
         router-manager = enabled;
       };
 
+      cli.tools.git.lfs = true;
+
       browsers = {
         chrome.enable = true;
       };
