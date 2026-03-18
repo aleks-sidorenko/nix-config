@@ -61,7 +61,7 @@ in
     sops.secrets."service-home-assistant-telegram-bot-token" = {
       sopsFile = ../../../../secrets.yaml;
       owner = haCfg.user;
-      group = haCfg.group;
+      inherit (haCfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };
@@ -69,7 +69,7 @@ in
     sops.secrets."service-home-assistant-telegram-chat-id" = {
       sopsFile = ../../../../secrets.yaml;
       owner = haCfg.user;
-      group = haCfg.group;
+      inherit (haCfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };

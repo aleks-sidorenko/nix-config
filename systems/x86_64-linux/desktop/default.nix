@@ -6,9 +6,6 @@
 }:
 with lib;
 with lib.${namespace};
-let
-
-in
 {
   imports = [
     ./hardware.nix

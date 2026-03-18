@@ -12,7 +12,7 @@ let
   configDir = "${cfg.dataDir}/.config/qBittorrent";
   logsDir = "${cfg.dataDir}/.local/share/qBittorrent/logs";
   userName = lib.${namespace}.userName config;
-  subnet = defaults.network.subnet;
+  inherit (defaults.network) subnet;
 
   # Default categories for qBittorrent with subcategories
   defaultCategories = [
@@ -172,7 +172,7 @@ in
     sops.secrets."service-qbittorrent-${userName}-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -187,7 +187,7 @@ in
           };
         };
         media.qbittorrent = {
-          userName = userName;
+          inherit userName;
           password = ""; # we allow local clients to connect without a password
         };
 
@@ -264,7 +264,7 @@ in
         AutoDownloader\SmartEpisodeFilter=s(\\d+)e(\\d+), (\\d+)x(\\d+), "(\\d{4}[.\\-]\\d{1,2}[.\\-]\\d{1,2})", "(\\d{1,2}[.\\-]\\d{1,2}[.\\-]\\d{4})"
       '';
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 

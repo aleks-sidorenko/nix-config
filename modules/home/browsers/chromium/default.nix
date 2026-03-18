@@ -27,7 +27,7 @@ in
 
     ${namespace}.browsers.default = mkIf cfg.default {
       enable = true;
-      name = name;
+      inherit name;
     };
 
     programs.browserpass.enable = mkIf passCfg.enable true;

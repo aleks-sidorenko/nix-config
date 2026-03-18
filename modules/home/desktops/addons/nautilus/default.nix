@@ -30,7 +30,7 @@ in
         remember-recent-files = false;
       };
       "com/github/stunkymonkey/nautilus-open-any-terminal" = {
-        terminal = terminal;
+        inherit terminal;
         new-tab = true;
       };
     };

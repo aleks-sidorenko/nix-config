@@ -8,13 +8,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.cli.tools.git;
-
-  rewriteURL = lib.mapAttrs' (key: value: {
-    name = "url.${key}";
-    value = {
-      insteadOf = value;
-    };
-  }) cfg.urlRewrites;
 in
 {
   options.${namespace}.cli.tools.git = with types; {
@@ -43,7 +36,7 @@ in
 
         user = {
           name = cfg.fullName;
-          email = cfg.email;
+          inherit (cfg) email;
         };
 
         gpg.format = "ssh";

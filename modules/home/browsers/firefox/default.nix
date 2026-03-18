@@ -1,6 +1,5 @@
 {
   lib,
-  host,
   pkgs,
   config,
   namespace,
@@ -26,7 +25,7 @@ in
 
     ${namespace}.browsers.default = mkIf cfg.default {
       enable = true;
-      name = name;
+      inherit name;
     };
 
     stylix.targets.firefox = {

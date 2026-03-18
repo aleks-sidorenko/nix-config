@@ -7,8 +7,8 @@
 {
   plugins = {
     claude-code = {
-      enable = config.ai.claude-code.enable;
-      package = pkgs.vimPlugins.claude-code-nvim.overrideAttrs (oldAttrs: {
+      inherit (config.ai.claude-code) enable;
+      package = pkgs.vimPlugins.claude-code-nvim.overrideAttrs (_oldAttrs: {
         patches = [
           ./claude-code_unlist-buffer.patch
         ];

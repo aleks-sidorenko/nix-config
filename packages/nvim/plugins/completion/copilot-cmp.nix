@@ -1,4 +1,4 @@
-{ config, ... }:
+{ ... }:
 {
   plugins.copilot-cmp.enable = true;
 

@@ -241,9 +241,9 @@
         nixgl.overlay
         nur.overlays.default
         # Make unstable packages available as pkgs.unstable
-        (final: prev: {
+        (final: _prev: {
           unstable = import nixpkgs-unstable {
-            system = final.system;
+            inherit (final) system;
             config.allowUnfree = true;
           };
         })
@@ -252,7 +252,7 @@
       deploy = lib.mkDeploy { inherit (inputs) self; };
 
       checks = builtins.mapAttrs (
-        system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
+        _system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
       ) inputs.deploy-rs.lib;
 
       outputs-builder = channels: {

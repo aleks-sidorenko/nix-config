@@ -8,11 +8,11 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.locale;
-  locales = cfg.locales;
+  inherit (cfg) locales;
   systemLocale = head locales;
   extraLocales = tail locales;
   nativeLocale = if extraLocales == [ ] then systemLocale else head extraLocales;
-  timeZone = cfg.timeZone;
+  inherit (cfg) timeZone;
 in
 {
   options.${namespace}.system.locale = with types; {

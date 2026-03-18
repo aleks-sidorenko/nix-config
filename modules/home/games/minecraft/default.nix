@@ -1,7 +1,5 @@
 {
-  inputs,
   lib,
-  host,
   pkgs,
   config,
   namespace,

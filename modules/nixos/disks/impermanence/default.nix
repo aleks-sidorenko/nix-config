@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.disks.impermanence;
-  device = cfg.device;
+  inherit (cfg) device;
   wipeScript = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)

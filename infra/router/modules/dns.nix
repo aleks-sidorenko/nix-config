@@ -1,6 +1,6 @@
 { lib, routerConfig, ... }:
 let
-  localDomain = routerConfig.localDomain;
+  inherit (routerConfig) localDomain;
 
   # Primary DNS records for hosts with dns=true
   primaryRecords = lib.filterAttrs (_: host: host.dns) routerConfig.hosts;
@@ -11,7 +11,7 @@ let
       _: host:
       builtins.map (alias: {
         name = alias;
-        ip = host.ip;
+        inherit (host) ip;
       }) host.aliases
     ) routerConfig.hosts
   );

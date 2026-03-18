@@ -9,7 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.prowlarr;
-  userName = lib.${namespace}.userName config;
 
 in
 {
@@ -74,7 +73,7 @@ in
     sops.secrets."service-prowlarr-api-key" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -101,7 +100,7 @@ in
         </Config>
       '';
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -115,8 +114,8 @@ in
     };
 
     services.prowlarr = {
-      enable = cfg.enable;
-      package = cfg.package;
+      inherit (cfg) enable;
+      inherit (cfg) package;
       settings.server.port = cfg.webPort;
       openFirewall = true;
       # TODO: enable once https://github.com/NixOS/nixpkgs/issues/445983 is fixed

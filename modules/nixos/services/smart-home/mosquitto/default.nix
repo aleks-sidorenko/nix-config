@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   namespace,
   ...
 }:
@@ -37,7 +36,7 @@ in
     # MQTT Broker (Mosquitto)
     services.mosquitto = {
       enable = true;
-      dataDir = cfg.dataDir;
+      inherit (cfg) dataDir;
       listeners = [
         {
           acl = [
@@ -45,7 +44,7 @@ in
           ];
           omitPasswordAuth = true;
           settings.allow_anonymous = cfg.allowAnonymous;
-          port = cfg.port;
+          inherit (cfg) port;
           address = cfg.bindAddress;
         }
       ];

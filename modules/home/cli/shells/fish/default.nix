@@ -9,7 +9,6 @@
 with lib;
 with lib.${namespace};
 let
-  inherit (config.lib.stylix) colors;
   cfg = config.${namespace}.cli.shells.fish;
 in
 {

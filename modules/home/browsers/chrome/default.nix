@@ -1,7 +1,5 @@
 {
-  inputs,
   lib,
-  host,
   pkgs,
   config,
   namespace,
@@ -12,14 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.browsers.chrome;
   name = pkgs.google-chrome.pname;
-  profileName = config.home.username or "default";
   passCfg = config.${namespace}.security.pass;
-
-  extensionIds = {
-    ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
-    browserpass = "naepdomgkenhinolocfifgehidddafch";
-    raindrop = "ldgfbffkinooeloadekpmfoklnobpien";
-  };
 in
 {
   options.${namespace}.browsers.chrome = {
@@ -31,7 +22,7 @@ in
 
     ${namespace}.browsers.default = mkIf cfg.default {
       enable = true;
-      name = name;
+      inherit name;
     };
 
     programs.browserpass.enable = mkIf passCfg.enable true;

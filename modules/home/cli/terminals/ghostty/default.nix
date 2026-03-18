@@ -24,7 +24,7 @@ in
     ${namespace}.cli.terminals.default = mkIf cfg.default {
       enable = true;
       name = "ghostty";
-      package = cfg.package;
+      inherit (cfg) package;
     };
 
     # Enable Catppuccin theme for Ghostty
@@ -33,7 +33,7 @@ in
     programs.ghostty = {
       enable = true;
       enableFishIntegration = true;
-      package = cfg.package;
+      inherit (cfg) package;
       settings = {
 
         command = shell;

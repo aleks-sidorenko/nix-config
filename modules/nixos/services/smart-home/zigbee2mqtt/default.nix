@@ -18,12 +18,12 @@ let
       (map (v: {
         name = "${v.ieee}";
         value = {
-          ieee = v.ieee;
-          zone = v.zone.zone;
-          type = v.type;
-          name = v.name;
-          floor = v.zone.floor;
-          friendly_name = v.friendly_name;
+          inherit (v) ieee;
+          inherit (v.zone) zone;
+          inherit (v) type;
+          inherit (v) name;
+          inherit (v.zone) floor;
+          inherit (v) friendly_name;
           homeassistant = v.homeassistant // {
             update = null;
             expire_after = 7200; # 2 hours - Aqara sensors report infrequently
@@ -110,15 +110,15 @@ in
     # Zigbee2MQTT service
     services.zigbee2mqtt = {
       enable = true;
-      package = cfg.package;
-      dataDir = cfg.dataDir;
+      inherit (cfg) package;
+      inherit (cfg) dataDir;
 
       settings = {
         # MQTT settings
         mqtt = {
 
           base_topic = cfg.mqtt.baseTopic;
-          server = cfg.mqtt.server;
+          inherit (cfg.mqtt) server;
           include_device_information = true;
           version = 5;
         };
@@ -126,8 +126,8 @@ in
         # Serial settings for Zigbee coordinator
         serial = {
           port = cfg.device;
-          adapter = cfg.adapter;
-          baudrate = cfg.baudrate;
+          inherit (cfg) adapter;
+          inherit (cfg) baudrate;
         };
 
         # Frontend settings
@@ -151,7 +151,7 @@ in
 
           pan_id = cfg.advanced.panId;
           network_key = "!secret network_key";
-          channel = cfg.advanced.channel;
+          inherit (cfg.advanced) channel;
 
           # Transmit power in dBm (increased for better Aqara sensor connectivity)
           transmit_power = 9;
@@ -210,7 +210,7 @@ in
     sops.secrets."service-zigbee2mqtt-network-key" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0440";
       restartUnits = [ "zigbee2mqtt.service" ];
     };

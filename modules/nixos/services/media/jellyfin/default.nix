@@ -51,15 +51,15 @@ in
     };
 
     services.jellyfin = {
-      enable = cfg.enable;
-      package = cfg.package;
-      user = cfg.user;
-      group = cfg.group;
+      inherit (cfg) enable;
+      inherit (cfg) package;
+      inherit (cfg) user;
+      inherit (cfg) group;
       openFirewall = true;
-      logDir = logDir;
-      cacheDir = cacheDir;
-      dataDir = dataDir;
-      configDir = configDir;
+      inherit logDir;
+      inherit cacheDir;
+      inherit dataDir;
+      inherit configDir;
     };
 
     # Ensure directories exist and have correct permissions

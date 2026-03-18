@@ -9,7 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.development.ai.claude-code;
-  isDarwin = pkgs.stdenv.isDarwin;
 in
 {
   options.${namespace}.development.ai.claude-code = with types; {
@@ -17,11 +16,9 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = (
-      with pkgs;
+    home.packages = with pkgs;
       [
         claude-code
-      ]
-    );
+      ];
   };
 }

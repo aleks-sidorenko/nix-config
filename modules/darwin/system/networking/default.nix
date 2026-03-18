@@ -21,7 +21,7 @@ in
 
   config = mkIf cfg.enable {
     networking = {
-      knownNetworkServices = cfg.knownNetworkServices;
+      inherit (cfg) knownNetworkServices;
 
       dns = [
         defaults.network.gateway

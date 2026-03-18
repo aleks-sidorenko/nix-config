@@ -7,7 +7,7 @@
 with lib;
 with lib.${namespace};
 let
-  system = pkgs.stdenv.hostPlatform.system;
+  inherit (pkgs.stdenv.hostPlatform) system;
   hosts = import ./hosts.nix { inherit defaults; };
 
   routerConfig = {
@@ -15,21 +15,21 @@ let
     username = defaults.user;
 
     # Network (from lib/defaults)
-    subnet = defaults.network.subnet;
-    gateway = defaults.network.gateway;
-    dhcpRange = defaults.network.dhcpRange;
+    inherit (defaults.network) subnet;
+    inherit (defaults.network) gateway;
+    inherit (defaults.network) dhcpRange;
     networkAddress = lib.${namespace}.networkAddress defaults.network.gateway;
     prefixLength = lib.${namespace}.prefixLength defaults.network.subnet;
     localDomain = defaults.network.domains.local;
 
     # WiFi
     wifi = {
-      ssid = defaults.network.wifi.ssid;
+      inherit (defaults.network.wifi) ssid;
     };
 
     # DNS
     dns = {
-      upstream = defaults.network.dns.upstream;
+      inherit (defaults.network.dns) upstream;
     };
 
     # Hardware

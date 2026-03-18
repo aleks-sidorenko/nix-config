@@ -51,7 +51,7 @@
       security = {
         config = "security";
       };
-      ssid = routerConfig.wifi.ssid;
+      inherit (routerConfig.wifi) ssid;
       tx_chains = [
         0
         1
@@ -79,7 +79,7 @@
       security = {
         config = "security";
       };
-      ssid = routerConfig.wifi.ssid;
+      inherit (routerConfig.wifi) ssid;
       tx_chains = [
         0
         1

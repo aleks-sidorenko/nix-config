@@ -32,7 +32,7 @@ in
         efi.canTouchEfiVariables = true;
         systemd-boot = {
           enable = true;
-          configurationLimit = cfg.configurationLimit;
+          inherit (cfg) configurationLimit;
         };
         grub.enable = mkForce false;
       };

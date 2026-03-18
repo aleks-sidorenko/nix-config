@@ -21,7 +21,7 @@ in
   config = mkIf cfg.enable {
     programs.rofi = {
       enable = true;
-      package = cfg.package;
+      inherit (cfg) package;
       terminal = lib.getExe terminal;
       extraConfig = {
         modi = "run,drun,window";

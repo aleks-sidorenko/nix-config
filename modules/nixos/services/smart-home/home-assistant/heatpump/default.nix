@@ -87,7 +87,7 @@ in
     sops.secrets."service-home-assistant-heatpump-channel" = {
       sopsFile = ../../../../secrets.yaml;
       owner = haCfg.user;
-      group = haCfg.group;
+      inherit (haCfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };
@@ -95,7 +95,7 @@ in
     sops.secrets."service-home-assistant-heatpump-api-key" = {
       sopsFile = ../../../../secrets.yaml;
       owner = haCfg.user;
-      group = haCfg.group;
+      inherit (haCfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };
