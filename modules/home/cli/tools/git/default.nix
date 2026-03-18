@@ -28,6 +28,7 @@ in
     signingKeyPath =
       mkOpt str config.${namespace}.security.ssh.publicKeyPath
         "Path to the public key file used for signing commits";
+    lfs = mkBoolOpt false "Whether or not to enable git-lfs";
   };
 
   config = mkIf cfg.enable {
@@ -194,6 +195,8 @@ in
       ];
 
     };
+
+    programs.git.lfs.enable = cfg.lfs;
 
     programs.difftastic = {
       enable = true;
