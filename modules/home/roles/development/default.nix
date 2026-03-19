@@ -133,6 +133,10 @@ in
           direnv.enable = true;
           eza.enable = true;
           fzf.enable = true;
+          gh = {
+            enable = true;
+            githubToken = true;
+          };
           git.enable = true;
           htop.enable = true;
           modern-unix.enable = true;
