@@ -30,6 +30,7 @@ in
 
     programs.fish = {
       enable = true;
+      # TODO: - validate & cleanup
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
 
@@ -76,6 +77,7 @@ in
       shellAliases = {
         wget = "wget --hsts-file=\"$XDG_DATA_HOME/wget-hsts\"";
       };
+      # TODO: - split to modules
       shellAbbrs = {
         # abbr existing commands
         vim = "nvim";
@@ -115,8 +117,8 @@ in
       }
       // optionalAttrs pkgs.stdenv.isDarwin {
         # Darwin (macOS)-specific
-        nhd = "nh darwin switch";
-        drs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
+        nho = "nh darwin switch";
+        nrs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
       }
       // {
 

@@ -10,9 +10,8 @@ with lib.${namespace};
   nix-config = {
     roles.work = enabled;
 
-    # claude-code is installed via Homebrew on this host
-    # because CrowdStrike blocks npm registry needed for the nix build
-    roles.development.ai.claude-code = mkForce false;
+    # Use Homebrew claude-code for latest version
+    development.ai.claude-code.install = mkForce false;
 
     user = {
       enable = true;

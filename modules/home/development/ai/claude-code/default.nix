@@ -13,11 +13,30 @@ in
 {
   options.${namespace}.development.ai.claude-code = with types; {
     enable = mkEnableOption "Whether or not to enable claude-code";
+    install = mkBoolOpt true "Whether to install claude-code package via home-manager";
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      claude-code
-    ];
+    home = {
+      packages = mkIf cfg.install (
+        with pkgs;
+        [
+          claude-code
+        ]
+      );
+
+      shellAliases = {
+        cl = "claude";
+        cly = "claude --dangerously-skip-permissions";
+      };
+
+      file.".claude/CLAUDE.md".text = ''
+        ## Git Commits
+
+        Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[(scope)][!]: <description>`
+
+        Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `ci`, `perf`, `build`. Use `!` or `BREAKING CHANGE:` footer for breaking changes.
+      '';
+    };
   };
 }
