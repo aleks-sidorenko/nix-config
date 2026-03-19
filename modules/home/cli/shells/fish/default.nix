@@ -73,7 +73,7 @@ in
         end
       '';
 
-      shellAliases = {
+      shellAliases = config.home.shellAliases // {
         wget = "wget --hsts-file=\"$XDG_DATA_HOME/wget-hsts\"";
       };
       shellAbbrs = {
