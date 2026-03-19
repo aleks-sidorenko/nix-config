@@ -56,16 +56,15 @@ in
             force_default_wallpaper = 0;
           };
 
-        monitor =
-          map (
-            m:
-            "${m.name},${
-              if m.enabled then
-                "${toString m.width}x${toString m.height}@${toString m.refreshRate},${m.position},${m.scale}"
-              else
-                "disable"
-            }"
-          ) monitors;
+        monitor = map (
+          m:
+          "${m.name},${
+            if m.enabled then
+              "${toString m.width}x${toString m.height}@${toString m.refreshRate},${m.position},${m.scale}"
+            else
+              "disable"
+          }"
+        ) monitors;
 
         workspace = map (m: "name:${m.workspace},monitor:${m.name}") (
           filter (m: m.enabled && m.workspace != null) monitors

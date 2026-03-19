@@ -136,46 +136,48 @@ let
     };
 in
 {
-  # Connection tracking
-  resource.routeros_ip_firewall_connection_tracking.default = {
-    udp_timeout = "10s";
-  };
-
-  # Firewall address lists (generated from config)
-  resource.routeros_ip_firewall_addr_list = builtins.listToAttrs (
-    lib.concatLists (
-      lib.mapAttrsToList (
-        listName: addresses:
-        lib.imap0 (idx: addr: {
-          name = "${builtins.replaceStrings [ "-" ] [ "_" ] listName}_${toString idx}";
-          value = {
-            address = addr;
-            list = listName;
-          };
-        }) addresses
-      ) routerConfig.firewallAddressLists
-    )
-  );
-
-  # Firewall filter rules (ordered via place_before chaining)
-  resource.routeros_ip_firewall_filter = builtins.listToAttrs (builtins.genList mkRule ruleCount);
-
-  # NAT rules
-  resource.routeros_ip_firewall_nat = {
-    masquerade = {
-      action = "masquerade";
-      chain = "srcnat";
-      comment = "defconf: masquerade";
-      ipsec_policy = "out,none";
-      out_interface_list = "WAN";
+  resource = {
+    # Connection tracking
+    routeros_ip_firewall_connection_tracking.default = {
+      udp_timeout = "10s";
     };
-    dns_redirect = {
-      action = "redirect";
-      chain = "dstnat";
-      dst_port = 53;
-      protocol = "udp";
-      to_addresses = routerConfig.gateway;
-      to_ports = 53;
+
+    # Firewall address lists (generated from config)
+    routeros_ip_firewall_addr_list = builtins.listToAttrs (
+      lib.concatLists (
+        lib.mapAttrsToList (
+          listName: addresses:
+          lib.imap0 (idx: addr: {
+            name = "${builtins.replaceStrings [ "-" ] [ "_" ] listName}_${toString idx}";
+            value = {
+              address = addr;
+              list = listName;
+            };
+          }) addresses
+        ) routerConfig.firewallAddressLists
+      )
+    );
+
+    # Firewall filter rules (ordered via place_before chaining)
+    routeros_ip_firewall_filter = builtins.listToAttrs (builtins.genList mkRule ruleCount);
+
+    # NAT rules
+    routeros_ip_firewall_nat = {
+      masquerade = {
+        action = "masquerade";
+        chain = "srcnat";
+        comment = "defconf: masquerade";
+        ipsec_policy = "out,none";
+        out_interface_list = "WAN";
+      };
+      dns_redirect = {
+        action = "redirect";
+        chain = "dstnat";
+        dst_port = 53;
+        protocol = "udp";
+        to_addresses = routerConfig.gateway;
+        to_ports = 53;
+      };
     };
   };
 }

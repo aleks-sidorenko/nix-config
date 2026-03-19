@@ -203,39 +203,43 @@ in
 
     users.groups.${cfg.group} = mkDefault { };
 
-    systemd.services.minecraft-server.serviceConfig = {
-      User = cfg.user;
-      Group = mkForce cfg.group;
-    };
-
-    # Ensure directories exist and have correct permissions
-    systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
-    ];
-
     # Write ops.json if operators are defined
     environment.etc."minecraft/ops.json" = mkIf (cfg.ops != [ ]) {
       text = opsJson;
       mode = "0644";
     };
 
-    # Symlink ops.json and install gamerules datapack before server starts
-    systemd.services.minecraft-server.preStart =
-      let
-        opsScript = optionalString (cfg.ops != [ ]) ''
-          ln -sf /etc/minecraft/ops.json ${cfg.dataDir}/ops.json
-        '';
-        gamerulesScript = optionalString (cfg.gamerules != { }) ''
-          # Install gamerules datapack
-          mkdir -p ${cfg.dataDir}/${cfg.worldName}/datapacks
-          rm -rf ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
-          cp -r ${gameruleDatapack} ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
-          chmod -R u+w ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
-        '';
-      in
-      mkIf (cfg.ops != [ ] || cfg.gamerules != { }) ''
-        ${opsScript}
-        ${gamerulesScript}
-      '';
+    systemd = {
+      services.minecraft-server = {
+        serviceConfig = {
+          User = cfg.user;
+          Group = mkForce cfg.group;
+        };
+
+        # Symlink ops.json and install gamerules datapack before server starts
+        preStart =
+          let
+            opsScript = optionalString (cfg.ops != [ ]) ''
+              ln -sf /etc/minecraft/ops.json ${cfg.dataDir}/ops.json
+            '';
+            gamerulesScript = optionalString (cfg.gamerules != { }) ''
+              # Install gamerules datapack
+              mkdir -p ${cfg.dataDir}/${cfg.worldName}/datapacks
+              rm -rf ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+              cp -r ${gameruleDatapack} ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+              chmod -R u+w ${cfg.dataDir}/${cfg.worldName}/datapacks/nix-gamerules
+            '';
+          in
+          mkIf (cfg.ops != [ ] || cfg.gamerules != { }) ''
+            ${opsScript}
+            ${gamerulesScript}
+          '';
+      };
+
+      # Ensure directories exist and have correct permissions
+      tmpfiles.rules = [
+        "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
+      ];
+    };
   };
 }
