@@ -35,10 +35,10 @@
   };
 
   resource.routeros_interface_lte_apn.default = {
-    apn = routerConfig.lte.apn;
+    inherit (routerConfig.lte) apn;
     ip_type = "ipv4";
     ipv6_interface = "bridge";
-    name = routerConfig.lte.name;
+    inherit (routerConfig.lte) name;
     use_network_apn = false;
   };
 

@@ -7,7 +7,6 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.smart-home.devices;
   zones = config.${namespace}.services.smart-home.zones.all;
 
   # Define the device submodule

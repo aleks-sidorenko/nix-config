@@ -15,7 +15,7 @@
 
   resource.routeros_ip_dhcp_server_network.defconf = {
     address = routerConfig.subnet;
-    gateway = routerConfig.gateway;
+    inherit (routerConfig) gateway;
     dns_server = [ routerConfig.gateway ];
     netmask = toString routerConfig.prefixLength;
     comment = "defconf";

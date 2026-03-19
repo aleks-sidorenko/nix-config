@@ -7,7 +7,6 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.smart-home.zones;
 
   # Define the zone submodule
   zoneType = types.submodule (

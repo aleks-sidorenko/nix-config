@@ -1,6 +1,5 @@
 {
   lib,
-  pkgs,
   config,
   namespace,
   ...
@@ -39,7 +38,7 @@ in
 
     virtualisation.virtualbox.host = {
       enable = true;
-      enableExtensionPack = cfg.enableExtensionPack;
+      inherit (cfg) enableExtensionPack;
     };
 
     boot.blacklistedKernelModules = [

@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   # NOTE: LCD, serial port, SMB, and wireless security profile settings
   # are not managed via Terraform as they lack dedicated provider resources.

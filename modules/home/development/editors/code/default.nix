@@ -26,7 +26,7 @@ in
 
     programs.vscode = {
       enable = true;
-      package = cfg.package;
+      inherit (cfg) package;
       profiles.default.extensions =
         optionals cfg.languages.haskell [
           pkgs.vscode-extensions.justusadam.language-haskell

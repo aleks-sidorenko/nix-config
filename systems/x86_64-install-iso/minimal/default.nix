@@ -1,4 +1,4 @@
-{ lib, namespace, ... }:
+{ namespace, ... }:
 {
   ${namespace} = {
 

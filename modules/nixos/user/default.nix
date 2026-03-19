@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   namespace,
   ...
@@ -39,7 +38,7 @@ in
       inherit (cfg) name;
       home = "/home/${cfg.name}";
       group = "users";
-      shell = shell;
+      inherit shell;
 
       # Set either hashedPasswordFile or initialPassword, but not both
       initialPassword = mkIf (hashedPasswordFile == null) initialPassword;

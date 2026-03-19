@@ -1,7 +1,6 @@
 {
   lib,
   config,
-  pkgs,
   namespace,
   ...
 }:
@@ -63,8 +62,13 @@ in
                   intervals = [
                     {
                       name = "default";
-                      start = "08:00";
+                      start = "00:00";
                       end = "23:59";
+                      cycling = {
+                        enable = true;
+                        period = 20;
+                        onDuration = 5;
+                      };
                     }
                   ];
                 }

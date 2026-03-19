@@ -49,7 +49,7 @@ in
     # Create restic user and group
     users.users.${cfg.user} = {
       isSystemUser = true;
-      group = cfg.group;
+      inherit (cfg) group;
       home = cfg.dataDir;
       createHome = true;
       description = "Restic server backup user";

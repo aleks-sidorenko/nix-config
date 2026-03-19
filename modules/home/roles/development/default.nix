@@ -76,17 +76,17 @@ in
           code = {
             enable = cfg.editors.code;
             languages = {
-              haskell = cfg.languages.haskell;
-              java = cfg.languages.java;
-              scala = cfg.languages.scala;
+              inherit (cfg.languages) haskell;
+              inherit (cfg.languages) java;
+              inherit (cfg.languages) scala;
             };
           };
           cursor = {
             enable = cfg.editors.cursor;
             languages = {
-              haskell = cfg.languages.haskell;
-              java = cfg.languages.java;
-              scala = cfg.languages.scala;
+              inherit (cfg.languages) haskell;
+              inherit (cfg.languages) java;
+              inherit (cfg.languages) scala;
             };
           };
           idea.enable = cfg.editors.idea;
@@ -110,17 +110,17 @@ in
         editors.nvim = {
           enable = true;
           ai = {
-            copilot = cfg.ai.copilot;
-            claude-code = cfg.ai.claude-code;
+            inherit (cfg.ai) copilot;
+            inherit (cfg.ai) claude-code;
           };
           development = {
-            haskell = cfg.languages.haskell;
-            rust = cfg.languages.rust;
-            python = cfg.languages.python;
-            go = cfg.languages.go;
-            typescript = cfg.languages.typescript;
-            scala = cfg.languages.scala;
-            java = cfg.languages.java;
+            inherit (cfg.languages) haskell;
+            inherit (cfg.languages) rust;
+            inherit (cfg.languages) python;
+            inherit (cfg.languages) go;
+            inherit (cfg.languages) typescript;
+            inherit (cfg.languages) scala;
+            inherit (cfg.languages) java;
           };
         };
         multiplexers.zellij.enable = true;

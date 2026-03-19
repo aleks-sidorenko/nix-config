@@ -8,7 +8,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.networking.nginx;
-  defaults = lib.${namespace}.defaults;
 in
 {
   options.${namespace}.services.networking.nginx = {
@@ -58,8 +57,8 @@ in
         proxy_headers_hash_bucket_size 128;
       '';
 
-      virtualHosts = mapAttrs (name: vhost: {
-        serverName = vhost.serverName;
+      virtualHosts = mapAttrs (_name: vhost: {
+        inherit (vhost) serverName;
         extraConfig = ''
           client_max_body_size ${vhost.clientMaxBodySize};
         '';

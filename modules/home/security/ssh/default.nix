@@ -40,7 +40,7 @@ in
       matchBlocks = {
 
         "*" = {
-          user = cfg.user;
+          inherit (cfg) user;
           addKeysToAgent = "confirm"; # Let GPG agent handle the keys
         };
       };

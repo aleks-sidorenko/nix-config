@@ -1,5 +1,4 @@
 {
-  pkgs,
   lib,
   inputs,
   config,
@@ -18,18 +17,18 @@ let
   nvim = nvim'.extend {
     # Pass development options from the home configuration
     config.development = {
-      haskell.enable = lib.mkIf (cfg.development.haskell) (lib.mkForce true);
-      rust.enable = lib.mkIf (cfg.development.rust) (lib.mkForce true);
-      python.enable = lib.mkIf (cfg.development.python) (lib.mkForce true);
-      go.enable = lib.mkIf (cfg.development.go) (lib.mkForce true);
-      typescript.enable = lib.mkIf (cfg.development.typescript) (lib.mkForce true);
-      scala.enable = lib.mkIf (cfg.development.scala) (lib.mkForce true);
-      java.enable = lib.mkIf (cfg.development.java) (lib.mkForce true);
+      haskell.enable = lib.mkIf cfg.development.haskell (lib.mkForce true);
+      rust.enable = lib.mkIf cfg.development.rust (lib.mkForce true);
+      python.enable = lib.mkIf cfg.development.python (lib.mkForce true);
+      go.enable = lib.mkIf cfg.development.go (lib.mkForce true);
+      typescript.enable = lib.mkIf cfg.development.typescript (lib.mkForce true);
+      scala.enable = lib.mkIf cfg.development.scala (lib.mkForce true);
+      java.enable = lib.mkIf cfg.development.java (lib.mkForce true);
     };
     # Pass AI options from the home configuration
     config.ai = {
-      copilot.enable = lib.mkIf (cfg.ai.copilot) (lib.mkForce true);
-      claude-code.enable = lib.mkIf (cfg.ai.claude-code) (lib.mkForce true);
+      copilot.enable = lib.mkIf cfg.ai.copilot (lib.mkForce true);
+      claude-code.enable = lib.mkIf cfg.ai.claude-code (lib.mkForce true);
     };
   };
 in

@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.gaming.minecraft-server;
-  dataDir = cfg.dataDir;
+  inherit (cfg) dataDir;
 
   # Type for operator entries
   operatorType = types.submodule {
@@ -176,26 +176,26 @@ in
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = cfg.eula == true;
+        assertion = cfg.eula;
         message = "You must accept the Minecraft EULA by setting eula = true";
       }
     ];
 
     services.minecraft-server = {
       enable = true;
-      eula = cfg.eula;
-      dataDir = dataDir;
-      jvmOpts = cfg.jvmOpts;
-      package = cfg.package;
+      inherit (cfg) eula;
+      inherit dataDir;
+      inherit (cfg) jvmOpts;
+      inherit (cfg) package;
       openFirewall = true;
       declarative = true;
-      serverProperties = cfg.serverProperties;
+      inherit (cfg) serverProperties;
     };
 
     # Ensure runtime user/group exist and bind the service to them
     users.users.${cfg.user} = mkForce {
       isSystemUser = true;
-      group = cfg.group;
+      inherit (cfg) group;
       home = dataDir;
       createHome = true;
       description = "Minecraft server user";

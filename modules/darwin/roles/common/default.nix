@@ -39,8 +39,8 @@ in
         # Homebrew for CLI tools and GUI apps
         homebrew = {
           enable = true;
-          brews = cfg.homebrew.brews;
-          casks = cfg.homebrew.casks;
+          inherit (cfg.homebrew) brews;
+          inherit (cfg.homebrew) casks;
         };
       };
 

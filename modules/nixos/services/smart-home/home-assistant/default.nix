@@ -9,7 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.smart-home.home-assistant;
-  userName = lib.${namespace}.userName config;
 
   lovelaceConfig = import ./lovelace.nix { inherit cfg; };
 in
@@ -74,7 +73,7 @@ in
     sops.secrets."service-home-assistant-latitude" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };
@@ -82,7 +81,7 @@ in
     sops.secrets."service-home-assistant-longitude" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0440";
       restartUnits = [ "home-assistant.service" ];
     };
@@ -141,15 +140,15 @@ in
     # Home Assistant service
     services.home-assistant = {
       enable = true;
-      package = cfg.package;
+      inherit (cfg) package;
       configDir = cfg.dataDir;
       configWritable = false;
       customComponents = [ ];
       customLovelaceModules = [ ];
-      lovelaceConfig = lovelaceConfig;
+      inherit lovelaceConfig;
       lovelaceConfigWritable = false;
 
-      extraComponents = cfg.extraComponents;
+      inherit (cfg) extraComponents;
 
       config = {
         homeassistant = {

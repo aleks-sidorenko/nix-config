@@ -1,5 +1,4 @@
 {
-  options,
   config,
   lib,
   namespace,
@@ -9,19 +8,14 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.system.locale;
-  locales = cfg.locales;
+  inherit (cfg) locales;
   systemLocale = head locales;
   extraLocales = tail locales;
   nativeLocale = if extraLocales == [ ] then systemLocale else head extraLocales;
-  layouts = cfg.layouts;
+  inherit (cfg) layouts;
   systemLayout = head layouts;
-  extraLayouts = tail layouts;
-  timeZone = cfg.timeZone;
+  inherit (cfg) timeZone;
   xkbLayout = concatStringsSep "," layouts;
-  inputSources = map (layoutValue: {
-    type = "xkb";
-    layout = layoutValue;
-  }) layouts;
   xkbOptions = "grp:win_space_toggle";
 
 in

@@ -40,7 +40,7 @@ in
       enable = true;
       enableSshSupport = true;
       enableExtraSocket = true;
-      sshKeys = cfg.sshKeys;
+      inherit (cfg) sshKeys;
       defaultCacheTtl = cfg.cacheTtl;
       defaultCacheTtlSsh = cfg.cacheTtl;
       maxCacheTtl = cfg.cacheTtl;

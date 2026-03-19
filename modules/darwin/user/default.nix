@@ -27,7 +27,7 @@ in
     # knownUsers is required for nix-darwin to manage the user's shell
     users.knownUsers = [ cfg.name ];
     users.users.${cfg.name} = {
-      uid = cfg.uid;
+      inherit (cfg) uid;
       home = "/Users/${cfg.name}";
       shell = mkIf (cfg.shell != null) cfg.shell;
     };

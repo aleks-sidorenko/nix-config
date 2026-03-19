@@ -23,12 +23,12 @@ in
     homebrew = {
       enable = true;
       onActivation = {
-        autoUpdate = cfg.autoUpdate;
-        cleanup = cfg.cleanup;
-        upgrade = cfg.upgrade;
+        inherit (cfg) autoUpdate;
+        inherit (cfg) cleanup;
+        inherit (cfg) upgrade;
       };
-      brews = cfg.brews;
-      casks = cfg.casks;
+      inherit (cfg) brews;
+      inherit (cfg) casks;
     };
 
     environment.systemPath = [ "${homebrew.binPath}" ];

@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   namespace,
   ...
 }:
@@ -21,7 +20,7 @@ let
       boot = {
         priority = 1;
         label = disk.boot.name;
-        size = disk.boot.size;
+        inherit (disk.boot) size;
         type = "EF00";
         content = {
           type = "filesystem";
@@ -63,7 +62,7 @@ let
         snapshotCommands = map (
           subvol:
           let
-            name = subvol.name;
+            inherit (subvol) name;
           in
           ''
             echo "Creating blank snapshot of ${subvolume name}"
@@ -116,7 +115,7 @@ let
   mkDisk = disk: {
     inherit (disk) device;
     type = "disk";
-    name = disk.name;
+    inherit (disk) name;
     content = {
       type = "gpt";
       partitions =

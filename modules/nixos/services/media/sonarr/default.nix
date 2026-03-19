@@ -9,9 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.sonarr;
-  userName = lib.${namespace}.userName config;
   mediaRoot = dirOf cfg.mediaDir;
-  downloadRoot = dirOf cfg.downloadDir;
 
 in
 {
@@ -76,7 +74,7 @@ in
     sops.secrets."service-sonarr-api-key" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -103,7 +101,7 @@ in
         </Config>
       '';
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -117,12 +115,12 @@ in
     };
 
     services.sonarr = {
-      enable = cfg.enable;
-      package = cfg.package;
-      user = cfg.user;
-      group = cfg.group;
+      inherit (cfg) enable;
+      inherit (cfg) package;
+      inherit (cfg) user;
+      inherit (cfg) group;
       openFirewall = true;
-      dataDir = cfg.dataDir;
+      inherit (cfg) dataDir;
     };
 
     # Add preStart script to copy SOPS-generated configuration

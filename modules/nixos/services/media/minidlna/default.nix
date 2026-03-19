@@ -8,21 +8,13 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.services.media.minidlna;
-  dirs = map (
-    dir:
-    let
-      parts = lib.splitString "," dir;
-      dirPath = lib.last parts;
-    in
-    dirPath
-  ) cfg.directories;
 in
 {
   options.${namespace}.services.media.minidlna = {
     enable = mkEnableOption "Enable MiniDLNA media server";
 
     directories = mkOption {
-      type = (types.listOf types.str);
+      type = types.listOf types.str;
       # "A" for audio    (eg. media_dir=A,/var/lib/minidlna/music)
       # "P" for pictures (eg. media_dir=P,/var/lib/minidlna/pictures)
       # "V" for video    (eg. media_dir=V,/var/lib/minidlna/videos)

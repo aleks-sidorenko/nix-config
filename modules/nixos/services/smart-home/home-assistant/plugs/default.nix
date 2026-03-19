@@ -58,6 +58,25 @@ let
     in
     (parsed.hour * 60) + parsed.minute;
 
+  # Define the cycling submodule type
+  cyclingType = types.submodule {
+    options = {
+      enable = mkEnableOption "Enable cycling (turn on periodically for a duration within the interval)";
+
+      period = mkOption {
+        type = types.ints.positive;
+        description = "Cycle period in minutes (how often to turn on). Must evenly divide 60.";
+        example = 20;
+      };
+
+      onDuration = mkOption {
+        type = types.ints.positive;
+        description = "How many minutes the plug stays on each cycle";
+        example = 5;
+      };
+    };
+  };
+
   # Define the interval submodule type
   intervalType = types.submodule (
     { config, ... }:
@@ -89,6 +108,16 @@ let
           readOnly = true;
           default = (timeToMinutes config.end) < (timeToMinutes config.start);
           description = "Whether this interval crosses midnight (end time is before start time)";
+        };
+
+        cycling = mkOption {
+          type = cyclingType;
+          default = { };
+          description = ''
+            Cycling configuration for this interval.
+            When enabled, the plug cycles on/off within the interval window
+            instead of staying on for the entire duration.
+          '';
         };
       };
     }
@@ -194,9 +223,82 @@ let
         mode: single
     '';
 
+  # Generate a cycling automation for an interval (uses time_pattern trigger with delay)
+  mkCyclingAutomation =
+    plug: interval:
+    if interval.crossesMidnight then
+      ''
+        - id: ${plug.name}_plug_${interval.name}_cycling
+          alias: "${plug.displayName} Plug: ${interval.name} cycling"
+          description: "Cycle ${plug.displayName} plug every ${toString interval.cycling.period}min for ${toString interval.cycling.onDuration}min (${interval.start}-${interval.end}, overnight)"
+          trigger:
+            - platform: time_pattern
+              minutes: "/${toString interval.cycling.period}"
+          condition:
+            - condition: or
+              conditions:
+                - condition: time
+                  after: "${interval.start}:00"
+                - condition: time
+                  before: "${interval.end}:00"
+          action:
+            - service: switch.turn_on
+              target:
+                entity_id: ${plug.entity_id}
+            - service: logbook.log
+              data:
+                name: ${plug.displayName} Plug
+                message: "${interval.name} cycling: ${plug.displayName} turned ON"
+            - delay:
+                minutes: ${toString interval.cycling.onDuration}
+            - service: switch.turn_off
+              target:
+                entity_id: ${plug.entity_id}
+            - service: logbook.log
+              data:
+                name: ${plug.displayName} Plug
+                message: "${interval.name} cycling: ${plug.displayName} turned OFF"
+          mode: single
+      ''
+    else
+      ''
+        - id: ${plug.name}_plug_${interval.name}_cycling
+          alias: "${plug.displayName} Plug: ${interval.name} cycling"
+          description: "Cycle ${plug.displayName} plug every ${toString interval.cycling.period}min for ${toString interval.cycling.onDuration}min (${interval.start}-${interval.end})"
+          trigger:
+            - platform: time_pattern
+              minutes: "/${toString interval.cycling.period}"
+          condition:
+            - condition: time
+              after: "${interval.start}:00"
+              before: "${interval.end}:00"
+          action:
+            - service: switch.turn_on
+              target:
+                entity_id: ${plug.entity_id}
+            - service: logbook.log
+              data:
+                name: ${plug.displayName} Plug
+                message: "${interval.name} cycling: ${plug.displayName} turned ON"
+            - delay:
+                minutes: ${toString interval.cycling.onDuration}
+            - service: switch.turn_off
+              target:
+                entity_id: ${plug.entity_id}
+            - service: logbook.log
+              data:
+                name: ${plug.displayName} Plug
+                message: "${interval.name} cycling: ${plug.displayName} turned OFF"
+          mode: single
+      '';
+
   # Generate both ON and OFF automations for an interval
   mkIntervalAutomations =
-    plug: interval: (mkOnAutomation plug interval) + "\n" + (mkOffAutomation plug interval);
+    plug: interval:
+    if interval.cycling.enable then
+      mkCyclingAutomation plug interval
+    else
+      (mkOnAutomation plug interval) + "\n" + (mkOffAutomation plug interval);
 
   # Generate all automations for a single plug
   mkPlugAutomations = plug: lib.concatMapStrings (mkIntervalAutomations plug) plug.intervals;
@@ -252,6 +354,26 @@ let
       message = ''
         ${plug.displayName} plug automation: All interval names must be unique.
         Found duplicate names in: ${lib.concatStringsSep ", " (map (i: i.name) plug.intervals)}
+      '';
+    }
+
+    # Validate cycling onDuration is less than period
+    {
+      assertion = builtins.all (
+        interval: !interval.cycling.enable || interval.cycling.onDuration < interval.cycling.period
+      ) plug.intervals;
+      message = ''
+        ${plug.displayName} plug automation: Cycling onDuration must be less than period.
+      '';
+    }
+
+    # Validate cycling period evenly divides 60
+    {
+      assertion = builtins.all (
+        interval: !interval.cycling.enable || (lib.mod 60 interval.cycling.period) == 0
+      ) plug.intervals;
+      message = ''
+        ${plug.displayName} plug automation: Cycling period must evenly divide 60 (e.g., 5, 10, 15, 20, 30).
       '';
     }
   ];
@@ -320,7 +442,7 @@ in
       let
         # Generate a YAML file for each enabled plug
         plugYamlFiles = map (plug: {
-          name = plug.name;
+          inherit (plug) name;
           yaml = pkgs.writeText "plug_${plug.name}.yaml" (mkPlugYaml plug);
         }) enabledPlugs;
 

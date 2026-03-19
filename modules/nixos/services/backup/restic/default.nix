@@ -145,7 +145,7 @@ in
     sops.secrets."service-restic-password" = {
       sopsFile = ../../../secrets.yaml;
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0400";
     };
 
@@ -165,12 +165,12 @@ in
         repository = mkIf (cfg.repository != "") cfg.repository;
         repositoryFile = mkIf (cfg.repositoryFile != null) cfg.repositoryFile;
 
-        timerConfig = cfg.timerConfig;
+        inherit (cfg) timerConfig;
 
         backupPrepareCommand = mkIf (cfg.backupPrepareCommand != null) cfg.backupPrepareCommand;
         backupCleanupCommand = mkIf (cfg.backupCleanupCommand != null) cfg.backupCleanupCommand;
 
-        checkOpts = cfg.checkOpts;
+        inherit (cfg) checkOpts;
 
         # Use rclone config if specified
         rcloneConfigFile = mkIf (cfg.rcloneConfigFile != null) cfg.rcloneConfigFile;
@@ -180,7 +180,7 @@ in
       // (
         if cfg.environmentFile != null then
           {
-            environmentFile = cfg.environmentFile;
+            inherit (cfg) environmentFile;
           }
         else
           { }
@@ -190,7 +190,7 @@ in
     # Create restic user if it doesn't exist
     users.users.${cfg.user} = {
       isSystemUser = true;
-      group = cfg.group;
+      inherit (cfg) group;
       home = cfg.dataDir;
       createHome = true;
       description = "Restic backup user";

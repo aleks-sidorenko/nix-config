@@ -9,7 +9,6 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.roles.server;
-  defaults = lib.${namespace}.defaults;
 in
 {
   options.${namespace}.roles.server = {

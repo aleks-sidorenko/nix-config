@@ -1,7 +1,7 @@
 { config, lib, ... }:
 {
   plugins.copilot-chat = {
-    enable = config.ai.copilot.enable;
+    inherit (config.ai.copilot) enable;
 
     lazyLoad.enable = true;
     lazyLoad.settings.cmd = [

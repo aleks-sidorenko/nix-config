@@ -3,8 +3,6 @@
   config,
   lib,
   namespace,
-  inputs,
-  options,
   ...
 }:
 with lib;

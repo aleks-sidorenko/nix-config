@@ -1,7 +1,5 @@
 {
   lib,
-  modulesPath,
-  inputs,
   namespace,
   ...
 }:
@@ -12,7 +10,7 @@ with lib.${namespace};
     ./disks.nix
   ];
   nixpkgs.overlays = [
-    (final: super: {
+    (_final: super: {
       makeModulesClosure = x: super.makeModulesClosure (x // { allowMissing = true; });
     })
   ];
