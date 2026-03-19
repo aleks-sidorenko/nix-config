@@ -30,6 +30,7 @@ in
 
     programs.fish = {
       enable = true;
+      # TODO: - validate & cleanup
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
 
@@ -73,9 +74,10 @@ in
         end
       '';
 
-      shellAliases = config.home.shellAliases // {
+      shellAliases = {
         wget = "wget --hsts-file=\"$XDG_DATA_HOME/wget-hsts\"";
       };
+      # TODO: - split to modules
       shellAbbrs = {
         # abbr existing commands
         vim = "nvim";
