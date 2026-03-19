@@ -15,9 +15,6 @@ with lib.${namespace};
     # Override user name for this machine
     user.name = mkForce "oleksandrsy";
 
-    # claude-code via Homebrew — npm registry blocked by CrowdStrike
-    system.homebrew.casks = [ "claude-code" ];
-
     system.networking = {
       knownNetworkServices = [
         "Wi-Fi"
