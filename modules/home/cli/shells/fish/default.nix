@@ -115,8 +115,8 @@ in
       }
       // optionalAttrs pkgs.stdenv.isDarwin {
         # Darwin (macOS)-specific
-        nhd = "nh darwin switch";
-        drs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
+        nho = "nh darwin switch";
+        nrs = "darwin-rebuild switch --flake ~/.${namespace}#${host}";
       }
       // {
 

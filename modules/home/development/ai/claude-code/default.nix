@@ -16,16 +16,23 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      claude-code
-    ];
+    home = {
+      packages = with pkgs; [
+        claude-code
+      ];
 
-    home.file.".claude/CLAUDE.md".text = ''
-      ## Git Commits
+      shellAliases = {
+        cl = "claude";
+        cly = "claude --dangerously-skip-permissions";
+      };
 
-      Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[(scope)][!]: <description>`
+      file.".claude/CLAUDE.md".text = ''
+        ## Git Commits
 
-      Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `ci`, `perf`, `build`. Use `!` or `BREAKING CHANGE:` footer for breaking changes.
-    '';
+        Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[(scope)][!]: <description>`
+
+        Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `ci`, `perf`, `build`. Use `!` or `BREAKING CHANGE:` footer for breaking changes.
+      '';
+    };
   };
 }
