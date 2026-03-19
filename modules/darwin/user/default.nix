@@ -25,20 +25,21 @@ in
     # User already exists (managed by organization)
     # Just configure home-manager integration
     # knownUsers is required for nix-darwin to manage the user's shell
-    users.knownUsers = [ cfg.name ];
-    users.users.${cfg.name} = {
-      inherit (cfg) uid;
-      home = "/Users/${cfg.name}";
-      shell = mkIf (cfg.shell != null) cfg.shell;
+    users = {
+      knownUsers = [ cfg.name ];
+      users.${cfg.name} = {
+        inherit (cfg) uid;
+        home = "/Users/${cfg.name}";
+        shell = mkIf (cfg.shell != null) cfg.shell;
+      };
+      # Add user to extra groups
+      groups = builtins.listToAttrs (
+        map (group: {
+          name = group;
+          value.members = [ cfg.name ];
+        }) cfg.extraGroups
+      );
     };
-
-    # Add user to extra groups
-    users.groups = builtins.listToAttrs (
-      map (group: {
-        name = group;
-        value.members = [ cfg.name ];
-      }) cfg.extraGroups
-    );
 
     home-manager = {
       useGlobalPkgs = true;

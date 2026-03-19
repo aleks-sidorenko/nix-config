@@ -46,9 +46,11 @@ in
           default = true;
         };
 
-        tools.archivers.enable = true;
-        tools.modern-unix.enable = true;
-        tools.network-tools.enable = true;
+        tools = {
+          archivers.enable = true;
+          modern-unix.enable = true;
+          network-tools.enable = true;
+        };
       };
       styles.stylix.enable = true;
 
