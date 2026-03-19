@@ -111,7 +111,6 @@ in
           enable = true;
           ai = {
             inherit (cfg.ai) copilot;
-            inherit (cfg.ai) claude-code;
           };
           development = {
             inherit (cfg.languages) haskell;
