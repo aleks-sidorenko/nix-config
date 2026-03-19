@@ -1,6 +1,4 @@
-{
-  ...
-}:
+_:
 rec {
 
   # Defaults for configuration options

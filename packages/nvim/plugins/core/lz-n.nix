@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   plugins = {
     lzn-auto-require.enable = true;
