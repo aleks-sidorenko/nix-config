@@ -1,7 +1,4 @@
-{
-  ...
-}:
-rec {
+_: rec {
 
   # Defaults for configuration options
   defaults = {

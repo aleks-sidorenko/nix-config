@@ -16,9 +16,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs;
-      [
-        claude-code
-      ];
+    home.packages = with pkgs; [
+      claude-code
+    ];
   };
 }

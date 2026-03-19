@@ -1,5 +1,4 @@
-_:
-{
+_: {
   # Resource IDs discovered from router via `print show-ids`
   # Format: *hex (RouterOS internal IDs)
   import = [
