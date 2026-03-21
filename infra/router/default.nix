@@ -19,11 +19,9 @@ let
     ];
   };
 
-  base = mkTerranixDerivation {
+  base = inputs.nix-routeros.lib.mkRouterDerivation {
     inherit pkgs system;
-    name = "router";
     modules = [
-      inputs.nix-routeros.presets.router
       ./imports.nix
       {
         routeros = {
@@ -102,7 +100,7 @@ let
     };
   };
 
-  # SSH-based backup script (preserved from old module)
+  # SSH-based backup script
   sshAlias = "router";
   configDir = "\${XDG_CONFIG_HOME:-$HOME/.config}/mikrotik";
 
