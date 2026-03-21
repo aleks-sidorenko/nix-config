@@ -13,17 +13,13 @@ in
 {
   options.${namespace}.development.ai.claude-code = with types; {
     enable = mkEnableOption "Whether or not to enable claude-code";
-    install = mkBoolOpt true "Whether to install claude-code package via home-manager";
   };
 
   config = mkIf cfg.enable {
     home = {
-      packages = mkIf cfg.install (
-        with pkgs;
-        [
-          claude-code
-        ]
-      );
+      packages = [
+        pkgs.llm-agents.claude-code
+      ];
 
       shellAliases = {
         cl = "claude";
@@ -42,6 +38,20 @@ in
         - `docs/specs/` - Feature specifications and requirements
         - `docs/plans/` - Implementation plans
       '';
+
+      file.".claude/settings.json".text = lib.generators.toJSON { } {
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+        model = "claude-opus-4-6";
+        enabledPlugins = {
+          "superpowers@superpowers-marketplace" = true;
+          "superpowers@claude-plugins-official" = true;
+        };
+        alwaysThinkingEnabled = true;
+        skipDangerousModePermissionPrompt = true;
+      };
     };
   };
 }

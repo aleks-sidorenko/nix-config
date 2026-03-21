@@ -102,10 +102,10 @@ build-test:
     @echo "🧪 Testing build configuration..."
     nixos-rebuild build --flake .
 
-# Update flake inputs
-update:
+# Update flake inputs (optionally a single input)
+update *input:
     @echo "📦 Updating flake inputs..."
-    nix flake update
+    nix flake update {{ input }}
 
 # Check flake for issues
 check:

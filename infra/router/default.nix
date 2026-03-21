@@ -26,14 +26,14 @@ let
       {
         routeros = {
           connection = {
-            gateway = defaults.network.gateway;
+            inherit (defaults.network) gateway;
             username = defaults.user;
           };
 
           system.timezone = defaults.locale.timeZone;
 
           network = {
-            subnet = defaults.network.subnet;
+            inherit (defaults.network) subnet;
             dhcp.server.range = defaults.network.dhcpRange;
           };
 
@@ -54,13 +54,13 @@ let
           };
 
           dns = {
-            upstream = defaults.network.dns.upstream;
+            inherit (defaults.network.dns) upstream;
             localDomain = defaults.network.domains.local;
           };
 
           wifi = {
             enable = true;
-            ssid = defaults.network.wifi.ssid;
+            inherit (defaults.network.wifi) ssid;
             country = "ukraine";
           };
 
