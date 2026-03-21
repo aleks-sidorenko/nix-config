@@ -13,17 +13,13 @@ in
 {
   options.${namespace}.development.ai.claude-code = with types; {
     enable = mkEnableOption "Whether or not to enable claude-code";
-    install = mkBoolOpt true "Whether to install claude-code package via home-manager";
   };
 
   config = mkIf cfg.enable {
     home = {
-      packages = mkIf cfg.install (
-        with pkgs;
-        [
-          claude-code
-        ]
-      );
+      packages = [
+        pkgs.llm-agents.claude-code
+      ];
 
       shellAliases = {
         cl = "claude";

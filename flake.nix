@@ -165,6 +165,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # AI tools
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Darwin (macOS)
     darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
@@ -246,6 +252,7 @@
       overlays = with inputs; [
         nixgl.overlay
         nur.overlays.default
+        llm-agents.overlays.default
         # Make unstable packages available as pkgs.unstable
         (final: _prev: {
           unstable = import nixpkgs-unstable {

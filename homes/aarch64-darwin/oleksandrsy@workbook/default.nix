@@ -10,9 +10,6 @@ with lib.${namespace};
   nix-config = {
     roles.work = enabled;
 
-    # Use Homebrew claude-code for latest version
-    development.ai.claude-code.install = mkForce false;
-
     user = {
       enable = true;
       name = mkForce "oleksandrsy";
