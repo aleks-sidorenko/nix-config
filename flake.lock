@@ -989,6 +989,29 @@
         "type": "github"
       }
     },
+    "nix-routeros": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "terranix": [
+          "terranix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1774099216,
+        "narHash": "sha256-mUhqAmCAcXZKvvRqUz4NhD0mhp8sB5l8EyFmp8yVJM0=",
+        "owner": "aleks-sidorenko",
+        "repo": "nix-routeros",
+        "rev": "6bdcd3797f0871b408183a4a7410bbafd5def585",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aleks-sidorenko",
+        "repo": "nix-routeros",
+        "type": "github"
+      }
+    },
     "nix-vm-test": {
       "inputs": {
         "nixpkgs": [
@@ -1452,6 +1475,7 @@
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-homebrew": "nix-homebrew",
         "nix-index-database": "nix-index-database",
+        "nix-routeros": "nix-routeros",
         "nixgl": "nixgl",
         "nixos-anywhere": "nixos-anywhere",
         "nixos-facter-modules": "nixos-facter-modules",

@@ -1,74 +1,98 @@
 {
   lib,
   pkgs,
+  inputs,
+  system,
   namespace,
   ...
 }:
 with lib;
 with lib.${namespace};
 let
-  inherit (pkgs.stdenv.hostPlatform) system;
   hosts = import ./hosts.nix { inherit defaults; };
 
-  routerConfig = {
-    # User
-    username = defaults.user;
-
-    # Network (from lib/defaults)
-    inherit (defaults.network) subnet;
-    inherit (defaults.network) gateway;
-    inherit (defaults.network) dhcpRange;
-    networkAddress = lib.${namespace}.networkAddress defaults.network.gateway;
-    prefixLength = lib.${namespace}.prefixLength defaults.network.subnet;
-    localDomain = defaults.network.domains.local;
-
-    # WiFi
-    wifi = {
-      inherit (defaults.network.wifi) ssid;
-    };
-
-    # DNS
-    dns = {
-      inherit (defaults.network.dns) upstream;
-    };
-
-    # Hardware
-    bridge = {
-      adminMac = hosts.router.bridge.mac;
-    };
-
-    lte = {
-      apn = "ks";
-      name = "Kyivstar";
-    };
-
-    ovpn = {
-      macAddress = hosts.router.ovpn.mac;
-    };
-
-    # System
-    timezone = defaults.locale.timeZone;
-
-    # Hosts
-    inherit hosts;
-
-    # Firewall address lists
-    firewallAddressLists = {
-      tv = [
-        defaults.network.hosts.tv
-        defaults.network.hosts.tv-wifi
-      ];
-    };
+  # Strip non-hostType attrs (bridge.mac, ovpn.mac) from router entry
+  routerosHosts = hosts // {
+    router = removeAttrs hosts.router [
+      "bridge"
+      "ovpn"
+    ];
   };
 
   base = mkTerranixDerivation {
     inherit pkgs system;
     name = "router";
-    extraArgs = {
-      inherit routerConfig;
-    };
-    terraformModulesPath = ./modules;
-    modules = [ ];
+    modules = [
+      inputs.nix-routeros.presets.router
+      ./imports.nix
+      {
+        routeros = {
+          connection = {
+            gateway = defaults.network.gateway;
+            username = defaults.user;
+          };
+
+          system.timezone = defaults.locale.timeZone;
+
+          network = {
+            subnet = defaults.network.subnet;
+            dhcp.server.range = defaults.network.dhcpRange;
+          };
+
+          bridge = {
+            ports = [
+              "ether2"
+              "ether3"
+              "ether4"
+              "ether5"
+              "ether6"
+              "ether7"
+              "ether8"
+              "ether9"
+              "ether10"
+              "sfp1"
+            ];
+            adminMac = hosts.router.bridge.mac;
+          };
+
+          dns = {
+            upstream = defaults.network.dns.upstream;
+            localDomain = defaults.network.domains.local;
+          };
+
+          wifi = {
+            enable = true;
+            ssid = defaults.network.wifi.ssid;
+            country = "ukraine";
+          };
+
+          interfaces.lte = {
+            enable = true;
+            apn = "ks";
+            provider = "Kyivstar";
+          };
+
+          firewall = {
+            addressLists.tv = [
+              defaults.network.hosts.tv
+              defaults.network.hosts.tv-wifi
+            ];
+            filterRules = [
+              {
+                name = "forward_drop_tv_external";
+                action = "drop";
+                chain = "forward";
+                comment = "drop TV external traffic";
+                out_interface_list = "WAN";
+                src_address_list = "tv";
+              }
+            ];
+          };
+
+          hosts = routerosHosts;
+        };
+      }
+    ];
     stateDir = "infra/router";
     secretsFile = "infra/router/secrets.yaml";
     secrets = {
