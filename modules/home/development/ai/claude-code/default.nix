@@ -36,6 +36,11 @@ in
         Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[(scope)][!]: <description>`
 
         Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `ci`, `perf`, `build`. Use `!` or `BREAKING CHANGE:` footer for breaking changes.
+
+        ## Documentation Structure
+
+        - `docs/specs/` - Feature specifications and requirements
+        - `docs/plans/` - Implementation plans
       '';
     };
   };
