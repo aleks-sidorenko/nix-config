@@ -15,6 +15,7 @@ Extracted from the `infra/router/` directory of the `nix-config` personal config
 - **Layering**: Building-block modules at the core, with an opinionated `presets.router` on top
 - **Scope**: Full feature parity with the current setup (bridge, CAPsMAN, DHCP, DNS, firewall, interfaces, LTE, system)
 - **Repo relationship**: Separate repo/flake; `nix-config` becomes the first consumer via flake input
+- **Flake structure**: Plain flake (no flake-parts, flake-utils, or snowfall-lib — outputs are mostly system-independent terranix modules/lib, no auto-discovery needed)
 
 ## Flake Outputs
 
