@@ -307,11 +307,6 @@ _: {
       id = "*13";
     }
 
-    {
-      to = "routeros_ip_dns_record._1c_key";
-      id = "*14";
-    }
-
     # ── Firewall ────────────────────────────────────────────────────
     # /ip firewall connection tracking → singleton
     {
