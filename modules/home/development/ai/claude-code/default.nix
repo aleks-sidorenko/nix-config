@@ -38,6 +38,20 @@ in
         - `docs/specs/` - Feature specifications and requirements
         - `docs/plans/` - Implementation plans
       '';
+
+      file.".claude/settings.json".text = lib.generators.toJSON { } {
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+        model = "claude-opus-4-6";
+        enabledPlugins = {
+          "superpowers@superpowers-marketplace" = true;
+          "superpowers@claude-plugins-official" = true;
+        };
+        alwaysThinkingEnabled = true;
+        skipDangerousModePermissionPrompt = true;
+      };
     };
   };
 }
