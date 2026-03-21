@@ -107,6 +107,11 @@ update:
     @echo "📦 Updating flake inputs..."
     nix flake update
 
+# Update a single flake input
+update-input input:
+    @echo "📦 Updating {{input}}..."
+    nix flake update {{input}}
+
 # Check flake for issues
 check:
     @echo "🔍 Checking flake configuration..."
