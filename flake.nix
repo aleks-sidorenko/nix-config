@@ -105,6 +105,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-routeros = {
+      url = "github:aleks-sidorenko/nix-routeros";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.terranix.follows = "terranix";
+    };
+
     # Styling
 
     catppuccin-obs = {

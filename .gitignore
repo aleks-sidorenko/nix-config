@@ -6,6 +6,7 @@ result
 .terraform
 .terraform.*
 *.tfstate.backup
+config.tf.json
 
 # claude
 .claude/settings.local.json
