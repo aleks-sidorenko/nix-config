@@ -17,7 +17,7 @@ in
   config = mkIf cfg.enable {
     ${namespace}.system.homebrew = {
       taps = [ "nikitabobko/tap" ];
-      casks = [ "aerospace" ];
+      casks = [ "nikitabobko/tap/aerospace" ];
     };
   };
 }
