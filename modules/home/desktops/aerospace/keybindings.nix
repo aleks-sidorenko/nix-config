@@ -25,6 +25,9 @@
   # Fullscreen — Alt+Cmd+F (Linux: Super+F)
   alt-cmd-f = 'fullscreen'
 
+  # Maximize (fill workspace) — Alt+Cmd+M (Linux: Super+M)
+  alt-cmd-m = 'fullscreen'
+
   # Workspaces — Alt+Cmd+N (Linux: Super+N)
   alt-cmd-1 = 'workspace 1'
   alt-cmd-2 = 'workspace 2'

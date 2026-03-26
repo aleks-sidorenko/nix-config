@@ -136,7 +136,10 @@ in
         switch-to-workspace-left = [ "<Super><Alt>Left" ];
         switch-to-workspace-right = [ "<Super><Alt>Right" ];
         switch-to-workspace-up = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        toggle-maximized = [ "<Alt>F10" ];
+        toggle-maximized = [
+          "<Super>m"
+          "<Alt>F10"
+        ];
         unmaximize = [ "<Alt>F5" ];
       };
 

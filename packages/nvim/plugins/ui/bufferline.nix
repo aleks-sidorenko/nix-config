@@ -31,7 +31,6 @@
         desc = "Cycle to next buffer";
       };
     }
-
     {
       mode = "n";
       key = "[b";
@@ -40,25 +39,22 @@
         desc = "Cycle to previous buffer";
       };
     }
-
     {
       mode = "n";
-      key = "<S-l>";
+      key = "<leader>b]";
       action = "<cmd>BufferLineCycleNext<cr>";
       options = {
-        desc = "Cycle to next buffer";
+        desc = "Next buffer";
       };
     }
-
     {
       mode = "n";
-      key = "<S-h>";
+      key = "<leader>b[";
       action = "<cmd>BufferLineCyclePrev<cr>";
       options = {
-        desc = "Cycle to previous buffer";
+        desc = "Previous buffer";
       };
     }
-
     {
       mode = "n";
       key = "<leader>bp";
@@ -67,19 +63,9 @@
         desc = "Toggle pin";
       };
     }
-
     {
       mode = "n";
       key = "<leader>bq";
-      action = "<cmd>bp|bd #<cr>";
-      options = {
-        desc = "Delete buffer";
-      };
-    }
-    # Delete buffer and close window
-    {
-      mode = "n";
-      key = "<S-x>";
       action = "<cmd>bp|bd #<cr>";
       options = {
         desc = "Delete buffer";
@@ -93,7 +79,6 @@
         desc = "Delete buffers to the left";
       };
     }
-
     {
       mode = "n";
       key = "<leader>bo";
@@ -110,6 +95,5 @@
         desc = "Delete non-pinned buffers";
       };
     }
-
   ];
 }

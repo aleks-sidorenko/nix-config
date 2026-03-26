@@ -50,13 +50,14 @@
         silent = true;
       };
     }
+
     # Line navigation
     {
       mode = [
         "n"
         "v"
       ];
-      key = "<A-[>";
+      key = "H";
       action = "^";
       options = {
         desc = "Go to beginning of line";
@@ -67,19 +68,42 @@
         "n"
         "v"
       ];
-      key = "<A-]>";
+      key = "L";
       action = "$";
       options = {
         desc = "Go to end of line";
       };
     }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "g[";
+      action = "^";
+      options = {
+        desc = "Go to beginning of line";
+      };
+    }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "g]";
+      action = "$";
+      options = {
+        desc = "Go to end of line";
+      };
+    }
+
     # File navigation
     {
       mode = [
         "n"
         "v"
       ];
-      key = "<A-S-[>";
+      key = "g{";
       action = "gg";
       options = {
         desc = "Go to beginning of file";
@@ -90,13 +114,14 @@
         "n"
         "v"
       ];
-      key = "<A-S-]>";
+      key = "g}";
       action = "G";
       options = {
         desc = "Go to end of file";
       };
     }
-    # Window navigation
+
+    # Window navigation (Ctrl+HJKL)
     {
       mode = "n";
       key = "<C-h>";
@@ -133,6 +158,8 @@
         remap = true;
       };
     }
+
+    # Window resize (Ctrl+Arrows)
     {
       mode = "n";
       key = "<C-Up>";
@@ -165,9 +192,11 @@
         desc = "Decrease Window Width";
       };
     }
+
+    # Move lines (Ctrl+Shift+J/K — replaces Alt+J/K which conflicts with Ghostty)
     {
       mode = "n";
-      key = "<A-j>";
+      key = "<C-S-j>";
       action = "<cmd>m .+1<cr>==";
       options = {
         desc = "Move Down";
@@ -175,7 +204,7 @@
     }
     {
       mode = "n";
-      key = "<A-k>";
+      key = "<C-S-k>";
       action = "<cmd>m .-2<cr>==";
       options = {
         desc = "Move Up";
@@ -183,7 +212,7 @@
     }
     {
       mode = "i";
-      key = "<A-j>";
+      key = "<C-S-j>";
       action = "<esc><cmd>m .+1<cr>==gi";
       options = {
         desc = "Move Down";
@@ -191,7 +220,7 @@
     }
     {
       mode = "i";
-      key = "<A-k>";
+      key = "<C-S-k>";
       action = "<esc><cmd>m .-2<cr>==gi";
       options = {
         desc = "Move Up";
@@ -199,7 +228,7 @@
     }
     {
       mode = "v";
-      key = "<A-j>";
+      key = "<C-S-j>";
       action = ":m '>+1<cr>gv=gv";
       options = {
         desc = "Move Down";
@@ -207,12 +236,14 @@
     }
     {
       mode = "v";
-      key = "<A-k>";
+      key = "<C-S-k>";
       action = ":m '<-2<cr>gv=gv";
       options = {
         desc = "Move Up";
       };
     }
+
+    # Undo breakpoints
     {
       mode = "i";
       key = ";";
@@ -228,6 +259,8 @@
       key = ";";
       action = ";<c-g>u";
     }
+
+    # Save
     {
       mode = [
         "i"
@@ -260,6 +293,7 @@
         desc = "Redraw / Clear hlsearch / Diff Update";
       };
     }
+
     # Search
     {
       mode = "n";
@@ -315,6 +349,7 @@
         desc = "Prev Search Result";
       };
     }
+
     # Jumps
     {
       mode = "n";
@@ -334,6 +369,8 @@
         remap = true;
       };
     }
+
+    # Diagnostics
     {
       mode = "n";
       key = "<leader>cd";
@@ -390,6 +427,8 @@
         desc = "Prev Warning";
       };
     }
+
+    # General
     {
       mode = "n";
       key = "<leader>qq";
@@ -415,7 +454,7 @@
       };
     }
 
-    # Windows
+    # Windows (terminal mode)
     {
       mode = "t";
       key = "<C-h>";
@@ -448,6 +487,44 @@
         desc = "Go to Right Window";
       };
     }
+
+    # Window management (Leader+w)
+    {
+      mode = "n";
+      key = "<leader>wh";
+      action = "<C-w>h";
+      options = {
+        desc = "Go to Left Window";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>wj";
+      action = "<C-w>j";
+      options = {
+        desc = "Go to Lower Window";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>wk";
+      action = "<C-w>k";
+      options = {
+        desc = "Go to Upper Window";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>wl";
+      action = "<C-w>l";
+      options = {
+        desc = "Go to Right Window";
+        remap = true;
+      };
+    }
     {
       mode = "n";
       key = "<leader>wp";
@@ -468,19 +545,37 @@
     }
     {
       mode = "n";
-      key = "<C-x>";
-      action = "<cmd>:close<cr>";
-      options = {
-        desc = "Close Window";
-      };
-    }
-
-    {
-      mode = "n";
       key = "<leader>w|";
       action = "<C-W>v";
       options = {
         desc = "Split Window Right";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>w-";
+      action = "<C-W>s";
+      options = {
+        desc = "Split Window Below";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>wm";
+      action = "<C-W>o";
+      options = {
+        desc = "Maximize Window";
+        remap = true;
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>w=";
+      action = "<C-W>=";
+      options = {
+        desc = "Equalize Window Sizes";
         remap = true;
       };
     }
@@ -500,6 +595,80 @@
       options = {
         desc = "Split Window Right";
         remap = true;
+      };
+    }
+
+    # Buffer navigation (Leader+N for direct access)
+    {
+      mode = "n";
+      key = "<leader>1";
+      action = "<cmd>BufferLineGoToBuffer 1<cr>";
+      options = {
+        desc = "Go to buffer 1";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>2";
+      action = "<cmd>BufferLineGoToBuffer 2<cr>";
+      options = {
+        desc = "Go to buffer 2";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>3";
+      action = "<cmd>BufferLineGoToBuffer 3<cr>";
+      options = {
+        desc = "Go to buffer 3";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>4";
+      action = "<cmd>BufferLineGoToBuffer 4<cr>";
+      options = {
+        desc = "Go to buffer 4";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>5";
+      action = "<cmd>BufferLineGoToBuffer 5<cr>";
+      options = {
+        desc = "Go to buffer 5";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>6";
+      action = "<cmd>BufferLineGoToBuffer 6<cr>";
+      options = {
+        desc = "Go to buffer 6";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>7";
+      action = "<cmd>BufferLineGoToBuffer 7<cr>";
+      options = {
+        desc = "Go to buffer 7";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>8";
+      action = "<cmd>BufferLineGoToBuffer 8<cr>";
+      options = {
+        desc = "Go to buffer 8";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>9";
+      action = "<cmd>BufferLineGoToBuffer 9<cr>";
+      options = {
+        desc = "Go to buffer 9";
       };
     }
 

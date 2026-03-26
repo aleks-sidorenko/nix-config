@@ -51,89 +51,91 @@ in
         keybind = [
           "clear"
 
-          # Tab Management (Alt+Ctrl)
-          "alt+ctrl+n=new_tab"
-          "alt+ctrl+q=close_tab:this"
+          # ── Navigate (Alt) ──────────────────────────────────────
+          # Split focus — vim style
+          "alt+h=goto_split:left"
+          "alt+j=goto_split:down"
+          "alt+k=goto_split:up"
+          "alt+l=goto_split:right"
+          # Split focus — arrows
+          "alt+arrow_up=goto_split:up"
+          "alt+arrow_down=goto_split:down"
+          "alt+arrow_left=goto_split:left"
+          "alt+arrow_right=goto_split:right"
+          # Tab switch (1-8 direct, 9 = last)
+          "alt+1=goto_tab:1"
+          "alt+2=goto_tab:2"
+          "alt+3=goto_tab:3"
+          "alt+4=goto_tab:4"
+          "alt+5=goto_tab:5"
+          "alt+6=goto_tab:6"
+          "alt+7=goto_tab:7"
+          "alt+8=goto_tab:8"
+          "alt+9=last_tab"
+          # Tab cycle
+          "alt+[=previous_tab"
+          "alt+]=next_tab"
+          # Jump to prompt
+          "alt+page_up=jump_to_prompt:-1"
+          "alt+page_down=jump_to_prompt:1"
 
-          "${prefix}>t>n=new_tab"
-          "${prefix}>t>q=close_tab:this"
-          "${prefix}>t>[=previous_tab"
-          "${prefix}>t>]=next_tab"
+          # ── Structure (Alt+Shift) ───────────────────────────────
+          # Split creation — vim style
+          "alt+shift+h=new_split:left"
+          "alt+shift+j=new_split:down"
+          "alt+shift+k=new_split:up"
+          "alt+shift+l=new_split:right"
+          # Split creation — arrows
+          "alt+shift+arrow_up=new_split:up"
+          "alt+shift+arrow_down=new_split:down"
+          "alt+shift+arrow_left=new_split:left"
+          "alt+shift+arrow_right=new_split:right"
+          # Logical splits
+          "alt+shift+|=new_split:right"
+          "alt+shift+-=new_split:down"
+          # Tab management
+          "alt+shift+n=new_tab"
+          "alt+shift+q=close_tab:this"
+          # Window management
+          "alt+shift+w=new_window"
+          "alt+shift+x=close_window"
 
-          # Quick Tab Access (alt+ctrl+1-9)
-          "alt+ctrl+1=goto_tab:1"
-          "alt+ctrl+2=goto_tab:2"
-          "alt+ctrl+3=goto_tab:3"
-          "alt+ctrl+4=goto_tab:4"
-          "alt+ctrl+5=goto_tab:5"
-          "alt+ctrl+6=goto_tab:6"
-          "alt+ctrl+7=goto_tab:7"
-          "alt+ctrl+8=goto_tab:8"
-          "alt+ctrl+9=last_tab"
+          # ── Modify (Alt+Ctrl) ───────────────────────────────────
+          # Split resize — vim style
+          "alt+ctrl+h=resize_split:left,10"
+          "alt+ctrl+j=resize_split:down,10"
+          "alt+ctrl+k=resize_split:up,10"
+          "alt+ctrl+l=resize_split:right,10"
+          # Split resize — arrows
+          "alt+ctrl+arrow_up=resize_split:up,10"
+          "alt+ctrl+arrow_down=resize_split:down,10"
+          "alt+ctrl+arrow_left=resize_split:left,10"
+          "alt+ctrl+arrow_right=resize_split:right,10"
+          # Split zoom
+          "alt+ctrl+enter=toggle_split_zoom"
 
-          # Window Management (Ctrl+Shift)
-          "ctrl+shift+n=new_window"
-          "ctrl+shift+q=close_window"
-          "${prefix}>w>n=new_window"
-          "${prefix}>w>q=close_window"
-
-          # Split Navigation (Alt+Shift to avoid GNOME conflicts)
-          # vim style
-          "alt+shift+h=goto_split:left"
-          "alt+shift+j=goto_split:down"
-          "alt+shift+k=goto_split:up"
-          "alt+shift+l=goto_split:right"
-
+          # ── Prefix Mode (Ctrl+A) ───────────────────────────────
           "${prefix}>h=goto_split:left"
           "${prefix}>j=goto_split:down"
           "${prefix}>k=goto_split:up"
           "${prefix}>l=goto_split:right"
           "${prefix}>[=goto_split:previous"
           "${prefix}>]=goto_split:next"
-
-          # arrows
-          "alt+shift+arrow_up=goto_split:up"
-          "alt+shift+arrow_down=goto_split:down"
-          "alt+shift+arrow_left=goto_split:left"
-          "alt+shift+arrow_right=goto_split:right"
-
           "${prefix}>arrow_up=goto_split:up"
           "${prefix}>arrow_down=goto_split:down"
           "${prefix}>arrow_left=goto_split:left"
           "${prefix}>arrow_right=goto_split:right"
-
-          # Split Creation (Ctrl+Shift)
-          # vim style (ctrl+shift+hjkl)
-          "ctrl+shift+h=new_split:left"
-          "ctrl+shift+j=new_split:down"
-          "ctrl+shift+k=new_split:up"
-          "ctrl+shift+l=new_split:right"
-          # arrows
-          "ctrl+shift+arrow_up=new_split:up"
-          "ctrl+shift+arrow_down=new_split:down"
-          "ctrl+shift+arrow_left=new_split:left"
-          "ctrl+shift+arrow_right=new_split:right"
-          # logical
-          "ctrl+shift+|=new_split:right"
-          "ctrl+shift+-=new_split:down"
+          "${prefix}>t>n=new_tab"
+          "${prefix}>t>q=close_tab:this"
+          "${prefix}>t>[=previous_tab"
+          "${prefix}>t>]=next_tab"
+          "${prefix}>w>n=new_window"
+          "${prefix}>w>q=close_window"
           "${prefix}>|=new_split:right"
           "${prefix}>-=new_split:down"
 
-          "ctrl+shift+enter=toggle_split_zoom"
-
-          # Split Resize (Alt+Shift+Ctrl)
-          # vim style
-          "alt+shift+ctrl+h=resize_split:left,10"
-          "alt+shift+ctrl+j=resize_split:down,10"
-          "alt+shift+ctrl+k=resize_split:up,10"
-          "alt+shift+ctrl+l=resize_split:right,10"
-          # arrows
-          "alt+shift+ctrl+arrow_up=resize_split:up,10"
-          "alt+shift+ctrl+arrow_down=resize_split:down,10"
-          "alt+shift+ctrl+arrow_left=resize_split:left,10"
-          "alt+shift+ctrl+arrow_right=resize_split:right,10"
-
-          # Copy/Paste (Standard)
+          # ── Standard Bindings (non-Alt) ─────────────────────────
+          # Copy/Paste
           "ctrl+shift+c=copy_to_clipboard"
           "ctrl+shift+v=paste_from_clipboard"
           "ctrl+shift+a=select_all"
@@ -152,24 +154,17 @@ in
           "ctrl+shift+p=toggle_command_palette"
           "ctrl+shift+i=inspector:toggle"
 
-          # Global
-          "alt+f4=quit"
-
-          # Navigation
-          "ctrl+shift+page_up=jump_to_prompt:-1"
-          "ctrl+shift+page_down=jump_to_prompt:1"
+          # Scroll/Selection
           "shift+page_up=scroll_page_up"
           "shift+page_down=scroll_page_down"
           "shift+home=scroll_to_top"
           "shift+end=scroll_to_bottom"
-
-          # Selection (arrows only - shift+letter conflicts with typing capitals)
           "shift+arrow_up=adjust_selection:up"
           "shift+arrow_down=adjust_selection:down"
           "shift+arrow_left=adjust_selection:left"
           "shift+arrow_right=adjust_selection:right"
 
-          # Write to File (prefix, then key)
+          # ── Write to File (Prefix) ─────────────────────────────
           # Actions: key = paste, shift+key = open, ctrl+key = copy
           # Screen (s)
           "${prefix}>s=write_screen_file:paste"
