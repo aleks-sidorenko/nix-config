@@ -56,6 +56,8 @@ in
         router-manager = enabled;
       };
 
+      desktops.aerospace = enabled;
+
       cli.tools.git.lfs = true;
 
       browsers = {

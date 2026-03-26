@@ -24,11 +24,12 @@ in
             "mas" # Mac App Store CLI
           ];
           casks = [
-            "rectangle" # Window management
             "raycast" # Spotlight replacement
           ];
         };
       };
+
+      desktops.aerospace = enabled;
 
       communication = {
         viber = enabled;
