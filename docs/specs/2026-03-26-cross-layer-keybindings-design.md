@@ -62,7 +62,7 @@ The same keys always mean the same spatial directions across all layers:
 
 | Modifier | Action | Keys |
 |---|---|---|
-| `Alt` | Navigate | `HJKL` (focus split), `1-9` (tab switch), `[/]` (tab cycle) |
+| `Alt` | Navigate | `HJKL` (focus split), `1-9` (tab switch), `[/]` (tab cycle), `PageUp/Down` (jump to prompt) |
 | `Alt+Shift` | Structure | `HJKL` (create split), `\|/-` (logical split), `N` (new tab), `Q` (close tab), `W` (new window), `X` (close window) |
 | `Alt+Ctrl` | Modify | `HJKL` (resize split), `Enter` (toggle split zoom) |
 
@@ -80,7 +80,6 @@ The same keys always mean the same spatial directions across all layers:
 | `Ctrl+Shift+,` | Reload config | System operation |
 | `Ctrl+Shift+P` | Command palette | System operation |
 | `Ctrl+Shift+I` | Inspector | System operation |
-| `Ctrl+Shift+PageUp/Down` | Jump to prompt | System navigation |
 
 `Ctrl` = display control:
 
@@ -160,12 +159,14 @@ Other conventions:
 | Change | Tab close: `Alt+Ctrl+Q` -> `Alt+Shift+Q` |
 | Change | New window: `Ctrl+Shift+N` -> `Alt+Shift+W` |
 | Change | Close window: `Ctrl+Shift+Q` -> `Alt+Shift+X` |
+| Change | Jump to prompt: `Ctrl+Shift+PageUp/Down` -> `Alt+PageUp/Down` |
 | Add | Tab cycle: `Alt+[` (prev), `Alt+]` (next) |
 | Remove | `Ctrl+Shift+HJKL/Arrows` for split creation (moved to `Alt+Shift`) |
 | Remove | `Alt+Shift+Arrows` for split navigation (moved to `Alt+Arrows`) |
 | Remove | `Alt+Shift+Ctrl+Arrows` for split resize (moved to `Alt+Ctrl+Arrows`) |
 | Remove | `Ctrl+Shift+N/Q` for window new/close (moved to `Alt+Shift+W/X`) |
 | Remove | `Ctrl+Shift+Enter` for zoom (moved to `Alt+Ctrl+Enter`) |
+| Remove | `Ctrl+Shift+PageUp/Down` for prompt jump (moved to `Alt+PageUp/Down`) |
 | Preserve | `Ctrl+Shift+C/V/A` (clipboard), `Ctrl+Shift+,/P/I` (config/system), font/scroll bindings, prefix mode |
 
 ### Neovim

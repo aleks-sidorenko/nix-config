@@ -194,6 +194,8 @@ All direct Ghostty bindings use `Alt` as the base modifier.
 | Switch to last tab | `Alt+9` |
 | Previous tab | `Alt+[` |
 | Next tab | `Alt+]` |
+| Jump to prompt prev | `Alt+PageUp` |
+| Jump to prompt next | `Alt+PageDown` |
 
 #### Structure (`Alt+Shift`)
 
@@ -216,9 +218,9 @@ All direct Ghostty bindings use `Alt` as the base modifier.
 | Resize split (arrows) | `Alt+Ctrl+Arrows` |
 | Toggle split zoom | `Alt+Ctrl+Enter` |
 
-### System Bindings (`Ctrl+Shift`)
+### Standard Bindings (Non-Alt)
 
-OS boundary and system operations — not part of the Alt scheme.
+Terminal-universal and OS-standard conventions — not part of the Alt scheme.
 
 | Action | Binding |
 |---|---|
@@ -230,7 +232,6 @@ OS boundary and system operations — not part of the Alt scheme.
 | Reload config | `Ctrl+Shift+,` |
 | Command palette | `Ctrl+Shift+P` |
 | Inspector | `Ctrl+Shift+I` |
-| Jump to prompt prev/next | `Ctrl+Shift+PageUp/Down` |
 
 ### Display Bindings (`Ctrl`)
 
