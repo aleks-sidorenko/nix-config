@@ -129,7 +129,8 @@ Other conventions:
 | `]d` / `[d` | Next/prev diagnostic |
 | `]e` / `[e` | Next/prev error |
 | `]w` / `[w` | Next/prev warning |
-| `Leader+bq` | Delete buffer |
+| `Leader+b[` / `Leader+b]` | Prev/next buffer (mirrors `[b`/`]b`) |
+| `Leader+bq` | Close buffer |
 | `Leader+bp` | Toggle pin |
 | `Leader+bo` | Close other buffers |
 
@@ -198,6 +199,7 @@ Other conventions:
 | Add | `Ctrl+Shift+J/K` -> move line down/up (replaces `Alt+J/K`; `Ctrl+Shift+J/K` not bound in Ghostty) |
 | Add | `Leader+wh/j/k/l` -> focus window (mirrors `Ctrl+HJKL` for discoverability) |
 | Add | `Leader+w-` -> split below (was only `Leader+-`) |
+| Add | `Leader+b[`/`Leader+b]` -> prev/next buffer (mirrors `[b`/`]b` for discoverability) |
 | Add | `Leader+wm` -> maximize/zoom toggle |
 | Add | `Leader+w=` -> equalize window sizes |
 | Remove | `Ctrl+X` (close window) — semantic mismatch, use `Leader+wq` |

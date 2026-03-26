@@ -325,13 +325,15 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 ### Buffer Management (`Leader+b`)
 
-| Action | Binding |
-|---|---|
-| Delete buffer | `Leader+bq` |
-| Toggle pin | `Leader+bp` |
-| Close buffers left | `Leader+bl` |
-| Close other buffers | `Leader+bo` |
-| Close non-pinned | `Leader+bP` |
+| Action | Binding | Notes |
+|---|---|---|
+| Previous buffer | `Leader+b[` | Mirrors `[b` |
+| Next buffer | `Leader+b]` | Mirrors `]b` |
+| Close buffer | `Leader+bq` | |
+| Toggle pin | `Leader+bp` | |
+| Close buffers left | `Leader+bl` | |
+| Close other buffers | `Leader+bo` | |
+| Close non-pinned | `Leader+bP` | |
 
 ### Window Management (`Leader+w`)
 
