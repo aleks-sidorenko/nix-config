@@ -201,8 +201,12 @@ All direct Ghostty bindings use `Alt` as the base modifier.
 |---|---|
 | Create split left/down/up/right | `Alt+Shift+H/J/K/L` |
 | Create split (arrows) | `Alt+Shift+Arrows` |
+| New split right (logical) | `Alt+Shift+\|` |
+| New split down (logical) | `Alt+Shift+-` |
 | New tab | `Alt+Shift+N` |
 | Close tab | `Alt+Shift+Q` |
+| New window | `Alt+Shift+W` |
+| Close window | `Alt+Shift+X` |
 
 #### Modify (`Alt+Ctrl`)
 
@@ -210,35 +214,43 @@ All direct Ghostty bindings use `Alt` as the base modifier.
 |---|---|
 | Resize split left/down/up/right | `Alt+Ctrl+H/J/K/L` |
 | Resize split (arrows) | `Alt+Ctrl+Arrows` |
+| Toggle split zoom | `Alt+Ctrl+Enter` |
 
-### Non-Alt Bindings (Standard Conventions)
+### System Bindings (`Ctrl+Shift`)
 
-| Action | Binding | Category |
-|---|---|---|
-| Copy to clipboard | `Ctrl+Shift+C` | Clipboard |
-| Paste from clipboard | `Ctrl+Shift+V` | Clipboard |
-| Select all | `Ctrl+Shift+A` | Clipboard |
-| Paste from selection | `Shift+Insert` | Clipboard |
-| Copy to clipboard (alt) | `Ctrl+Insert` | Clipboard |
-| New window | `Ctrl+Shift+N` | Window |
-| Close window | `Ctrl+Shift+Q` | Window |
-| Toggle split zoom | `Ctrl+Shift+Enter` | Window |
-| New split right (logical) | `Ctrl+Shift+\|` | Split |
-| New split down (logical) | `Ctrl+Shift+-` | Split |
-| Toggle fullscreen | `Ctrl+Enter` | Display |
-| Increase font size | `Ctrl++` | Display |
-| Decrease font size | `Ctrl+-` | Display |
-| Reset font size | `Ctrl+0` | Display |
-| Open config | `Ctrl+,` | Config |
-| Reload config | `Ctrl+Shift+,` | Config |
-| Command palette | `Ctrl+Shift+P` | Config |
-| Inspector | `Ctrl+Shift+I` | Config |
-| Scroll page up/down | `Shift+PageUp/Down` | Scroll |
-| Scroll to top/bottom | `Shift+Home/End` | Scroll |
-| Jump to prompt prev/next | `Ctrl+Shift+PageUp/Down` | Scroll |
-| Adjust selection | `Shift+Arrows` | Selection |
-| Quit | `Alt+F4` | Global |
-| Claude Code newline | `Shift+Enter` | Special |
+OS boundary and system operations — not part of the Alt scheme.
+
+| Action | Binding |
+|---|---|
+| Copy to clipboard | `Ctrl+Shift+C` |
+| Paste from clipboard | `Ctrl+Shift+V` |
+| Select all | `Ctrl+Shift+A` |
+| Paste from selection | `Shift+Insert` |
+| Copy to clipboard (alt) | `Ctrl+Insert` |
+| Reload config | `Ctrl+Shift+,` |
+| Command palette | `Ctrl+Shift+P` |
+| Inspector | `Ctrl+Shift+I` |
+| Jump to prompt prev/next | `Ctrl+Shift+PageUp/Down` |
+
+### Display Bindings (`Ctrl`)
+
+| Action | Binding |
+|---|---|
+| Toggle fullscreen | `Ctrl+Enter` |
+| Increase font size | `Ctrl++` |
+| Decrease font size | `Ctrl+-` |
+| Reset font size | `Ctrl+0` |
+| Open config | `Ctrl+,` |
+
+### Other Conventions
+
+| Action | Binding |
+|---|---|
+| Scroll page up/down | `Shift+PageUp/Down` |
+| Scroll to top/bottom | `Shift+Home/End` |
+| Adjust selection | `Shift+Arrows` |
+| Quit | `Alt+F4` |
+| Claude Code newline | `Shift+Enter` |
 
 ### Prefix Mode (`Ctrl+A`)
 

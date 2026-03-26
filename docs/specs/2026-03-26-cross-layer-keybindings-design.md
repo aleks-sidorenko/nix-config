@@ -63,23 +63,42 @@ The same keys always mean the same spatial directions across all layers:
 | Modifier | Action | Keys |
 |---|---|---|
 | `Alt` | Navigate | `HJKL` (focus split), `1-9` (tab switch), `[/]` (tab cycle) |
-| `Alt+Shift` | Structure | `HJKL` (create split), `N` (new tab), `Q` (close tab) |
-| `Alt+Ctrl` | Modify | `HJKL` (resize split) |
+| `Alt+Shift` | Structure | `HJKL` (create split), `\|/-` (logical split), `N` (new tab), `Q` (close tab), `W` (new window), `X` (close window) |
+| `Alt+Ctrl` | Modify | `HJKL` (resize split), `Enter` (toggle split zoom) |
 
-**Prefix mode (`Ctrl+A`)** mirrors direct bindings for discoverability and provides additional commands (write-to-file, logical splits). Prefix bindings are supplementary — the direct `Alt`-based bindings are primary.
+**Letter conventions within `Alt+Shift`:** the key identifies the target or action — `N`(ew tab), `Q`(uit tab), `W`(indow new), `X`(close window), `HJKL`(direction).
 
-**Preserved non-Alt bindings** (standard conventions, not part of the Alt scheme):
+**Prefix mode (`Ctrl+A`)** mirrors direct bindings for discoverability and provides additional commands (write-to-file). Prefix bindings are supplementary — the direct `Alt`-based bindings are primary.
+
+**Non-Alt bindings** use two namespaces outside the Alt scheme:
+
+`Ctrl+Shift` = system/OS boundary operations:
 
 | Binding | Action | Rationale |
 |---|---|---|
-| `Ctrl+Shift+C/V/A` | Copy/paste/select all | Terminal standard |
-| `Ctrl+Shift+Enter` | Toggle split zoom | Modifier consistent with split creation |
-| `Ctrl+Shift+\|/-` | New split right/down (logical) | Alternative to directional |
-| `Ctrl+Enter` | Toggle fullscreen | Ctrl = display control |
-| `Ctrl++/-/0` | Font size | Ctrl = display control |
-| `Ctrl+,` / `Ctrl+Shift+,` | Open/reload config | Standard convention |
-| `Shift+PageUp/Down` | Scroll | Standard convention |
-| `Alt+F4` | Quit | Global convention |
+| `Ctrl+Shift+C/V/A` | Copy/paste/select all | Terminal-universal clipboard standard |
+| `Ctrl+Shift+,` | Reload config | System operation |
+| `Ctrl+Shift+P` | Command palette | System operation |
+| `Ctrl+Shift+I` | Inspector | System operation |
+| `Ctrl+Shift+PageUp/Down` | Jump to prompt | System navigation |
+
+`Ctrl` = display control:
+
+| Binding | Action |
+|---|---|
+| `Ctrl+Enter` | Toggle fullscreen |
+| `Ctrl++/-/0` | Font size |
+| `Ctrl+,` | Open config |
+
+Other conventions:
+
+| Binding | Action |
+|---|---|
+| `Shift+PageUp/Down` | Scroll page |
+| `Shift+Home/End` | Scroll to top/bottom |
+| `Shift+Arrows` | Adjust selection |
+| `Shift+Insert` / `Ctrl+Insert` | Paste/copy (X11) |
+| `Alt+F4` | Quit (global) |
 
 ### Editor Layer (Neovim)
 
@@ -134,14 +153,20 @@ The same keys always mean the same spatial directions across all layers:
 | Change | Split navigation: `Alt+Shift+HJKL` -> `Alt+HJKL` |
 | Change | Split creation: `Ctrl+Shift+HJKL` -> `Alt+Shift+HJKL` |
 | Change | Split resize: `Alt+Shift+Ctrl+HJKL` -> `Alt+Ctrl+HJKL` |
+| Change | Logical split: `Ctrl+Shift+\|/-` -> `Alt+Shift+\|/-` |
+| Change | Split zoom: `Ctrl+Shift+Enter` -> `Alt+Ctrl+Enter` |
 | Change | Tab switch: `Alt+Ctrl+1-9` -> `Alt+1-9` |
 | Change | Tab new: `Alt+Ctrl+N` -> `Alt+Shift+N` |
 | Change | Tab close: `Alt+Ctrl+Q` -> `Alt+Shift+Q` |
+| Change | New window: `Ctrl+Shift+N` -> `Alt+Shift+W` |
+| Change | Close window: `Ctrl+Shift+Q` -> `Alt+Shift+X` |
 | Add | Tab cycle: `Alt+[` (prev), `Alt+]` (next) |
 | Remove | `Ctrl+Shift+HJKL/Arrows` for split creation (moved to `Alt+Shift`) |
 | Remove | `Alt+Shift+Arrows` for split navigation (moved to `Alt+Arrows`) |
 | Remove | `Alt+Shift+Ctrl+Arrows` for split resize (moved to `Alt+Ctrl+Arrows`) |
-| Preserve | `Ctrl+Shift+\|/-` (logical split), `Ctrl+Shift+C/V/A` (copy/paste), `Ctrl+Shift+Enter` (zoom), font/config/scroll bindings, prefix mode |
+| Remove | `Ctrl+Shift+N/Q` for window new/close (moved to `Alt+Shift+W/X`) |
+| Remove | `Ctrl+Shift+Enter` for zoom (moved to `Alt+Ctrl+Enter`) |
+| Preserve | `Ctrl+Shift+C/V/A` (clipboard), `Ctrl+Shift+,/P/I` (config/system), font/scroll bindings, prefix mode |
 
 ### Neovim
 
