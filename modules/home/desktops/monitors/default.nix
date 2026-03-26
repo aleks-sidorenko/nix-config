@@ -65,9 +65,10 @@ in
               type = types.bool;
               default = true;
             };
-            workspace = mkOption {
-              type = types.nullOr types.str;
-              default = null;
+            workspaces = mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = "Workspace assignments for this monitor";
             };
           };
         }

@@ -31,7 +31,7 @@ with lib.${namespace};
           primary = true;
           position = "0";
           scale = "1";
-          workspace = "1";
+          workspaces = [ "1" ];
         }
         {
           name = "HDMI-1";
@@ -43,7 +43,7 @@ with lib.${namespace};
           refreshRate = 60;
           position = "1920";
           scale = "1";
-          workspace = "1";
+          workspaces = [ "1" ];
         }
 
       ];
