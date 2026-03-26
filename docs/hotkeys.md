@@ -250,7 +250,7 @@ Terminal-universal and OS-standard conventions — not part of the Alt scheme.
 | Scroll page up/down | `Shift+PageUp/Down` |
 | Scroll to top/bottom | `Shift+Home/End` |
 | Adjust selection | `Shift+Arrows` |
-| Claude Code newline | `Shift+Enter` |
+
 
 ### Prefix Mode (`Ctrl+A`)
 
