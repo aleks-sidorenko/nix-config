@@ -8,6 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.aerospace;
+  ghosttyCfg = config.${namespace}.cli.terminals.ghostty;
   monitorsCfg = config.${namespace}.desktops.monitors;
   keybindings = import ./keybindings.nix;
 
@@ -64,6 +65,15 @@ in
       outer.bottom = 10
       outer.top = 10
       outer.right = 10
+
+    ''
+    + optionalString ghosttyCfg.enable ''
+      # Ghostty uses native macOS tabs which appear as separate windows.
+      # Issue: https://github.com/nikitabobko/AeroSpace/issues/68
+      # Workaround: https://ghostty.org/docs/help/macos-tiling-wms#aerospace
+      [[on-window-detected]]
+      if.app-id = 'com.mitchellh.ghostty'
+      run = ['layout tiling']
 
     ''
     + monitorAssignment
