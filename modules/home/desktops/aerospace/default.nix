@@ -9,10 +9,22 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.aerospace;
   keybindings = import ./keybindings.nix;
+  monitorAssignment =
+    if cfg.workspaceMonitorAssignment == { } then
+      ""
+    else
+      ''
+        [workspace-to-monitor-force-assignment]
+      ''
+      + concatStringsSep "\n" (
+        mapAttrsToList (workspace: monitor: "${workspace} = '${monitor}'") cfg.workspaceMonitorAssignment
+      )
+      + "\n";
 in
 {
   options.${namespace}.desktops.aerospace = with types; {
     enable = mkEnableOption "AeroSpace tiling window manager";
+    workspaceMonitorAssignment = mkOpt (attrsOf str) { } "Map of workspace name to monitor name (e.g. { \"6\" = \"DELL U2419H\"; })";
   };
 
   config = mkIf cfg.enable {
@@ -35,6 +47,6 @@ in
       outer.top = 10
       outer.right = 10
 
-    '' + keybindings;
+    '' + monitorAssignment + keybindings;
   };
 }
