@@ -66,8 +66,8 @@ in
           }"
         ) monitors;
 
-        workspace = map (m: "name:${m.workspace},monitor:${m.name}") (
-          filter (m: m.enabled && m.workspace != null) monitors
+        workspace = map (m: "name:${head m.workspaces},monitor:${m.name}") (
+          filter (m: m.enabled && m.workspaces != [ ]) monitors
         );
 
         exec-once = [

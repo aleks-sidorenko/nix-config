@@ -8,23 +8,39 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.desktops.aerospace;
+  monitorsCfg = config.${namespace}.desktops.monitors;
   keybindings = import ./keybindings.nix;
+
+  # Derive workspace-to-monitor mapping from desktops.monitors.devices
+  monitorsAssignment =
+    if monitorsCfg.enable then
+      listToAttrs (
+        concatMap (
+          m: map (ws: nameValuePair ws m.model) m.workspaces
+        ) (filter (m: m.enabled && m.workspaces != [ ]) monitorsCfg.devices)
+      )
+    else
+      { };
+
+  # Explicit assignment takes precedence, then monitors-derived
+  mergedAssignment = monitorsAssignment // cfg.workspaceMonitorAssignment;
+
   monitorAssignment =
-    if cfg.workspaceMonitorAssignment == { } then
+    if mergedAssignment == { } then
       ""
     else
       ''
         [workspace-to-monitor-force-assignment]
       ''
       + concatStringsSep "\n" (
-        mapAttrsToList (workspace: monitor: "${workspace} = '${monitor}'") cfg.workspaceMonitorAssignment
+        mapAttrsToList (workspace: monitor: "${workspace} = '${monitor}'") mergedAssignment
       )
       + "\n";
 in
 {
   options.${namespace}.desktops.aerospace = with types; {
     enable = mkEnableOption "AeroSpace tiling window manager";
-    workspaceMonitorAssignment = mkOpt (attrsOf str) { } "Map of workspace name to monitor name (e.g. { \"6\" = \"DELL U2419H\"; })";
+    workspaceMonitorAssignment = mkOpt (attrsOf str) { } "Explicit workspace-to-monitor mapping (overrides monitors-derived values)";
   };
 
   config = mkIf cfg.enable {
