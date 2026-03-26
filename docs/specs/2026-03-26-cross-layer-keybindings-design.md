@@ -137,7 +137,7 @@ Other conventions:
 
 | Old Binding | Was | Why |
 |---|---|---|
-| `Alt+J/K` | Move line down/up | Conflicts with Ghostty `Alt+HJKL` |
+| `Alt+J/K` | Move line down/up | Conflicts with Ghostty `Alt+HJKL`; replaced by `Ctrl+Shift+J/K` |
 | `Alt+[/]` | Line begin/end | Conflicts with Ghostty `Alt+[/]` |
 | `Alt+Shift+[/]` | File begin/end | Conflicts with Ghostty `Alt+Shift` layer |
 | `Shift+H/L` | Buffer cycle (duplicate) | Frees H/L for line begin/end; `]b`/`[b` already exists |
@@ -183,6 +183,7 @@ Other conventions:
 | Add | `g[`/`g]` -> line begin/end (alternative) |
 | Add | `g{`/`g}` -> file begin/end |
 | Add | `Leader+1-9` -> go to buffer 1-9 (mirrors Ghostty `Alt+1-9`) |
+| Add | `Ctrl+Shift+J/K` -> move line down/up (replaces `Alt+J/K`; `Ctrl+Shift+J/K` not bound in Ghostty) |
 | Remove | `Ctrl+X` (close window) — semantic mismatch, use `Leader+wq` |
 
 ### Hyprland

@@ -353,6 +353,15 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 | Close tab | `Leader+Tab+q` |
 | Previous tab | `Leader+Tab+[` |
 
+### Line Move
+
+| Action | Binding | Modes |
+|---|---|---|
+| Move line down | `Ctrl+Shift+J` | Normal, Insert, Visual |
+| Move line up | `Ctrl+Shift+K` | Normal, Insert, Visual |
+
+> **Note:** Uses `Ctrl+Shift` (Ghostty's namespace) pragmatically — `J/K` are not bound in Ghostty, so they pass through. Replaces `Alt+J/K` which conflicts with Ghostty split navigation.
+
 ### General
 
 | Action | Binding | Modes |
