@@ -15,9 +15,9 @@ let
   monitorsAssignment =
     if monitorsCfg.enable then
       listToAttrs (
-        concatMap (
-          m: map (ws: nameValuePair ws m.model) m.workspaces
-        ) (filter (m: m.enabled && m.workspaces != [ ]) monitorsCfg.devices)
+        concatMap (m: map (ws: nameValuePair ws m.model) m.workspaces) (
+          filter (m: m.enabled && m.workspaces != [ ]) monitorsCfg.devices
+        )
       )
     else
       { };
@@ -40,7 +40,9 @@ in
 {
   options.${namespace}.desktops.aerospace = with types; {
     enable = mkEnableOption "AeroSpace tiling window manager";
-    workspaceMonitorAssignment = mkOpt (attrsOf str) { } "Explicit workspace-to-monitor mapping (overrides monitors-derived values)";
+    workspaceMonitorAssignment =
+      mkOpt (attrsOf str) { }
+        "Explicit workspace-to-monitor mapping (overrides monitors-derived values)";
   };
 
   config = mkIf cfg.enable {
@@ -63,6 +65,8 @@ in
       outer.top = 10
       outer.right = 10
 
-    '' + monitorAssignment + keybindings;
+    ''
+    + monitorAssignment
+    + keybindings;
   };
 }

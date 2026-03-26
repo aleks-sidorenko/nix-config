@@ -19,14 +19,26 @@ with lib.${namespace};
           width = 3024;
           height = 1964;
           primary = true;
-          workspaces = [ "1" "2" "3" "4" "5" ];
+          workspaces = [
+            "1"
+            "2"
+            "3"
+            "4"
+            "5"
+          ];
         }
         {
           name = "external";
           model = "DELL U2419H";
           width = 1920;
           height = 1080;
-          workspaces = [ "6" "7" "8" "9" "10" ];
+          workspaces = [
+            "6"
+            "7"
+            "8"
+            "9"
+            "10"
+          ];
         }
       ];
     };
