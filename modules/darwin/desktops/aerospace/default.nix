@@ -19,5 +19,13 @@ in
       taps = [ "nikitabobko/tap" ];
       casks = [ "nikitabobko/tap/aerospace" ];
     };
+
+    # Disable macOS Sequoia's built-in window tiling to prevent conflicts
+    # with AeroSpace and terminal emulator keybindings (e.g. Ghostty tab switching)
+    system.defaults.CustomUserPreferences."com.apple.WindowManager" = {
+      EnableTilingByEdgeDrag = false;
+      EnableTopTilingByEdgeDrag = false;
+      EnableTilingOptionAccelerator = false;
+    };
   };
 }
