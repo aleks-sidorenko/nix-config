@@ -1,5 +1,9 @@
 # Cross-Layer Keybinding Scheme
 
+**Related specs (prerequisites):**
+- `docs/specs/2026-03-26-unified-keybindings-design.md` — Hyprland/GNOME keybindings (unchanged by this spec)
+- `docs/specs/2026-03-26-aerospace-macos-tiling-design.md` — AeroSpace macOS keybindings (unchanged by this spec)
+
 ## Goal
 
 Define a consistent keybinding scheme across all three layers — window manager (Hyprland, GNOME, AeroSpace), terminal (Ghostty), and editor (Neovim) — so that muscle memory transfers across layers and platforms (Linux and macOS).
@@ -46,6 +50,7 @@ The same keys always mean the same spatial directions across all layers:
 | `Super+Shift` | Structure (swap, move) | `HJKL`, `1-9,0` |
 | `Super+Alt` | Modify (resize) | `HJKL` |
 | `Super+Ctrl` | Monitor ops | `HJKL` (move ws), `Arrows` (focus) |
+| `Super+F/M/Q` | Window actions | Fullscreen, maximize, close |
 
 **macOS (AeroSpace):** `Alt+Cmd` replaces `Super`.
 
@@ -55,6 +60,7 @@ The same keys always mean the same spatial directions across all layers:
 | `Alt+Cmd+Shift` | Structure (swap, move) | `HJKL`, `1-9,0` |
 | `Ctrl+Cmd` | Modify (resize) | `HJKL` |
 | `Ctrl+Cmd+Shift` | Monitor ops | `Arrows` (focus), `H/L` (move) |
+| `Alt+Cmd+F/M/Q` | Window actions | Fullscreen, maximize, close |
 
 ### Terminal Layer (Ghostty)
 
@@ -106,6 +112,7 @@ Other conventions:
 |---|---|---|
 | `Ctrl+HJKL` | Navigate (window focus) | Works in normal + terminal mode |
 | `Ctrl+Arrows` | Modify (window resize) | Arrows because HJKL is taken for navigate; Ctrl+Shift/Alt intercepted by Ghostty |
+| `Ctrl+Shift+J/K` | Move line down/up | Pragmatic exception — borrows Ghostty's `Ctrl+Shift` namespace since `J/K` are unbound in Ghostty, replacing `Alt+J/K` which conflicts with Ghostty split navigation |
 | `Ctrl+S` | Save | All modes |
 
 **Navigation bindings (new):**
@@ -205,15 +212,28 @@ Other conventions:
 
 ### Hyprland
 
-No changes from the existing unified-keybindings spec. See `docs/specs/2026-03-26-unified-keybindings-design.md`.
+| Change | Detail |
+|---|---|
+| Remove | `Alt+Ctrl+H/J/K/L` (move window directional) — redundant with `Super+Shift+HJKL` (swap window), and conflicts with Ghostty `Alt+Ctrl+HJKL` resize |
+| Add | `Super+M` — toggle maximize (consistent with GNOME `Super+M` and AeroSpace `Alt+Cmd+M`) |
+
+See also `docs/specs/2026-03-26-unified-keybindings-design.md`.
 
 ### GNOME
 
-No changes from the existing unified-keybindings spec. See `docs/specs/2026-03-26-unified-keybindings-design.md`.
+| Change | Detail |
+|---|---|
+| Add | `Super+M` — toggle maximize (replaces legacy `Alt+F10`; consistent across all WMs) |
+
+See also `docs/specs/2026-03-26-unified-keybindings-design.md`.
 
 ### AeroSpace
 
-No changes from the existing AeroSpace spec. See `docs/specs/2026-03-26-aerospace-macos-tiling-design.md`.
+| Change | Detail |
+|---|---|
+| Add | `Alt+Cmd+M` — toggle maximize (consistent across all WMs) |
+
+See also `docs/specs/2026-03-26-aerospace-macos-tiling-design.md`.
 
 ## Conflict Matrix
 
@@ -221,11 +241,11 @@ Verification that no two layers share the same binding:
 
 | Modifier combo | Owner | Conflicts? |
 |---|---|---|
-| `Alt+letter/number` | Ghostty (navigate) | Neovim Alt bindings removed |
+| `Alt+letter/number` | Ghostty (navigate) | Neovim Alt bindings removed. GNOME `Alt+Tab/Space/F2/F10` overlap but compositor intercepts before Ghostty |
 | `Alt+Shift+letter` | Ghostty (structure) | Neovim Alt+Shift bindings removed |
-| `Alt+Ctrl+letter` | Ghostty (modify) | No Neovim bindings here |
+| `Alt+Ctrl+letter` | Ghostty (modify) | No Neovim bindings here. Hyprland `Alt+Ctrl+HJKL` removed (redundant with swap) |
 | `Ctrl+letter` | Neovim | Ghostty uses `Ctrl+Shift` (different) |
-| `Ctrl+Shift+letter` | Ghostty (copy/paste, config) | No Neovim bindings here |
+| `Ctrl+Shift+letter` | Ghostty (copy/paste, config) | Neovim borrows `Ctrl+Shift+J/K` for line move — no conflict because `J/K` are unbound in Ghostty's `Ctrl+Shift` namespace |
 | `Super+*` (Linux) | WM | Never reaches terminal/editor |
 | `Alt+Cmd+*` (macOS) | WM (AeroSpace) | Never reaches terminal/editor |
 | `Ctrl+Cmd+*` (macOS) | WM (AeroSpace) | Never reaches terminal/editor |

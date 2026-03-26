@@ -6,6 +6,18 @@ Cross-layer keybinding scheme for Linux (Hyprland/GNOME) and macOS (AeroSpace), 
 
 ---
 
+## Legend
+
+| Symbol | Meaning |
+|---|---|
+| `Leader` | `Space` key (Neovim leader) |
+| `Prefix` | `Ctrl+A` (Ghostty prefix mode) |
+| `Super` | Windows/Meta key (Linux) |
+| `Alt+Cmd` | macOS equivalent of `Super` (AeroSpace) |
+| `Ctrl+Cmd` | macOS modifier (AeroSpace resize/monitor) |
+
+---
+
 ## Schema Overview
 
 ### Layer Ownership
@@ -62,6 +74,7 @@ Same everywhere:
 | Close window | `Super+Q` | |
 | Close window (alt) | `Alt+F4` | |
 | Fullscreen | `Super+F` | |
+| Toggle maximize | `Super+M` | |
 
 ### Workspaces
 
@@ -106,31 +119,30 @@ Same everywhere:
 
 ### Hyprland-Only
 
-| Action | Binding |
-|---|---|
-| Move window (directional) | `Alt+Ctrl+H/J/K/L` |
-| Special workspace toggle | `Super+U` |
-| Move to special workspace | `Super+Shift+U` |
-| Scratchpad terminal | `Super+Shift+T` |
-| Volume control | `Super+V` |
-| Interactive resize | `Super+R` |
-| Mouse move window | `Super+LMB` |
-| Mouse resize window | `Super+RMB` |
+| Action | Binding | Notes |
+|---|---|---|
+| Special workspace toggle | `Super+U` | |
+| Move to special workspace | `Super+Shift+U` | |
+| Scratchpad terminal | `Super+Shift+T` | |
+| Volume control | `Super+V` | |
+| Interactive resize | `Super+R` | |
+| Mouse move window | `Super+LMB` | |
+| Mouse resize window | `Super+RMB` | |
 
 ### GNOME-Only
 
-| Action | Binding |
-|---|---|
-| Workspace left/right | `Super+Alt+Left/Right` |
-| Move to workspace left/right | `Super+Shift+Alt+Left/Right` |
-| First/last workspace | `Super+Home/End` |
-| Move to first/last workspace | `Super+Shift+Home/End` |
-| Maximize / minimize | `Super+Up/Down` |
-| App switching | `Super+Tab` / `Alt+Tab` |
-| Group switching | `` Super+` `` / `` Alt+` `` |
-| Window menu | `Alt+Space` |
-| Toggle maximize | `Alt+F10` |
-| Run dialog | `Alt+F2` |
+| Action | Binding | Notes |
+|---|---|---|
+| Workspace left/right | `Super+Alt+Left/Right` | |
+| Move to workspace left/right | `Super+Shift+Alt+Left/Right` | |
+| First/last workspace | `Super+Home/End` | |
+| Move to first/last workspace | `Super+Shift+Home/End` | |
+| Maximize / minimize | `Super+Up/Down` | Legacy; use `Super+M` instead |
+| App switching | `Super+Tab` / `Alt+Tab` | `Alt+Tab` overlaps Ghostty's Alt namespace — no conflict because compositor intercepts first |
+| Group switching | `` Super+` `` / `` Alt+` `` | Same as above |
+| Window menu | `Alt+Space` | Same as above |
+| Toggle maximize | `Alt+F10` | Legacy; replaced by `Super+M` |
+| Run dialog | `Alt+F2` | Compositor intercepts; `F2` not used in Ghostty Alt scheme |
 
 ---
 
@@ -145,6 +157,7 @@ Same everywhere:
 | Resize window | `Ctrl+Cmd+H/J/K/L` | `Super+Alt+H/J/K/L` |
 | Close window | `Alt+Cmd+Q` | `Super+Q` |
 | Fullscreen | `Alt+Cmd+F` | `Super+F` |
+| Toggle maximize | `Alt+Cmd+M` | `Super+M` |
 
 ### Workspaces
 
@@ -380,8 +393,10 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 | Inspect position | `Leader+ui` | Normal |
 | Enter normal mode (terminal) | `Esc Esc` | Terminal |
 | Quit all | `Leader+qq` | Normal |
-| Jump back | `Ctrl+[` | Normal |
+| Jump back | `Ctrl+[` | Normal — remapped from Esc; see note |
 | Jump forward | `Ctrl+]` | Normal |
+
+> **Note:** `Ctrl+[` is the ANSI equivalent of `Esc`. Remapping it to "jump back" in normal mode overrides the default Escape behavior. This is intentional — `Esc` is mapped separately for clearing search highlights.
 
 ### Search
 
