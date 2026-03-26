@@ -15,6 +15,7 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Tap set directly via nix-darwin (${namespace}.system.homebrew does not expose taps)
     homebrew.taps = [ "nikitabobko/tap" ];
     ${namespace}.system.homebrew.casks = [
       "aerospace"
