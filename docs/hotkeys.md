@@ -296,6 +296,8 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 | Resize (increase width) | `Ctrl+Left` | Normal |
 | Resize (decrease width) | `Ctrl+Right` | Normal |
 
+> **Note:** Resize uses Arrows instead of HJKL because `Ctrl+HJKL` is taken for navigate, and `Ctrl+Shift`/`Ctrl+Alt` are intercepted by Ghostty.
+
 ### Line & File Navigation
 
 | Action | Primary | Alternative | Vim native |
@@ -307,10 +309,11 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 `H` and `L` work in normal and visual mode. `g`-prefix bindings work in normal and visual mode.
 
-### Buffer Navigation (Bracket Convention)
+### Buffer Navigation
 
 | Action | Binding |
 |---|---|
+| Go to buffer 1-9 | `Leader+1-9` |
 | Next buffer | `]b` |
 | Previous buffer | `[b` |
 | Next diagnostic | `]d` |
@@ -336,7 +339,6 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 |---|---|
 | Previous window | `Leader+wp` |
 | Close window | `Leader+wq` |
-| Close window (alt) | `Ctrl+X` |
 | Split right | `Leader+w\|` or `Leader+\|` |
 | Split below | `Leader+-` |
 

@@ -106,9 +106,8 @@ Other conventions:
 | Modifier | Action | Keys |
 |---|---|---|
 | `Ctrl+HJKL` | Navigate (window focus) | Works in normal + terminal mode |
-| `Ctrl+Arrows` | Modify (window resize) | |
+| `Ctrl+Arrows` | Modify (window resize) | Arrows because HJKL is taken for navigate; Ctrl+Shift/Alt intercepted by Ghostty |
 | `Ctrl+S` | Save | All modes |
-| `Ctrl+X` | Close window | |
 
 **Navigation bindings (new):**
 
@@ -121,10 +120,11 @@ Other conventions:
 | `g{` | File begin (`gg`) | `Alt+Shift+[` (freed for Ghostty) |
 | `g}` | File end (`G`) | `Alt+Shift+]` (freed for Ghostty) |
 
-**Buffer navigation:** Uses vim bracket convention exclusively — no Shift+key shortcuts.
+**Buffer navigation:** Uses vim bracket convention for cycling, `Leader+number` for direct access (mirrors Ghostty `Alt+1-9` for tabs).
 
 | Binding | Action |
 |---|---|
+| `Leader+1-9` | Go to buffer 1-9 |
 | `]b` / `[b` | Next/prev buffer |
 | `]d` / `[d` | Next/prev diagnostic |
 | `]e` / `[e` | Next/prev error |
@@ -142,6 +142,7 @@ Other conventions:
 | `Alt+Shift+[/]` | File begin/end | Conflicts with Ghostty `Alt+Shift` layer |
 | `Shift+H/L` | Buffer cycle (duplicate) | Frees H/L for line begin/end; `]b`/`[b` already exists |
 | `Shift+X` | Delete buffer (duplicate) | `Leader+bq` already exists |
+| `Ctrl+X` | Close window | Structural action on navigate modifier; `Leader+wq` exists |
 
 ## Changes From Current Config
 
@@ -181,6 +182,8 @@ Other conventions:
 | Add | `H` -> line begin (`^`), `L` -> line end (`$`) |
 | Add | `g[`/`g]` -> line begin/end (alternative) |
 | Add | `g{`/`g}` -> file begin/end |
+| Add | `Leader+1-9` -> go to buffer 1-9 (mirrors Ghostty `Alt+1-9`) |
+| Remove | `Ctrl+X` (close window) — semantic mismatch, use `Leader+wq` |
 
 ### Hyprland
 
