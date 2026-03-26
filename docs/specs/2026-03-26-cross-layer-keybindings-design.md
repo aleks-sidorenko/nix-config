@@ -97,7 +97,6 @@ Other conventions:
 | `Shift+Home/End` | Scroll to top/bottom |
 | `Shift+Arrows` | Adjust selection |
 | `Shift+Insert` / `Ctrl+Insert` | Paste/copy (X11) |
-| `Alt+F4` | Quit (global) |
 
 ### Editor Layer (Neovim)
 
