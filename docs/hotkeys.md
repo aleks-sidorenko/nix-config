@@ -335,12 +335,18 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 ### Window Management (`Leader+w`)
 
-| Action | Binding |
-|---|---|
-| Previous window | `Leader+wp` |
-| Close window | `Leader+wq` |
-| Split right | `Leader+w\|` or `Leader+\|` |
-| Split below | `Leader+-` |
+| Action | Binding | Notes |
+|---|---|---|
+| Focus left | `Leader+wh` | Mirrors `Ctrl+H` |
+| Focus down | `Leader+wj` | Mirrors `Ctrl+J` |
+| Focus up | `Leader+wk` | Mirrors `Ctrl+K` |
+| Focus right | `Leader+wl` | Mirrors `Ctrl+L` |
+| Previous window | `Leader+wp` | |
+| Close window | `Leader+wq` | |
+| Split right | `Leader+w\|` | Also `Leader+\|` |
+| Split below | `Leader+w-` | Also `Leader+-` |
+| Maximize (toggle zoom) | `Leader+wm` | |
+| Equalize sizes | `Leader+w=` | |
 
 ### Tab Management (`Leader+Tab`)
 

@@ -133,6 +133,18 @@ Other conventions:
 | `Leader+bp` | Toggle pin |
 | `Leader+bo` | Close other buffers |
 
+**Window management (`Leader+w`):** Complete namespace mirroring direct bindings for discoverability (same pattern as Ghostty prefix mode).
+
+| Binding | Action |
+|---|---|
+| `Leader+wh/j/k/l` | Focus window (mirrors `Ctrl+HJKL`) |
+| `Leader+wq` | Close window |
+| `Leader+wp` | Previous window |
+| `Leader+w\|` | Split right (also `Leader+\|`) |
+| `Leader+w-` | Split below (also `Leader+-`) |
+| `Leader+wm` | Maximize (toggle zoom) |
+| `Leader+w=` | Equalize sizes |
+
 **Removed bindings:**
 
 | Old Binding | Was | Why |
@@ -184,6 +196,10 @@ Other conventions:
 | Add | `g{`/`g}` -> file begin/end |
 | Add | `Leader+1-9` -> go to buffer 1-9 (mirrors Ghostty `Alt+1-9`) |
 | Add | `Ctrl+Shift+J/K` -> move line down/up (replaces `Alt+J/K`; `Ctrl+Shift+J/K` not bound in Ghostty) |
+| Add | `Leader+wh/j/k/l` -> focus window (mirrors `Ctrl+HJKL` for discoverability) |
+| Add | `Leader+w-` -> split below (was only `Leader+-`) |
+| Add | `Leader+wm` -> maximize/zoom toggle |
+| Add | `Leader+w=` -> equalize window sizes |
 | Remove | `Ctrl+X` (close window) — semantic mismatch, use `Leader+wq` |
 
 ### Hyprland
