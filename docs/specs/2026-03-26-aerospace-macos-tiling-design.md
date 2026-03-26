@@ -25,6 +25,23 @@ Use a different modifier prefix on macOS than Linux. The spatial layout (hjkl fo
 | Resize | `Super+Alt+key` | `Ctrl+Cmd+key` | Resize windows |
 | Monitor | `Super+Ctrl+key` | `Ctrl+Cmd+Shift+key` | Focus monitor, move to monitor |
 
+Note: On Linux, all four layers build on `Super` by adding one modifier (`Shift`, `Alt`, `Ctrl`). On macOS, the mapping is less symmetric — Primary and Move/Transfer share the `Alt+Cmd` base, while Resize and Monitor share the `Ctrl+Cmd` base. This is a deliberate trade-off to keep each layer conflict-free within macOS's modifier space.
+
+### Overridden macOS System Defaults
+
+AeroSpace intercepts keys before they reach the OS, so these macOS defaults are intentionally overridden:
+
+| macOS Default | Default Action | Our Binding |
+|---|---|---|
+| `Alt+Cmd+H` | Hide Other Windows | Focus left |
+| `Alt+Cmd+D` | Toggle Dock Auto-Hide | App launcher (Raycast) |
+
+When AeroSpace is disabled or not running, these keys revert to macOS defaults.
+
+### Close Window vs Quit App
+
+`Alt+Cmd+Q` closes the focused window via AeroSpace. `Cmd+Q` remains the standard macOS quit-app shortcut. Both are available — a useful distinction between closing a single window and quitting the entire app.
+
 Preserved layers (no conflicts):
 
 | Modifier | Layer |
@@ -48,7 +65,12 @@ Preserved layers (no conflicts):
 | Close window | `Alt+Cmd+q` | `Super+Q` |
 | Fullscreen | `Alt+Cmd+f` | `Super+F` |
 
-Note: AeroSpace `close` sends the macOS close command. Unlike Hyprland's `killactive`, it does not force-kill apps.
+AeroSpace resize uses `resize width/height +/-N` commands. Increment of 50px per keypress (adjustable). Direction mapping:
+
+- `h` (left): `resize width -50`
+- `l` (right): `resize width +50`
+- `k` (up): `resize height +50`
+- `j` (down): `resize height -50`
 
 ### Workspaces
 
@@ -105,17 +127,17 @@ modules/home/desktops/aerospace/
 ### Darwin Module (`modules/darwin/desktops/aerospace/default.nix`)
 
 - Declares `nix-config.desktops.aerospace.enable` option
-- When enabled, adds `nikitabobko/tap` to `homebrew.taps` and `nikitabobko/tap/aerospace` to `homebrew.casks`
+- When enabled, adds `"nikitabobko/tap/aerospace"` to `${namespace}.system.homebrew.casks` (Homebrew auto-taps from the full cask path — no explicit `taps` entry needed, avoiding changes to the homebrew wrapper module)
 
 ### Home-Manager Module (`modules/home/desktops/aerospace/default.nix`)
 
 - Declares `nix-config.desktops.aerospace.enable` option
 - Imports `keybindings.nix`
-- Generates `~/.aerospace.toml` via `home.file.".aerospace.toml".text`
+- Generates `~/.aerospace.toml` via `home.file.".aerospace.toml".text` using a raw TOML multiline string in Nix (not `lib.generators.toTOML` — AeroSpace TOML is simple enough that a template string is more readable and maintainable)
 
 ### Home-Manager Keybindings (`modules/home/desktops/aerospace/keybindings.nix`)
 
-- All keybinding definitions in AeroSpace TOML format
+- Exports a Nix attribute set or string fragment that `default.nix` interpolates into the TOML config
 - Separated from main config for clarity (parallel to `hyprland/keybindings.nix` and `gnome/keybindings.nix`)
 
 ## AeroSpace Configuration
@@ -139,9 +161,13 @@ Single mode (`[mode.main.binding]`) — no modal keybindings.
 
 ## Integration Changes
 
-### Work Role (`modules/darwin/roles/work/default.nix`)
+### Darwin Work Role (`modules/darwin/roles/work/default.nix`)
 
 - Remove `"rectangle"` from Homebrew casks
+- Add `desktops.aerospace = enabled;`
+
+### Home-Manager Work Role (`modules/home/roles/work/default.nix`)
+
 - Add `desktops.aerospace = enabled;`
 
 ### Files to Create
@@ -153,3 +179,4 @@ Single mode (`[mode.main.binding]`) — no modal keybindings.
 ### Files to Modify
 
 - `modules/darwin/roles/work/default.nix` — remove Rectangle, enable AeroSpace
+- `modules/home/roles/work/default.nix` — enable AeroSpace home-manager module
