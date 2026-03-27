@@ -78,10 +78,22 @@ in
         maximize-horizontally = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-vertically = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         minimize = [ "<Super>Down" ];
-        move-to-monitor-down = [ "<Super><Ctrl>j" "<Super><Shift>Down" ];
-        move-to-monitor-left = [ "<Super><Ctrl>h" "<Super><Shift>Left" ];
-        move-to-monitor-right = [ "<Super><Ctrl>l" "<Super><Shift>Right" ];
-        move-to-monitor-up = [ "<Super><Ctrl>k" "<Super><Shift>Up" ];
+        move-to-monitor-down = [
+          "<Super><Ctrl>j"
+          "<Super><Shift>Down"
+        ];
+        move-to-monitor-left = [
+          "<Super><Ctrl>h"
+          "<Super><Shift>Left"
+        ];
+        move-to-monitor-right = [
+          "<Super><Ctrl>l"
+          "<Super><Shift>Right"
+        ];
+        move-to-monitor-up = [
+          "<Super><Ctrl>k"
+          "<Super><Shift>Up"
+        ];
         move-to-workspace-1 = [
           "<Super><Shift>1"
           "<Super><Shift>Home"
