@@ -66,7 +66,6 @@ in
     wayland.windowManager.hyprland.settings = {
       bind = [
         "SUPER, T, exec, ${terminal}"
-        "ALTCTRL, T, exec, ${terminal}"
         "SUPER, D, exec, ${
           lib.getExe config.${namespace}.desktops.addons.rofi.package
         } -show drun -mode drun"
