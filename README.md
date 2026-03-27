@@ -11,7 +11,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 **Structure & Tooling**
 - Modular organization with **snowfall-lib** and role-based composition
 - Custom **Neovim** setup via **nixvim** (AI assistants, multi-language support)
-- Multiple terminals (ghostty, kitty, alacritty, foot), shells (fish, zsh), and multiplexers (zellij, tmux)
+- Multiple terminals (ghostty, kitty, alacritty, foot) and shells (fish, zsh)
 
 **System Management**
 - Declarative disk layout with **disko** (BTRFS + LUKS encryption)

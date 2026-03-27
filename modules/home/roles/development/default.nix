@@ -126,8 +126,6 @@ in
             inherit (cfg.languages) java;
           };
         };
-        multiplexers.zellij.enable = true;
-
         tools = {
           moreutils.enable = true;
           atuin.enable = true;

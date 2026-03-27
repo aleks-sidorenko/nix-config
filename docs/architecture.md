@@ -81,7 +81,7 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **common** | - | Nix, locale, GPG, SSH, SOPS, pass, fish, ghostty, neovim, archivers, modern-unix, network-tools, stylix |
 | **desktop** | common, development, media, mobile, gaming, communication, router-manager | Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
 | **work** | common, development, router-manager | Chrome, Teamviewer (macOS-oriented) |
-| **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), zellij, Podman, k8s |
+| **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
 | **mobile** | - | MTP tools (Android integration) |
 | **gaming** | - | Minecraft |
