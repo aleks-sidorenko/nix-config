@@ -100,7 +100,7 @@
             action = "type_definition";
             desc = "Type Definition";
           };
-          K = {
+          gh = {
             action = "hover";
             desc = "Hover";
           };

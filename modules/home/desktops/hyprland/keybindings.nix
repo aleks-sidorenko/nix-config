@@ -66,13 +66,13 @@ in
     wayland.windowManager.hyprland.settings = {
       bind = [
         "SUPER, T, exec, ${terminal}"
-        "ALTCTRL, T, exec, ${terminal}"
         "SUPER, D, exec, ${
           lib.getExe config.${namespace}.desktops.addons.rofi.package
         } -show drun -mode drun"
         "SUPER, Q, killactive,"
         "ALT, F4, killactive,"
         "SUPER, F, Fullscreen,0"
+        "SUPER, M, fullscreen,1"
         "SUPER, R, exec, ${lib.getExe resize}"
         "SUPER, Space, keyboardlayoutnext,"
         "SUPER, V, exec, ${lib.getExe pkgs.pyprland} toggle pwvucontrol"
@@ -117,14 +117,10 @@ in
         "SUPERSHIFT,8, movetoworkspacesilent,08"
         "SUPERSHIFT,9, movetoworkspacesilent,09"
         "SUPERSHIFT,0, movetoworkspacesilent,10"
-        "ALTCTRL,L, movewindow,r"
-        "ALTCTRL,H, movewindow,l"
-        "ALTCTRL,K, movewindow,u"
-        "ALTCTRL,J, movewindow,d"
-        "SUPERSHIFT,h, swapwindow,l"
-        "SUPERSHIFT,l, swapwindow,r"
-        "SUPERSHIFT,k, swapwindow,u"
-        "SUPERSHIFT,j, swapwindow,d"
+        "SUPERSHIFT,h, movewindow,l"
+        "SUPERSHIFT,l, movewindow,r"
+        "SUPERSHIFT,k, movewindow,u"
+        "SUPERSHIFT,j, movewindow,d"
         "SUPER,u, togglespecialworkspace"
         "SUPERSHIFT,u, movetoworkspace,special"
       ];

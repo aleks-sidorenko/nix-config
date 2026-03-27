@@ -34,35 +34,25 @@ in
       interactiveShellInit = ''
         ${pkgs.nix-your-shell}/bin/nix-your-shell --nom fish | source
 
-        # Track current nix profile target to detect rebuilds in running shells
-        set -g __nix_profile_target (readlink ~/.nix-profile)
-
-        # Before each command, check if the nix profile changed (rebuild happened)
-        # and restart fish to pick up new paths (skip in nix shells to avoid killing the session)
-        function __check_nix_profile --on-event fish_preexec
-          if not set -q IN_NIX_SHELL
-            set -l current (readlink ~/.nix-profile)
-            if test "$current" != "$__nix_profile_target"
-              exec fish
-            end
-          end
-        end
-
-        set -gx PATH ~/.local/bin $PATH /usr/local/bin /usr/bin
-
-        # fifc setup
-        set -Ux fifc_editor nvim
-        set -U fifc_keybinding \cx
-        bind \cx _fifc
-        bind -M insert \cx _fifc
-
-        fzf_configure_bindings
+        fish_add_path ~/.local/bin
 
         fish_vi_key_bindings
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
         set fish_cursor_replace_one underscore blink
         set fish_cursor_visual      block
+
+        # fifc setup
+        set -g fifc_editor nvim
+        set -g fifc_keybinding \cx
+        bind \cx _fifc
+        bind -M insert \cx _fifc
+
+        fzf_configure_bindings
+
+        # Restore autosuggestion bindings overridden by fzf-fish plugin
+        bind -M insert \cf accept-autosuggestion
+        bind -M insert \ef forward-word
 
         # Correct cursor for ghostty when in VI mode.
         if string match -q -- '*ghostty*' $TERM
@@ -96,7 +86,7 @@ in
         sl = "eza";
         l = "eza --group --header --group-directories-first --long --git --all --binary --all --icons always";
         tree = "eza --tree";
-        sudo = "sudo -E -s";
+        sudo = "sudo -E";
         k = "kubectl";
         kgp = "kubectl get pods";
 
@@ -122,7 +112,7 @@ in
       }
       // {
 
-        # new commads
+        # new commands
         weather = "curl wttr.in/Kyiv";
 
         pfile = "fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'";
@@ -213,7 +203,7 @@ in
 
             # Not bothering with capturing the status of the command, just run it again
             if not contains $argv[1] $__command_not_found_confirmed_commands
-              set -ga __fish_run_with_comma_commands $argv[1]
+              set -ga __command_not_found_confirmed_commands $argv[1]
             end
 
             comma -- $argv

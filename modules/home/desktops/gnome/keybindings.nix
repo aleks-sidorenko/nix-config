@@ -17,13 +17,10 @@ in
         exec = terminal;
       };
 
-      # Shell keybindings (terminal, app view)
+      # Shell keybindings
       "org/gnome/shell/keybindings" = {
-        open-terminal = [
-          "<Super>t"
-          "<Ctrl><Alt>t"
-        ];
         toggle-application-view = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        toggle-message-tray = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
       };
 
       # Media keys, screenshots, lock, power menu
@@ -36,6 +33,7 @@ in
         area-screenshot = [ "<Ctrl>Print" ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
         ];
       };
 
@@ -44,6 +42,13 @@ in
         name = "Power Menu";
         command = "gnome-session-quit --power-off";
         binding = "<Ctrl><Super>BackSpace";
+      };
+
+      # Terminal via custom keybindings
+      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+        name = "Terminal (Super+T)";
+        command = terminal;
+        binding = "<Super>t";
       };
 
       # Search light — new binding
@@ -73,10 +78,22 @@ in
         maximize-horizontally = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-vertically = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         minimize = [ "<Super>Down" ];
-        move-to-monitor-down = [ "<Super><Shift>Down" ];
-        move-to-monitor-left = [ "<Super><Shift>Left" ];
-        move-to-monitor-right = [ "<Super><Shift>Right" ];
-        move-to-monitor-up = [ "<Super><Shift>Up" ];
+        move-to-monitor-down = [
+          "<Super><Ctrl>j"
+          "<Super><Shift>Down"
+        ];
+        move-to-monitor-left = [
+          "<Super><Ctrl>h"
+          "<Super><Shift>Left"
+        ];
+        move-to-monitor-right = [
+          "<Super><Ctrl>l"
+          "<Super><Shift>Right"
+        ];
+        move-to-monitor-up = [
+          "<Super><Ctrl>k"
+          "<Super><Shift>Up"
+        ];
         move-to-workspace-1 = [
           "<Super><Shift>1"
           "<Super><Shift>Home"
@@ -136,8 +153,8 @@ in
         switch-to-workspace-left = [ "<Super><Alt>Left" ];
         switch-to-workspace-right = [ "<Super><Alt>Right" ];
         switch-to-workspace-up = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        toggle-maximized = [ "<Alt>F10" ];
-        unmaximize = [ "<Alt>F5" ];
+        toggle-maximized = [ "<Super>m" ];
+        unmaximize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
       };
 
       # Static workspaces
@@ -151,18 +168,18 @@ in
 
       # Forge tiling keybindings
       "org/gnome/shell/extensions/forge/keybindings" = {
-        focus-left = [ "<Super>h" ];
-        focus-right = [ "<Super>l" ];
-        focus-up = [ "<Super>k" ];
-        focus-down = [ "<Super>j" ];
-        swap-left = [ "<Super><Shift>h" ];
-        swap-right = [ "<Super><Shift>l" ];
-        swap-up = [ "<Super><Shift>k" ];
-        swap-down = [ "<Super><Shift>j" ];
-        con-resize-left = [ "<Super><Alt>h" ];
-        con-resize-right = [ "<Super><Alt>l" ];
-        con-resize-up = [ "<Super><Alt>k" ];
-        con-resize-down = [ "<Super><Alt>j" ];
+        window-focus-left = [ "<Super>h" ];
+        window-focus-right = [ "<Super>l" ];
+        window-focus-up = [ "<Super>k" ];
+        window-focus-down = [ "<Super>j" ];
+        window-move-left = [ "<Super><Shift>h" ];
+        window-move-right = [ "<Super><Shift>l" ];
+        window-move-up = [ "<Super><Shift>k" ];
+        window-move-down = [ "<Super><Shift>j" ];
+        window-resize-left-increase = [ "<Super><Alt>h" ];
+        window-resize-right-increase = [ "<Super><Alt>l" ];
+        window-resize-top-increase = [ "<Super><Alt>k" ];
+        window-resize-bottom-increase = [ "<Super><Alt>j" ];
       };
     };
   };
