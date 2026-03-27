@@ -154,18 +154,18 @@ in
 
       # Forge tiling keybindings
       "org/gnome/shell/extensions/forge/keybindings" = {
-        focus-left = [ "<Super>h" ];
-        focus-right = [ "<Super>l" ];
-        focus-up = [ "<Super>k" ];
-        focus-down = [ "<Super>j" ];
-        swap-left = [ "<Super><Shift>h" ];
-        swap-right = [ "<Super><Shift>l" ];
-        swap-up = [ "<Super><Shift>k" ];
-        swap-down = [ "<Super><Shift>j" ];
-        con-resize-left = [ "<Super><Alt>h" ];
-        con-resize-right = [ "<Super><Alt>l" ];
-        con-resize-up = [ "<Super><Alt>k" ];
-        con-resize-down = [ "<Super><Alt>j" ];
+        window-focus-left = [ "<Super>h" ];
+        window-focus-right = [ "<Super>l" ];
+        window-focus-up = [ "<Super>k" ];
+        window-focus-down = [ "<Super>j" ];
+        window-move-left = [ "<Super><Shift>h" ];
+        window-move-right = [ "<Super><Shift>l" ];
+        window-move-up = [ "<Super><Shift>k" ];
+        window-move-down = [ "<Super><Shift>j" ];
+        window-resize-left-increase = [ "<Super><Alt>h" ];
+        window-resize-right-increase = [ "<Super><Alt>l" ];
+        window-resize-top-increase = [ "<Super><Alt>k" ];
+        window-resize-bottom-increase = [ "<Super><Alt>j" ];
       };
     };
   };
