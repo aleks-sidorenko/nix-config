@@ -83,7 +83,8 @@ The same keys always mean the same spatial directions across all layers:
 | Binding | Action | Rationale |
 |---|---|---|
 | `Ctrl+Shift+C/V/A` | Copy/paste/select all | Terminal-universal clipboard standard |
-| `Ctrl+Shift+,` | Reload config | System operation |
+| `Ctrl+Shift+;` | Reload config | System operation (moved from `Ctrl+Shift+,` to free `,/.` for Neovim) |
+| `Ctrl+Shift+Q` | Quit app | Replaces `Alt+F4` (freed Alt namespace); GTK/Linux convention |
 | `Ctrl+Shift+P` | Command palette | System operation |
 | `Ctrl+Shift+I` | Inspector | System operation |
 
@@ -93,7 +94,7 @@ The same keys always mean the same spatial directions across all layers:
 |---|---|
 | `Ctrl+Enter` | Toggle fullscreen |
 | `Ctrl++/-/0` | Font size |
-| `Ctrl+,` | Open config |
+| `Ctrl+;` | Open config (moved from `Ctrl+,` to free `,/.` for Neovim) |
 
 Other conventions:
 
@@ -112,7 +113,8 @@ Other conventions:
 |---|---|---|
 | `Ctrl+HJKL` | Navigate (window focus) | Works in normal + terminal mode |
 | `Ctrl+Arrows` | Modify (window resize) | Arrows because HJKL is taken for navigate; Ctrl+Shift/Alt intercepted by Ghostty |
-| `Ctrl+Shift+J/K` | Move line down/up | Pragmatic exception — borrows Ghostty's `Ctrl+Shift` namespace since `J/K` are unbound in Ghostty, replacing `Alt+J/K` which conflicts with Ghostty split navigation |
+| `Ctrl+Shift+J/K` | File begin/end | Modifier escalation: `J/K` = paragraph, `Ctrl+Shift+J/K` = file. `J/K` unbound in Ghostty's `Ctrl+Shift` namespace |
+| `Ctrl+Shift+</>` | Move line up/down | `<`/`>` have shift/move connotation; unbound in Ghostty's `Ctrl+Shift` namespace |
 | `Ctrl+S` | Save | All modes |
 
 **Navigation bindings (new):**
@@ -121,19 +123,23 @@ Other conventions:
 |---|---|---|
 | `H` | Line begin (`^`) | `Alt+[` (freed for Ghostty) |
 | `L` | Line end (`$`) | `Alt+]` (freed for Ghostty) |
+| `J` | Next paragraph (`}`) | Vim default `J` (join lines) → `gJ` |
+| `K` | Previous paragraph (`{`) | Vim default `K` (keyword lookup) → `gh` |
 | `g[` | Line begin (`^`) | Alternative |
 | `g]` | Line end (`$`) | Alternative |
-| `g{` | File begin (`gg`) | `Alt+Shift+[` (freed for Ghostty) |
-| `g}` | File end (`G`) | `Alt+Shift+]` (freed for Ghostty) |
-| `Ctrl+Shift+[` | File begin (`gg`) | Alternative (mirrors `g{`) |
-| `Ctrl+Shift+]` | File end (`G`) | Alternative (mirrors `g}`) |
+| `gJ` | Join lines | Relocated from `J` |
+| `gh` | Keyword lookup / hover | Relocated from `K` |
+| `Ctrl+Shift+J` | File end (`G`) | Modifier escalation from `J` (paragraph) |
+| `Ctrl+Shift+K` | File begin (`gg`) | Modifier escalation from `K` (paragraph) |
 
-**Buffer navigation:** Uses vim bracket convention for cycling, `Leader+number` for direct access (mirrors Ghostty `Alt+1-9` for tabs).
+**Buffer navigation:** Uses `Shift+[/]` for quick cycling, vim bracket convention as alternative, `Leader+number` for direct access (mirrors Ghostty `Alt+1-9` for tabs).
 
 | Binding | Action |
 |---|---|
 | `Leader+1-9` | Go to buffer 1-9 |
-| `]b` / `[b` | Next/prev buffer |
+| `{` / `}` (`Shift+[/]`) | Prev/next buffer |
+| `Ctrl+Shift+[` / `Ctrl+Shift+]` | Move buffer left/right |
+| `]b` / `[b` | Next/prev buffer (alternative) |
 | `]d` / `[d` | Next/prev diagnostic |
 | `]e` / `[e` | Next/prev error |
 | `]w` / `[w` | Next/prev warning |
@@ -189,7 +195,7 @@ Other conventions:
 | Remove | `Ctrl+Shift+N/Q` for window new/close (moved to `Alt+Shift+W/X`) |
 | Remove | `Ctrl+Shift+Enter` for zoom (moved to `Alt+Ctrl+Enter`) |
 | Remove | `Ctrl+Shift+PageUp/Down` for prompt jump (moved to `Alt+PageUp/Down`) |
-| Preserve | `Ctrl+Shift+C/V/A` (clipboard), `Ctrl+Shift+,/P/I` (config/system), font/scroll bindings, prefix mode |
+| Preserve | `Ctrl+Shift+C/V/A` (clipboard), `Ctrl+Shift+;/P/I/Q` (config/system), font/scroll bindings, prefix mode |
 
 ### Neovim
 
@@ -201,11 +207,15 @@ Other conventions:
 | Remove | `Shift+H/L` (buffer cycle duplicate) — frees H/L |
 | Remove | `Shift+X` (buffer delete duplicate) — use `Leader+bq` |
 | Add | `H` -> line begin (`^`), `L` -> line end (`$`) |
+| Add | `J` -> next paragraph (`}`), `K` -> previous paragraph (`{`) |
+| Add | `gJ` -> join lines (relocated from `J`), `gh` -> keyword lookup (relocated from `K`) |
+| Add | `{`/`}` (`Shift+[/]`) -> prev/next buffer |
 | Add | `g[`/`g]` -> line begin/end (alternative) |
-| Add | `g{`/`g}` -> file begin/end |
-| Add | `Ctrl+Shift+[/]` -> file begin/end (alternative; `[/]` unbound in Ghostty's `Ctrl+Shift` namespace) |
+| Add | `Ctrl+Shift+J/K` -> file end/begin (modifier escalation from `J/K` paragraph) |
+| Add | `Ctrl+Shift+</>` -> move line up/down (replaces `Alt+J/K`; `</>` unbound in Ghostty) |
+| Remove | `g{`/`g}` -> file begin/end (replaced by `Ctrl+Shift+J/K`) |
+| Add | `Ctrl+Shift+[/]` -> move buffer left/right (structural escalation from `{`/`}` buffer navigate) |
 | Add | `Leader+1-9` -> go to buffer 1-9 (mirrors Ghostty `Alt+1-9`) |
-| Add | `Ctrl+Shift+J/K` -> move line down/up (replaces `Alt+J/K`; `Ctrl+Shift+J/K` not bound in Ghostty) |
 | Add | `Leader+wh/j/k/l` -> focus window (mirrors `Ctrl+HJKL` for discoverability) |
 | Add | `Leader+w-` -> split below (was only `Leader+-`) |
 | Add | `Leader+b[`/`Leader+b]` -> prev/next buffer (mirrors `[b`/`]b` for discoverability) |
@@ -248,7 +258,7 @@ Verification that no two layers share the same binding:
 | `Alt+Shift+letter` | Ghostty (structure) | Neovim Alt+Shift bindings removed |
 | `Alt+Ctrl+letter` | Ghostty (modify) | No Neovim bindings here. Hyprland `Alt+Ctrl+HJKL` removed (redundant with swap) |
 | `Ctrl+letter` | Neovim | Ghostty uses `Ctrl+Shift` (different) |
-| `Ctrl+Shift+letter` | Ghostty (copy/paste, config) | Neovim borrows `Ctrl+Shift+J/K` for line move — no conflict because `J/K` are unbound in Ghostty's `Ctrl+Shift` namespace |
+| `Ctrl+Shift+letter` | Ghostty (copy/paste, config) | Neovim borrows `Ctrl+Shift+J/K` (file begin/end), `Ctrl+Shift+[/]` (buffer reorder), `Ctrl+Shift+</>` (line move) — no conflict because these keys are unbound in Ghostty's `Ctrl+Shift` namespace |
 | `Super+*` (Linux) | WM | Never reaches terminal/editor |
 | `Alt+Cmd+*` (macOS) | WM (AeroSpace) | Never reaches terminal/editor |
 | `Ctrl+Cmd+*` (macOS) | WM (AeroSpace) | Never reaches terminal/editor |

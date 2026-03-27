@@ -148,9 +148,11 @@ in
           "ctrl+0=reset_font_size"
           "ctrl+enter=toggle_fullscreen"
 
-          # Configuration (Ctrl+Shift)
-          "ctrl+,=open_config"
-          "ctrl+shift+,=reload_config"
+          # Configuration (Ctrl+;)
+          "ctrl+;=open_config"
+          "ctrl+shift+;=reload_config"
+          # ctrl+,/. freed for Neovim move line
+          "ctrl+shift+q=quit"
           "ctrl+shift+p=toggle_command_palette"
           "ctrl+shift+i=inspector:toggle"
 

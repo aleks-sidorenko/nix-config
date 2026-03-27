@@ -97,16 +97,16 @@
       };
     }
 
-    # File navigation
+    # Paragraph navigation
     {
       mode = [
         "n"
         "v"
       ];
-      key = "g{";
-      action = "gg";
+      key = "J";
+      action = "}";
       options = {
-        desc = "Go to beginning of file";
+        desc = "Next paragraph";
       };
     }
     {
@@ -114,10 +114,23 @@
         "n"
         "v"
       ];
-      key = "g}";
-      action = "G";
+      key = "K";
+      action = "{";
       options = {
-        desc = "Go to end of file";
+        desc = "Previous paragraph";
+      };
+    }
+
+    # Relocated defaults (displaced by J/K paragraph navigation)
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "gJ";
+      action = "J";
+      options = {
+        desc = "Join lines";
       };
     }
     {
@@ -125,10 +138,58 @@
         "n"
         "v"
       ];
+      key = "gh";
+      action = "K";
+      options = {
+        desc = "Keyword lookup / hover";
+      };
+    }
+
+    # Buffer navigation (Shift+[/])
+    {
+      mode = "n";
+      key = "{";
+      action = "<cmd>BufferLineCyclePrev<cr>";
+      options = {
+        desc = "Previous buffer";
+      };
+    }
+    {
+      mode = "n";
+      key = "}";
+      action = "<cmd>BufferLineCycleNext<cr>";
+      options = {
+        desc = "Next buffer";
+      };
+    }
+    # Buffer reorder (Ctrl+Shift+[/])
+    {
+      mode = "n";
       key = "<C-S-[>";
-      action = "gg";
+      action = "<cmd>BufferLineMovePrev<cr>";
       options = {
-        desc = "Go to beginning of file";
+        desc = "Move buffer left";
+      };
+    }
+    {
+      mode = "n";
+      key = "<C-S-]>";
+      action = "<cmd>BufferLineMoveNext<cr>";
+      options = {
+        desc = "Move buffer right";
+      };
+    }
+
+    # File navigation (Ctrl+Shift+J/K — same keys as paragraph, bigger scope)
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<C-S-j>";
+      action = "G";
+      options = {
+        desc = "Go to end of file";
       };
     }
     {
@@ -136,10 +197,10 @@
         "n"
         "v"
       ];
-      key = "<C-S-]>";
-      action = "G";
+      key = "<C-S-k>";
+      action = "gg";
       options = {
-        desc = "Go to end of file";
+        desc = "Go to beginning of file";
       };
     }
 
@@ -215,53 +276,53 @@
       };
     }
 
-    # Move lines (Ctrl+Shift+J/K — replaces Alt+J/K which conflicts with Ghostty)
+    # Move lines (Ctrl+Shift+</> — shift/move connotation, unbound in Ghostty)
     {
       mode = "n";
-      key = "<C-S-j>";
-      action = "<cmd>m .+1<cr>==";
-      options = {
-        desc = "Move Down";
-      };
-    }
-    {
-      mode = "n";
-      key = "<C-S-k>";
+      key = "<C-S-,>";
       action = "<cmd>m .-2<cr>==";
       options = {
         desc = "Move Up";
       };
     }
     {
-      mode = "i";
-      key = "<C-S-j>";
-      action = "<esc><cmd>m .+1<cr>==gi";
+      mode = "n";
+      key = "<C-S-.>";
+      action = "<cmd>m .+1<cr>==";
       options = {
         desc = "Move Down";
       };
     }
     {
       mode = "i";
-      key = "<C-S-k>";
+      key = "<C-S-,>";
       action = "<esc><cmd>m .-2<cr>==gi";
       options = {
         desc = "Move Up";
       };
     }
     {
-      mode = "v";
-      key = "<C-S-j>";
-      action = ":m '>+1<cr>gv=gv";
+      mode = "i";
+      key = "<C-S-.>";
+      action = "<esc><cmd>m .+1<cr>==gi";
       options = {
         desc = "Move Down";
       };
     }
     {
       mode = "v";
-      key = "<C-S-k>";
+      key = "<C-S-,>";
       action = ":m '<-2<cr>gv=gv";
       options = {
         desc = "Move Up";
+      };
+    }
+    {
+      mode = "v";
+      key = "<C-S-.>";
+      action = ":m '>+1<cr>gv=gv";
+      options = {
+        desc = "Move Down";
       };
     }
 

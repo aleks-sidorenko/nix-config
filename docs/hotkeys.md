@@ -242,7 +242,8 @@ Terminal-universal and OS-standard conventions — not part of the Alt scheme.
 | Select all | `Ctrl+Shift+A` |
 | Paste from selection | `Shift+Insert` |
 | Copy to clipboard (alt) | `Ctrl+Insert` |
-| Reload config | `Ctrl+Shift+,` |
+| Reload config | `Ctrl+Shift+;` |
+| Quit app | `Ctrl+Shift+Q` |
 | Command palette | `Ctrl+Shift+P` |
 | Inspector | `Ctrl+Shift+I` |
 
@@ -254,7 +255,7 @@ Terminal-universal and OS-standard conventions — not part of the Alt scheme.
 | Increase font size | `Ctrl++` |
 | Decrease font size | `Ctrl+-` |
 | Reset font size | `Ctrl+0` |
-| Open config | `Ctrl+,` |
+| Open config | `Ctrl+;` |
 
 ### Other Conventions
 
@@ -310,24 +311,37 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 > **Note:** Resize uses Arrows instead of HJKL because `Ctrl+HJKL` is taken for navigate, and `Ctrl+Shift`/`Ctrl+Alt` are intercepted by Ghostty.
 
-### Line & File Navigation
+### Line, Paragraph & File Navigation
 
 | Action | Primary | Alternative | Vim native |
 |---|---|---|---|
 | Line begin | `H` | `g[` | `^` / `0` |
 | Line end | `L` | `g]` | `$` |
-| File begin | `g{` | `Ctrl+Shift+[` | `gg` |
-| File end | `g}` | `Ctrl+Shift+]` | `G` |
+| Next paragraph | `J` | — | `}` |
+| Previous paragraph | `K` | — | `{` |
+| File end | `Ctrl+Shift+J` | — | `G` |
+| File begin | `Ctrl+Shift+K` | — | `gg` |
 
-`H` and `L` work in normal and visual mode. `g`-prefix bindings work in normal and visual mode.
+`H`, `L`, `J`, and `K` work in normal and visual mode. `g`-prefix bindings work in normal and visual mode.
+
+#### Relocated defaults
+
+| Action | New binding | Was |
+|---|---|---|
+| Join lines | `gJ` | `J` |
+| Keyword lookup / hover | `gh` | `K` |
 
 ### Buffer Navigation
 
 | Action | Binding |
 |---|---|
 | Go to buffer 1-9 | `Leader+1-9` |
-| Next buffer | `]b` |
-| Previous buffer | `[b` |
+| Next buffer | `}` (`Shift+]`) |
+| Previous buffer | `{` (`Shift+[`) |
+| Move buffer right | `Ctrl+Shift+]` |
+| Move buffer left | `Ctrl+Shift+[` |
+| Next buffer (alt) | `]b` |
+| Previous buffer (alt) | `[b` |
 | Next diagnostic | `]d` |
 | Previous diagnostic | `[d` |
 | Next error | `]e` |
@@ -377,10 +391,10 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 | Action | Binding | Modes |
 |---|---|---|
-| Move line down | `Ctrl+Shift+J` | Normal, Insert, Visual |
-| Move line up | `Ctrl+Shift+K` | Normal, Insert, Visual |
+| Move line up | `Ctrl+Shift+<` | Normal, Insert, Visual |
+| Move line down | `Ctrl+Shift+>` | Normal, Insert, Visual |
 
-> **Note:** Uses `Ctrl+Shift` (Ghostty's namespace) pragmatically — `J/K` are not bound in Ghostty, so they pass through. Replaces `Alt+J/K` which conflicts with Ghostty split navigation.
+> **Note:** Uses `Ctrl+Shift+</>` — `<`/`>` have a shift/move connotation and are unbound in Ghostty's `Ctrl+Shift` namespace. Replaces `Alt+J/K` which conflicts with Ghostty split navigation.
 
 ### General
 
