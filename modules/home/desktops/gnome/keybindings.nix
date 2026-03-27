@@ -17,12 +17,8 @@ in
         exec = terminal;
       };
 
-      # Shell keybindings (terminal, app view)
+      # Shell keybindings
       "org/gnome/shell/keybindings" = {
-        open-terminal = [
-          "<Super>t"
-          "<Ctrl><Alt>t"
-        ];
         toggle-application-view = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         toggle-message-tray = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
       };
@@ -37,6 +33,8 @@ in
         area-screenshot = [ "<Ctrl>Print" ];
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
         ];
       };
 
@@ -45,6 +43,19 @@ in
         name = "Power Menu";
         command = "gnome-session-quit --power-off";
         binding = "<Ctrl><Super>BackSpace";
+      };
+
+      # Terminal via custom keybindings
+      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+        name = "Terminal (Super+T)";
+        command = terminal;
+        binding = "<Super>t";
+      };
+
+      "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+        name = "Terminal (Ctrl+Alt+T)";
+        command = terminal;
+        binding = "<Ctrl><Alt>t";
       };
 
       # Search light — new binding
@@ -70,10 +81,10 @@ in
         cycle-windows = [ "<Alt>Escape" ];
         cycle-windows-backward = [ "<Shift><Alt>Escape" ];
         lower = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        maximize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        maximize = [ "<Super>Up" ];
         maximize-horizontally = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-vertically = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        minimize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        minimize = [ "<Super>Down" ];
         move-to-monitor-down = [ "<Super><Ctrl>j" "<Super><Shift>Down" ];
         move-to-monitor-left = [ "<Super><Ctrl>h" "<Super><Shift>Left" ];
         move-to-monitor-right = [ "<Super><Ctrl>l" "<Super><Shift>Right" ];
