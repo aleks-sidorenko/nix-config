@@ -316,8 +316,8 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 |---|---|---|---|
 | Line begin | `H` | `g[` | `^` / `0` |
 | Line end | `L` | `g]` | `$` |
-| File begin | `g{` | — | `gg` |
-| File end | `g}` | — | `G` |
+| File begin | `g{` | `Ctrl+Shift+[` | `gg` |
+| File end | `g}` | `Ctrl+Shift+]` | `G` |
 
 `H` and `L` work in normal and visual mode. `g`-prefix bindings work in normal and visual mode.
 

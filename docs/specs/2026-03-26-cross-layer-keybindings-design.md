@@ -125,6 +125,8 @@ Other conventions:
 | `g]` | Line end (`$`) | Alternative |
 | `g{` | File begin (`gg`) | `Alt+Shift+[` (freed for Ghostty) |
 | `g}` | File end (`G`) | `Alt+Shift+]` (freed for Ghostty) |
+| `Ctrl+Shift+[` | File begin (`gg`) | Alternative (mirrors `g{`) |
+| `Ctrl+Shift+]` | File end (`G`) | Alternative (mirrors `g}`) |
 
 **Buffer navigation:** Uses vim bracket convention for cycling, `Leader+number` for direct access (mirrors Ghostty `Alt+1-9` for tabs).
 
@@ -201,6 +203,7 @@ Other conventions:
 | Add | `H` -> line begin (`^`), `L` -> line end (`$`) |
 | Add | `g[`/`g]` -> line begin/end (alternative) |
 | Add | `g{`/`g}` -> file begin/end |
+| Add | `Ctrl+Shift+[/]` -> file begin/end (alternative; `[/]` unbound in Ghostty's `Ctrl+Shift` namespace) |
 | Add | `Leader+1-9` -> go to buffer 1-9 (mirrors Ghostty `Alt+1-9`) |
 | Add | `Ctrl+Shift+J/K` -> move line down/up (replaces `Alt+J/K`; `Ctrl+Shift+J/K` not bound in Ghostty) |
 | Add | `Leader+wh/j/k/l` -> focus window (mirrors `Ctrl+HJKL` for discoverability) |

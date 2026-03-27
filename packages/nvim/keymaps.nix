@@ -120,6 +120,28 @@
         desc = "Go to end of file";
       };
     }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<C-S-[>";
+      action = "gg";
+      options = {
+        desc = "Go to beginning of file";
+      };
+    }
+    {
+      mode = [
+        "n"
+        "v"
+      ];
+      key = "<C-S-]>";
+      action = "G";
+      options = {
+        desc = "Go to end of file";
+      };
+    }
 
     # Window navigation (Ctrl+HJKL)
     {
