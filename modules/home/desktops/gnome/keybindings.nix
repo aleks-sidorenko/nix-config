@@ -24,6 +24,7 @@ in
           "<Ctrl><Alt>t"
         ];
         toggle-application-view = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        toggle-message-tray = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
       };
 
       # Media keys, screenshots, lock, power menu
@@ -69,14 +70,14 @@ in
         cycle-windows = [ "<Alt>Escape" ];
         cycle-windows-backward = [ "<Shift><Alt>Escape" ];
         lower = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        maximize = [ "<Super>Up" ];
+        maximize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-horizontally = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-vertically = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        minimize = [ "<Super>Down" ];
-        move-to-monitor-down = [ "<Super><Shift>Down" ];
-        move-to-monitor-left = [ "<Super><Shift>Left" ];
-        move-to-monitor-right = [ "<Super><Shift>Right" ];
-        move-to-monitor-up = [ "<Super><Shift>Up" ];
+        minimize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        move-to-monitor-down = [ "<Super><Ctrl>j" "<Super><Shift>Down" ];
+        move-to-monitor-left = [ "<Super><Ctrl>h" "<Super><Shift>Left" ];
+        move-to-monitor-right = [ "<Super><Ctrl>l" "<Super><Shift>Right" ];
+        move-to-monitor-up = [ "<Super><Ctrl>k" "<Super><Shift>Up" ];
         move-to-workspace-1 = [
           "<Super><Shift>1"
           "<Super><Shift>Home"
@@ -136,11 +137,8 @@ in
         switch-to-workspace-left = [ "<Super><Alt>Left" ];
         switch-to-workspace-right = [ "<Super><Alt>Right" ];
         switch-to-workspace-up = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
-        toggle-maximized = [
-          "<Super>m"
-          "<Alt>F10"
-        ];
-        unmaximize = [ "<Alt>F5" ];
+        toggle-maximized = [ "<Super>m" ];
+        unmaximize = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
       };
 
       # Static workspaces
