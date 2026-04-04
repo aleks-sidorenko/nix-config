@@ -96,6 +96,13 @@ in
     dns = true;
     aliases = [ ];
   };
+  homebook = {
+    ip = ips.homebook;
+    mac = "68:EC:C5:C2:36:1B";
+    comment = "Ruslana, Dima, Windows";
+    dns = false;
+    aliases = [ ];
+  };
   "1c-key" = {
     ip = ips."1c-key";
     mac = "08:00:27:98:89:98";
