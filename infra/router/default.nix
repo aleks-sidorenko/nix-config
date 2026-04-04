@@ -74,6 +74,7 @@ let
             addressLists.banned = [
               defaults.network.hosts.tv
               defaults.network.hosts.tv-wifi
+              defaults.network.hosts.homebook
             ];
             filterRules = [
               {
