@@ -314,74 +314,63 @@ _: {
       id = "connection_tracking";
     }
 
-    # /ip firewall address-list print show-ids → *1=banned/10.0.0.50, *2=banned/10.0.0.51
-    {
-      to = "routeros_ip_firewall_addr_list.banned_0";
-      id = "*1";
-    }
-    {
-      to = "routeros_ip_firewall_addr_list.banned_1";
-      id = "*2";
-    }
+    # /ip firewall address-list — banned list will be created fresh by terraform
 
     # /ip firewall filter print show-ids
-    # *F=dummy(dynamic), *1..*E = rules
+    # *F=dummy(dynamic), *10..*1C = rules
     {
       to = "routeros_ip_firewall_filter.input_accept_established";
-      id = "*1";
+      id = "*1C";
     }
     {
       to = "routeros_ip_firewall_filter.input_drop_invalid";
-      id = "*2";
+      id = "*1B";
     }
     {
       to = "routeros_ip_firewall_filter.input_accept_icmp";
-      id = "*3";
+      id = "*1A";
     }
     {
       to = "routeros_ip_firewall_filter.input_accept_loopback";
-      id = "*4";
+      id = "*19";
     }
     {
       to = "routeros_ip_firewall_filter.input_drop_non_lan";
-      id = "*5";
+      id = "*18";
     }
     {
       to = "routeros_ip_firewall_filter.forward_accept_ipsec_in";
-      id = "*6";
+      id = "*17";
     }
     {
       to = "routeros_ip_firewall_filter.forward_accept_ipsec_out";
-      id = "*7";
+      id = "*16";
     }
     {
       to = "routeros_ip_firewall_filter.forward_fasttrack";
-      id = "*8";
+      id = "*15";
     }
     {
       to = "routeros_ip_firewall_filter.forward_accept_established";
-      id = "*9";
+      id = "*14";
     }
     {
       to = "routeros_ip_firewall_filter.forward_drop_invalid";
-      id = "*A";
+      id = "*13";
     }
     {
       to = "routeros_ip_firewall_filter.forward_drop_wan_not_dstnat";
-      id = "*B";
+      id = "*12";
     }
     {
       to = "routeros_ip_firewall_filter.input_drop_dns_tcp";
-      id = "*C";
+      id = "*11";
     }
     {
       to = "routeros_ip_firewall_filter.input_drop_dns_udp";
-      id = "*D";
+      id = "*10";
     }
-    {
-      to = "routeros_ip_firewall_filter.forward_drop_banned_external";
-      id = "*E";
-    }
+    # forward_drop_banned_external — will be created fresh by terraform
 
     # /ip firewall nat print show-ids → *1=masquerade, *2=redirect
     {
