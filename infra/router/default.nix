@@ -71,18 +71,18 @@ let
           };
 
           firewall = {
-            addressLists.tv = [
+            addressLists.banned = [
               defaults.network.hosts.tv
               defaults.network.hosts.tv-wifi
             ];
             filterRules = [
               {
-                name = "forward_drop_tv_external";
+                name = "forward_drop_banned_external";
                 action = "drop";
                 chain = "forward";
-                comment = "drop TV external traffic";
+                comment = "drop banned hosts external traffic";
                 out_interface_list = "WAN";
-                src_address_list = "tv";
+                src_address_list = "banned";
               }
             ];
           };

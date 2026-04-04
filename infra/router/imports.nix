@@ -314,13 +314,13 @@ _: {
       id = "connection_tracking";
     }
 
-    # /ip firewall address-list print show-ids → *1=tv/10.0.0.50, *2=tv/10.0.0.51
+    # /ip firewall address-list print show-ids → *1=banned/10.0.0.50, *2=banned/10.0.0.51
     {
-      to = "routeros_ip_firewall_addr_list.tv_0";
+      to = "routeros_ip_firewall_addr_list.banned_0";
       id = "*1";
     }
     {
-      to = "routeros_ip_firewall_addr_list.tv_1";
+      to = "routeros_ip_firewall_addr_list.banned_1";
       id = "*2";
     }
 
@@ -379,7 +379,7 @@ _: {
       id = "*D";
     }
     {
-      to = "routeros_ip_firewall_filter.forward_drop_tv_external";
+      to = "routeros_ip_firewall_filter.forward_drop_banned_external";
       id = "*E";
     }
 
