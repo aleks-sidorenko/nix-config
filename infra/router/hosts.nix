@@ -117,6 +117,13 @@ in
     dns = false;
     aliases = [ ];
   };
+  ipad = {
+    ip = ips.ipad;
+    mac = "D2:DD:9C:EC:E6:E8";
+    comment = "iPad";
+    dns = false;
+    aliases = [ ];
+  };
   "1c-key" = {
     ip = ips."1c-key";
     mac = "08:00:27:98:89:98";

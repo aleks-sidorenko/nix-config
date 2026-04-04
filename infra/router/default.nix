@@ -75,6 +75,7 @@ let
               defaults.network.hosts.tv
               defaults.network.hosts.tv-wifi
               defaults.network.hosts.homebook
+              defaults.network.hosts.ipad
             ];
             filterRules = [
               {
