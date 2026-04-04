@@ -103,6 +103,20 @@ in
     dns = false;
     aliases = [ ];
   };
+  workbook = {
+    ip = ips.workbook;
+    mac = "0E:6D:78:9A:C3:F8";
+    comment = "Work Macbook";
+    dns = false;
+    aliases = [ ];
+  };
+  desktop = {
+    ip = ips.desktop;
+    mac = "F4:6D:04:25:80:5F";
+    comment = "Desktop";
+    dns = false;
+    aliases = [ ];
+  };
   "1c-key" = {
     ip = ips."1c-key";
     mac = "08:00:27:98:89:98";
