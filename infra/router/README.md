@@ -8,7 +8,13 @@ ssh router /ip dhcp-server lease print
 
 ## Banned Address List
 
-Add a MAC to the banned address list (you need the IP, not MAC directly):
+Hosts in the `banned` list are blocked from external (WAN) traffic.
+
+**Permanent:** Add the host to `addressLists.banned` in `default.nix` and apply with terraform.
+
+**Temporary (until next terraform apply):** Use CLI commands below.
+
+Add a host to the banned list (by IP):
 
 ```bash
 # Find the IP from leases first, then add it
