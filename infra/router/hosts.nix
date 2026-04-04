@@ -105,7 +105,7 @@ in
   };
   workbook = {
     ip = ips.workbook;
-    mac = "0E:6D:78:9A:C3:F8";
+    mac = "A0:CE:C8:C1:23:A1";
     comment = "Work Macbook";
     dns = false;
     aliases = [ ];
