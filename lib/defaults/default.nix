@@ -49,6 +49,10 @@ _: rec {
         inverter = "10.0.0.52";
         heatpump = "10.0.0.53";
         "1c-key" = "10.0.0.60";
+        desktop = "10.0.0.61";
+        workbook = "10.0.0.62";
+        homebook = "10.0.0.63";
+        ipad = "10.0.0.70";
       };
       domains = {
         local = "local";

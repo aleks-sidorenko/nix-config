@@ -96,6 +96,34 @@ in
     dns = true;
     aliases = [ ];
   };
+  homebook = {
+    ip = ips.homebook;
+    mac = "68:EC:C5:C2:36:1B";
+    comment = "Ruslana, Dima, Windows";
+    dns = false;
+    aliases = [ ];
+  };
+  workbook = {
+    ip = ips.workbook;
+    mac = "A0:CE:C8:C1:23:A1";
+    comment = "Work Macbook";
+    dns = false;
+    aliases = [ ];
+  };
+  desktop = {
+    ip = ips.desktop;
+    mac = "F4:6D:04:25:80:5F";
+    comment = "Desktop";
+    dns = false;
+    aliases = [ ];
+  };
+  ipad = {
+    ip = ips.ipad;
+    mac = "D2:DD:9C:EC:E6:E8";
+    comment = "iPad";
+    dns = false;
+    aliases = [ ];
+  };
   "1c-key" = {
     ip = ips."1c-key";
     mac = "08:00:27:98:89:98";
