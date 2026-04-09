@@ -39,6 +39,29 @@ parse_args() {
   parse_common_args "${remaining[@]}"
 }
 
+# Ensure all matching files have a CreateDate (fill from mtime if missing).
+# This is done in a temporary copy of metadata only — source files are NOT modified.
+# Exiftool's -o with date format skips files without CreateDate, so we need this.
+fill_missing_dates_for_import() {
+  local find_depth=("-maxdepth" "1")
+  if [[ "$RECURSIVE" == true ]]; then
+    find_depth=()
+  fi
+
+  for ext in $EXTENSIONS; do
+    while IFS= read -r -d '' file; do
+      local create_date
+      create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
+
+      if [[ -z "$create_date" || "$create_date" == "0000:00:00 00:00:00" ]]; then
+        if [[ "$DRY_RUN" == false ]]; then
+          exiftool -overwrite_original '-CreateDate<FileModifyDate' "$file" 2>/dev/null || true
+        fi
+      fi
+    done < <(find "$SRC" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
+  done
+}
+
 # Main
 parse_args "$@"
 SRC="${POSITIONAL[0]:-.}"
@@ -83,10 +106,13 @@ if [[ "$DRY_RUN" == true ]]; then
     $depth_args \
     $(exiftool_ext_args) \
     -if "\$filesize# > $MIN_FILE_SIZE" \
-    -p "\$filename -> $DST/\$DateTimeOriginal" \
+    -p "\$filename -> $DST/\$CreateDate" \
     -d "%Y/%m/%Y%m%d_%H%M%S.%le" \
     "$SRC" 2>/dev/null || true
 elif [[ "$MOVE" == true ]]; then
+  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
+  fill_missing_dates_for_import
+
   # Collect matching source file paths before copying
   mapfile -d '' src_files < <(
     # shellcheck disable=SC2086
@@ -116,6 +142,9 @@ elif [[ "$MOVE" == true ]]; then
     done
   fi
 else
+  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
+  fill_missing_dates_for_import
+
   # Copy mode
   run_exiftool_import -o "$dst_format" -d "$dst_format" -progress
 fi
