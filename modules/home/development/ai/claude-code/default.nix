@@ -33,6 +33,19 @@ in
 
         Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `style`, `ci`, `perf`, `build`. Use `!` or `BREAKING CHANGE:` footer for breaking changes.
 
+        ## Git Branches
+
+        Branch names MUST follow: `<type>/<short-description>`
+
+        - Name the branch after the primary goal of the work, not individual commits
+        - Use the same `type` prefixes as commits: `feat/`, `fix/`, `docs/`, `refactor/`, `chore/`, `test/`, `ci/`, `perf/`, `build/`
+        - Use kebab-case for the description: `feat/add-wifi-module`, `fix/hyprland-crash`
+
+        ## Pull Requests
+
+        - PR title follows Conventional Commits format, reflecting the primary goal of the work
+        - PR branch should be based off `master`
+
         ## Documentation Structure
 
         - `docs/specs/` - Feature specifications and requirements
