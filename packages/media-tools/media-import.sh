@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=media-common.sh
+source "$SCRIPT_DIR/media-common.sh"
+
+MOVE=false
+
+usage() {
+  cat <<EOF
+Usage: media-import [OPTIONS] [SOURCE]
+
+Import media files into \$MEDIA_HOME/All/YYYY/MM/ structure.
+
+Options:
+  --dry-run     Preview changes without modifying files
+  --move        Move files instead of copy (default: copy)
+  --recursive   Process subdirectories
+  -h, --help    Show this help
+
+SOURCE defaults to current directory.
+Requires MEDIA_HOME environment variable.
+EOF
+}
+
+# Override parse_common_args to handle --move
+parse_args() {
+  local remaining=()
+  MOVE=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --move) MOVE=true; shift ;;
+      *)      remaining+=("$1"); shift ;;
+    esac
+  done
+
+  parse_common_args "${remaining[@]}"
+}
+
+# Main
+parse_args "$@"
+SRC="${POSITIONAL[0]:-.}"
+
+if [[ -z "${MEDIA_HOME:-}" ]]; then
+  print_error "MEDIA_HOME environment variable is not set."
+  print_error "Set it to your media library root (e.g., ~/Pictures/Photo)"
+  exit 1
+fi
+
+if [[ ! -d "$SRC" ]]; then
+  print_error "Source directory does not exist: $SRC"
+  exit 1
+fi
+
+DST="$MEDIA_HOME/All"
+mkdir -p "$DST"
+
+print_info "Importing media from: $SRC"
+print_info "Destination: $DST"
+[[ "$DRY_RUN" == true ]] && print_info "DRY RUN - no files will be modified"
+[[ "$MOVE" == true ]] && print_info "Mode: move" || print_info "Mode: copy"
+
+depth_args=$(exiftool_depth_args)
+dst_format="$DST/%Y/%m/$FILENAME_FORMAT"
+
+# Common exiftool args for selecting media files above size threshold
+# shellcheck disable=SC2086
+run_exiftool_import() {
+  exiftool \
+    $depth_args \
+    $(exiftool_ext_args) \
+    -if "\$filesize# > $MIN_FILE_SIZE" \
+    "$@" \
+    "$SRC" 2>/dev/null || true
+}
+
+if [[ "$DRY_RUN" == true ]]; then
+  # Preview: use -p to print source -> destination mapping without copying
+  # shellcheck disable=SC2086
+  exiftool \
+    $depth_args \
+    $(exiftool_ext_args) \
+    -if "\$filesize# > $MIN_FILE_SIZE" \
+    -p "\$filename -> $DST/\$DateTimeOriginal" \
+    -d "%Y/%m/%Y%m%d_%H%M%S.%le" \
+    "$SRC" 2>/dev/null || true
+elif [[ "$MOVE" == true ]]; then
+  # Collect matching source file paths before copying
+  mapfile -d '' src_files < <(
+    # shellcheck disable=SC2086
+    exiftool $depth_args $(exiftool_ext_args) \
+      -if "\$filesize# > $MIN_FILE_SIZE" \
+      -print0 "$SRC" 2>/dev/null || true
+  )
+
+  if [[ ${#src_files[@]} -eq 0 ]]; then
+    print_info "No files to import."
+  else
+    # Copy to destination (no || true — fail loudly on copy errors)
+    # shellcheck disable=SC2086
+    exiftool \
+      $depth_args \
+      $(exiftool_ext_args) \
+      -if "\$filesize# > $MIN_FILE_SIZE" \
+      -o "$dst_format" \
+      -d "$dst_format" \
+      -progress \
+      "$SRC"
+
+    # Delete source files after successful copy
+    for file in "${src_files[@]}"; do
+      rm -- "$file"
+      print_info "Removed source: $file"
+    done
+  fi
+else
+  # Copy mode
+  run_exiftool_import -o "$dst_format" -d "$dst_format" -progress
+fi
+
+print_info "Done."
