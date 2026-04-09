@@ -17,10 +17,13 @@ parse_date_from_filename() {
 
   local date_str=""
 
-  # Try each pattern
-  if [[ "$filename" =~ ^(IMG_|PXL_|VID_|Screenshot_)?([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2}) ]]; then
+  # Try each pattern (stored in variables to avoid bash 5.3 regex parsing issues with spaces in bracket expressions)
+  local re_prefixed='^(IMG_|PXL_|VID_|Screenshot_)?([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})'
+  local re_dashed='([0-9]{4})-([0-9]{2})-([0-9]{2})[_ ]([0-9]{2})[-.]([0-9]{2})[-.]([0-9]{2})'
+
+  if [[ "$filename" =~ $re_prefixed ]]; then
     date_str="${BASH_REMATCH[2]}:${BASH_REMATCH[3]}:${BASH_REMATCH[4]} ${BASH_REMATCH[5]}:${BASH_REMATCH[6]}:${BASH_REMATCH[7]}"
-  elif [[ "$filename" =~ ([0-9]{4})-([0-9]{2})-([0-9]{2})[_ ]([0-9]{2})[-.]([0-9]{2})[-.]([0-9]{2}) ]]; then
+  elif [[ "$filename" =~ $re_dashed ]]; then
     date_str="${BASH_REMATCH[1]}:${BASH_REMATCH[2]}:${BASH_REMATCH[3]} ${BASH_REMATCH[4]}:${BASH_REMATCH[5]}:${BASH_REMATCH[6]}"
   fi
 
