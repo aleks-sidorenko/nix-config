@@ -30,6 +30,51 @@ parse_date_from_filename() {
   echo "$date_str"
 }
 
+# Get timezone offset in +HH:MM format for a given epoch (or current time)
+# Usage: get_tz_offset [epoch]
+get_tz_offset() {
+  local raw
+  if [[ -n "${1:-}" ]]; then
+    raw=$(date -d "@$1" "+%z" 2>/dev/null || \
+          date -j -f "%s" "$1" "+%z" 2>/dev/null)
+  else
+    raw=$(date "+%z")
+  fi
+  # Convert +0300 to +03:00
+  echo "${raw:0:3}:${raw:3:2}"
+}
+
+# Set DateTimeOriginal, CreateDate, ModifyDate and timezone offset tags.
+# Usage: set_all_dates <file> <date> [tz_offset]  — set from literal date string
+#        set_all_dates <file> --from-mtime         — copy from FileModifyDate
+set_all_dates() {
+  local file="$1"
+  local date_or_flag="$2"
+
+  if [[ "$date_or_flag" == "--from-mtime" ]]; then
+    local tz_offset
+    tz_offset=$(exiftool -s3 -d "%z" -FileModifyDate "$file" 2>/dev/null | sed 's/\(..\)$/:\1/')
+    exiftool -overwrite_original \
+      '-DateTimeOriginal<FileModifyDate' \
+      '-CreateDate<FileModifyDate' \
+      '-ModifyDate<FileModifyDate' \
+      -OffsetTimeOriginal="$tz_offset" \
+      -OffsetTimeDigitized="$tz_offset" \
+      -OffsetTime="$tz_offset" \
+      "$file"
+  else
+    local tz_offset="${3:-$(get_tz_offset)}"
+    exiftool -overwrite_original \
+      -DateTimeOriginal="$date_or_flag" \
+      -CreateDate="$date_or_flag" \
+      -ModifyDate="$date_or_flag" \
+      -OffsetTimeOriginal="$tz_offset" \
+      -OffsetTimeDigitized="$tz_offset" \
+      -OffsetTime="$tz_offset" \
+      "$file"
+  fi
+}
+
 # Build exiftool extension args: -ext jpg -ext jpeg -ext png ...
 exiftool_ext_args() {
   local args=""

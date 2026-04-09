@@ -55,7 +55,7 @@ fill_missing_dates_for_import() {
 
       if [[ -z "$create_date" || "$create_date" == "0000:00:00 00:00:00" ]]; then
         if [[ "$DRY_RUN" == false ]]; then
-          exiftool -overwrite_original '-CreateDate<FileModifyDate' "$file" 2>/dev/null || true
+          set_all_dates "$file" --from-mtime 2>/dev/null || true
         fi
       fi
     done < <(find "$SRC" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
@@ -86,7 +86,7 @@ print_info "Destination: $DST"
 [[ "$MOVE" == true ]] && print_info "Mode: move" || print_info "Mode: copy"
 
 depth_args=$(exiftool_depth_args)
-dst_format="$DST/%Y/%m/$FILENAME_FORMAT"
+date_format="$DST/%Y/%m/$FILENAME_FORMAT"
 
 # Common exiftool args for selecting media files above size threshold
 # shellcheck disable=SC2086
@@ -130,8 +130,9 @@ elif [[ "$MOVE" == true ]]; then
       $depth_args \
       $(exiftool_ext_args) \
       -if "\$filesize# > $MIN_FILE_SIZE" \
-      -o "$dst_format" \
-      -d "$dst_format" \
+      -o . \
+      "-FileName<CreateDate" \
+      -d "$date_format" \
       -progress \
       "$SRC"
 
@@ -146,7 +147,7 @@ else
   fill_missing_dates_for_import
 
   # Copy mode
-  run_exiftool_import -o "$dst_format" -d "$dst_format" -progress
+  run_exiftool_import -o . "-FileName<CreateDate" -d "$date_format" -progress
 fi
 
 print_info "Done."
