@@ -136,7 +136,7 @@ force_set_dates() {
     if [[ "$DRY_RUN" == true ]]; then
       print_info "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     else
-      set_all_dates "$file" "$target_date"
+      set_all_dates "$file" "$target_date" "$(get_tz_offset "$target_epoch")"
       print_info "Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     fi
   done < <(collect_media_files "$dir")
