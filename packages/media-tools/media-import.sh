@@ -86,7 +86,7 @@ print_info "Destination: $DST"
 [[ "$MOVE" == true ]] && print_info "Mode: move" || print_info "Mode: copy"
 
 depth_args=$(exiftool_depth_args)
-dst_format="$DST/%Y/%m/$FILENAME_FORMAT"
+date_format="$DST/%Y/%m/$FILENAME_FORMAT"
 
 # Common exiftool args for selecting media files above size threshold
 # shellcheck disable=SC2086
@@ -130,8 +130,9 @@ elif [[ "$MOVE" == true ]]; then
       $depth_args \
       $(exiftool_ext_args) \
       -if "\$filesize# > $MIN_FILE_SIZE" \
-      -o "$dst_format" \
-      -d "$dst_format" \
+      -o . \
+      "-FileName<CreateDate" \
+      -d "$date_format" \
       -progress \
       "$SRC"
 
@@ -146,7 +147,7 @@ else
   fill_missing_dates_for_import
 
   # Copy mode
-  run_exiftool_import -o "$dst_format" -d "$dst_format" -progress
+  run_exiftool_import -o . "-FileName<CreateDate" -d "$date_format" -progress
 fi
 
 print_info "Done."
