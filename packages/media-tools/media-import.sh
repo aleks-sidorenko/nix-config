@@ -55,7 +55,7 @@ fill_missing_dates_for_import() {
 
       if [[ -z "$create_date" || "$create_date" == "0000:00:00 00:00:00" ]]; then
         if [[ "$DRY_RUN" == false ]]; then
-          exiftool -overwrite_original '-CreateDate<FileModifyDate' "$file" 2>/dev/null || true
+          set_all_dates "$file" --from-mtime 2>/dev/null || true
         fi
       fi
     done < <(find "$SRC" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)

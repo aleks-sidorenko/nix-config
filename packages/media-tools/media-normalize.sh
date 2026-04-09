@@ -136,7 +136,7 @@ force_set_dates() {
     if [[ "$DRY_RUN" == true ]]; then
       print_info "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     else
-      exiftool -overwrite_original -CreateDate="$target_date" "$file"
+      set_all_dates "$file" "$target_date"
       print_info "Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     fi
   done < <(collect_media_files "$dir")
@@ -165,20 +165,20 @@ fill_missing_dates() {
 
       if [[ -n "$parsed_date" ]]; then
         if [[ "$DRY_RUN" == true ]]; then
-          print_info "[dry-run] Set CreateDate from filename: $file -> $parsed_date"
+          print_info "[dry-run] Set date from filename: $file -> $parsed_date"
         else
-          exiftool -overwrite_original -CreateDate="$parsed_date" "$file"
-          print_info "Set CreateDate from filename: $file -> $parsed_date"
+          set_all_dates "$file" "$parsed_date"
+          print_info "Set date from filename: $file -> $parsed_date"
         fi
         continue
       fi
 
       # Fallback 2: file modification date
       if [[ "$DRY_RUN" == true ]]; then
-        print_info "[dry-run] Set CreateDate from mtime: $file"
+        print_info "[dry-run] Set date from mtime: $file"
       else
-        exiftool -overwrite_original '-CreateDate<FileModifyDate' "$file"
-        print_info "Set CreateDate from mtime: $file"
+        set_all_dates "$file" --from-mtime
+        print_info "Set date from mtime: $file"
       fi
     done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
   done

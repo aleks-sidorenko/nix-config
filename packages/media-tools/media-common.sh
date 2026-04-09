@@ -30,6 +30,28 @@ parse_date_from_filename() {
   echo "$date_str"
 }
 
+# Set DateTimeOriginal, CreateDate, and ModifyDate on a file.
+# Usage: set_all_dates <file> <date>        — set from literal date string
+#        set_all_dates <file> --from-mtime   — copy from FileModifyDate
+set_all_dates() {
+  local file="$1"
+  local date_or_flag="$2"
+
+  if [[ "$date_or_flag" == "--from-mtime" ]]; then
+    exiftool -overwrite_original \
+      '-DateTimeOriginal<FileModifyDate' \
+      '-CreateDate<FileModifyDate' \
+      '-ModifyDate<FileModifyDate' \
+      "$file"
+  else
+    exiftool -overwrite_original \
+      -DateTimeOriginal="$date_or_flag" \
+      -CreateDate="$date_or_flag" \
+      -ModifyDate="$date_or_flag" \
+      "$file"
+  fi
+}
+
 # Build exiftool extension args: -ext jpg -ext jpeg -ext png ...
 exiftool_ext_args() {
   local args=""
