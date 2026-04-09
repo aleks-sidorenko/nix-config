@@ -21,8 +21,10 @@ Fix metadata and filenames in-place within a directory.
 
 **Steps (in order):**
 1. Lowercase file extensions via shell `mv` (`.JPG` → `.jpg`, `.MOV` → `.mov`)
-2. Fill missing EXIF `CreateDate` using fallback chain (see below) — writes to the file-type-appropriate tag (exiftool handles this automatically when writing `-CreateDate`)
-3. Skip renaming for files whose filename already matches `YYYYMMDD_HHMMSS*.ext` and have a valid `CreateDate` (EXIF backfill in step 2 still applies)
+2. Set EXIF `CreateDate`:
+   - If `--date` provided: force-write the given date to ALL files (overrides any existing `CreateDate`)
+   - Otherwise: fill missing `CreateDate` using fallback chain (see below) — writes to the file-type-appropriate tag
+3. Skip renaming for files whose filename already matches `YYYYMMDD_HHMMSS*.ext` and have a valid `CreateDate` (EXIF backfill in step 2 still applies). When `--date` is used, all files are renamed (no skip).
 4. Rename remaining files to `YYYYMMDD_HHMMSS%-c.ext` based on resolved `CreateDate`
 
 **Date fallback chain:**
@@ -48,6 +50,7 @@ media-normalize [OPTIONS] [DIRECTORY]
 |---|---|
 | `--dry-run` | Preview changes without modifying files |
 | `--recursive` | Process subdirectories |
+| `--date "YYYY-MM-DD HH:MM:SS"` | Force-set `CreateDate` on all files, bypassing the fallback chain. The oldest file (by mtime) gets this exact date; other files are offset relative to the oldest, preserving their time differences. Useful for digitized photos, video frame exports, or any files with wrong/missing dates. |
 | (no flag) | Process only top-level files in directory |
 
 - `DIRECTORY` defaults to `.`
