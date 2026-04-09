@@ -18,6 +18,7 @@ in
     ${namespace}.media = {
       players.vlc = enabled;
       shotwell = enabled;
+      tools = enabled;
     };
   };
 }
