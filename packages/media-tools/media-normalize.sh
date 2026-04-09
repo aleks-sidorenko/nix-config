@@ -105,14 +105,14 @@ force_set_dates() {
   local formatted_date
   formatted_date=$(echo "$FORCE_DATE" | sed 's/-/:/g; s/\//:/g')
   local base_epoch
-  base_epoch=$(date -j -f "%Y:%m:%d %H:%M:%S" "$formatted_date" "+%s" 2>/dev/null || \
-               date -d "${FORCE_DATE}" "+%s" 2>/dev/null)
+  base_epoch=$(date -d "${FORCE_DATE}" "+%s" 2>/dev/null || \
+               date -j -f "%Y:%m:%d %H:%M:%S" "$formatted_date" "+%s" 2>/dev/null)
 
   # Find the oldest file by mtime
   local oldest_mtime=""
   while IFS= read -r -d '' file; do
     local mtime
-    mtime=$(stat -f "%m" "$file" 2>/dev/null || stat -c "%Y" "$file" 2>/dev/null)
+    mtime=$(stat -c "%Y" "$file" 2>/dev/null || stat -f "%m" "$file" 2>/dev/null)
     if [[ -z "$oldest_mtime" || "$mtime" -lt "$oldest_mtime" ]]; then
       oldest_mtime="$mtime"
     fi
@@ -126,12 +126,12 @@ force_set_dates() {
   # Set each file's date as base_date + (file_mtime - oldest_mtime)
   while IFS= read -r -d '' file; do
     local mtime
-    mtime=$(stat -f "%m" "$file" 2>/dev/null || stat -c "%Y" "$file" 2>/dev/null)
+    mtime=$(stat -c "%Y" "$file" 2>/dev/null || stat -f "%m" "$file" 2>/dev/null)
     local offset=$(( mtime - oldest_mtime ))
     local target_epoch=$(( base_epoch + offset ))
     local target_date
-    target_date=$(date -j -f "%s" "$target_epoch" "+%Y:%m:%d %H:%M:%S" 2>/dev/null || \
-                  date -d "@${target_epoch}" "+%Y:%m:%d %H:%M:%S" 2>/dev/null)
+    target_date=$(date -d "@${target_epoch}" "+%Y:%m:%d %H:%M:%S" 2>/dev/null || \
+                  date -j -f "%s" "$target_epoch" "+%Y:%m:%d %H:%M:%S" 2>/dev/null)
 
     if [[ "$DRY_RUN" == true ]]; then
       print_info "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
