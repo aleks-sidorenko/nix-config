@@ -43,7 +43,7 @@ in
 
         ## Pull Requests
 
-        - PR title follows the same Conventional Commits format as commit messages
+        - PR title follows Conventional Commits format, reflecting the primary goal of the work
         - PR branch should be based off `master`
 
         ## Documentation Structure
