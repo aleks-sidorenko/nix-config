@@ -30,6 +30,7 @@ in
         locale.enable = true;
         networking.enable = true;
         boot.enable = true;
+        fs.enable = true;
       };
 
       cli = {

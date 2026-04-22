@@ -33,6 +33,8 @@ in
         };
         # Darwin (macOS) UI preferences (MDM may override some)
         defaults.enable = true;
+        # Raise kernel file descriptor limits (default ~49152 triggers ENFILE)
+        fs.enable = true;
         # /etc/hosts with local network entries
         networking.enable = true;
 
