@@ -13,6 +13,7 @@ in
   options.${namespace}.roles.common = with types; {
     enable = mkEnableOption "Enable common darwin configuration";
     homebrew = {
+      taps = mkOpt (listOf str) [ ] "Additional Homebrew taps";
       brews = mkOpt (listOf str) [ ] "Additional Homebrew formulae";
       casks = mkOpt (listOf str) [ ] "Additional Homebrew casks";
     };
@@ -41,6 +42,7 @@ in
         # Homebrew for CLI tools and GUI apps
         homebrew = {
           enable = true;
+          inherit (cfg.homebrew) taps;
           inherit (cfg.homebrew) brews;
           inherit (cfg.homebrew) casks;
         };

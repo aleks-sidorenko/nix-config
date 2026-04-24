@@ -20,8 +20,12 @@ in
       roles.common = {
         enable = true;
         homebrew = {
+          taps = [
+            "akeylesslabs/tap" # Akeyless CLI tap
+          ];
           brews = [
             "mas" # Mac App Store CLI
+            "akeyless" # Akeyless secrets management CLI
           ];
           casks = [
             "raycast" # Spotlight replacement
