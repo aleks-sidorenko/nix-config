@@ -127,6 +127,7 @@ in
           };
         };
         tools = {
+          coreutils.enable = true;
           moreutils.enable = true;
           atuin.enable = true;
           bat.enable = true;
