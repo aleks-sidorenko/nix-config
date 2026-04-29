@@ -30,14 +30,16 @@ just deploy vm --remote-build --verbose
 
 ```bash
 # Code quality
-just lint                  # Format, statix check, deadnix check
-just lint-fix              # Auto-fix issues (format, statix, deadnix)
-just lint-check            # Check without changes (CI-friendly)
-just format [path]         # Format nix files with nixfmt-tree
+just lint                  # Lint with statix + deadnix (read-only)
+just lint-fix              # Auto-fix lint issues (statix + deadnix)
+just format [path]         # Format nix files with nixfmt-tree (writes)
+just format-check          # Verify formatting (read-only)
+just check                 # CI-safe umbrella: format-check + lint
 
 # Build validation
-just build-test            # Test build without switching
-just check                 # Check flake for issues
+just build                 # Build configuration without switching (read-only)
+just switch                # Build and switch to new generation locally
+just flake-check           # nix flake check
 nix flake check            # Same as above
 
 # Bootstrap validation
@@ -252,8 +254,8 @@ IaC configurations in `infra/`:
 
 1. **Make changes** to modules or system configs
 2. **Format code**: `just format`
-3. **Validate**: `just lint-check`
-4. **Test build**: `just build-test` (local) or `nix flake check`
+3. **Validate**: `just check`
+4. **Test build**: `just build` (local) or `nix flake check`
 5. **Deploy**: `just deploy <hostname>` or `nh os switch` (local)
 6. **Commit**: Standard git workflow
 
