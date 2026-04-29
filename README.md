@@ -132,9 +132,9 @@ To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#adding-a-new-
 ```bash
 just update                                # Update flake inputs
 just cleanup                               # Garbage collect old generations
-just lint                                  # Format + statix + deadnix
+just lint                                  # statix + deadnix (read-only)
 just lint-fix                              # Auto-fix linting issues
-just check                                 # nix flake check
+just flake-check                           # nix flake check
 just info                                  # Show system info
 just disk-usage                            # Show nix store usage
 ```
@@ -144,8 +144,8 @@ just disk-usage                            # Show nix store usage
 ```bash
 # Typical workflow
 just format                                # Format nix files
-just lint-check                            # Verify code quality (CI-friendly)
-just build-test                            # Test build without switching
+just check                                 # Verify code quality (CI-friendly)
+just build                                 # Test build without switching
 just deploy <hostname>                     # Deploy
 ```
 

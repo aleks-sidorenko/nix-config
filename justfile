@@ -92,15 +92,15 @@ deploy hostname *extra_opts="":
     fi
 
 
-# Build and switch to a new generation locally (for testing)
-build-local:
-    @echo "🔨 Building local configuration..."
-    sudo nixos-rebuild switch --flake .
-
-# Build without switching (dry-run)
-build-test:
-    @echo "🧪 Testing build configuration..."
+# Build configuration without switching (read-only artifact)
+build:
+    @echo "🔨 Building configuration..."
     nixos-rebuild build --flake .
+
+# Build and switch to a new generation locally (mutates system)
+switch:
+    @echo "🚀 Switching to new generation locally..."
+    sudo nixos-rebuild switch --flake .
 
 # Update flake inputs (optionally a single input)
 update *input:
@@ -108,7 +108,7 @@ update *input:
     nix flake update {{ input }}
 
 # Check flake for issues
-check:
+flake-check:
     @echo "🔍 Checking flake configuration..."
     nix flake check
 
@@ -126,15 +126,23 @@ info:
     @echo "Available systems:"
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
 
-# List available NixOS configurations
-list-configs:
-    @echo "🖥️  Available NixOS configurations:"
-    @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
-
-# List available home-manager configurations
-list-homes:
-    @echo "🏠 Available home-manager configurations:"
-    @nix eval --json .#homeConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
+# List available configurations (type: all | nixos | darwin | home)
+list-configs type="all":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    show() {
+        case "$1" in
+            nixos)  echo "🖥️  Available NixOS configurations:";       attr=nixosConfigurations ;;
+            darwin) echo "🖥️  Available Darwin configurations:";      attr=darwinConfigurations ;;
+            home)   echo "🏠 Available home-manager configurations:"; attr=homeConfigurations ;;
+        esac
+        nix eval --json ".#${attr}" --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
+    }
+    case "{{ type }}" in
+        all)               show nixos; show darwin; show home ;;
+        nixos|darwin|home) show "{{ type }}" ;;
+        *) echo "Unknown type: {{ type }} (use: all, nixos, darwin, home)" >&2; exit 1 ;;
+    esac
 
 # Install packages temporarily for testing
 shell packages:
@@ -148,43 +156,35 @@ cleanup:
     @echo "🗑️  Removing old boot entries..."
     sudo /run/current-system/bin/switch-to-configuration boot
 
-# Format nix files with nixfmt-tree (default formatter)
+# Format nix files with nixfmt-tree (writes)
 format *path=".":
     @echo "✨ Formatting nix files with nixfmt-tree..."
     nix fmt {{path}}
 
-# Run all code quality checks (format, lint, dead code detection)
+# Check formatting without modifying files (read-only)
+format-check:
+    @echo "🔍 Checking nix file formatting..."
+    nix fmt -- --fail-on-change
+
+# Lint with statix and deadnix (read-only)
 lint:
-    @echo "🔍 Running comprehensive code quality checks..."
-    @echo "📝 Formatting nix files..."
-    just format
     @echo "🕵️  Checking for issues with statix..."
     statix check .
     @echo "💀 Checking for dead code with deadnix..."
     deadnix --fail .
-    @echo "✅ All quality checks passed!"
+    @echo "✅ Lint passed!"
 
-# Fix common nix issues automatically
+# Auto-fix lint issues (statix fix + deadnix --edit)
 lint-fix:
-    @echo "🔧 Auto-fixing nix issues..."
-    @echo "📝 Formatting nix files..."
-    just format
     @echo "🔧 Auto-fixing statix issues..."
     statix fix .
     @echo "💀 Removing dead code..."
     deadnix --edit .
-    @echo "✅ Auto-fixes completed!"
+    @echo "✅ Lint fixes applied!"
 
-# Check code quality without making changes
-lint-check:
-    @echo "🔍 Checking code quality (no changes)..."
-    @echo "🔍 Checking nix file formatting..."
-    nix fmt -- --fail-on-change
-    @echo "🕵️  Checking for issues with statix..."
-    statix check .
-    @echo "💀 Checking for dead code with deadnix..."
-    deadnix --fail .
-    @echo "✅ Quality check passed!"
+# Read-only quality umbrella: format-check + lint (CI-safe)
+check: format-check lint
+    @echo "✅ All quality checks passed!"
 
 # Show secrets managed by SOPS
 secrets-list:
