@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   inputs,
   namespace,
   ...
@@ -11,7 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.security.sops;
   home = config.home.homeDirectory;
-  secretsBase = if pkgs.stdenv.isDarwin then "${home}/.local/share/sops-nix" else "%r";
+  secretsBase = "${home}/.local/share/sops-nix";
 in
 {
   options.${namespace}.security.sops = with types; {
