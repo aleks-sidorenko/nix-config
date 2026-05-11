@@ -23,7 +23,7 @@ Problems:
 ## Conventions
 
 - **Hash-pinned URLs.** Every wallpaper entry uses `pkgs.fetchurl` with an SRI `hash =` field. Builds are reproducible; only referenced wallpapers are downloaded; Nix caches in `/nix/store`.
-- **Hotlink originals.** URLs point to upstream sources (Kurzgesagt, catppuccin/wallpapers, etc.). No re-uploads to a host the user controls. If an upstream rots, we replace the entry.
+- **Hotlink originals.** URLs point to upstream sources (e.g., the canonical Unsplash CDN form `https://images.unsplash.com/photo-<id>?…`). No re-uploads to a host the user controls. If an upstream rots, we replace the entry.
 - **Kebab-case names.** Registry keys use lowercase kebab-case (`earth-from-space`, `milky-way-galaxy`). Nix supports hyphenated attribute keys as quoted strings; the `wallpaper = "..."` option accepts arbitrary strings (validated by `types.enum`).
 - **Opt-in only.** The new `nix-config.styles.stylix.wallpaper` option defaults to `null`. Hosts that want a wallpaper set it explicitly. When `null`, the stylix module does not set `stylix.image`.
 
@@ -37,12 +37,9 @@ Becomes a registry of `pkgs.fetchurl` derivations:
 { pkgs, lib, ... }:
 let
   wallpapers = {
-    earth = pkgs.fetchurl {
-      url = "https://…/earth.png";
-      hash = "sha256-…";
-    };
-    galaxy = pkgs.fetchurl {
-      url = "https://…/galaxy.png";
+    some-name = pkgs.fetchurl {
+      name = "some-name.jpg";
+      url  = "https://…";
       hash = "sha256-…";
     };
     # … one entry per wallpaper
@@ -57,7 +54,7 @@ pkgs.symlinkJoin {
 
 **Key properties:**
 
-- Each `wallpapers.<name>` attribute is an independent derivation. Referencing one (e.g., `pkgs.${namespace}.wallpapers.earth`) realizes only that one file — nothing else is downloaded.
+- Each `wallpapers.<name>` attribute is an independent derivation. Referencing one (e.g., `pkgs.${namespace}.wallpapers.<name>`) realizes only that one file — nothing else is downloaded.
 - The top-level `symlinkJoin` keeps `pkgs.${namespace}.wallpapers` usable as a package (matches the shape consumers see today). Currently nothing references the join itself, so realizing the join would only happen if a consumer explicitly asked for all wallpapers — which we don't do.
 - `passthru.names` is a list of available wallpaper names, consumed by the `types.enum` constraint in the stylix option.
 
@@ -95,11 +92,11 @@ stylix.image = lib.mkIf (cfg.wallpaper != null)
 
 **Eval-time safety.** `types.enum pkgs.${namespace}.wallpapers.names` rejects unknown names at eval time with a clear error listing valid names. Typos fail fast instead of producing `attribute missing` deep in stylix.
 
-**`stylix.image` is upstream-required.** When `wallpaper = null`, this module does not set `stylix.image`, so any host that enables stylix without setting wallpaper will fail evaluation with stylix's own error. This is intended — the migration adds explicit `wallpaper = "earth"` to every host that currently relies on the hardcoded default.
+**`stylix.image` is upstream-required.** When `wallpaper = null`, this module does not set `stylix.image`, so any host that enables stylix without setting wallpaper will fail evaluation with stylix's own error. This is intended — the migration adds an explicit `wallpaper = "<chosen-name>"` to every host that currently relies on the hardcoded default.
 
 ### Host migration
 
-Four hosts currently inherit `earth` via the hardcoded stylix module. Each gets one new line setting the wallpaper to whichever entry is chosen as the default (concrete name fixed in the implementation plan):
+Four hosts currently inherit the hardcoded default via the stylix module. Each gets one new line setting the wallpaper to whichever entry is chosen as the default (concrete name fixed in the implementation plan):
 
 ```nix
 nix-config.styles.stylix.wallpaper = "<chosen-name>";
@@ -112,7 +109,7 @@ nix-config.styles.stylix.wallpaper = "<chosen-name>";
 | `homes/x86_64-linux/alexander@desktop/default.nix` | Inherits home stylix via `roles.common` |
 | `systems/x86_64-linux/desktop/default.nix` | Inherits nixos stylix via `roles.desktop` |
 
-Hosts can pick a different wallpaper by changing the value (e.g., `"galaxy"`).
+Hosts can pick a different wallpaper by changing the value to another registry name.
 
 ### macOS wallpaper module — `modules/home/desktops/wallpaper/`
 
@@ -129,7 +126,7 @@ in {
   config = lib.mkIf
     (cfg.enable && pkgs.stdenv.isDarwin && config.stylix.image != null)
     {
-      home.activation.setWallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.setWallpaper = config.lib.dag.entryAfter [ "writeBoundary" ] ''
         /usr/bin/osascript -e '
           tell application "System Events"
             tell every desktop to set picture to "${config.stylix.image}"
@@ -166,32 +163,11 @@ in {
 
 Two new recipes under the `wallpaper-*` namespace prefix (matches `bootstrap-*`, `router-*`, `secrets-*`):
 
-**`wallpaper-add <url> <name>`** — prefetches a URL and emits a registry entry to paste into `default.nix`. Does not auto-mutate the Nix file; output goes to stdout for human review and copy-paste, matching the explicit-state pattern used by `bootstrap-secrets`.
+**`wallpaper-add <name> <url>`** — runs `nix-prefetch-url` against the URL, converts the result to SRI, and prints a paste-ready `fetchurl` block (including the required `name = "<name>.jpg";` attribute). Does not auto-mutate the Nix file; output goes to stdout for human review and copy-paste, matching the explicit-state pattern used by `bootstrap-secrets`.
 
-```just
-# Prefetch a wallpaper URL and emit a registry entry for packages/wallpapers/default.nix
-wallpaper-add url name:
-    @echo "📥 Prefetching {{url}}..."
-    @hash=$(nix-prefetch-url --type sha256 "{{url}}"); \
-     sri=$(nix hash to-sri --type sha256 "$hash"); \
-     echo ""; \
-     echo "Add this to packages/wallpapers/default.nix:"; \
-     echo ""; \
-     echo "    {{name}} = pkgs.fetchurl {"; \
-     echo "      url = \"{{url}}\";"; \
-     echo "      hash = \"$sri\";"; \
-     echo "    };"
-```
+**`wallpaper-list`** — prints `pkgs.${namespace}.wallpapers.names` (resolved for the current `builtins.currentSystem`) one per line.
 
-**`wallpaper-list`** — list available wallpaper names from the package:
-
-```just
-# List available wallpapers from packages/wallpapers
-wallpaper-list:
-    @nix eval --json .#packages.x86_64-linux.wallpapers.names | jq -r '.[]'
-```
-
-(Final platform attribute resolved during implementation — picks whichever is canonical for the current host arch.)
+Concrete recipe bodies live in the implementation plan.
 
 ## Files Touched
 
@@ -204,10 +180,10 @@ wallpaper-list:
 - `packages/wallpapers/default.nix` — replaced with URL-based registry
 - `modules/nixos/styles/stylix/default.nix` — adds `wallpaper` option, conditional `stylix.image`
 - `modules/home/styles/stylix/default.nix` — adds `wallpaper` option, conditional `stylix.image`, enables wallpaper module in Darwin branch
-- `homes/aarch64-darwin/oleksandrsy@workbook/default.nix` — adds `nix-config.styles.stylix.wallpaper = "earth";`
-- `homes/x86_64-linux/alexander@vm/default.nix` — adds `nix-config.styles.stylix.wallpaper = "earth";`
-- `homes/x86_64-linux/alexander@desktop/default.nix` — adds `nix-config.styles.stylix.wallpaper = "earth";`
-- `systems/x86_64-linux/desktop/default.nix` — adds `nix-config.styles.stylix.wallpaper = "earth";`
+- `homes/aarch64-darwin/oleksandrsy@workbook/default.nix` — sets `nix-config.styles.stylix.wallpaper = "<chosen-name>";`
+- `homes/x86_64-linux/alexander@vm/default.nix` — sets `nix-config.styles.stylix.wallpaper = "<chosen-name>";`
+- `homes/x86_64-linux/alexander@desktop/default.nix` — sets `nix-config.styles.stylix.wallpaper = "<chosen-name>";`
+- `systems/x86_64-linux/desktop/default.nix` — sets `nix-config.styles.stylix.wallpaper = "<chosen-name>";`
 - `justfile` — adds `wallpaper-add` and `wallpaper-list` recipes
 
 **Deleted:**
