@@ -119,6 +119,32 @@ github-fetch-hash owner repo revision:
     @echo "🔐 Fetching hash for {{owner}}/{{repo}}@{{revision}}..."
     nix-shell -p nix-prefetch-github --run "nix-prefetch-github {{owner}} {{repo}} --rev {{revision}}"
 
+# Prefetch a wallpaper URL and emit a fetchurl entry for packages/wallpapers/default.nix
+# Usage: just wallpaper-add <name> <url>
+# Example: just wallpaper-add my-mountain "https://images.unsplash.com/photo-...?w=1920"
+wallpaper-add name url:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "📥 Prefetching {{url}}..."
+    hash=$(nix-prefetch-url --name "{{name}}.jpg" --type sha256 "{{url}}" | tail -1)
+    sri=$(nix hash convert --to sri --hash-algo sha256 "$hash")
+    echo ""
+    echo "Add this to packages/wallpapers/default.nix:"
+    echo ""
+    echo "    {{name}} = pkgs.fetchurl {"
+    echo "      name = \"{{name}}.jpg\";"
+    echo "      url  = \"{{url}}\";"
+    echo "      hash = \"$sri\";"
+    echo "    };"
+
+# List available wallpapers in the wallpapers package registry
+wallpaper-list:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    system=$(nix eval --impure --raw --expr 'builtins.currentSystem')
+    echo "🖼️  Available wallpapers:"
+    nix eval --json ".#packages.${system}.wallpapers.names" | jq -r '.[]' | sed 's/^/  /'
+
 # Show system information
 info:
     @echo "📋 System Information:"

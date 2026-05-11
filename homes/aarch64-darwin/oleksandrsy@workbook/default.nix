@@ -47,6 +47,8 @@ with lib.${namespace};
       enable = true;
       name = mkForce "oleksandrsy";
     };
+
+    styles.stylix.wallpaper = "green-plains-on-mountain";
   };
 
   home.stateVersion = "25.05";

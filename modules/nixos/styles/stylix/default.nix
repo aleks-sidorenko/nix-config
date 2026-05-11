@@ -11,6 +11,15 @@ in
 {
   options.${namespace}.styles.stylix = {
     enable = lib.mkEnableOption "Enable stylix theme management on the system level";
+
+    wallpaper = lib.mkOption {
+      type = lib.types.nullOr (lib.types.enum pkgs.${namespace}.wallpapers.names);
+      default = null;
+      description = ''
+        Name of the wallpaper from the wallpapers registry. When null,
+        stylix.image is not set by this module.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -22,7 +31,7 @@ in
       homeManagerIntegration.autoImport = false;
       homeManagerIntegration.followSystem = false;
 
-      image = pkgs.${namespace}.wallpapers.earth;
+      image = lib.mkIf (cfg.wallpaper != null) pkgs.${namespace}.wallpapers.${cfg.wallpaper};
 
       cursor = {
         name = "Bibata-Modern-Classic";

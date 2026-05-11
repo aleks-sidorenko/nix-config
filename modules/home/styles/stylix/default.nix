@@ -46,6 +46,15 @@ in
 
   options.${namespace}.styles.stylix = {
     enable = lib.mkEnableOption "Enable stylix style manager";
+
+    wallpaper = lib.mkOption {
+      type = lib.types.nullOr (lib.types.enum pkgs.${namespace}.wallpapers.names);
+      default = null;
+      description = ''
+        Name of the wallpaper from the wallpapers registry. When null,
+        stylix.image is not set by this module.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -62,7 +71,7 @@ in
           autoEnable = true;
           base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
-          image = pkgs.${namespace}.wallpapers.earth;
+          image = lib.mkIf (cfg.wallpaper != null) pkgs.${namespace}.wallpapers.${cfg.wallpaper};
 
           iconTheme = {
             enable = true;
@@ -91,8 +100,7 @@ in
           autoEnable = false;
           base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
-          # Wallpaper (for reference, Darwin (macOS) manages wallpapers separately)
-          image = pkgs.${namespace}.wallpapers.earth;
+          image = lib.mkIf (cfg.wallpaper != null) pkgs.${namespace}.wallpapers.${cfg.wallpaper};
 
           # Only fonts - icons and cursors have NixOS (Linux)-only dependencies
           fonts = fontConfig;
@@ -109,6 +117,8 @@ in
           nixvim.enable = true;
           vscode.enable = true;
         };
+
+        ${namespace}.desktops.wallpaper.enable = true;
       })
     ]
   );
