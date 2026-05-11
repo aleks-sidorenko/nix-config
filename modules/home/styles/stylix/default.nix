@@ -100,7 +100,6 @@ in
           autoEnable = false;
           base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
-          # Wallpaper (for reference, Darwin (macOS) manages wallpapers separately)
           image = lib.mkIf (cfg.wallpaper != null) pkgs.${namespace}.wallpapers.${cfg.wallpaper};
 
           # Only fonts - icons and cursors have NixOS (Linux)-only dependencies
@@ -118,6 +117,8 @@ in
           nixvim.enable = true;
           vscode.enable = true;
         };
+
+        ${namespace}.desktops.wallpaper.enable = true;
       })
     ]
   );
