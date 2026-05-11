@@ -65,20 +65,7 @@ pkgs.symlinkJoin {
 
 ### Migration of existing wallpapers
 
-The current 20 files split into:
-
-**Keep, find clean upstream URL (user provides URLs):**
-
-- `kurzgesagt-baby-star`, `kurzgesagt-cloudy-quasar-1`, `kurzgesagt-galaxies`, `kurzgesagt-galaxy-2`, `kurzgesagt-galaxy-3`, `kurzgesagt-stellar-phenomenon`, `kurzgesagt-dna`
-- `catpuccino-caramel-dark-4k`
-- `earth`, `galaxy`
-- `nixppuccin`, `rainbow-nix`, `palette`
-
-**Drop (no clean upstream — confirmed by user):**
-
-- `3kitty2`, `cat-sound`, `cat-machup`, `pizza`, `spill`, `windows-error`
-
-Final registry contains ~13 entries (subject to URL availability when populated). Names are normalized to kebab-case during migration.
+The current 20 bundled images are not preserved. The new registry starts from a clean slate with user-provided URLs collected during plan preparation. Names are kebab-case identifiers chosen by the user (not derived from prior filenames). The implementation plan is the authoritative source for the initial registry contents; this spec does not enumerate them because the list is expected to evolve via `just wallpaper-add` over time.
 
 ### Stylix option — `modules/{nixos,home}/styles/stylix/default.nix`
 
@@ -112,10 +99,10 @@ stylix.image = lib.mkIf (cfg.wallpaper != null)
 
 ### Host migration
 
-Four hosts currently inherit `earth` via the hardcoded stylix module. Each gets one new line:
+Four hosts currently inherit `earth` via the hardcoded stylix module. Each gets one new line setting the wallpaper to whichever entry is chosen as the default (concrete name fixed in the implementation plan):
 
 ```nix
-nix-config.styles.stylix.wallpaper = "earth";
+nix-config.styles.stylix.wallpaper = "<chosen-name>";
 ```
 
 | File | Why it needs the change |
@@ -237,5 +224,5 @@ wallpaper-list:
 
 ## Open Items
 
-- **URL list** — provided by the user before implementation (per Q5 = 5a). Spec assumes ~13 final entries (numbers may shift slightly depending on which kurzgesagt files have stable URLs).
+- **URL list** — collected by the user during plan preparation (per Q5 = 5a). Concrete registry contents live in the implementation plan and may grow over time via `just wallpaper-add`.
 - **Sonoma reboot quirk** — if observed in practice after rollout, follow-up swaps osascript implementation for `desktoppr`.
