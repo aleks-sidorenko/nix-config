@@ -19,7 +19,7 @@ with lib.${namespace};
       };
     };
 
-    styles.stylix.wallpaper = "green-plains-on-mountain";
+    styles.stylix.wallpaper = "sun-light-passing-through-green-leafed-tree";
   };
 
   boot = {
