@@ -19,6 +19,7 @@ with lib.${namespace};
       };
     };
 
+    styles.stylix.wallpaper = "green-plains-on-mountain";
   };
 
   boot = {

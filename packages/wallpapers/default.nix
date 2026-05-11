@@ -4,50 +4,30 @@
   ...
 }:
 let
-  images = builtins.attrNames (builtins.readDir ./wallpapers);
-  mkWallpaper =
-    name: src:
-    let
-      fileName = builtins.baseNameOf src;
-      pkg = pkgs.stdenvNoCC.mkDerivation {
-        inherit name src;
+  wallpapers = {
+    green-plains-on-mountain = pkgs.fetchurl {
+      name = "green-plains-on-mountain.jpg";
+      url = "https://images.unsplash.com/photo-1547285629-6cab32b3dfdb?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=med-nadjib-ramdane-yg9fwePu9Og-unsplash.jpg&w=1920";
+      hash = "sha256-JHbmgI3HtDAek6MCLs9j6P4ATsgHt4JWJTD6Qhi0jbk=";
+    };
 
-        dontUnpack = true;
+    the-sun-shines-through-the-fog-in-the-mountains = pkgs.fetchurl {
+      name = "the-sun-shines-through-the-fog-in-the-mountains.jpg";
+      url = "https://images.unsplash.com/photo-1654169761064-95b4c1e2be6e?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=rob-bates-4He7i9d-Uyw-unsplash.jpg&w=1920";
+      hash = "sha256-OBigjxIJ6ixKzYZ+xfpLRRlj34qU+mu6JdYGcZEC+Fg=";
+    };
 
-        installPhase = ''
-          cp $src $out
-        '';
-
-        passthru = { inherit fileName; };
-      };
-    in
-    pkg;
-  names = builtins.map lib.snowfall.path.get-file-name-without-extension images;
-  wallpapers = lib.foldl (
-    acc: image:
-    let
-      # fileName = builtins.baseNameOf image;
-      # lib.getFileName is a helper to get the basename of
-      # the file and then take the name before the file extension.
-      # eg. mywallpaper.png -> mywallpaper
-      name = lib.snowfall.path.get-file-name-without-extension image;
-    in
-    acc // { "${name}" = mkWallpaper name (./wallpapers + "/${image}"); }
-  ) { } images;
-  installTarget = "$out/share/wallpapers";
+    sun-light-passing-through-green-leafed-tree = pkgs.fetchurl {
+      name = "sun-light-passing-through-green-leafed-tree.jpg";
+      url = "https://images.unsplash.com/photo-1518495973542-4542c06a5843?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=jeremy-bishop-EwKXn5CapA4-unsplash.jpg&w=1920";
+      hash = "sha256-C7VUTpShF2LhQwVfZAcVnAQJDHuASr4VHqAV7ZlHcDc=";
+    };
+  };
 in
-pkgs.stdenvNoCC.mkDerivation {
+pkgs.symlinkJoin {
   name = "wallpapers";
-  src = ./wallpapers;
-
-  installPhase = ''
-    mkdir -p ${installTarget}
-
-    find * -type f -mindepth 0 -maxdepth 0 -exec cp ./{} ${installTarget}/{} ';'
-  '';
-
-  passthru = {
-    inherit names;
-  }
-  // wallpapers;
+  paths = lib.attrValues wallpapers;
+  passthru = wallpapers // {
+    names = lib.attrNames wallpapers;
+  };
 }

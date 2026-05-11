@@ -17,6 +17,8 @@ with lib.${namespace};
       enable = true;
     };
 
+    styles.stylix.wallpaper = "green-plains-on-mountain";
+
     desktops.monitors = {
       enable = true;
       devices = [
