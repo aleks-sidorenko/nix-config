@@ -9,6 +9,21 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.development.ai.claude-code;
+  settingsFile = (pkgs.formats.json { }).generate "claude-settings.json" {
+    attribution = {
+      commit = "";
+      pr = "";
+    };
+    includeCoAuthoredBy = false;
+    model = "claude-opus-4-7";
+    effortLevel = "high";
+    enabledPlugins = {
+      "superpowers@superpowers-marketplace" = true;
+      "superpowers@claude-plugins-official" = true;
+    };
+    alwaysThinkingEnabled = true;
+    skipDangerousModePermissionPrompt = true;
+  };
 in
 {
   options.${namespace}.development.ai.claude-code = with types; {
@@ -52,19 +67,12 @@ in
         - `docs/plans/` - Implementation plans
       '';
 
-      file.".claude/settings.json".text = lib.generators.toJSON { } {
-        attribution = {
-          commit = "";
-          pr = "";
-        };
-        model = "claude-opus-4-7";
-        enabledPlugins = {
-          "superpowers@superpowers-marketplace" = true;
-          "superpowers@claude-plugins-official" = true;
-        };
-        alwaysThinkingEnabled = true;
-        skipDangerousModePermissionPrompt = true;
-      };
     };
+
+    home.activation.claudeSettings = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      target="${config.home.homeDirectory}/.claude/settings.json"
+      run mkdir -p "$(dirname "$target")"
+      run install -m 0644 ${settingsFile} "$target"
+    '';
   };
 }
