@@ -36,6 +36,7 @@ in
 
     platforms = {
       jvm = mkEnableOption "Enable JVM platform support";
+      node = mkEnableOption "Enable Node.js platform support";
     };
 
     editors = {
@@ -71,6 +72,7 @@ in
         };
         platforms = {
           jvm.enable = cfg.platforms.jvm || cfg.languages.java || cfg.languages.scala;
+          node.enable = cfg.platforms.node || cfg.languages.typescript;
         };
         editors = {
           code = {

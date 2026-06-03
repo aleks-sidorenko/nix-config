@@ -37,6 +37,7 @@ in
             scala = true;
             java = true;
             haskell = true;
+            typescript = true;
           };
           editors = {
             cursor = true;
