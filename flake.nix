@@ -123,7 +123,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     catppuccin = {
-      url = "github:catppuccin/nix";
+      # Pinned: newer revs define programs.antigravity, which home-manager release-25.11 lacks.
+      # Unpin once home-manager has the antigravity module.
+      url = "github:catppuccin/nix/4b0f5b7bf7b3eeb484d49524f3c9791864ab9362";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

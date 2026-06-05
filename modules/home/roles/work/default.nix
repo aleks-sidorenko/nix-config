@@ -40,7 +40,6 @@ in
             typescript = true;
           };
           editors = {
-            cursor = true;
             idea = true;
           };
           build = {
