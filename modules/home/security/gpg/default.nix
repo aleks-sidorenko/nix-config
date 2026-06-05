@@ -45,7 +45,7 @@ in
       defaultCacheTtlSsh = cfg.cacheTtl;
       maxCacheTtl = cfg.cacheTtl;
       maxCacheTtlSsh = cfg.cacheTtl;
-      pinentry.package = pkgs.pinentry-curses;
+      pinentry.package = if config.gtk.enable then pkgs.pinentry-gnome3 else pkgs.pinentry-curses;
       extraConfig = ''
         allow-preset-passphrase
         ttyname $GPG_TTY
