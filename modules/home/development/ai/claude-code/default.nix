@@ -15,7 +15,6 @@ let
       pr = "";
     };
     includeCoAuthoredBy = false;
-    model = "claude-opus-4-7";
     effortLevel = "high";
     enabledPlugins = {
       "superpowers@superpowers-marketplace" = true;
