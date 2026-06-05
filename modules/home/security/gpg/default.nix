@@ -45,7 +45,16 @@ in
       defaultCacheTtlSsh = cfg.cacheTtl;
       maxCacheTtl = cfg.cacheTtl;
       maxCacheTtlSsh = cfg.cacheTtl;
-      pinentry.package = if config.gtk.enable then pkgs.pinentry-gnome3 else pkgs.pinentry-curses;
+      # sops-nix decryption runs without a TTY (systemd user service on Linux,
+      # launchd agent on darwin), so a terminal pinentry can never prompt there.
+      # Use a GUI pinentry on graphical hosts; fall back to curses for headless.
+      pinentry.package =
+        if pkgs.stdenv.isDarwin then
+          pkgs.pinentry_mac
+        else if config.gtk.enable then
+          pkgs.pinentry-gnome3
+        else
+          pkgs.pinentry-curses;
       extraConfig = ''
         allow-preset-passphrase
         ttyname $GPG_TTY
