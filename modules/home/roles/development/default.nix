@@ -137,10 +137,11 @@ in
           direnv.enable = true;
           eza.enable = true;
           fzf.enable = true;
-          gh = {
-            enable = true;
-            githubToken = true;
-          };
+          # githubToken (GH_TOKEN) left off: GH_TOKEN shadows the keyring OAuth
+          # login, and the classic PAT it carries is rejected by SSO orgs.
+          # Interactive machines use `gh auth login` instead.
+          # Enable githubToken per-host on headless servers that have no keyring.
+          gh.enable = true;
           git.enable = true;
           htop.enable = true;
           modern-unix.enable = true;
