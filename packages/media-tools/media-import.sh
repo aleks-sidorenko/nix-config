@@ -77,17 +77,31 @@ run_exiftool_import() {
 }
 
 if [[ "$DRY_RUN" == true ]]; then
-  # Preview: use -p to print source -> destination mapping without copying
-  # shellcheck disable=SC2086
-  exiftool \
-    $depth_args \
-    $(exiftool_ext_args) \
-    -if "\$filesize# > $MIN_FILE_SIZE" \
-    -p "\$filename -> $DST/\$CreateDate" \
-    -d "%Y/%m/%Y%m%d_%H%M%S.%le" \
-    "$SRC" 2>/dev/null || true
+  # Preview source -> destination without modifying anything. exiftool selects
+  # the same files a real run would (extensions + size threshold + depth); dates
+  # come from resolve_date (EXIF -> filename -> mtime) so Telegram filenames
+  # preview correctly — exiftool's $CreateDate would be blank for them.
+  mapfile -t preview_files < <(
+    # shellcheck disable=SC2086
+    exiftool -q -m $depth_args $(exiftool_ext_args) \
+      -if "\$filesize# > $MIN_FILE_SIZE" \
+      -p "\$Directory/\$FileName" \
+      "$SRC" 2>/dev/null || true
+  )
+
+  if [[ ${#preview_files[@]} -eq 0 ]]; then
+    print_info "No files to import."
+  fi
+  for file in "${preview_files[@]}"; do
+    IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
+    compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
+    ext="${file##*.}"
+    ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+    print_info "$file -> $DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.$ext  [$rsource]"
+  done
 elif [[ "$MOVE" == true ]]; then
-  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
+  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
+  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
   fill_missing_dates "$SRC"
 
   # Collect matching source file paths before copying
@@ -120,7 +134,8 @@ elif [[ "$MOVE" == true ]]; then
     done
   fi
 else
-  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
+  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
+  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
   fill_missing_dates "$SRC"
 
   # Copy mode
