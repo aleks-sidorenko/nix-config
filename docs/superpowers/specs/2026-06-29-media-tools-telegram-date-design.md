@@ -76,8 +76,15 @@ implementations.
 - `media-normalize` calls the shared function (behavior identical to today).
 - `media-import` replaces `fill_missing_dates_for_import` with a call to the shared
   function before its copy/move step, so a direct `media-import` on a Telegram export now
-  recovers post dates too.
+  recovers post dates too. Note: the old `fill_missing_dates_for_import` carries a stale
+  comment claiming source files are "NOT modified," but it actually mutates them via
+  `set_all_dates ... -overwrite_original`. Both the old and shared functions mutate in
+  place; drop/correct that comment when replacing it (behavior is unchanged).
 - `default.nix` already ships `media-common.sh`; no packaging change for this part.
+
+`media-info` is added to the existing `for script in ...` wrap loop in `default.nix`
+(not a separate install step), so it inherits the same `SCRIPT_DIR` `substituteInPlace`
+patch and `wrapProgram` PATH prefix and can `source` the installed `media-common.sh`.
 
 ### 3. New `media-info <file>` troubleshooting tool
 
@@ -99,6 +106,12 @@ For the given file it prints:
 To support clean reuse, factor the "resolve date + source" decision into a shared
 `resolve_date <file>` helper in `media-common.sh`, which both `media-info` (display) and
 the fill-chain (section 2) build on — one source of truth for precedence.
+
+**`resolve_date` contract:** prints exactly two tab-separated fields to stdout —
+`<date>\t<source>`, where `<date>` is `YYYY:MM:DD HH:MM:SS` and `<source>` is one of
+`EXIF` / `filename` / `mtime`. Callers split on the tab. This fixed shape is what both
+`media-info` and `fill_missing_dates` consume, so they cannot couple to different
+formats.
 
 Expected output for the two samples:
 
