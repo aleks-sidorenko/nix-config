@@ -136,6 +136,43 @@ set_all_dates() {
   fi
 }
 
+# Fill missing CreateDate on all media files in <dir>, in place.
+# Skips files that already have a valid CreateDate (EXIF source).
+# Otherwise sets dates from the filename pattern, else from mtime.
+# Honors DRY_RUN and RECURSIVE globals. Mutates source files (-overwrite_original).
+fill_missing_dates() {
+  local dir="$1"
+  local find_depth=("-maxdepth" "1")
+  if [[ "$RECURSIVE" == true ]]; then
+    find_depth=()
+  fi
+
+  local ext file date source
+  for ext in $EXTENSIONS; do
+    while IFS= read -r -d '' file; do
+      IFS=$'\t' read -r date source < <(resolve_date "$file")
+      case "$source" in
+        EXIF)
+          continue ;;
+        filename)
+          if [[ "$DRY_RUN" == true ]]; then
+            print_info "[dry-run] Set date from filename: $file -> $date"
+          else
+            set_all_dates "$file" "$date"
+            print_info "Set date from filename: $file -> $date"
+          fi ;;
+        mtime)
+          if [[ "$DRY_RUN" == true ]]; then
+            print_info "[dry-run] Set date from mtime: $file"
+          else
+            set_all_dates "$file" --from-mtime
+            print_info "Set date from mtime: $file"
+          fi ;;
+      esac
+    done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
+  done
+}
+
 # Build exiftool extension args: -ext jpg -ext jpeg -ext png ...
 exiftool_ext_args() {
   local args=""
