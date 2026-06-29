@@ -71,6 +71,8 @@ if [[ -f "$PHOTO" && -f "$VIDEO" ]]; then
   # For the mtime case we only assert the source label (date == export mtime, varies)
   assert_eq "resolve_date: unmatched photo falls back to mtime" \
     "mtime" "$(resolve_date "$WORK/random_name.jpg" | cut -f2)"
+  assert_eq "resolve_date: missing file returns non-zero" \
+    "1" "$(resolve_date "$WORK/does_not_exist.jpg" >/dev/null 2>&1; echo $?)"
 else
   echo "skip - resolve_date integration (sample files not found at $SAMPLES)"
 fi

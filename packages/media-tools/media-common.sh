@@ -67,6 +67,10 @@ filename_pattern_name() {
 # Echoes TAB-separated: "<YYYY:MM:DD HH:MM:SS>\t<EXIF|filename|mtime>".
 resolve_date() {
   local file="$1"
+  if [[ ! -f "$file" ]]; then
+    print_error "resolve_date: not a file: $file"
+    return 1
+  fi
 
   local create_date
   create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
