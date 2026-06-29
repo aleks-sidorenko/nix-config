@@ -46,21 +46,53 @@ Two structural issues compound the bug:
 
 ## Design
 
-### 1. Recognize the Telegram filename date
+### 1. A pluggable filename-pattern registry
 
-In `media-common.sh`, extend `parse_date_from_filename` with a third pattern, tried
-**after** the existing `re_prefixed` and `re_dashed` patterns so it never shadows
-ISO-style names:
+Today `parse_date_from_filename` hardcodes its patterns in an `if/elif` chain, and each
+branch reassembles `BASH_REMATCH` in its own ad-hoc group order. Adding a new source
+(Telegram now, Viber/WhatsApp/etc. later) means editing control flow. Replace this with a
+**declarative registry** so a new format is one table entry, no logic change.
+
+**Registry shape.** A single ordered, indexed array `FILENAME_DATE_PATTERNS` in
+`media-common.sh`. Each entry is one string with three tab-separated fields:
 
 ```
-re_telegram='[@_]([0-9]{2})-([0-9]{2})-([0-9]{4})_([0-9]{2})-([0-9]{2})-([0-9]{2})'
-#            sep   DD          MM          YYYY        HH          MM          SS
+"<name>\t<regex>\t<group-order>"
 ```
 
-- Anchored on the `@` or `_` separator that precedes the date in Telegram exports,
-  keeping the match tight (Telegram-specific scope).
-- Reorders day-first capture groups into exiftool's `YYYY:MM:DD HH:MM:SS`:
-  `photo_455@21-06-2026_15-17-04` → `2026:06:21 15:17:04`.
+- `<name>` — label for the source (`prefixed`, `dashed`, `telegram`, …). Surfaced by
+  `media-info` as the matched source and useful in errors.
+- `<regex>` — an ERE with six capture groups, stored as a string (preserving the existing
+  bash-5.3 workaround of not inlining regexes with bracket-space classes).
+- `<group-order>` — six space-separated `BASH_REMATCH` indices giving the groups in
+  **Y M D H Mi S** order. This is what makes day-first vs year-first formats declarative
+  instead of code: the assembler reads groups in this order and emits
+  `YYYY:MM:DD HH:MM:SS`. (Tab is the field delimiter because the regexes legitimately
+  contain spaces, e.g. `[_ ]`, but never literal tabs.)
+
+Initial registry (order = match precedence; first match wins):
+
+```
+prefixed  ^(IMG_|PXL_|VID_|Screenshot_)?([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})   2 3 4 5 6 7
+dashed    ([0-9]{4})-([0-9]{2})-([0-9]{2})[_ ]([0-9]{2})[-.]([0-9]{2})[-.]([0-9]{2})                     1 2 3 4 5 6
+telegram  [@_]([0-9]{2})-([0-9]{2})-([0-9]{4})_([0-9]{2})-([0-9]{2})-([0-9]{2})                          3 2 1 4 5 6
+```
+
+- The first two entries reproduce the current `re_prefixed` / `re_dashed` behavior
+  exactly (no regression).
+- `telegram` is the new entry: anchored on the `@`/`_` separator (Telegram-specific
+  scope), day-first, so group order `3 2 1 …` maps `21-06-2026` →
+  `2026:06:21`. It is listed **after** the year-first patterns so it never shadows
+  ISO-style names. Example: `photo_455@21-06-2026_15-17-04` → `2026:06:21 15:17:04`.
+
+**`parse_date_from_filename`** becomes a generic loop: strip the extension, iterate
+`FILENAME_DATE_PATTERNS` in order, test each `<regex>`, and on first match assemble the
+date from `<group-order>`. It still prints the `YYYY:MM:DD HH:MM:SS` string (or empty on
+no match) — its existing contract is unchanged, so all callers keep working.
+
+**Adding a future format (e.g. Viber)** = append one line to `FILENAME_DATE_PATTERNS`
+with its regex and group order. No edits to `parse_date_from_filename`, the fill-chain,
+or `media-info`.
 
 Precedence is unchanged overall: **EXIF CreateDate → filename → mtime**.
 
@@ -138,7 +170,7 @@ non-zero with a clear message. It does not require `MEDIA_HOME`.
 
 | File | Change |
 |------|--------|
-| `media-common.sh` | Add `re_telegram` pattern to `parse_date_from_filename`; add shared `fill_missing_dates <dir>` and `resolve_date <file>` helpers |
+| `media-common.sh` | Add `FILENAME_DATE_PATTERNS` registry (incl. new `telegram` entry); rewrite `parse_date_from_filename` as a generic registry loop; add shared `fill_missing_dates <dir>` and `resolve_date <file>` helpers |
 | `media-normalize.sh` | Use shared `fill_missing_dates` (drop local copy) |
 | `media-import.sh` | Replace `fill_missing_dates_for_import` with shared `fill_missing_dates` |
 | `media-info.sh` | New read-only inspector script |
@@ -163,5 +195,9 @@ Against copies of the two sample files in a scratch dir:
 4. `media-import --dry-run` on the photo maps it under `.../2026/06/20260621_151704.jpg`
    (post date), confirming import now uses the filename fallback.
 5. `parse_date_from_filename` still returns the same results for existing
-   `IMG_YYYYMMDD_HHMMSS` and ISO `YYYY-MM-DD` names (no regression).
-6. `just lint` / shellcheck clean; `nix build` of the package succeeds.
+   `IMG_YYYYMMDD_HHMMSS` and ISO `YYYY-MM-DD` names (no regression) — confirming the
+   `prefixed`/`dashed` registry entries reproduce prior behavior.
+6. Extensibility check: appending a throwaway entry to `FILENAME_DATE_PATTERNS` (e.g. a
+   `viber` regex with its own group order) makes a matching test filename resolve via
+   that entry, with no edit to `parse_date_from_filename`.
+7. `just lint` / shellcheck clean; `nix build` of the package succeeds.
