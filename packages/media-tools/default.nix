@@ -24,7 +24,7 @@ pkgs.stdenvNoCC.mkDerivation {
     cp media-common.sh $out/lib/media-tools/
 
     # Install scripts and wrap with runtime deps
-    for script in media-normalize media-import; do
+    for script in media-normalize media-import media-info; do
       cp "$script.sh" "$out/bin/$script"
       chmod +x "$out/bin/$script"
 
