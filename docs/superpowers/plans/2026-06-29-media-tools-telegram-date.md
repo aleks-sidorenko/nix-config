@@ -435,16 +435,16 @@ git commit -m "fix(media-tools): import recovers telegram post dates via shared 
 
 - [ ] **Step 1: Write the failing integration test**
 
-Add to `run-tests.sh` (inside the `if [[ -f "$PHOTO" ... ]]` block from Task 3, or a new guarded block):
+Add to `run-tests.sh` **inside the existing `if [[ -f "$PHOTO" && -f "$VIDEO" ]]` block from Task 3** (do NOT open a new block — `$WORK` and the copied fixtures are defined only inside that block; a separate `if` would leave `$WORK` unbound and fail under `set -u`):
 
 ```bash
-if [[ -f "$PHOTO" ]]; then
+  # (these lines go inside Task 3's `if [[ -f "$PHOTO" && -f "$VIDEO" ]]` block,
+  #  after the resolve_date assertions, so $WORK is in scope)
   info_out="$(bash "$LIB_DIR/media-info.sh" "$WORK/photo_455@21-06-2026_15-17-04.jpg")"
   assert_eq "media-info resolved source is filename" \
     "1" "$(grep -c 'source: filename' <<<"$info_out")"
   assert_eq "media-info would-become name is post date" \
     "1" "$(grep -c '20260621_151704.jpg' <<<"$info_out")"
-fi
 ```
 
 - [ ] **Step 2: Run to verify failure**
@@ -563,7 +563,7 @@ The existing `substituteInPlace` (SCRIPT_DIR patch) and `wrapProgram` (PATH pref
 
 - [ ] **Step 2: Build the package**
 
-Run: `nix build .#media-tools` (or the appropriate attr — discover via `nix eval --json .#packages.aarch64-darwin --apply builtins.attrNames 2>/dev/null` or check how the package is referenced in the flake; fall back to `nix-build` on the derivation if needed).
+Run: `nix build .#packages.aarch64-darwin.media-tools` (the package is snowfall-namespaced; the bare `.#media-tools` attr will NOT resolve). If the attr path differs, discover it via `nix eval --json .#packages.aarch64-darwin --apply builtins.attrNames 2>/dev/null`.
 Expected: build succeeds; `result/bin/` contains `media-info`, `media-normalize`, `media-import`.
 
 - [ ] **Step 3: Run the wrapped binary (deps on PATH, no nix shell needed)**
