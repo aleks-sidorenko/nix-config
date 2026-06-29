@@ -96,8 +96,7 @@ if [[ "$DRY_RUN" == true ]]; then
     IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
     compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
     ext="${file##*.}"
-    ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
-    print_info "$file -> $DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.$ext  [$rsource]"
+    print_info "$file -> $DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.${ext,,}  [$rsource]"
   done
 elif [[ "$MOVE" == true ]]; then
   # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
