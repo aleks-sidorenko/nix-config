@@ -39,29 +39,6 @@ parse_args() {
   parse_common_args "${remaining[@]}"
 }
 
-# Ensure all matching files have a CreateDate (fill from mtime if missing).
-# This is done in a temporary copy of metadata only — source files are NOT modified.
-# Exiftool's -o with date format skips files without CreateDate, so we need this.
-fill_missing_dates_for_import() {
-  local find_depth=("-maxdepth" "1")
-  if [[ "$RECURSIVE" == true ]]; then
-    find_depth=()
-  fi
-
-  for ext in $EXTENSIONS; do
-    while IFS= read -r -d '' file; do
-      local create_date
-      create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
-
-      if [[ -z "$create_date" || "$create_date" == "0000:00:00 00:00:00" ]]; then
-        if [[ "$DRY_RUN" == false ]]; then
-          set_all_dates "$file" --from-mtime 2>/dev/null || true
-        fi
-      fi
-    done < <(find "$SRC" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
-  done
-}
-
 # Main
 parse_args "$@"
 SRC="${POSITIONAL[0]:-.}"
@@ -100,18 +77,31 @@ run_exiftool_import() {
 }
 
 if [[ "$DRY_RUN" == true ]]; then
-  # Preview: use -p to print source -> destination mapping without copying
-  # shellcheck disable=SC2086
-  exiftool \
-    $depth_args \
-    $(exiftool_ext_args) \
-    -if "\$filesize# > $MIN_FILE_SIZE" \
-    -p "\$filename -> $DST/\$CreateDate" \
-    -d "%Y/%m/%Y%m%d_%H%M%S.%le" \
-    "$SRC" 2>/dev/null || true
+  # Preview source -> destination without modifying anything. exiftool selects
+  # the same files a real run would (extensions + size threshold + depth); dates
+  # come from resolve_date (EXIF -> filename -> mtime) so Telegram filenames
+  # preview correctly — exiftool's $CreateDate would be blank for them.
+  mapfile -t preview_files < <(
+    # shellcheck disable=SC2086
+    exiftool -q -m $depth_args $(exiftool_ext_args) \
+      -if "\$filesize# > $MIN_FILE_SIZE" \
+      -p "\$Directory/\$FileName" \
+      "$SRC" 2>/dev/null || true
+  )
+
+  if [[ ${#preview_files[@]} -eq 0 ]]; then
+    print_info "No files to import."
+  fi
+  for file in "${preview_files[@]}"; do
+    IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
+    compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
+    ext="${file##*.}"
+    print_info "$file -> $DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.${ext,,}  [$rsource]"
+  done
 elif [[ "$MOVE" == true ]]; then
-  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
-  fill_missing_dates_for_import
+  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
+  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
+  fill_missing_dates "$SRC"
 
   # Collect matching source file paths before copying
   mapfile -d '' src_files < <(
@@ -143,8 +133,9 @@ elif [[ "$MOVE" == true ]]; then
     done
   fi
 else
-  # Fill missing CreateDate from mtime so exiftool -o can resolve all files
-  fill_missing_dates_for_import
+  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
+  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
+  fill_missing_dates "$SRC"
 
   # Copy mode
   run_exiftool_import -o . "-FileName<CreateDate" -d "$date_format" -progress

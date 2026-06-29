@@ -142,48 +142,6 @@ force_set_dates() {
   done < <(collect_media_files "$dir")
 }
 
-# Fallback chain mode: fill missing dates only
-fill_missing_dates() {
-  local dir="$1"
-  local find_depth=("-maxdepth" "1")
-  if [[ "$RECURSIVE" == true ]]; then
-    find_depth=()
-  fi
-
-  for ext in $EXTENSIONS; do
-    while IFS= read -r -d '' file; do
-      local create_date
-      create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
-
-      if [[ -n "$create_date" && "$create_date" != "0000:00:00 00:00:00" ]]; then
-        continue
-      fi
-
-      # Fallback 1: parse from filename
-      local parsed_date
-      parsed_date=$(parse_date_from_filename "$file")
-
-      if [[ -n "$parsed_date" ]]; then
-        if [[ "$DRY_RUN" == true ]]; then
-          print_info "[dry-run] Set date from filename: $file -> $parsed_date"
-        else
-          set_all_dates "$file" "$parsed_date"
-          print_info "Set date from filename: $file -> $parsed_date"
-        fi
-        continue
-      fi
-
-      # Fallback 2: file modification date
-      if [[ "$DRY_RUN" == true ]]; then
-        print_info "[dry-run] Set date from mtime: $file"
-      else
-        set_all_dates "$file" --from-mtime
-        print_info "Set date from mtime: $file"
-      fi
-    done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
-  done
-}
-
 # Step 3: Rename files to canonical format
 rename_files() {
   local dir="$1"
