@@ -73,6 +73,13 @@ if [[ -f "$PHOTO" && -f "$VIDEO" ]]; then
     "mtime" "$(resolve_date "$WORK/random_name.jpg" | cut -f2)"
   assert_eq "resolve_date: missing file returns non-zero" \
     "1" "$(resolve_date "$WORK/does_not_exist.jpg" >/dev/null 2>&1; echo $?)"
+
+  # --- media-info (integration) ---
+  info_out="$(bash "$LIB_DIR/media-info.sh" "$WORK/photo_455@21-06-2026_15-17-04.jpg")"
+  assert_eq "media-info resolved source is filename" \
+    "1" "$(grep -c 'source: filename' <<<"$info_out")"
+  assert_eq "media-info would-become name is post date" \
+    "1" "$(grep -c '20260621_151704.jpg' <<<"$info_out")"
 else
   echo "skip - resolve_date integration (sample files not found at $SAMPLES)"
 fi
