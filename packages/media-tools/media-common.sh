@@ -33,6 +33,10 @@ parse_date_from_filename() {
     if [[ "$filename" =~ $regex ]]; then
       # shellcheck disable=SC2086
       set -- $order  # positional params 1..6 = group indices for Y M D H Mi S
+      if [[ $# -ne 6 ]]; then
+        print_error "filename pattern '$name' has ${#} group-order tokens (need 6); skipping"
+        continue
+      fi
       printf '%s:%s:%s %s:%s:%s\n' \
         "${BASH_REMATCH[$1]}" "${BASH_REMATCH[$2]}" "${BASH_REMATCH[$3]}" \
         "${BASH_REMATCH[$4]}" "${BASH_REMATCH[$5]}" "${BASH_REMATCH[$6]}"
