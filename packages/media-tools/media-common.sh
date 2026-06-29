@@ -168,6 +168,8 @@ fill_missing_dates() {
             set_all_dates "$file" --from-mtime
             print_info "Set date from mtime: $file"
           fi ;;
+        *)
+          print_error "fill_missing_dates: unknown source '$source' for $file" ;;
       esac
     done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
   done
