@@ -62,6 +62,31 @@ filename_pattern_name() {
   echo ""
 }
 
+# Decide which date a file would receive and where it comes from.
+# Precedence: embedded EXIF/QuickTime CreateDate -> filename pattern -> file mtime.
+# Echoes TAB-separated: "<YYYY:MM:DD HH:MM:SS>\t<EXIF|filename|mtime>".
+resolve_date() {
+  local file="$1"
+
+  local create_date
+  create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
+  if [[ -n "$create_date" && "$create_date" != "0000:00:00 00:00:00" ]]; then
+    printf '%s\t%s\n' "$create_date" "EXIF"
+    return 0
+  fi
+
+  local parsed
+  parsed=$(parse_date_from_filename "$file")
+  if [[ -n "$parsed" ]]; then
+    printf '%s\t%s\n' "$parsed" "filename"
+    return 0
+  fi
+
+  local mtime_date
+  mtime_date=$(exiftool -s3 -d "%Y:%m:%d %H:%M:%S" -FileModifyDate "$file" 2>/dev/null || true)
+  printf '%s\t%s\n' "$mtime_date" "mtime"
+}
+
 # Get timezone offset in +HH:MM format for a given epoch (or current time)
 # Usage: get_tz_offset [epoch]
 get_tz_offset() {

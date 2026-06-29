@@ -51,4 +51,28 @@ FILENAME_DATE_PATTERNS+=(
 assert_eq "newly-registered viber pattern works without code change" \
   "2025:12:31 09:08:07" "$(parse_date_from_filename 'viber_image_2025-12-31-09-08-07.jpg')"
 
+# --- resolve_date (integration; needs sample files + exiftool) ---
+SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
+PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"
+VIDEO="$SAMPLES/IMG_3449.MOV"
+
+if [[ -f "$PHOTO" && -f "$VIDEO" ]]; then
+  WORK="$(mktemp -d)"
+  trap 'rm -rf "$WORK"' EXIT
+  cp "$PHOTO" "$WORK/"
+  cp "$VIDEO" "$WORK/"
+  # mtime-only fixture: telegram photo renamed so no pattern matches and EXIF is absent
+  cp "$PHOTO" "$WORK/random_name.jpg"
+
+  assert_eq "resolve_date: video uses EXIF" \
+    "2026:06:18 18:50:10	EXIF" "$(resolve_date "$WORK/IMG_3449.MOV")"
+  assert_eq "resolve_date: telegram photo uses filename" \
+    "2026:06:21 15:17:04	filename" "$(resolve_date "$WORK/photo_455@21-06-2026_15-17-04.jpg")"
+  # For the mtime case we only assert the source label (date == export mtime, varies)
+  assert_eq "resolve_date: unmatched photo falls back to mtime" \
+    "mtime" "$(resolve_date "$WORK/random_name.jpg" | cut -f2)"
+else
+  echo "skip - resolve_date integration (sample files not found at $SAMPLES)"
+fi
+
 finish
