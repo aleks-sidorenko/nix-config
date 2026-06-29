@@ -8,26 +8,54 @@ MIN_FILE_SIZE=30000  # 30KB - skip thumbnails/artifacts
 # Normalized filename pattern: YYYYMMDD_HHMMSS with optional -N suffix
 NORMALIZED_PATTERN='^[0-9]{8}_[0-9]{6}(-[0-9]+)?\.'
 
-# Filename date patterns for fallback parsing
-# Returns date string in "YYYY:MM:DD HH:MM:SS" exiftool format, or empty
+# Pluggable filename date-pattern registry.
+# Each entry is TAB-separated: "<name>\t<ERE with 6 capture groups>\t<group-order>"
+# <group-order> is 6 space-separated BASH_REMATCH indices in Y M D H Mi S order.
+# Patterns are tried top to bottom; first match wins. Year-first patterns come
+# before day-first ones so they are never shadowed.
+# To support a new source (e.g. viber/whatsapp), append one line here — no code change.
+FILENAME_DATE_PATTERNS=(
+  "$(printf 'prefixed\t^(IMG_|PXL_|VID_|Screenshot_)?([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})\t2 3 4 5 6 7')"
+  "$(printf 'dashed\t([0-9]{4})-([0-9]{2})-([0-9]{2})[_ ]([0-9]{2})[-.]([0-9]{2})[-.]([0-9]{2})\t1 2 3 4 5 6')"
+  "$(printf 'telegram\t[@_]([0-9]{2})-([0-9]{2})-([0-9]{4})_([0-9]{2})-([0-9]{2})-([0-9]{2})\t3 2 1 4 5 6')"
+)
+
+# Parse a date from a filename using FILENAME_DATE_PATTERNS.
+# Echoes "YYYY:MM:DD HH:MM:SS" on first match, or empty string on no match.
 parse_date_from_filename() {
   local filename
   filename=$(basename "$1")
   filename="${filename%.*}"  # strip extension
 
-  local date_str=""
+  local entry name regex order
+  for entry in "${FILENAME_DATE_PATTERNS[@]}"; do
+    IFS=$'\t' read -r name regex order <<<"$entry"
+    if [[ "$filename" =~ $regex ]]; then
+      # shellcheck disable=SC2086
+      set -- $order  # positional params 1..6 = group indices for Y M D H Mi S
+      printf '%s:%s:%s %s:%s:%s\n' \
+        "${BASH_REMATCH[$1]}" "${BASH_REMATCH[$2]}" "${BASH_REMATCH[$3]}" \
+        "${BASH_REMATCH[$4]}" "${BASH_REMATCH[$5]}" "${BASH_REMATCH[$6]}"
+      return 0
+    fi
+  done
+  echo ""
+}
 
-  # Try each pattern (stored in variables to avoid bash 5.3 regex parsing issues with spaces in bracket expressions)
-  local re_prefixed='^(IMG_|PXL_|VID_|Screenshot_)?([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})'
-  local re_dashed='([0-9]{4})-([0-9]{2})-([0-9]{2})[_ ]([0-9]{2})[-.]([0-9]{2})[-.]([0-9]{2})'
-
-  if [[ "$filename" =~ $re_prefixed ]]; then
-    date_str="${BASH_REMATCH[2]}:${BASH_REMATCH[3]}:${BASH_REMATCH[4]} ${BASH_REMATCH[5]}:${BASH_REMATCH[6]}:${BASH_REMATCH[7]}"
-  elif [[ "$filename" =~ $re_dashed ]]; then
-    date_str="${BASH_REMATCH[1]}:${BASH_REMATCH[2]}:${BASH_REMATCH[3]} ${BASH_REMATCH[4]}:${BASH_REMATCH[5]}:${BASH_REMATCH[6]}"
-  fi
-
-  echo "$date_str"
+# Echo the name of the filename-pattern that matches (or empty). Used by media-info.
+filename_pattern_name() {
+  local filename
+  filename=$(basename "$1")
+  filename="${filename%.*}"
+  local entry name regex order
+  for entry in "${FILENAME_DATE_PATTERNS[@]}"; do
+    IFS=$'\t' read -r name regex order <<<"$entry"
+    if [[ "$filename" =~ $regex ]]; then
+      echo "$name"
+      return 0
+    fi
+  done
+  echo ""
 }
 
 # Get timezone offset in +HH:MM format for a given epoch (or current time)
