@@ -23,7 +23,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Check flake
         run: nix flake check --all-systems --show-trace
@@ -39,7 +39,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Check formatting
         run: |
@@ -75,7 +75,7 @@ jobs:
             extra-platforms = aarch64-linux
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build NixOS system
         run: |
@@ -113,7 +113,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build Home Manager configuration
         run: |
@@ -144,7 +144,7 @@ jobs:
           extra-conf: ${{ matrix.system == 'aarch64-linux' && 'extra-platforms = aarch64-linux' || '' }}
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build packages
         run: |
@@ -169,7 +169,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build darwin system configuration
         run: |
@@ -195,7 +195,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Check deployment configuration
         run: |
@@ -222,7 +222,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build development shell
         run: |

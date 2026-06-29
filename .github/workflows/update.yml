@@ -23,7 +23,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Configure git identity
         run: |
@@ -83,7 +83,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Setup Nix Magic Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: DeterminateSystems/magic-nix-cache-action@v14
 
       - name: Build wallpapers package
         run: |
