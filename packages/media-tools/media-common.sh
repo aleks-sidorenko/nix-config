@@ -2,7 +2,9 @@
 set -euo pipefail
 
 EXTENSIONS="jpg jpeg png heic mp4 mov"
-FILENAME_FORMAT="%Y%m%d_%H%M%S%%-c.%%e"
+# %%le lowercases the extension so imported files match the normalized form
+# (e.g. .MOV -> .mov), consistent with media-normalize and media-info.
+FILENAME_FORMAT="%Y%m%d_%H%M%S%%-c.%%le"
 MIN_FILE_SIZE=30000  # 30KB - skip thumbnails/artifacts
 
 # Normalized filename pattern: YYYYMMDD_HHMMSS with optional -N suffix
