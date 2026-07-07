@@ -3,36 +3,15 @@
   inputs,
   config,
   namespace,
-  system,
   ...
 }:
 with lib;
 with lib.${namespace};
-with inputs;
 let
   cfg = config.${namespace}.cli.editors.nvim;
-
-  nvim' = inputs.self.packages.${system}.nvim;
-
-  nvim = nvim'.extend {
-    # Pass development options from the home configuration
-    config.development = {
-      haskell.enable = lib.mkIf cfg.development.haskell (lib.mkForce true);
-      rust.enable = lib.mkIf cfg.development.rust (lib.mkForce true);
-      python.enable = lib.mkIf cfg.development.python (lib.mkForce true);
-      go.enable = lib.mkIf cfg.development.go (lib.mkForce true);
-      typescript.enable = lib.mkIf cfg.development.typescript (lib.mkForce true);
-      scala.enable = lib.mkIf cfg.development.scala (lib.mkForce true);
-      java.enable = lib.mkIf cfg.development.java (lib.mkForce true);
-    };
-    # Pass AI options from the home configuration
-    config.ai = {
-      copilot.enable = lib.mkIf cfg.ai.copilot (lib.mkForce true);
-      claude-code.enable = lib.mkIf cfg.ai.claude-code (lib.mkForce true);
-    };
-  };
 in
 {
+  imports = [ inputs.nix-nvim.homeManagerModules.default ];
 
   options.${namespace}.cli.editors.nvim = with types; {
     enable = mkEnableOption "Enable neovim editor";
@@ -55,22 +34,31 @@ in
   };
 
   config = mkIf cfg.enable {
+    programs.nix-nvim = {
+      enable = true;
+      theme = "catppuccin";
+      development = {
+        haskell.enable = cfg.development.haskell;
+        rust.enable = cfg.development.rust;
+        python.enable = cfg.development.python;
+        go.enable = cfg.development.go;
+        typescript.enable = cfg.development.typescript;
+        scala.enable = cfg.development.scala;
+        java.enable = cfg.development.java;
+      };
+      ai = {
+        copilot.enable = cfg.ai.copilot;
+        claude-code.enable = cfg.ai.claude-code;
+      };
+    };
 
     ${namespace}.cli.editors.default = mkIf cfg.default {
       enable = true;
       name = "nvim";
     };
 
-    # If I want to explose minimal versions of this to different systems, there is .extend.appstream
-    # https://github.com/nix-community/nixvim/blob/05331006/docs/platforms/standalone.md#extending-an-existing-configuration
-    home.packages = [
-      nvim
-    ];
-
-    # Covered with nixvim.vimdiffAlias
     home.shellAliases.vimdiff = "nvim -d";
 
-    # Enable Stylix for Neovim (nixvim target is safe on all platforms)
     stylix.targets.nixvim.enable = mkIf config.${namespace}.styles.stylix.enable true;
 
     xdg.desktopEntries = lib.optionalAttrs config.${namespace}.desktops.addons.xdg.enable {
