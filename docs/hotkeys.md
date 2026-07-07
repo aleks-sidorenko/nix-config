@@ -111,11 +111,13 @@ Same everywhere:
 
 ### Screenshots
 
-| Action | Binding |
-|---|---|
-| Area screenshot | `Print` |
-| Active window | `Shift+Print` |
-| Full screen | `Ctrl+Print` |
+| Action | Binding (Hyprland) | Binding (GNOME) |
+|---|---|---|
+| Area screenshot | `Print` | `Ctrl+Print` |
+| Active window | `Shift+Print` | `Shift+Print` |
+| Full screen | `Ctrl+Print` | `Print` |
+
+> **Note:** Hyprland and GNOME bind `Print` and `Ctrl+Print` to opposite actions (`Shift+Print` = active window on both). GNOME's plain `Print` follows the GNOME default (full screen).
 
 ### Hyprland-Only
 
