@@ -35,9 +35,6 @@ jobs:
           - type: "home"
             name: "alexander@vm"
             attr: 'homeConfigurations."alexander@vm".activationPackage'
-          - type: "package"
-            name: "nvim"
-            attr: "packages.x86_64-linux.nvim"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

@@ -148,9 +148,6 @@ jobs:
 
       - name: Build packages
         run: |
-          # Build nvim package
-          nix build .#packages.${{ matrix.system }}.nvim --show-trace || echo "nvim package not available for ${{ matrix.system }}"
-
           # Build install package
           nix build .#packages.${{ matrix.system }}.install --show-trace || echo "install package not available for ${{ matrix.system }}"
 
@@ -178,10 +175,6 @@ jobs:
       - name: Build darwin Home Manager configuration
         run: |
           nix build .#homeConfigurations."oleksandrsy@workbook".activationPackage --show-trace
-
-      - name: Build darwin packages
-        run: |
-          nix build .#packages.aarch64-darwin.nvim --show-trace || echo "nvim package not available for aarch64-darwin"
 
   check-deployment:
     name: "Check Deployment"
