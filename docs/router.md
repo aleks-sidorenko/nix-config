@@ -1,11 +1,14 @@
 # Router Management
 
-The MikroTik RouterOS configuration is managed declaratively using [terranix](https://github.com/terranix/terranix) (Nix-based Terraform) and [OpenTofu](https://opentofu.org/).
+The MikroTik RouterOS configuration is managed declaratively. The RouterOS module abstraction lives in the standalone [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) flake (a `nix run .#router` entrypoint built on [terranix](https://github.com/terranix/terranix) and [OpenTofu](https://opentofu.org/)); this repo only holds the host-specific configuration and state.
 
 ## Architecture
 
 ```
-Nix modules (infra/router/modules/*.nix)
+infra/router/default.nix (host config)
+    │
+    ▼
+nix-routeros flake ── mkRouterDerivation
     │
     ▼
 terranix ── generates ──▶ Terraform JSON
@@ -14,26 +17,21 @@ terranix ── generates ──▶ Terraform JSON
 OpenTofu ── applies via REST API ──▶ MikroTik RouterOS
 ```
 
+`infra/router/default.nix` calls `inputs.nix-routeros.lib.mkRouterDerivation`, passing the declarative router config (bridge ports, DNS, WiFi/CAPsMAN, LTE, firewall, hosts) plus SOPS secrets and the state directory. The RouterOS resource schema and terranix/OpenTofu wiring are provided by the flake.
+
 ## Configuration Structure
 
 ```
 infra/router/
-├── default.nix           # Terranix derivation and backup script
+├── default.nix           # Router config passed to mkRouterDerivation + SSH backup script
 ├── hosts.nix             # Static host/device definitions (IPs, MACs)
-├── imports.nix           # Module imports
+├── imports.nix           # RouterOS resource ID mappings (for `terraform import` of existing config)
+├── encryption.tf         # OpenTofu state encryption configuration
 ├── secrets.yaml          # SOPS-encrypted secrets
-├── terraform.tfstate     # OpenTofu state (natively encrypted)
-├── modules/
-│   ├── provider.nix      # RouterOS Terraform provider config
-│   ├── bridge.nix        # Bridge interface configuration
-│   ├── capsman.nix       # CAPsMAN wireless access point controller
-│   ├── dhcp.nix          # DHCP server and static leases
-│   ├── dns.nix           # DNS server and upstream configuration
-│   ├── firewall.nix      # Firewall rules, NAT, address lists
-│   ├── interfaces.nix    # Network interfaces (ethernet, PPPoE, LTE, OpenVPN)
-│   ├── system.nix        # System settings (hostname, timezone)
-│   └── misc.nix          # Miscellaneous configuration
-└── .terraform/           # OpenTofu providers (auto-managed)
+├── terraform.tfstate     # OpenTofu state (natively encrypted, committed)
+├── README.md             # Operational notes (banned address list, DHCP leases)
+├── config.tf.json        # Generated Terraform JSON (build artifact, untracked)
+└── .terraform/           # OpenTofu providers (auto-managed, untracked)
 ```
 
 ## Prerequisites
@@ -129,3 +127,5 @@ This SSHs into the router, creates a backup file (`nix-<timestamp>`), and downlo
 ## Managed Devices
 
 Static DHCP leases and DNS entries are defined in `infra/router/hosts.nix`. See [docs/homelab.md](homelab.md) for the network layout table.
+
+Day-to-day operational notes — inspecting DHCP leases and managing the `banned` address list (hosts blocked from WAN traffic) — live in [`infra/router/README.md`](../infra/router/README.md).

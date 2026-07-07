@@ -47,7 +47,7 @@
 | [home-manager](https://github.com/nix-community/home-manager)     | User environment management          |
 | [nix-darwin](https://github.com/nix-darwin/nix-darwin)            | macOS system configuration           |
 | [deploy-rs](https://github.com/serokell/deploy-rs)                | Remote NixOS deployment              |
-| [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) | Remote NixOS installation            |
+| [nixos-anywhere](https://github.com/numtide/nixos-anywhere)      | Remote NixOS installation            |
 | [disko](https://github.com/nix-community/disko)                   | Declarative disk partitioning        |
 | [sops-nix](https://github.com/Mic92/sops-nix)                     | Secrets management with SOPS         |
 | [impermanence](https://github.com/nix-community/impermanence)     | Opt-in state persistence             |
@@ -55,3 +55,12 @@
 | [nixvim](https://github.com/nix-community/nixvim)                 | Neovim configuration in Nix          |
 | [terranix](https://github.com/terranix/terranix)                  | Terraform/OpenTofu in Nix            |
 | [nixos-hardware](https://github.com/NixOS/nixos-hardware)         | Hardware-specific NixOS modules      |
+
+## First-Party Flakes
+
+Reusable pieces extracted from this config into standalone flakes:
+
+| Flake | Description |
+| ----- | ----------- |
+| [nix-nvim](https://github.com/aleks-sidorenko/nix-nvim) | Neovim configuration (nixvim-based), sourced by `modules/home/cli/editors/nvim` |
+| [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) | MikroTik RouterOS management (`mkRouterDerivation`), used by `infra/router` |

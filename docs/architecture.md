@@ -28,8 +28,7 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 │   ├── home/                       # Home-manager user modules
 │   └── darwin/                     # nix-darwin macOS modules
 ├── packages/                       # Custom packages (auto-discovered)
-│   ├── nvim/                       # Neovim config via nixvim
-│   ├── install/                    # Installer ISO
+│   ├── media-tools/                # Media inspection/recovery utilities
 │   └── wallpapers/                 # Wallpaper package
 ├── overlays/                       # Nixpkgs overlays (auto-discovered)
 ├── lib/                            # Custom library functions (auto-discovered)
@@ -145,13 +144,15 @@ Data structure (not functions) providing shared defaults:
 | `networkAddress cidr` | Derive network address from CIDR |
 | `prefixLength cidr` | Extract prefix length from CIDR |
 
-### `lib/terraform` - Terranix Helpers
+### `lib/misc` - Miscellaneous Helpers
 
 | Function | Description |
 |----------|-------------|
-| `mkTerranixDerivation { pkgs, system, name, modules, stateDir?, secretsFile?, secrets? }` | Create terranix derivation with OpenTofu and SOPS integration |
+| `mkMimeAssociations app types` | Build an attrset associating each MIME `type` with `app` (for default-application config) |
+| `mkId parts` | Join `parts` with `_` (underscore-separated identifier) |
+| `mkFriendlyName parts` | Join `parts` with `/` (slash-separated friendly name) |
 
-Generates `show`, `plan`, `apply`, `destroy` scripts. Auto-discovers modules from `terraformModulesPath` if provided.
+> **Note:** Router/terranix derivation helpers previously lived in `lib/terraform`. That logic now lives in the standalone [`nix-routeros`](https://github.com/aleks-sidorenko/nix-routeros) flake (`mkRouterDerivation`) — see [docs/router.md](router.md).
 
 ## Multi-Architecture Support
 
@@ -178,7 +179,10 @@ Generates `show`, `plan`, `apply`, `destroy` scripts. Auto-discovers modules fro
 | nixos-anywhere | latest | Remote NixOS installation |
 | stylix | release-25.11 | System-wide theming |
 | nixvim | nixos-25.11 | Neovim in Nix |
+| nix-nvim | latest | First-party Neovim config flake (extracted; sourced by `modules/home/cli/editors/nvim`) |
 | terranix | latest | Terraform/OpenTofu in Nix |
+| nix-routeros | latest | First-party MikroTik RouterOS flake (extracted; `mkRouterDerivation`) |
 | Hyprland ecosystem | latest | hypr-contrib, hyprcursor, pyprland, hyprpanel |
 | nix-homebrew | latest | Homebrew integration for macOS |
 | catppuccin | latest | Catppuccin color scheme |
+| catppuccin-obs | latest | Catppuccin theme for OBS |

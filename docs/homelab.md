@@ -73,31 +73,11 @@ Configuration for all media services: `modules/nixos/services/media/`
 
 ## Networking
 
-### Tailscale
-
-VPN mesh network connecting all hosts. Provides secure access to homelab services from anywhere.
-
-Configuration: `modules/nixos/services/networking/tailscale/`
-
 ### Nginx
 
 Reverse proxy for internal services. Routes traffic to appropriate backends.
 
 Configuration: `modules/nixos/services/networking/nginx/`
-
-## Containers & Orchestration
-
-### Podman
-
-Container runtime (Docker-compatible, rootless). Used for running containerized services.
-
-Configuration: `modules/nixos/services/virtualisation/podman/`
-
-### k3s
-
-Lightweight Kubernetes distribution. Supports both server and agent modes with token-based authentication.
-
-Configuration: `modules/nixos/services/k3s/`
 
 ## Gaming
 
@@ -107,20 +87,23 @@ Dedicated Minecraft server with configured ops, difficulty (hard), and game rule
 
 Configuration: `modules/nixos/services/gaming/minecraft-server/`
 
-## Printing
-
-### CUPS
-
-Print server with network sharing support.
-
-Configuration: `modules/nixos/services/printing/`
-
 ## Backup
 
 Restic-based backup system with client-server architecture:
 
 - **Restic client** (`modules/nixos/services/backup/restic/`) - Scheduled backups with retention policies
 - **Restic server** (`modules/nixos/services/backup/restic-server/`) - REST API server for receiving backups
+
+## Available Modules (Not Currently Enabled)
+
+These service modules exist in the repo but are **not** enabled by the `home-server` role, so they do not run on `server` in the current configuration. Enable them explicitly if needed.
+
+| Module | Purpose | Configuration |
+| ------ | ------- | ------------- |
+| **Tailscale** | VPN mesh network for secure remote access | `modules/nixos/services/networking/tailscale/` |
+| **Podman** | Rootless, Docker-compatible container runtime | `modules/nixos/services/virtualisation/podman/` |
+| **k3s** | Lightweight Kubernetes (server/agent, token auth) | `modules/nixos/services/k3s/` |
+| **CUPS** | Print server with network sharing | `modules/nixos/services/printing/` |
 
 ## Enabling Services
 
