@@ -20,7 +20,7 @@ let
     sun-light-passing-through-green-leafed-tree = pkgs.fetchurl {
       name = "sun-light-passing-through-green-leafed-tree.jpg";
       url = "https://images.unsplash.com/photo-1518495973542-4542c06a5843?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=jeremy-bishop-EwKXn5CapA4-unsplash.jpg&w=1920";
-      hash = "sha256-C7VUTpShF2LhQwVfZAcVnAQJDHuASr4VHqAV7ZlHcDc=";
+      hash = "sha256-vdYzU6hWCaYBC6bBjVj4jghAwUByfEjXGRLAE+cj/Xs=";
     };
   };
 in
