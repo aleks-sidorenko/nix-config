@@ -19,7 +19,7 @@ with lib.${namespace};
       };
     };
 
-    styles.stylix.wallpaper = "sun-light-passing-through-green-leafed-tree";
+    styles.stylix.wallpaper = "galaxy";
   };
 
   boot = {

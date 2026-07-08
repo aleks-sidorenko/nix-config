@@ -151,6 +151,16 @@ just deploy <hostname>                     # Deploy
 
 CI runs on push/PR to master: flake check, formatting, security scan (Trivy). Full system and home-manager builds run on master branch only. Flake inputs are auto-updated weekly.
 
+## Companion flakes
+
+Reusable components are maintained as standalone flakes and consumed as inputs here:
+
+| Flake | Description |
+|-------|-------------|
+| [nix-nvim](https://github.com/aleks-sidorenko/nix-nvim) | Configurable Neovim distribution built with nixvim |
+| [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) | MikroTik RouterOS management with terranix |
+| [nix-wallpapers](https://github.com/aleks-sidorenko/nix-wallpapers) | Vendored wallpaper collection (hermetic, no hash drift) |
+
 ## Documentation
 
 | Document | Description |
@@ -164,3 +174,7 @@ CI runs on push/PR to master: flake check, formatting, security scan (Trivy). Fu
 ## Credits
 
 See [docs/references.md](docs/references.md) for inspirations, resources, and wallpaper credits.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
