@@ -111,6 +111,11 @@
       inputs.terranix.follows = "terranix";
     };
 
+    nix-wallpapers = {
+      url = "github:aleks-sidorenko/nix-wallpapers";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Styling
 
     catppuccin-obs = {

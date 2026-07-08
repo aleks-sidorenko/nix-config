@@ -48,7 +48,7 @@ with lib.${namespace};
       name = mkForce "oleksandrsy";
     };
 
-    styles.stylix.wallpaper = "green-plains-on-mountain";
+    styles.stylix.wallpaper = "earth";
   };
 
   home.stateVersion = "25.05";

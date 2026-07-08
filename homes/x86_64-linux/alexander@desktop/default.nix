@@ -17,7 +17,7 @@ with lib.${namespace};
       enable = true;
     };
 
-    styles.stylix.wallpaper = "sun-light-passing-through-green-leafed-tree";
+    styles.stylix.wallpaper = "earth";
 
     desktops.monitors = {
       enable = true;

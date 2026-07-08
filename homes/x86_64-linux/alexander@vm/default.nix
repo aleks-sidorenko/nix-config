@@ -16,7 +16,7 @@ with lib.${namespace};
       enable = true;
     };
 
-    styles.stylix.wallpaper = "green-plains-on-mountain";
+    styles.stylix.wallpaper = "earth";
   };
 
   home.stateVersion = "25.05";
