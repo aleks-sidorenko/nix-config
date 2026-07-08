@@ -41,6 +41,17 @@ in
         NSAutomaticCapitalizationEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
       };
+
+      # Free the Ctrl+Arrow keys so Neovim's window-resize bindings
+      # (Ctrl+Up/Down/Left/Right) reach the editor instead of being
+      # captured by macOS. AeroSpace already handles workspaces, so the
+      # native Mission Control / Move-a-Space shortcuts are redundant.
+      CustomUserPreferences."com.apple.symbolichotkeys".AppleSymbolicHotKeys = {
+        "32".enabled = false; # Mission Control        (Ctrl+Up)
+        "36".enabled = false; # Application windows     (Ctrl+Down)
+        "79".enabled = false; # Move left a space       (Ctrl+Left)
+        "81".enabled = false; # Move right a space      (Ctrl+Right)
+      };
     };
   };
 }
