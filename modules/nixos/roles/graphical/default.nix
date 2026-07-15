@@ -11,7 +11,7 @@ let
 in
 {
   options.${namespace}.roles.graphical = {
-    enable = mkEnableOption "Enable the graphical environment suite (GNOME, virtualisation, gaming)";
+    enable = mkEnableOption "Enable the graphical environment suite (GNOME, gaming)";
   };
 
   config = mkIf cfg.enable {
@@ -34,13 +34,6 @@ in
 
       desktops = {
         gnome.enable = true;
-      };
-
-      services = {
-        virtualisation = {
-          virtualbox = enabled;
-          podman = enabled;
-        };
       };
 
       system.hibernation.enable = true;

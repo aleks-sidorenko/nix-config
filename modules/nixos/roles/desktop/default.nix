@@ -21,6 +21,14 @@ in
       roles = {
         graphical = enabled;
       };
+
+      # Virtualisation is desktop-specific (not wanted on the family laptop).
+      services = {
+        virtualisation = {
+          virtualbox = enabled;
+          podman = enabled;
+        };
+      };
     };
   };
 }
