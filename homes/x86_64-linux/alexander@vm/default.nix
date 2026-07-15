@@ -10,6 +10,7 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
+      # development intentionally not enabled on the test VM.
     };
 
     user = {

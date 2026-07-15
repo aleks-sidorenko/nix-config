@@ -16,12 +16,12 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      # A homebook is a desktop-class laptop: reuse the desktop role wholesale.
-      roles.desktop = enabled;
+      # A homebook is a desktop-class laptop: reuse the desktop role wholesale
+      # plus the laptop role for power management.
+      roles = {
+        desktop = enabled;
+        laptop = enabled;
+      };
     };
-
-    # Laptop power management (stock NixOS, GNOME-compatible; not tlp, which
-    # would conflict with power-profiles-daemon).
-    services.power-profiles-daemon.enable = true;
   };
 }

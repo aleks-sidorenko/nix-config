@@ -102,6 +102,29 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
+# Build the minimal NixOS installer ISO (output at ./result/iso/)
+iso-build:
+    @echo "💿 Building minimal installer ISO..."
+    nix build .#install-isoConfigurations.minimal
+    @echo "✅ ISO available at ./result/iso/ (nixos-minimal-*.iso)"
+
+# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX)
+iso-write device:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
+    if [ -z "$iso" ]; then
+        echo "❌ No ISO found — run 'just iso-build' first"; exit 1
+    fi
+    echo "⚠️  About to write $iso to {{device}}"
+    echo "⚠️  This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
+    sleep 5
+    sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
+    echo "✅ Written — you can now boot {{device}} (login: nixos / nixos)"
+
+# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
+iso device: iso-build (iso-write device)
+
 # Update flake inputs (optionally a single input)
 update *input:
     @echo "📦 Updating flake inputs..."

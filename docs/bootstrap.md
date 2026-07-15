@@ -21,17 +21,15 @@ For a fresh machine with no OS (or to boot into a NixOS live environment), build
 the custom minimal installer ISO from this flake and write it to a USB stick.
 
 ```bash
-# 1. Build the image (output symlinked at ./result)
-nix build .#install-isoConfigurations.minimal
-
-# 2. Locate the .iso
-ls -lh ./result/iso/           # nixos-minimal-*.iso
-
-# 3. Identify the target USB device (double-check — this is destructive!)
+# Identify the target USB device first (double-check — writing is destructive!)
 lsblk
 
-# 4. Write it to the USB stick (replace sdX with your device, NOT a partition)
-sudo dd if=./result/iso/nixos-minimal-*.iso of=/dev/sdX bs=4M status=progress conv=fsync
+# Build the ISO and write it to the USB stick in one step (replace sdX)
+just iso /dev/sdX
+
+# …or run the steps separately:
+just iso-build            # -> ./result/iso/nixos-minimal-*.iso
+just iso-write /dev/sdX   # dd the built image to the device
 ```
 
 Boot the target from the USB stick and log in as **`nixos`** / **`nixos`**. The

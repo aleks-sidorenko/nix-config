@@ -27,22 +27,8 @@ in
     ${namespace} = {
       roles = {
         common = enabled;
-        development = {
-          # mkDefault so a composing role (e.g. homebook) can turn development
-          # off without an eval conflict. Desktop hosts still get it enabled.
-          enable = mkDefault true;
-          ai = {
-            copilot = false;
-            claude-code = true;
-          };
-          languages = {
-            haskell = true;
-            rust = false;
-            python = true;
-            go = false;
-            typescript = true;
-          };
-        };
+        # development is intentionally NOT part of the desktop suite; enable it
+        # per-home where it is actually needed (see alexander@desktop / @vm).
         media = enabled;
         mobile = enabled;
         gaming = enabled;

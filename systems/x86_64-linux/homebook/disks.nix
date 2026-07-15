@@ -19,7 +19,7 @@ with lib.${namespace};
           device = "/dev/disk/by-id/REPLACE-ME"; # TODO
           encrypted = false;
           boot = {
-            size = "512M";
+            size = "1G";
           };
           content = [
             {
