@@ -47,32 +47,17 @@ let
     "input"
   ];
 
+  # Pure per-entry account. The singular `nix-config.user` alias is NOT folded
+  # in here; it is merged into the primary account separately (see config
+  # below), letting the module system do the merging.
   mkUser =
     name: u:
     let
-      isPrimary = name == primaryName;
-
-      # The singular `nix-config.user` alias is the primary's group/password
-      # injection surface (podman/virtualbox/kvm and the desktop role write to
-      # it). Fold those contributions into the primary account only.
-      aliasGroups = optionals isPrimary userAlias.extraGroups;
-      aliasInitialPassword = if isPrimary then userAlias.initialPassword else null;
-      aliasHashedPasswordFile = if isPrimary then userAlias.hashedPasswordFile else null;
-      aliasExtraOptions = if isPrimary then userAlias.extraOptions else { };
-
-      initialPassword =
-        if u.initialPassword != null then
-          u.initialPassword
-        else if aliasInitialPassword != null then
-          aliasInitialPassword
-        else
-          name;
+      initialPassword = if u.initialPassword != null then u.initialPassword else name;
 
       hashedPasswordFile =
         if u.hashedPasswordFile != null then
           u.hashedPasswordFile
-        else if aliasHashedPasswordFile != null then
-          aliasHashedPasswordFile
         else if sopsEnabled then
           config.sops.secrets."user-${name}-password".path
         else
@@ -83,7 +68,6 @@ let
         ++ optionals u.admin [ "wheel" ]
         ++ optionals (u.profile == "child") childGroups
         ++ u.extraGroups
-        ++ aliasGroups
       );
     in
     {
@@ -98,8 +82,21 @@ let
 
       extraGroups = groups;
     }
-    // u.extraOptions
-    // aliasExtraOptions;
+    // u.extraOptions;
+
+  # Everything set on the singular `nix-config.user` alias, merged onto the
+  # primary account as a whole rather than property-by-property. The module
+  # system concatenates extraGroups and lets explicit scalars override.
+  primaryAlias = {
+    extraGroups = userAlias.extraGroups;
+  }
+  // optionalAttrs (userAlias.initialPassword != null) {
+    initialPassword = mkForce userAlias.initialPassword;
+  }
+  // optionalAttrs (userAlias.hashedPasswordFile != null) {
+    hashedPasswordFile = mkForce userAlias.hashedPasswordFile;
+  }
+  // userAlias.extraOptions;
 in
 {
   options.${namespace} = {
@@ -138,7 +135,12 @@ in
     ${namespace}.user.name = mkIf (primaryName != null) (mkDefault primaryName);
 
     users.mutableUsers = false;
-    users.users = mapAttrs mkUser usersCfg;
+    users.users = mkMerge [
+      (mapAttrs mkUser usersCfg)
+      # Fold the singular alias into the primary as a second definition; the
+      # module system merges it with the base above.
+      (mkIf (primaryName != null) { ${primaryName} = primaryAlias; })
+    ];
 
     # snowfall-lib auto-creates a system user per home dir and defaults every
     # one to admin (adds `wheel`). Disable its wheel handling so `nix-config.users`
