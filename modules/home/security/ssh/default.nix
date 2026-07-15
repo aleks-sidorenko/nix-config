@@ -8,7 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
-  identity = config.${namespace}.security.identity;
+  identity = lib.${namespace}.resolveIdentity config;
 
   relativePublicKeyPath = ".ssh/id_ed25519.pub";
 in

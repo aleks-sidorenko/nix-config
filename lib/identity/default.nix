@@ -1,4 +1,8 @@
-{ ... }:
+{
+  lib,
+  namespace,
+  ...
+}:
 let
   # This file is lib/identity/default.nix, so `../..` is the flake root, where
   # the top-level identities/ folder lives (see identities/README.md).
@@ -28,4 +32,33 @@ rec {
       p = identityDir name + "/${file}";
     in
     if builtins.pathExists p then p else null;
+
+  ## Resolve the active identity for a home config into its public key material.
+  ## The identity name comes from `${namespace}.security.identity.name` (a home
+  ## option that defaults to the account username). Files/content are null when
+  ## the identity has no folder under identities/.
+  ##
+  ## ```nix
+  ## (lib.nix-config.resolveIdentity config).sshPublicKey
+  ## ```
+  #@ AttrSet -> AttrSet
+  resolveIdentity =
+    config:
+    let
+      name = config.${namespace}.security.identity.name;
+      content =
+        file:
+        let
+          p = identityFile name file;
+        in
+        if p != null then lib.trim (builtins.readFile p) else null;
+    in
+    {
+      inherit name;
+      available = builtins.pathExists (identityDir name);
+      gpgPublicKeyFile = identityFile name "gpg.pub.asc";
+      gpgKeyId = content "gpg.key-id";
+      sshPublicKeyFile = identityFile name "ssh.pub";
+      sshPublicKey = content "ssh.pub";
+    };
 }

@@ -9,7 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.gpg;
-  identity = config.${namespace}.security.identity;
+  identity = lib.${namespace}.resolveIdentity config;
 
   gpgInitScript = ''
     gpg-connect-agent updatestartuptty /bye >/dev/null
