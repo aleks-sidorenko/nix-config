@@ -33,19 +33,17 @@ rec {
     in
     if builtins.pathExists p then p else null;
 
-  ## Resolve the active identity for a home config into its public key material.
-  ## The identity name comes from `${namespace}.security.identity.name` (a home
-  ## option that defaults to the account username). Files/content are null when
-  ## the identity has no folder under identities/.
+  ## Resolve an identity name into its public key material. This is the shared
+  ## entry point used by every context (home, NixOS, darwin). Files/content are
+  ## null when the identity has no folder under identities/.
   ##
   ## ```nix
-  ## (lib.nix-config.resolveIdentity config).sshPublicKey
+  ## (lib.nix-config.resolveIdentityByName "alexander").sshPublicKey
   ## ```
-  #@ AttrSet -> AttrSet
-  resolveIdentity =
-    config:
+  #@ String -> AttrSet
+  resolveIdentityByName =
+    name:
     let
-      name = config.${namespace}.security.identity.name;
       content =
         file:
         let
@@ -61,4 +59,14 @@ rec {
       sshPublicKeyFile = identityFile name "ssh.pub";
       sshPublicKey = content "ssh.pub";
     };
+
+  ## Resolve the active identity for a home config, reading the name from
+  ## `${namespace}.security.identity.name` (a home option that defaults to the
+  ## account username). Convenience wrapper over `resolveIdentityByName`.
+  ##
+  ## ```nix
+  ## (lib.nix-config.resolveIdentity config).sshPublicKey
+  ## ```
+  #@ AttrSet -> AttrSet
+  resolveIdentity = config: resolveIdentityByName config.${namespace}.security.identity.name;
 }

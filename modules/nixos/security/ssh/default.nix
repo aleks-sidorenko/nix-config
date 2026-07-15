@@ -10,7 +10,9 @@ let
   cfg = config.${namespace}.security.ssh;
 
   # Authorize the primary user's identity key (see identities/README.md).
-  primaryKeyFile = lib.${namespace}.identityFile config.${namespace}.user.name "ssh.pub";
+  # The account name is the identity here (no override needed system-side).
+  primaryKeyFile =
+    (lib.${namespace}.resolveIdentityByName config.${namespace}.user.name).sshPublicKeyFile;
 in
 {
   options.${namespace}.security.ssh = with types; {
