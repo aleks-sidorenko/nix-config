@@ -28,7 +28,9 @@ in
       roles = {
         common = enabled;
         development = {
-          enable = true;
+          # mkDefault so a composing role (e.g. homebook) can turn development
+          # off without an eval conflict. Desktop hosts still get it enabled.
+          enable = mkDefault true;
           ai = {
             copilot = false;
             claude-code = true;

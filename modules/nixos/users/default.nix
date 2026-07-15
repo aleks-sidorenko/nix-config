@@ -140,6 +140,11 @@ in
     users.mutableUsers = false;
     users.users = mapAttrs mkUser usersCfg;
 
+    # snowfall-lib auto-creates a system user per home dir and defaults every
+    # one to admin (adds `wheel`). Disable its wheel handling so `nix-config.users`
+    # is the sole authority on group membership; `wheel` comes from `admin` above.
+    snowfallorg.users = mapAttrs (_: _: { admin = false; }) usersCfg;
+
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
