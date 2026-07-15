@@ -8,14 +8,17 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
+
+  # Authorize the primary user's identity key (see identities/README.md).
+  primaryKeyFile = lib.${namespace}.identityFile config.${namespace}.user.name "ssh.pub";
 in
 {
   options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Enable SSH";
     authorizedKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (builtins.readFile ../../../home/security/ssh/id_ed25519.pub) ];
-      description = "List of SSH public keys to authorize";
+      default = lib.optional (primaryKeyFile != null) (builtins.readFile primaryKeyFile);
+      description = "List of SSH public keys to authorize (defaults to the primary identity's).";
     };
   };
 

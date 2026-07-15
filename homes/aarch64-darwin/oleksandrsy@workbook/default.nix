@@ -48,6 +48,10 @@ with lib.${namespace};
       name = mkForce "oleksandrsy";
     };
 
+    # The oleksandrsy account is the same person as `alexander`; reuse that
+    # identity's key material (identities/alexander/).
+    security.identity.name = "alexander";
+
     styles.stylix.wallpaper = "earth";
   };
 

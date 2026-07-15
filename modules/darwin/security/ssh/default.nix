@@ -8,14 +8,20 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
+
+  # The macOS account (e.g. oleksandrsy) may map to a differently-named identity
+  # (e.g. alexander); resolve it via the user's home config. See identities/.
+  user = config.${namespace}.user.name;
+  identityName = config.home-manager.users.${user}.${namespace}.security.identity.name or user;
+  primaryKeyFile = lib.${namespace}.identityFile identityName "ssh.pub";
 in
 {
   options.${namespace}.security.ssh = with types; {
     enable = mkBoolOpt false "Enable SSH";
     authorizedKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (builtins.readFile ../../../home/security/ssh/id_ed25519.pub) ];
-      description = "List of SSH public keys to authorize";
+      default = lib.optional (builtins.pathExists primaryKeyFile) (builtins.readFile primaryKeyFile);
+      description = "List of SSH public keys to authorize (defaults to the primary identity's).";
     };
   };
 

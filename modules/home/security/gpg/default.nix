@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.gpg;
+  identity = config.${namespace}.security.identity;
 
   gpgInitScript = ''
     gpg-connect-agent updatestartuptty /bye >/dev/null
@@ -24,13 +25,13 @@ in
     };
     publicKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (toString ./gpg.asc) ];
-      description = "A list of paths to public key files to import";
+      default = lib.optional (identity.gpgPublicKeyFile != null) (toString identity.gpgPublicKeyFile);
+      description = "A list of paths to public key files to import (defaults to the active identity's).";
     };
     sshKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (builtins.readFile ./ssh-key-id) ];
-      description = "List of GPG key IDs that can be used as SSH keys";
+      default = lib.optional (identity.gpgKeyId != null) identity.gpgKeyId;
+      description = "List of GPG key IDs usable as SSH keys (defaults to the active identity's).";
     };
   };
 

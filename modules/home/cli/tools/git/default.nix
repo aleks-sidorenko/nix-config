@@ -42,8 +42,10 @@ in
 
           gpg.format = "ssh";
           gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
-          commit.gpgsign = true;
-          user.signingkey = cfg.signingKeyPath;
+          # Only sign when the identity actually has a key (keyless accounts
+          # such as a child would otherwise fail to commit).
+          commit.gpgsign = cfg.signingKey != "";
+          user.signingkey = mkIf (cfg.signingKey != "") cfg.signingKeyPath;
 
           diff.tool = "difftastic";
           difftool = {
