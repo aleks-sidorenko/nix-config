@@ -25,9 +25,9 @@ in
 
     ${namespace} = {
       roles = {
-        # Reuse the whole desktop home composition. development is not part of
-        # the desktop suite, so a homebook simply doesn't enable it.
-        desktop = enabled;
+        # The shared graphical suite, without development (this is a family
+        # laptop, not a dev machine).
+        graphical = enabled;
       };
     };
   };

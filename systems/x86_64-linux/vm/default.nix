@@ -14,7 +14,8 @@ with lib.${namespace};
 
   ${namespace} = {
     roles = {
-      desktop = {
+      # Test VM: the bare graphical suite (no development, no laptop bits).
+      graphical = {
         enable = true;
         /*
           addons = {

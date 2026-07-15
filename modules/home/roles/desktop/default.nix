@@ -1,5 +1,4 @@
 {
-  pkgs,
   config,
   lib,
   namespace,
@@ -7,90 +6,33 @@
 }:
 with lib;
 with lib.${namespace};
-
 let
   cfg = config.${namespace}.roles.desktop;
 in
 {
   options.${namespace}.roles.desktop = {
-    enable = mkEnableOption "Enable desktop suite";
+    enable = mkEnableOption "Enable the desktop home suite (graphical + development)";
   };
 
   config = mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = pkgs.stdenv.isLinux;
-        message = "The desktop role is only supported on NixOS (Linux) systems";
-      }
-    ];
-
     ${namespace} = {
       roles = {
-        common = enabled;
-        # development is intentionally NOT part of the desktop suite; enable it
-        # per-home where it is actually needed (see alexander@desktop / @vm).
-        media = enabled;
-        mobile = enabled;
-        gaming = enabled;
-        communication = enabled;
-        router-manager = enabled;
-      };
-
-      services = {
-        teamviewer = enabled;
-        kdeconnect = disabled;
-      };
-
-      desktops = {
-        gnome = enabled;
-      };
-
-      browsers = {
-        chrome = {
+        graphical = enabled;
+        development = {
           enable = true;
-          default = false;
-        };
-        firefox = {
-          enable = true;
-          default = true;
+          ai = {
+            copilot = false;
+            claude-code = true;
+          };
+          languages = {
+            haskell = true;
+            rust = false;
+            python = true;
+            go = false;
+            typescript = true;
+          };
         };
       };
-
     };
-
-    accounts = {
-      contact.basePath = ".contacts";
-      calendar.basePath = ".calendars";
-    };
-
-    # Fixes tray icons: https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
-    systemd.user.targets.tray = {
-      Unit = {
-        Description = "Home Manager System Tray";
-        Requires = [ "graphical-session-pre.target" ];
-      };
-    };
-
-    # Wayland-specific session variables
-    home.sessionVariables = {
-      MOZ_ENABLE_WAYLAND = 1;
-      QT_QPA_PLATFORM = "wayland;xcb";
-      LIBSEAT_BACKEND = "logind";
-    };
-
-    # Wayland tools
-    home.packages = with pkgs; [
-      brightnessctl # for brightness control
-      xdg-utils # for xdg-open
-      wl-clipboard # for clipboard
-      clipse # for clipboard
-      pamixer # for volume control
-      playerctl # for media control
-
-      grimblast # for screenshots
-      slurp # for screenshots
-      sway-contrib.grimshot # for screenshots
-      satty # for brightness control
-    ];
   };
 }

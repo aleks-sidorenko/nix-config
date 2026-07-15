@@ -11,20 +11,6 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
-      development = {
-        enable = true;
-        ai = {
-          copilot = false;
-          claude-code = true;
-        };
-        languages = {
-          haskell = true;
-          rust = false;
-          python = true;
-          go = false;
-          typescript = true;
-        };
-      };
     };
 
     user = {

@@ -16,10 +16,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      # A homebook is a desktop-class laptop: reuse the desktop role wholesale
-      # plus the laptop role for power management.
+      # A homebook is a graphical laptop: the shared graphical suite plus the
+      # laptop role for power management (no development).
       roles = {
-        desktop = enabled;
+        graphical = enabled;
         laptop = enabled;
       };
     };
