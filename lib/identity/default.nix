@@ -3,6 +3,7 @@
   namespace,
   ...
 }:
+with lib.${namespace};
 let
   # This file is lib/identity/default.nix, so `../..` is the flake root, where
   # the top-level identities/ folder lives (see identities/README.md).
@@ -69,5 +70,5 @@ rec {
   ## (lib.nix-config.resolveIdentity config).sshPublicKey
   ## ```
   #@ AttrSet -> AttrSet
-  resolveIdentity = config: resolveIdentityByName (lib.${namespace}.identityName config);
+  resolveIdentity = config: resolveIdentityByName (identityName config);
 }

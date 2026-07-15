@@ -10,7 +10,7 @@ let
   cfg = config.${namespace}.security.ssh;
 
   # Authorize the primary user's identity key (see identities/README.md).
-  primaryKeyFile = (lib.${namespace}.resolveIdentity config).sshPublicKeyFile;
+  primaryKeyFile = (resolveIdentity config).sshPublicKeyFile;
 in
 {
   options.${namespace}.security.ssh = with types; {

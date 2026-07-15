@@ -11,7 +11,7 @@ let
 
   # resolveIdentity is context-aware: on darwin it maps the macOS account
   # (e.g. oleksandrsy) to its identity (e.g. alexander). See identities/.
-  primaryKeyFile = (lib.${namespace}.resolveIdentity config).sshPublicKeyFile;
+  primaryKeyFile = (resolveIdentity config).sshPublicKeyFile;
 in
 {
   options.${namespace}.security.ssh = with types; {
