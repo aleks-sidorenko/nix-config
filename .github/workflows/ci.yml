@@ -55,6 +55,7 @@ jobs:
       matrix:
         system:
           - "desktop"
+          - "homebook"
           - "vm"
           - "server"
           - "minimal"
@@ -81,7 +82,7 @@ jobs:
         run: |
           system="${{ matrix.system }}"
           case "$system" in
-            "desktop"|"vm")
+            "desktop"|"homebook"|"vm")
               nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
               ;;
             "server")
@@ -104,6 +105,8 @@ jobs:
       matrix:
         config:
           - "alexander@desktop"
+          - "alexander@homebook"
+          - "dima@homebook"
           - "alexander@vm"
     steps:
       - name: Checkout repository

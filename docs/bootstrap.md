@@ -15,6 +15,30 @@ Verify SSH connectivity:
 ssh -o ConnectTimeout=10 -o BatchMode=yes <username>@<hostname> "sudo -n true"
 ```
 
+## Build & Use the Installer ISO
+
+For a fresh machine with no OS (or to boot into a NixOS live environment), build
+the custom minimal installer ISO from this flake and write it to a USB stick.
+
+```bash
+# 1. Build the image (output symlinked at ./result)
+nix build .#install-isoConfigurations.minimal
+
+# 2. Locate the .iso
+ls -lh ./result/iso/           # nixos-minimal-*.iso
+
+# 3. Identify the target USB device (double-check — this is destructive!)
+lsblk
+
+# 4. Write it to the USB stick (replace sdX with your device, NOT a partition)
+sudo dd if=./result/iso/nixos-minimal-*.iso of=/dev/sdX bs=4M status=progress conv=fsync
+```
+
+Boot the target from the USB stick and log in as **`nixos`** / **`nixos`**. The
+ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
+`systems/x86_64-install-iso/minimal/`. Once booted and reachable over SSH,
+continue with the bootstrap flow below.
+
 ## Quick Start
 
 ### Complete Bootstrap (Recommended)
@@ -92,13 +116,22 @@ After bootstrap generates the age key for a new host:
 
 ## Adding a User Password to SOPS
 
+Every account declared in `nix-config.users.<name>` expects a
+`user-<name>-password` secret in `modules/nixos/secrets.yaml`. On multi-user
+hosts (e.g. the shared `homebook` laptop with `alexander` and `dima`), add one
+secret per user.
+
 ```bash
-# Generate password hash
+# Generate a password hash
 nix-shell -p mkpasswd --run 'mkpasswd -m SHA-512'
 
-# Edit secrets and add as user-<username>-password
+# Edit secrets and add as user-<username>-password (one per account)
 just secrets-edit nixos
 ```
+
+> Because `neededForUsers = true`, the **host itself** decrypts these at boot, so
+> the new host must first be added as a SOPS recipient (see "Adding a New Host to
+> SOPS" above) and `sops updatekeys` run.
 
 ## Disk Formatting with Disko
 

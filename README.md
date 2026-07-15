@@ -44,6 +44,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | Hostname | Architecture | Hardware | Role | OS | State |
 |:--------:|:----------:|:---------|:----:|:--:|:-----:|
 | `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
+| `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook (shared) | NixOS | Scaffold |
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
 | `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
@@ -108,7 +109,9 @@ just deploy router                         # Deploy MikroTik router config
 nix build .#install-isoConfigurations.minimal   # Build minimal NixOS installer ISO
 ```
 
-For fresh installations on new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
+The image is written to `./result/iso/nixos-minimal-*.iso`. For the full
+build → flash → boot → login walkthrough and fresh installations on new hardware,
+see [docs/bootstrap.md](docs/bootstrap.md).
 
 ### Secrets
 
