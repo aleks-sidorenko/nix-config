@@ -1,23 +1,18 @@
-{ namespace, ... }:
+{
+  lib,
+  namespace,
+  ...
+}:
+with lib;
+with lib.${namespace};
 {
   ${namespace} = {
 
-    security = {
-      ssh.enable = true;
-    };
+    roles.minimal = enabled;
 
-    system = {
-      locale.enable = true;
-      networking.enable = true;
-      nix.enable = true;
-    };
-
-    cli = {
-      shells.fish.enable = true;
-    };
-
-    user = {
-      name = "nixos";
+    users.nixos = {
+      primary = true;
+      admin = true;
       initialPassword = "nixos";
     };
 
