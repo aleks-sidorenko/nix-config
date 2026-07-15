@@ -131,15 +131,39 @@ Located in `lib/`:
 - `enabled` / `disabled` - Shorthand for `{ enable = true/false; }`
 
 **`lib/context/default.nix`**: Context detection
-- `isNixOS config` - Check if in NixOS context
-- `isHomeManager config` - Check if in home-manager context
-- `getContext config` - Returns "nixos", "home", or "unknown"
+- `isNixOS config` / `isDarwin config` / `isHomeManager config` - Check the evaluation context
+- `getContext config` - Returns "nixos", "darwin", "home", or "unknown"
 - `userName config` - Get username across contexts
-- `homeConfig config` - Access home-manager config from either context
+- `identityName config` - Get the identity name across contexts (honors the `security.identity.name` override)
+- `homeConfig config` / `homeDir config` - Access the home-manager config / home directory from any context
+
+**`lib/identity/default.nix`**: Identity key material (see [Identities](#identities-public-key-material))
+- `identityDir name` / `identityFile name file` - Resolve paths under `identities/`
+- `resolveIdentityByName name` / `resolveIdentity config` - Resolve an identity to its key material (shared by nixos/darwin/home)
 
 **`lib/deploy/default.nix`**: deploy-rs configuration
 **`lib/fs/default.nix`**: Filesystem utilities
 **`lib/net/default.nix`**: Network utilities
+
+### Prefer reusable, context-aware helpers in `lib/`
+
+Before writing a computation inline in a module, check whether a `lib/` helper
+already covers it — and if a repetitive or context-dependent operation is not yet
+covered, **add a helper in `lib/*` rather than repeating the logic across
+modules**. This keeps modules declarative and avoids boilerplate drift.
+
+- **Context-aware over duplicated branches.** If an operation differs between
+  nixos/darwin/home, encapsulate that in a `config`-taking helper (like
+  `userName config`, `identityName config`, `resolveIdentity config`) so call
+  sites are identical everywhere. Don't hand-roll `if isNixOS ... else ...` in
+  each module.
+- **One source of truth.** Resource lookups (e.g. resolving files under
+  `identities/`) and cross-cutting derivations belong in `lib/`, consumed by all
+  contexts, not copy-pasted with per-module relative paths.
+- **Readable call sites.** Modules already do `with lib.${namespace};` — call
+  helpers unqualified (`resolveIdentity config`), not `lib.${namespace}.resolveIdentity config`.
+- Follow the existing style: small pure functions, documented with the `##` /
+  `#@` type-comment convention used across `lib/`.
 
 ### Role-Based Configuration
 
