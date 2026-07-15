@@ -112,24 +112,59 @@ After bootstrap generates the age key for a new host:
    sops updatekeys modules/home/secrets.yaml
    ```
 
-## Adding a User Password to SOPS
+## Adding a User
 
-Every account declared in `nix-config.users.<name>` expects a
-`user-<name>-password` secret in `modules/nixos/secrets.yaml`. On multi-user
-hosts (e.g. the shared `homebook` laptop with `alexander` and `dima`), add one
-secret per user.
+Hosts can carry several accounts (e.g. the shared `homebook` laptop with
+`alexander` and `dima`). Adding one is three small steps:
+
+### 1. Declare the account
+
+In the host config, add an entry under `nix-config.users` (see
+[Users & Identities](architecture.md#users--identities)):
+
+```nix
+nix-config.users = {
+  alexander = { primary = true; admin = true; };
+  dima       = { profile = "child"; };   # no wheel; restricted home
+};
+```
+
+Give the account a home at `homes/<arch>/<name>@<host>/` selecting the roles it
+should get.
+
+### 2. Add a password secret
+
+Every account expects a `user-<name>-password` secret in
+`modules/nixos/secrets.yaml`:
 
 ```bash
 # Generate a password hash
 nix-shell -p mkpasswd --run 'mkpasswd -m SHA-512'
 
-# Edit secrets and add as user-<username>-password (one per account)
+# Edit secrets and add it as user-<name>-password (one per account)
 just secrets-edit nixos
 ```
 
 > Because `neededForUsers = true`, the **host itself** decrypts these at boot, so
-> the new host must first be added as a SOPS recipient (see "Adding a New Host to
-> SOPS" above) and `sops updatekeys` run.
+> the host must already be a SOPS recipient (see "Adding a New Host to SOPS"
+> above) and `sops updatekeys` must have run.
+
+### 3. (Optional) Give them key material
+
+If the person needs GPG/SSH (git signing, SSH auth), add their public keys as a
+colocated identity — one copy-paste (see
+[identities/README.md](../identities/README.md)):
+
+```bash
+cp -r identities/alexander identities/<name>   # then replace the 3 files
+```
+
+`nix-config.security.identity.name` defaults to the account username, so the
+folder name should match it (or set the option to reuse another identity, as
+`oleksandrsy@workbook` reuses `alexander`). An account with **no** identity
+folder (e.g. a child) simply gets no key material — nothing else to do. The
+private GPG key is imported out-of-band on the machine, exactly as for the
+primary user.
 
 ## Disk Formatting with Disko
 
