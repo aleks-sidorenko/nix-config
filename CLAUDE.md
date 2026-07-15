@@ -162,11 +162,33 @@ nix-config.roles.desktop.enable = true;
 
 ### User Management
 
-User configuration is centralized in `modules/nixos/user/`:
-- Set `nix-config.user.name` to define the primary user
-- Integrates with SOPS for password management via `user-${username}-password` secret
-- Automatically configures home-manager for the user
-- Default shell set via `nix-config.cli.shells.default.package`
+All accounts on a host are declared uniformly through `nix-config.users`
+(module: `modules/nixos/users/`), one entry per account including the primary:
+
+```nix
+nix-config.users = {
+  alexander = { primary = true; admin = true; };  # profile defaults to "adult"
+  dima       = { profile = "child"; };            # no wheel; restricted home
+};
+```
+
+- Exactly one entry sets `primary = true`; `admin` adds `wheel`; `profile`
+  (`adult`/`child`) sets group presets. Defaults to a single `alexander` primary.
+- `nix-config.user` (singular) is a **derived alias** of the primary, retained so
+  existing references keep working — do not declare it directly.
+- Each account gets a SOPS password secret `user-<name>-password`, home-manager
+  wiring, and the default shell (`nix-config.cli.shells.default.package`).
+
+### Identities (public key material)
+
+Per-person public key material is colocated in the top-level `identities/<name>/`
+folder (`gpg.pub.asc`, `gpg.key-id`, `ssh.pub`). Which identity a home uses is
+`nix-config.security.identity.name` (defaults to the username). The `gpg`, `ssh`,
+git-signing, and `authorizedKeys` modules resolve it via `lib/identity`
+(`resolveIdentityByName`). Adding a person = copy a folder. See
+`identities/README.md`.
+
+### Secrets with SOPS
 
 ### Secrets with SOPS
 
