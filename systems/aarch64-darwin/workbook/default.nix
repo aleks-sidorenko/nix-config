@@ -12,8 +12,11 @@ with lib.${namespace};
       enable = true;
     };
 
-    # Override user name for this machine
-    user.name = mkForce "oleksandrsy";
+    # This machine's macOS account (declared like NixOS hosts).
+    users.oleksandrsy = {
+      primary = true;
+      admin = true;
+    };
 
     system.networking = {
       knownNetworkServices = [

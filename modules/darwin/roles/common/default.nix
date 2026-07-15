@@ -59,8 +59,6 @@ in
           clean.enable = true;
         };
       };
-
-      user.enable = true;
     };
   };
 }

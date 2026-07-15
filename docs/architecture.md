@@ -105,8 +105,10 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 
 ### Multiple users per host
 
-Accounts are declared uniformly through `nix-config.users` (NixOS), one entry per
-account including the primary:
+Accounts are declared uniformly through `nix-config.users`, one entry per account
+including the primary. NixOS supports multiple accounts; **darwin uses the same
+API but only configures the primary** (macOS accounts are org-managed, so it
+adds `uid`/`shell` fields and cannot create accounts):
 
 ```nix
 nix-config.users = {

@@ -186,8 +186,10 @@ nix-config.roles.desktop.enable = true;
 
 ### User Management
 
-All accounts on a host are declared uniformly through `nix-config.users`
-(module: `modules/nixos/users/`), one entry per account including the primary:
+All accounts on a host are declared uniformly through `nix-config.users`, one
+entry per account including the primary (module: `modules/nixos/users/`; darwin
+exposes the same API in `modules/darwin/user/` but only configures the primary,
+since macOS accounts are org-managed):
 
 ```nix
 nix-config.users = {
