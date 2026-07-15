@@ -63,8 +63,8 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | Role | Composes | Configures |
 |------|----------|------------|
 | **minimal** | - | Bare base: SSH, Nix, locale, networking, fish shell |
-| **common** | minimal | SOPS, boot, filesystems, impermanence, GitHub-authed Nix |
-| **graphical** | common, gaming, backup | Shared graphical suite: nh, nix-ld, stylix, GNOME, hibernation |
+| **common** | minimal | SOPS, boot, filesystems, impermanence, GitHub-authed Nix, nh, nix-ld |
+| **graphical** | common, gaming, backup | Shared graphical suite: stylix, GNOME, hibernation |
 | **desktop** | graphical | Root role for the desktop host (adds VirtualBox, Podman) |
 | **homebook** | graphical, laptop | Root role for the shared family laptop |
 | **laptop** | - | Laptop power management (power-profiles-daemon, upower) |

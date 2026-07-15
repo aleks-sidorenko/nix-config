@@ -71,12 +71,17 @@ rec {
     else
       throw "Failed to get user name for this context";
 
+  # Home directory across contexts. Derived from the username in system contexts
+  # so it works even when the user has no home-manager config (e.g. a headless
+  # server), rather than requiring `homeConfig`.
   homeDir =
     config:
-    let
-      cfg = homeConfig config;
-    in
-    cfg.home.homeDirectory;
+    if isHomeManager config then
+      config.home.homeDirectory
+    else if isDarwin config then
+      "/Users/${userName config}"
+    else
+      "/home/${userName config}";
 
   # The identity a config resolves to (folder under identities/). Like userName,
   # but honors the home-only `security.identity.name` override — e.g. the

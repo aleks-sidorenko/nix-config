@@ -22,14 +22,6 @@ in
         backup = enabled;
       };
 
-      cli = {
-
-        tools = {
-          nh.enable = true;
-          nix-ld.enable = true;
-        };
-      };
-
       styles.stylix.enable = true;
 
       desktops = {

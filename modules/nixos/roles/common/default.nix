@@ -26,6 +26,14 @@ in
         sops.enable = true;
       };
 
+      cli = {
+        # General Nix ergonomics, useful on any managed host.
+        tools = {
+          nh.enable = true;
+          nix-ld.enable = true;
+        };
+      };
+
       system = {
         nix.githubAuth = true;
         boot.enable = true;
