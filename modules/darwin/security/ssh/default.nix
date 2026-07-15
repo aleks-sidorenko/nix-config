@@ -9,11 +9,9 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
 
-  # The macOS account (e.g. oleksandrsy) may map to a differently-named identity
-  # (e.g. alexander); resolve it via the user's home config. See identities/.
-  user = config.${namespace}.user.name;
-  primaryKeyFile =
-    (lib.${namespace}.resolveIdentity config.home-manager.users.${user}).sshPublicKeyFile;
+  # resolveIdentity is context-aware: on darwin it maps the macOS account
+  # (e.g. oleksandrsy) to its identity (e.g. alexander). See identities/.
+  primaryKeyFile = (lib.${namespace}.resolveIdentity config).sshPublicKeyFile;
 in
 {
   options.${namespace}.security.ssh = with types; {

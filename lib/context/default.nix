@@ -64,6 +64,21 @@ rec {
     in
     cfg.home.homeDirectory;
 
+  # The identity a config resolves to (folder under identities/). Like userName,
+  # but honors the home-only `security.identity.name` override — e.g. the
+  # oleksandrsy@workbook account maps to the "alexander" identity. Falls back to
+  # the username when there is no home config (e.g. a headless server).
+  identityName =
+    config:
+    if isHomeManager config then
+      config.${namespace}.security.identity.name
+    else
+      let
+        user = config.${namespace}.user.name;
+        home = config.home-manager.users.${user} or null;
+      in
+      if home != null then (home.${namespace}.security.identity.name or user) else user;
+
   homeConfig =
     config:
     if isHomeManager config then

@@ -174,6 +174,7 @@ Primed variants (`mkOpt'`, `mkBoolOpt'`, etc.) omit the description parameter.
 | `isHomeManager config` | Returns true if evaluating in home-manager context |
 | `getContext config` | Returns `"nixos"`, `"home"`, or `"unknown"` |
 | `userName config` | Get username regardless of context |
+| `identityName config` | Get the identity name regardless of context (honors the `security.identity.name` override, e.g. `oleksandrsy → alexander`) |
 | `homeDir config` | Get home directory regardless of context |
 | `homeConfig config` | Access home-manager config from either context |
 

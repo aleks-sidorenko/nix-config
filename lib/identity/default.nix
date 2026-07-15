@@ -60,13 +60,14 @@ rec {
       sshPublicKey = content "ssh.pub";
     };
 
-  ## Resolve the active identity for a home config, reading the name from
-  ## `${namespace}.security.identity.name` (a home option that defaults to the
-  ## account username). Convenience wrapper over `resolveIdentityByName`.
+  ## Resolve the active identity for any config (home, NixOS, or darwin). The
+  ## name is determined by `lib.${namespace}.identityName` (context-aware, honors
+  ## the home-only `security.identity.name` override). Convenience wrapper over
+  ## `resolveIdentityByName`.
   ##
   ## ```nix
   ## (lib.nix-config.resolveIdentity config).sshPublicKey
   ## ```
   #@ AttrSet -> AttrSet
-  resolveIdentity = config: resolveIdentityByName config.${namespace}.security.identity.name;
+  resolveIdentity = config: resolveIdentityByName (lib.${namespace}.identityName config);
 }
