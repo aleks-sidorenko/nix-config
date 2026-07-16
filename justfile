@@ -49,7 +49,7 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
     @echo "📡 Target directory: {{target_dir}}"
     @echo "📦 Firmware version: {{version}}"
     @echo "🔗 Connecting via SSH and executing firmware installation script..."
-    ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/bootstrap/bootstrap-rpi-firmware.sh
+    cat scripts/common.sh scripts/bootstrap/bootstrap-rpi-firmware.sh | ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}'
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
 
 # Format disks with disko configuration
