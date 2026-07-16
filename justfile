@@ -10,9 +10,9 @@ default:
 bootstrap-secrets hostname disk_password="":
     @echo "🔐 Preparing secrets and SSH keys for {{hostname}}..."
     @if [ -n "{{disk_password}}" ]; then \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
@@ -34,10 +34,10 @@ bootstrap hostname username="$USER" disk_password="" *extra_opts="":
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
         echo "🔐 Generating secrets..."; \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "🚀 Proceeding with deployment..."; \

@@ -18,11 +18,10 @@ NC='\033[0m' # No Color
 
 # Logging functions
 #
-# All logs go to stderr so that scripts can return data on stdout via
-# command substitution (e.g. `keysdir=$(setup_secrets ...)`) without the log
-# lines contaminating the captured value. This is what keeps the age key and
-# other prompts visible when `just bootstrap-secrets` runs the script inside
-# `$(... | tail -1)`.
+# All logs go to stderr so that stdout stays a clean data channel: scripts can
+# return a result via command substitution (e.g. `KEYSDIR=$(bootstrap-secrets ...)`)
+# without log lines contaminating the captured value, and the logs stay visible
+# on the terminal even when the caller captures stdout.
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1" >&2
 }

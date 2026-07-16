@@ -283,8 +283,8 @@ setup_secrets() {
 
     log_success "Secrets setup completed"
 
-    # Return the keys directory via a global; the only value written to stdout is
-    # the final echo in main(), which the justfile captures via `tail -1`.
+    # Return the keys directory via a global; main() writes it to the fd-3 result
+    # channel, which is the only value the caller captures.
     KEYSDIR_RESULT="$keysdir"
 }
 
@@ -319,6 +319,12 @@ main() {
         esac
     done
 
+    # Result channel: fd 3 carries the keys directory — the only machine-readable
+    # output of this script. Point stdout at stderr for everything else, so the
+    # caller can capture the path with a plain $(...) (no `tail -1`) and no
+    # subprocess (ssh-keygen, pass, nix-shell) can leak into the captured value.
+    exec 3>&1 1>&2
+
     log_info "Setting up secrets for $hostname..."
 
     local keysdir=""
@@ -343,9 +349,10 @@ main() {
     fi
     log_info "You can now run deploy.sh with this keys directory"
 
-    # Don't cleanup on success - return the keysdir for deploy.sh to use
+    # Don't cleanup on success - return the keysdir for deploy.sh to use.
+    # Emit it on fd 3 (the result channel) so it is the sole captured value.
     trap - EXIT
-    echo "$keysdir"
+    echo "$keysdir" >&3
 }
 
 # Script entry point
