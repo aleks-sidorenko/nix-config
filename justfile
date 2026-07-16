@@ -112,15 +112,17 @@ iso-build:
 iso-write device:
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
     if [ -z "$iso" ]; then
-        echo "❌ No ISO found — run 'just iso-build' first"; exit 1
+        log_error "No ISO found — run 'just iso-build' first"; exit 1
     fi
-    echo "⚠️  About to write $iso to {{device}}"
-    echo "⚠️  This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
+    validate_write_disk {{device}} || exit 1
+    log_warning "About to write $iso to {{device}}"
+    log_warning "This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
     sleep 5
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
-    echo "✅ Written — you can now boot {{device}} (login: nixos / nixos)"
+    log_success "Written — you can now boot {{device}} (login: nixos / nixos)"
 
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
