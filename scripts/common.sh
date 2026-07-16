@@ -17,20 +17,26 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Logging functions
+#
+# All logs go to stderr so that scripts can return data on stdout via
+# command substitution (e.g. `keysdir=$(setup_secrets ...)`) without the log
+# lines contaminating the captured value. This is what keeps the age key and
+# other prompts visible when `just bootstrap-secrets` runs the script inside
+# `$(... | tail -1)`.
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[SUCCESS]${NC} $1" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # Function to check if a command exists
