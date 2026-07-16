@@ -122,7 +122,7 @@ iso-write device:
     log_warning "This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
     sleep 5
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
-    log_success "Written — you can now boot {{device}} (login: nixos / nixos)"
+    log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
