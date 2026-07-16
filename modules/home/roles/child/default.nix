@@ -33,12 +33,16 @@ in
 
       # Full custom GNOME, but locked to a restricted launcher: only the
       # allow-listed apps are pinned to the dock, and the app grid + overview
-      # search are hidden. Append to allowedApps to grant more apps later.
+      # search are hidden. The allow-list is sourced from the enabled app
+      # modules rather than hardcoded — extend it by enabling more modules that
+      # expose a desktop id (or appending literal ids here).
       desktops.gnome = {
         enable = true;
         launcher = {
           restrict = true;
-          allowedApps = [ "org.prismlauncher.PrismLauncher" ];
+          allowedApps =
+            optional config.${namespace}.games.minecraft.enable
+              config.${namespace}.games.minecraft.desktopId;
         };
       };
     };
