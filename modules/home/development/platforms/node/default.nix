@@ -18,12 +18,14 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.sessionVariables = {
-      NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.npm-global";
+    home = {
+      sessionVariables = {
+        NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.npm-global";
+      };
+
+      sessionPath = [ "${config.home.homeDirectory}/.npm-global/bin" ];
+
+      packages = [ nodejs ];
     };
-
-    home.sessionPath = [ "${config.home.homeDirectory}/.npm-global/bin" ];
-
-    home.packages = [ nodejs ];
   };
 }
