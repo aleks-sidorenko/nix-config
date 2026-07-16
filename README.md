@@ -129,7 +129,7 @@ Secrets files:
 - `modules/home/secrets.yaml` - user secrets
 - `infra/router/secrets.yaml` - router secrets
 
-To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#adding-a-new-host-to-sops).
+To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#step-4--generate-host-keys--register-with-sops).
 
 ### Maintenance
 
