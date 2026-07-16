@@ -48,7 +48,32 @@ rec {
                   user = "root";
                   sshUser = user;
                 }
-                // lib.optionalAttrs (host.config.${namespace}.security.doas.enable or false) { sudo = "doas -u"; };
+                // (
+                  # deploy-rs activates the system profile as root over a
+                  # non-interactive SSH session. How it elevates depends on the
+                  # host's privilege-escalation policy:
+                  #
+                  #  - doas hosts grant the deploy user passwordless access
+                  #    (`noPass = true`), so we only swap in the `doas` command.
+                  #  - sudo hosts that opt into passwordless sudo (e.g. the
+                  #    server role sets `wheelNeedsPassword = false`) need
+                  #    nothing extra.
+                  #  - any other sudo host still prompts for a password, which
+                  #    the non-interactive SSH session cannot supply. Enable
+                  #    `interactiveSudo` so deploy-rs prompts locally and pipes
+                  #    the password in over stdin (it also rewrites the sudo
+                  #    command with `-S -p ""` automatically).
+                  #
+                  # Keying off the actual sudo policy — rather than hardcoding a
+                  # host/role list — keeps this correct as hosts are added or
+                  # their roles change.
+                  if host.config.${namespace}.security.doas.enable or false then
+                    { sudo = "doas -u"; }
+                  else
+                    lib.optionalAttrs (host.config.security.sudo.wheelNeedsPassword or true) {
+                      interactiveSudo = true;
+                    }
+                );
             };
           };
         }
