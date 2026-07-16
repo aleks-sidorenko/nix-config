@@ -62,7 +62,9 @@ validate_parameters() {
 }
 
 # Function to setup SSH host keys (retrieve existing from pass or generate new if none exist)
-# Returns: "new" if keys were newly generated, "existing" if retrieved from pass
+# Sets the global SSH_KEYS_STATUS to "new" if keys were newly generated, or
+# "existing" if retrieved from pass. Status is returned via a global (not stdout)
+# so that ssh-keygen / pass output can't contaminate a command-substitution capture.
 setup_ssh_keys() {
     local keysdir="$1"
     local hostname="$2"
@@ -100,7 +102,7 @@ setup_ssh_keys() {
         chmod 600 "$SSH_PRIVATE_KEY_NAME"
         chmod 644 "$SSH_PUBLIC_KEY_NAME"
 
-        echo "existing"
+        SSH_KEYS_STATUS="existing"
     else
         log_info "No existing SSH keys found in pass, generating new ones..."
 
@@ -141,7 +143,7 @@ setup_ssh_keys() {
             log_warning "SSH keys backed up but failed to push to git"
         fi
 
-        echo "new"
+        SSH_KEYS_STATUS="new"
     fi
 }
 
@@ -170,20 +172,21 @@ setup_age_keys() {
 
     log_info "Generated age key: $age_key"
 
-    # Only prompt for SOPS updates if keys are newly generated
-    if [[ "$keys_are_new" == "new" ]]; then
-        log_warning "Please add the following age key to your .sops.yaml file:"
-        log_warning "  - &$hostname $age_key"
-        log_warning "Then update your secrets files with: sops updatekeys ./modules/nixos/secrets.yaml"
+    # Always surface the age key and the SOPS step. The host must be a recipient
+    # in .sops.yaml before deploy, whether the SSH keys were freshly generated or
+    # reused from pass.
+    log_warning "Please add the following age key to your .sops.yaml file:"
+    log_warning "  - &$hostname $age_key"
+    log_warning "Then update your secrets files with: sops updatekeys ./modules/nixos/secrets.yaml"
 
-        if [[ -z "${AUTO_APPROVE:-}" ]]; then
-            read -p "Press Enter when you have updated .sops.yaml and secrets files..."
-        else
-            log_info "AUTO_APPROVE is set, skipping interactive SOPS update confirmation"
-        fi
+    if [[ "$keys_are_new" != "new" ]]; then
+        log_info "(SSH keys were reused from pass; if this host is already a SOPS recipient, no change is needed.)"
+    fi
+
+    if [[ -z "${AUTO_APPROVE:-}" ]]; then
+        read -r -p "Press Enter when you have updated .sops.yaml and secrets files..."
     else
-        log_info "Using existing SSH keys, SOPS configuration should already be up to date"
-        log_info "Age key for reference: $age_key"
+        log_info "AUTO_APPROVE is set, skipping interactive SOPS update confirmation"
     fi
 
     log_success "Age keys setup completed"
@@ -265,12 +268,13 @@ setup_secrets() {
 
     log_info "Keys directory: $keysdir"
 
-    # Setup SSH keys (generate new or retrieve existing, backup if newly generated)
-    local keys_status
-    keys_status=$(setup_ssh_keys "$keysdir" "$hostname")
+    # Setup SSH keys (generate new or retrieve existing, backup if newly generated).
+    # Status comes back via the SSH_KEYS_STATUS global, not stdout, so ssh-keygen /
+    # pass chatter can't pollute it.
+    setup_ssh_keys "$keysdir" "$hostname"
 
     # Setup age keys and SOPS
-    setup_age_keys "$keysdir" "$hostname" "$keys_status"
+    setup_age_keys "$keysdir" "$hostname" "$SSH_KEYS_STATUS"
 
     # Setup disk password if provided
     if [[ -n "$disk_password" ]]; then
@@ -278,7 +282,10 @@ setup_secrets() {
     fi
 
     log_success "Secrets setup completed"
-    echo "$keysdir"
+
+    # Return the keys directory via a global; the only value written to stdout is
+    # the final echo in main(), which the justfile captures via `tail -1`.
+    KEYSDIR_RESULT="$keysdir"
 }
 
 # Function to cleanup
@@ -322,8 +329,12 @@ main() {
     # Check prerequisites
     check_prerequisites "$hostname"
 
-    # Setup all secrets (SSH keys, backup, age keys, and optionally disk password)
-    keysdir=$(setup_secrets "$hostname" "$disk_password")
+    # Setup all secrets (SSH keys, backup, age keys, and optionally disk password).
+    # setup_secrets returns the path via the KEYSDIR_RESULT global so that command
+    # output produced along the way (ssh-keygen, pass, nix-shell) does not end up
+    # in the captured keys directory path.
+    setup_secrets "$hostname" "$disk_password"
+    keysdir="$KEYSDIR_RESULT"
 
     log_success "Secrets setup completed successfully!"
     log_info "Keys directory: $keysdir"
