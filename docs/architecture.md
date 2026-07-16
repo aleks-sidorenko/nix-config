@@ -62,8 +62,12 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 
 | Role | Composes | Configures |
 |------|----------|------------|
-| **common** | - | SSH, SOPS, Nix, locale, networking, fish shell, boot, impermanence, user |
-| **desktop** | common, gaming, backup | nh, nix-ld, stylix, GNOME, VirtualBox, Podman, hibernation |
+| **minimal** | - | Bare base: SSH, Nix, locale, networking, fish shell |
+| **common** | minimal | SOPS, boot, filesystems, impermanence, GitHub-authed Nix, nh, nix-ld |
+| **graphical** | common, gaming, backup | Shared graphical suite: stylix, GNOME, hibernation |
+| **desktop** | graphical | Root role for the desktop host (adds VirtualBox, Podman) |
+| **homebook** | graphical, laptop | Root role for the shared family laptop |
+| **laptop** | - | Laptop power management (power-profiles-daemon, upower) |
 | **server** | common | nginx, NFS utils, NetworkManager hardening, TCP BBR, systemd watchdog |
 | **home-server** | common, server, media-server, smart-home, gaming-server, backup-server, backup | _(aggregates all server roles)_ |
 | **media-server** | - | qBittorrent, Jellyfin, Radarr, Sonarr, Prowlarr, MiniDLNA |
@@ -78,7 +82,10 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | Role | Composes | Configures |
 |------|----------|------------|
 | **common** | - | Nix, locale, GPG, SSH, SOPS, pass, fish, ghostty, neovim, archivers, modern-unix, network-tools, stylix |
-| **desktop** | common, development, media, mobile, gaming, communication, router-manager | Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
+| **graphical** | common, media, mobile, gaming, communication, router-manager | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
+| **desktop** | graphical, development | Root role for the desktop host (graphical + development) |
+| **homebook** | graphical | Root role for the shared family laptop (graphical, no development) |
+| **child** | common | Restricted account: Minecraft only, no browser |
 | **work** | common, development, router-manager | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
@@ -93,6 +100,59 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 |------|----------|------------|
 | **common** | - | SOPS, Nix, macOS defaults, networking, Homebrew, fish, nh, user |
 | **work** | common | Viber, Telegram, Zoom, Slack, Chromium, Rancher |
+
+## Users & Identities
+
+### Multiple users per host
+
+Accounts are declared uniformly through `nix-config.users`, one entry per account
+including the primary. NixOS supports multiple accounts; **darwin uses the same
+API but only configures the primary** (macOS accounts are org-managed, so it
+adds `uid`/`shell` fields and cannot create accounts):
+
+```nix
+nix-config.users = {
+  alexander = { primary = true; admin = true; };  # profile defaults to "adult"
+  dima       = { profile = "child"; };            # no wheel; Minecraft-only home
+};
+```
+
+- Exactly one entry is `primary = true`. Profiles (`adult`/`child`) set group
+  presets; `admin` adds `wheel`.
+- `nix-config.user` (singular) is a **derived alias** of the primary, kept so
+  existing references (doas, greetd, ssh, virtualisation group injection) keep
+  working. It is not declared directly.
+- Per-user home environments are the usual snowfall `homes/<user>@<host>/`.
+
+### Identities (public key material)
+
+Each **person's** public key material is colocated in a single top-level folder,
+so adding someone is one copy-paste — nothing spread across modules:
+
+```
+identities/
+  <name>/
+    gpg.pub.asc   # GPG public key (ASCII-armored)
+    gpg.key-id    # GPG key ID exposed as the SSH key (gpg-agent = ssh-agent)
+    ssh.pub       # SSH public key (the GPG authentication subkey)
+```
+
+- **Which** identity a home uses is set by `nix-config.security.identity.name`
+  (a home option that defaults to the account username). Override it when one
+  person has several accounts — e.g. `oleksandrsy@workbook` sets it to
+  `"alexander"` to reuse that key material.
+- The `gpg`, `ssh`, and git-signing home modules — plus each host's
+  `authorizedKeys` — resolve their key material via
+  [`lib/identity`](#libidentity---identity-key-material)
+  (`resolveIdentityByName` is the single shared entry point across NixOS,
+  darwin, and home).
+- A person with **no** folder (e.g. a child account) simply gets no key
+  material — no import, no `~/.ssh` key, git signing off. Adding
+  `identities/<name>/` later grants it with zero code changes.
+- Only **public** material lives here; the private GPG key (the single secret
+  root) is imported out-of-band at bootstrap. See
+  [identities/README.md](../identities/README.md) and
+  [docs/bootstrap.md](bootstrap.md).
 
 ## Library Functions
 
@@ -116,8 +176,21 @@ Primed variants (`mkOpt'`, `mkBoolOpt'`, etc.) omit the description parameter.
 | `isHomeManager config` | Returns true if evaluating in home-manager context |
 | `getContext config` | Returns `"nixos"`, `"home"`, or `"unknown"` |
 | `userName config` | Get username regardless of context |
+| `identityName config` | Get the identity name regardless of context (honors the `security.identity.name` override, e.g. `oleksandrsy → alexander`) |
 | `homeDir config` | Get home directory regardless of context |
 | `homeConfig config` | Access home-manager config from either context |
+
+### `lib/identity` - Identity Key Material
+
+Resolves a person's public key material from the top-level `identities/` folder
+(see [Users & Identities](#users--identities)).
+
+| Function | Description |
+|----------|-------------|
+| `identityDir name` | Absolute path to `identities/<name>/` |
+| `identityFile name file` | Absolute path to a file in the identity's folder, or `null` if absent |
+| `resolveIdentityByName name` | Resolve a name → `{ name; available; gpgPublicKeyFile; gpgKeyId; sshPublicKeyFile; sshPublicKey; }` (the shared entry point used by NixOS, darwin, and home) |
+| `resolveIdentity config` | Wrapper reading the name from a home config's `security.identity.name` |
 
 ### `lib/deploy` - Deployment Configuration
 
@@ -158,7 +231,7 @@ Data structure (not functions) providing shared defaults:
 
 | Architecture | Systems | Description |
 |-------------|---------|-------------|
-| `x86_64-linux` | desktop, vm | Desktop workstation, test VM |
+| `x86_64-linux` | desktop, homebook, vm | Desktop workstation, shared family laptop, test VM |
 | `aarch64-linux` | server | Raspberry Pi 4 home server |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
 | `x86_64-install-iso` | minimal | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal`) |

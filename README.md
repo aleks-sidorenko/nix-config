@@ -44,6 +44,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | Hostname | Architecture | Hardware | Role | OS | State |
 |:--------:|:----------:|:---------|:----:|:--:|:-----:|
 | `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
+| `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook (shared) | NixOS | Scaffold |
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
 | `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
@@ -105,10 +106,13 @@ just deploy router                         # Deploy MikroTik router config
 ### Build Installer ISO
 
 ```bash
-nix build .#install-isoConfigurations.minimal   # Build minimal NixOS installer ISO
+just iso-build            # Build minimal NixOS installer ISO (-> ./result/iso/)
+just iso-write /dev/sdX   # Write the built ISO to a USB device
+just iso /dev/sdX         # Build + write in one step
 ```
 
-For fresh installations on new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
+For the full build → flash → boot → login walkthrough and fresh installations on
+new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
 
 ### Secrets
 
@@ -125,7 +129,7 @@ Secrets files:
 - `modules/home/secrets.yaml` - user secrets
 - `infra/router/secrets.yaml` - router secrets
 
-To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#adding-a-new-host-to-sops).
+To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#step-4--generate-host-keys--register-with-sops).
 
 ### Maintenance
 

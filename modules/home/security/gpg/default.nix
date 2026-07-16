@@ -9,6 +9,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.gpg;
+  identity = resolveIdentity config;
 
   gpgInitScript = ''
     gpg-connect-agent updatestartuptty /bye >/dev/null
@@ -23,14 +24,18 @@ in
       description = "Cache TTL for GPG and SSH keys in seconds (default: 24 hours)";
     };
     publicKeys = mkOption {
-      type = types.listOf types.str;
-      default = [ (toString ./gpg.asc) ];
-      description = "A list of paths to public key files to import";
+      # Must be `path`, not `str`: a real Nix path is copied into the store as a
+      # closure dependency, so `gpg --import` finds it after a remote deploy.
+      # Stringifying the path (e.g. via `toString`) severs that edge — the file
+      # then lives only in the local flake source and is absent on the target.
+      type = types.listOf types.path;
+      default = lib.optional (identity.gpgPublicKeyFile != null) identity.gpgPublicKeyFile;
+      description = "A list of paths to public key files to import (defaults to the active identity's).";
     };
     sshKeys = mkOption {
       type = types.listOf types.str;
-      default = [ (builtins.readFile ./ssh-key-id) ];
-      description = "List of GPG key IDs that can be used as SSH keys";
+      default = lib.optional (identity.gpgKeyId != null) identity.gpgKeyId;
+      description = "List of GPG key IDs usable as SSH keys (defaults to the active identity's).";
     };
   };
 

@@ -8,9 +8,9 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.security.ssh;
+  identity = resolveIdentity config;
 
-  publicKeyFile = "id_ed25519.pub";
-  relativePublicKeyPath = ".ssh/${publicKeyFile}";
+  relativePublicKeyPath = ".ssh/id_ed25519.pub";
 in
 {
   options.${namespace}.security.ssh = with types; {
@@ -20,16 +20,20 @@ in
 
     publicKeyPath = mkOption {
       type = str;
-      default = "${config.home.homeDirectory}/${relativePublicKeyPath}";
+      default =
+        if identity.sshPublicKeyFile != null then
+          "${config.home.homeDirectory}/${relativePublicKeyPath}"
+        else
+          "";
       readOnly = true;
-      description = "Path to the public SSH key";
+      description = "Path to the public SSH key (empty when the identity has no key).";
     };
 
     publicKey = mkOption {
       type = str;
-      default = builtins.readFile ./${publicKeyFile};
+      default = if identity.sshPublicKey != null then identity.sshPublicKey else "";
       readOnly = true;
-      description = "Content of the public SSH key";
+      description = "Content of the public SSH key (empty when the identity has no key).";
     };
   };
 
@@ -55,6 +59,8 @@ in
       '';
     };
 
-    home.file."${relativePublicKeyPath}".source = ./${publicKeyFile};
+    home.file = mkIf (identity.sshPublicKeyFile != null) {
+      "${relativePublicKeyPath}".source = identity.sshPublicKeyFile;
+    };
   };
 }

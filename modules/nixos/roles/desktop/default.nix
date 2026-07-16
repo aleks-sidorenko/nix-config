@@ -11,47 +11,23 @@ let
 in
 {
   options.${namespace}.roles.desktop = {
-    enable = mkEnableOption "Enable desktop configuration";
+    enable = mkEnableOption "Enable the desktop host (root role)";
   };
 
   config = mkIf cfg.enable {
     ${namespace} = {
+      # A desktop is a graphical machine. Development lives on the home side
+      # (see the home `desktop` role).
       roles = {
-        common = enabled;
-        gaming = enabled;
-        backup = enabled;
+        graphical = enabled;
       };
 
-      cli = {
-
-        tools = {
-          nh.enable = true;
-          nix-ld.enable = true;
-        };
-      };
-
-      styles.stylix.enable = true;
-
-      desktops = {
-        gnome.enable = true;
-      };
-
+      # Virtualisation is desktop-specific (not wanted on the family laptop).
       services = {
         virtualisation = {
           virtualbox = enabled;
           podman = enabled;
         };
-      };
-
-      system.hibernation.enable = true;
-
-      user = {
-        # we need this for desktop
-        extraGroups = [
-          "audio"
-          "sound"
-          "video"
-        ];
       };
     };
   };

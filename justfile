@@ -10,9 +10,9 @@ default:
 bootstrap-secrets hostname disk_password="":
     @echo "🔐 Preparing secrets and SSH keys for {{hostname}}..."
     @if [ -n "{{disk_password}}" ]; then \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
@@ -34,10 +34,10 @@ bootstrap hostname username="$USER" disk_password="" *extra_opts="":
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
         echo "🔐 Generating secrets..."; \
-        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" | tail -1); \
+        KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
     echo "🚀 Proceeding with deployment..."; \
@@ -49,7 +49,7 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
     @echo "📡 Target directory: {{target_dir}}"
     @echo "📦 Firmware version: {{version}}"
     @echo "🔗 Connecting via SSH and executing firmware installation script..."
-    ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}' < scripts/bootstrap/bootstrap-rpi-firmware.sh
+    cat scripts/common.sh scripts/bootstrap/bootstrap-rpi-firmware.sh | ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}'
     @echo "✅ Raspberry Pi firmware bootstrap completed!"
 
 # Format disks with disko configuration
@@ -101,6 +101,31 @@ build:
 switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
+
+# Build the minimal NixOS installer ISO (output at ./result/iso/)
+iso-build:
+    @echo "💿 Building minimal installer ISO..."
+    nix build .#install-isoConfigurations.minimal
+    @echo "✅ ISO available at ./result/iso/ (nixos-minimal-*.iso)"
+
+# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX)
+iso-write device:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
+    if [ -z "$iso" ]; then
+        log_error "No ISO found — run 'just iso-build' first"; exit 1
+    fi
+    validate_write_disk {{device}} || exit 1
+    log_warning "About to write $iso to {{device}}"
+    log_warning "This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
+    sleep 5
+    sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
+    log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
+
+# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
+iso device: iso-build (iso-write device)
 
 # Update flake inputs (optionally a single input)
 update *input:

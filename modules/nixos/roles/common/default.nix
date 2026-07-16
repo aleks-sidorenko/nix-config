@@ -5,6 +5,7 @@
   ...
 }:
 with lib;
+with lib.${namespace};
 let
   cfg = config.${namespace}.roles.common;
 in
@@ -13,39 +14,34 @@ in
     enable = mkEnableOption "Enable common configuration";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
 
     ${namespace} = {
 
+      # Reuse the bare base (ssh, nix, locale, networking, fish) instead of
+      # duplicating it here.
+      roles.minimal = enabled;
+
       security = {
-        ssh.enable = true;
         sops.enable = true;
       };
 
-      system = {
-        nix = {
-          enable = true;
-          githubAuth = true;
+      cli = {
+        # General Nix ergonomics, useful on any managed host.
+        tools = {
+          nh.enable = true;
+          nix-ld.enable = true;
         };
-        locale.enable = true;
-        networking.enable = true;
+      };
+
+      system = {
+        nix.githubAuth = true;
         boot.enable = true;
         fs.enable = true;
       };
 
-      cli = {
-        shells.fish = {
-          enable = true;
-          default = true;
-        };
-      };
-
       disks = {
         impermanence.enable = true;
-      };
-
-      user = {
-        enable = true;
       };
 
     };

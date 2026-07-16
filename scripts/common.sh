@@ -17,20 +17,25 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Logging functions
+#
+# All logs go to stderr so that stdout stays a clean data channel: scripts can
+# return a result via command substitution (e.g. `KEYSDIR=$(bootstrap-secrets ...)`)
+# without log lines contaminating the captured value, and the logs stay visible
+# on the terminal even when the caller captures stdout.
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[SUCCESS]${NC} $1" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # Function to check if a command exists
@@ -125,6 +130,43 @@ check_ssh_connectivity() {
             log_error "Please ensure SSH access is configured"
             exit 1
         fi
+    fi
+}
+
+# Function to validate that a device is a whole disk safe to write a raw image to.
+#
+# Hybrid ISO images carry their boot record in the disk's boot sector (sector 0),
+# so they MUST be written to the whole disk (e.g. /dev/sde), never a partition
+# (e.g. /dev/sde1, /dev/nvme0n1p1) — otherwise the resulting media won't boot.
+# Uses lsblk TYPE so it works across sd*/nvme*/mmcblk* naming instead of a
+# brittle "ends in a digit" check.
+validate_write_disk() {
+    local device="$1"
+
+    if [[ -z "$device" ]]; then
+        log_error "No device given"
+        return 1
+    fi
+
+    local devtype
+    devtype=$(lsblk -ndo TYPE "$device" 2>/dev/null | head -1)
+
+    if [[ -z "$devtype" ]]; then
+        log_error "$device is not a block device (lsblk found no type)."
+        return 1
+    fi
+
+    if [[ "$devtype" == "part" ]]; then
+        local parent
+        parent=$(lsblk -ndo PKNAME "$device" 2>/dev/null | head -1)
+        log_error "$device is a partition, not a disk — the image would not be bootable."
+        log_error "Write to the whole disk instead${parent:+, e.g. /dev/$parent}."
+        return 1
+    fi
+
+    if [[ "$devtype" != "disk" ]]; then
+        log_error "$device is a '$devtype', not a whole disk — refusing to write."
+        return 1
     fi
 }
 

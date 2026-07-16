@@ -17,7 +17,7 @@ with lib.${namespace};
       enable = true;
     };
 
-    styles.stylix.wallpaper = "galaxy";
+    styles.stylix.wallpaper = "Kurzgesagt-Galaxies";
 
     desktops.monitors = {
       enable = true;

@@ -128,15 +128,15 @@ in
             inherit (cfg.languages) java;
           };
         };
+        # Only dev-specific tools here; the interactive-shell essentials
+        # (eza, bat, zoxide, fzf, starship, modern-unix, network-tools) come
+        # from the common role, which every development host also enables.
         tools = {
           coreutils.enable = true;
           moreutils.enable = true;
           atuin.enable = true;
-          bat.enable = true;
           bottom.enable = true;
           direnv.enable = true;
-          eza.enable = true;
-          fzf.enable = true;
           # githubToken (GH_TOKEN) left off: GH_TOKEN shadows the keyring OAuth
           # login, and the classic PAT it carries is rejected by SSO orgs.
           # Interactive machines use `gh auth login` instead.
@@ -144,12 +144,8 @@ in
           gh.enable = true;
           git.enable = true;
           htop.enable = true;
-          modern-unix.enable = true;
-          network-tools.enable = true;
           nix-index.enable = true;
-          starship.enable = true;
           yazi.enable = true;
-          zoxide.enable = true;
         };
       };
 

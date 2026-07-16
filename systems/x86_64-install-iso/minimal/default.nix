@@ -1,27 +1,33 @@
-{ namespace, ... }:
+{
+  lib,
+  namespace,
+  ...
+}:
+with lib;
+with lib.${namespace};
 {
   ${namespace} = {
 
-    security = {
-      ssh.enable = true;
+    roles.minimal = enabled;
+
+    # SSH is key-based (password auth disabled). The primary user here is the
+    # throwaway `nixos` account with no identity, so the ssh module falls back
+    # to authorizing the owner identity — the operator can SSH in to bootstrap.
+    users.nixos = {
+      primary = true;
+      admin = true;
     };
 
-    system = {
-      locale.enable = true;
-      networking.enable = true;
-      nix.enable = true;
-    };
-
-    cli = {
-      shells.fish.enable = true;
-    };
-
-    user = {
-      name = "nixos";
-      initialPassword = "nixos";
-    };
+    # nixos-anywhere reconnects as root@host to install (it detects the installer
+    # and skips kexec), so permit key-based root login and authorize the owner
+    # key for root. Installer only — hardened off on every deployed host.
+    security.ssh.rootLogin = true;
 
   };
+
+  # No password is set for `nixos` here: SOPS is disabled on the installer, so
+  # the users module leaves the account password-less, and the stock
+  # installation-device profile provides a passwordless console autologin.
 
   isoImage = {
     isoName = "nixos-minimal";
