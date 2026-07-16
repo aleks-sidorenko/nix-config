@@ -24,8 +24,12 @@ in
       description = "Cache TTL for GPG and SSH keys in seconds (default: 24 hours)";
     };
     publicKeys = mkOption {
-      type = types.listOf types.str;
-      default = lib.optional (identity.gpgPublicKeyFile != null) (toString identity.gpgPublicKeyFile);
+      # Must be `path`, not `str`: a real Nix path is copied into the store as a
+      # closure dependency, so `gpg --import` finds it after a remote deploy.
+      # Stringifying the path (e.g. via `toString`) severs that edge — the file
+      # then lives only in the local flake source and is absent on the target.
+      type = types.listOf types.path;
+      default = lib.optional (identity.gpgPublicKeyFile != null) identity.gpgPublicKeyFile;
       description = "A list of paths to public key files to import (defaults to the active identity's).";
     };
     sshKeys = mkOption {
