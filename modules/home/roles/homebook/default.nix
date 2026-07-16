@@ -28,6 +28,8 @@ in
         # The shared graphical suite, without development (this is a family
         # laptop, not a dev machine).
         graphical = enabled;
+        # Games for the kids (Minecraft etc.) — graphical no longer bundles it.
+        gaming = enabled;
       };
     };
   };

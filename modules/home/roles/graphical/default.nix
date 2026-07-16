@@ -28,10 +28,6 @@ in
       roles = {
         common = enabled;
         media = enabled;
-        mobile = enabled;
-        gaming = enabled;
-        communication = enabled;
-        router-manager = enabled;
       };
 
       services = {

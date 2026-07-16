@@ -18,6 +18,10 @@ in
     ${namespace} = {
       roles = {
         graphical = enabled;
+        communication = enabled;
+        mobile = enabled;
+        gaming = enabled;
+        router-manager = enabled;
         development = {
           enable = true;
           ai = {
