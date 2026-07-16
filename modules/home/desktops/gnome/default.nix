@@ -18,6 +18,12 @@ in
     favoriteApps =
       mkOpt (types.listOf types.str) [ ]
         "List of desktop file names (without .desktop) to add to GNOME dock";
+    launcher = {
+      restrict = mkBoolOpt false "Restrict the launcher to launcher.allowedApps: pin only those to the dock and hide the app grid button and overview search.";
+      allowedApps =
+        mkOpt (types.listOf types.str) [ ]
+          "Desktop file names (without .desktop) that make up the dock when launcher.restrict is enabled.";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -66,6 +72,7 @@ in
             layout
           ]
         ) localeLayouts;
+        restricted = cfg.launcher.restrict;
       in
       {
 
@@ -89,7 +96,11 @@ in
         "org/gnome/shell" = {
           disable-user-extensions = false;
 
-          favorite-apps = [ "org.gnome.Nautilus.desktop" ] ++ map (app: "${app}.desktop") cfg.favoriteApps;
+          favorite-apps =
+            if restricted then
+              map (app: "${app}.desktop") cfg.launcher.allowedApps
+            else
+              [ "org.gnome.Nautilus.desktop" ] ++ map (app: "${app}.desktop") cfg.favoriteApps;
 
           enabled-extensions = [
             "user-theme@gnome-shell-extensions.gcampax.github.com"
@@ -98,13 +109,14 @@ in
             "hibernate-status@dromi"
             "appindicatorsupport@rgcjonas.gmail.com"
             "forge@jmmaranan.com"
-            # "just-perfection-desktop@just-perfection"
             "pano@elhan.io"
             "search-light@icedman.github.com"
             "gsconnect@andyholmes.github.io"
             "caffeine@patapon.info"
             "Vitals@CoreCoding.com"
-          ];
+          ]
+          # just-perfection powers the restricted launcher (hide app grid + search).
+          ++ optionals restricted [ "just-perfection-desktop@just-perfection" ];
         };
 
         "org/gnome/shell/extensions/appindicator" = {
@@ -136,6 +148,14 @@ in
           idle-delay = 900; # Screen blank/lock after 15 minutes (900 seconds)
         };
 
+      }
+      // optionalAttrs restricted {
+        # Restricted launcher: hide the app grid button and overview search so
+        # only launcher.allowedApps (pinned to the dock) are reachable.
+        "org/gnome/shell/extensions/just-perfection" = {
+          show-apps-button = false;
+          search = false;
+        };
       };
 
     # ssh-agent workaround

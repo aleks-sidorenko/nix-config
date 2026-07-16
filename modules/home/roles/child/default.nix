@@ -30,9 +30,22 @@ in
 
       # Reuse the existing Minecraft module (installs Prism Launcher).
       games.minecraft = enabled;
+
+      # Full custom GNOME, but locked to a restricted launcher: only the
+      # allow-listed apps are pinned to the dock, and the app grid + overview
+      # search are hidden. Append to allowedApps to grant more apps later.
+      desktops.gnome = {
+        enable = true;
+        launcher = {
+          restrict = true;
+          allowedApps = [ "org.prismlauncher.PrismLauncher" ];
+        };
+      };
     };
 
     # No browsers, development, communication, or media. Combined with the
     # no-sudo child account, this keeps the child from installing a browser.
+    # GNOME is enabled directly (not via roles.graphical) to avoid pulling in
+    # browsers/teamviewer/media.
   };
 }
