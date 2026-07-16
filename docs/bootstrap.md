@@ -301,12 +301,12 @@ With keys registered and secrets in place, deploy with `nixos-anywhere`.
 just bootstrap <hostname> [username] [disk_password] [extra_opts...]
 ```
 
-Examples:
+Examples (connect as the installer's `nixos` user — see the note in
+[How `<hostname>` reaches the target](#how-hostname-reaches-the-target-machine)):
 ```bash
-just bootstrap myserver                                    # current user, no encryption
-just bootstrap myserver alexander                          # specific user
-just bootstrap myserver alexander MyPassword123            # with disk encryption
-just bootstrap myserver alexander MyPassword123 --build-on-remote  # build on target
+just bootstrap myserver nixos                              # no disk encryption
+just bootstrap myserver nixos "" --build-on-remote         # build on the target
+just bootstrap myserver nixos MyPassword123                # with LUKS disk encryption
 ```
 
 ### Two-step (if you already ran `bootstrap-secrets`)
@@ -321,6 +321,49 @@ just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]
 `nixos-anywhere` formats the disks (via disko), copies the SSH host key into
 `/persist/etc/ssh`, installs NixOS, and reboots. If `disk.key` is present it is
 passed through as `--disk-encryption-keys`.
+
+### How `<hostname>` reaches the target machine
+
+`bootstrap-deploy` uses the `<hostname>` argument **twice**:
+
+- **Flake config** — `nixos-anywhere --flake .#<hostname>` selects
+  `nixosConfigurations.<hostname>`.
+- **SSH address** — it connects to `<username>@<hostname>` to run the install.
+
+So `<hostname>` must *also resolve to the target's IP*. For a host already known
+to the config this is wired up automatically — which is why `ssh nixos@homebook`
+works from your workstation even though the fresh installer only knows itself as
+`nixos` and grabbed its address over DHCP:
+
+- **Name → IP:** your nix-config workstation's `/etc/hosts` is populated from
+  `defaults.network.hosts` (`lib/defaults`) by the networking module —
+  e.g. `homebook → 10.0.0.63`. (This is local resolution, independent of router
+  DNS: `homebook` has `dns = false` in `infra/router/hosts.nix`, so it is *not*
+  served by the router, but `/etc/hosts` still maps it.)
+- **Machine holds that IP:** the router hands it out as a **static DHCP lease
+  keyed by MAC** (`infra/router/hosts.nix`, e.g. homebook's `68:EC:…` →
+  `10.0.0.63`). Because the lease is by MAC, the box gets its reserved address
+  even while running the installer — it is not a random IP.
+
+> **Use `nixos` as `<username>` during bootstrap.** That is the only account on
+> the installer (it authorizes your owner SSH key — see
+> [Step 3](#step-3--boot-the-target)). It is the SSH login for the install only,
+> unrelated to the host's eventual accounts, which come from the flake.
+
+**If the host isn't reserved** (not yet in `infra/router/hosts.nix` /
+`defaults.network.hosts`), or you deploy from a machine without those static
+hosts, `<hostname>` won't resolve. Since the script reuses `<hostname>` for both
+the flake attr *and* the SSH address, point the name at the real IP just for the
+deploy — a throwaway `~/.ssh/config` alias is cleanest:
+
+```
+Host homebook
+  HostName 10.0.0.63
+  User nixos
+```
+
+so `.#homebook` still selects the right config while SSH goes to the actual IP
+(a temporary `/etc/hosts` line works too).
 
 ## Step 7 — Post-installation
 
