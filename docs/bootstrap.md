@@ -14,7 +14,7 @@ decrypts user passwords and other secrets at boot (see
 ```
 1. Define the host in the flake        (systems/…, homes/…, users)
 2. Prepare your local machine          (tools: pass, nix, ssh, nixos-anywhere)
-3. Boot the target                     (installer ISO, verify SSH + sudo)
+3. Boot the target                     (installer ISO, verify SSH, capture disks + hardware)
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
 6. Deploy                              (bootstrap / bootstrap-deploy + disko)
@@ -37,6 +37,14 @@ systems/<arch>/<hostname>/
 ├── hardware.nix    # imports, kernel modules, firmware
 └── disks.nix       # disko layout (see "Disk layout with disko" below)
 ```
+
+> **`hardware.nix` and `disks.nix` hold machine-specific values you can't know
+> yet** — the disk's stable `/dev/disk/by-id/…` path and the target's kernel
+> modules / microcode vendor. Start them from a similar host (or the `homebook`
+> placeholders, which are marked `# TODO` / `REPLACE-ME`) and **finalize them
+> after booting the target** in
+> [Step 3 → Capture the target's disks & hardware](#capture-the-targets-disks--hardware).
+> Leaving `REPLACE-ME` in `disks.nix` makes disko fail during deploy.
 
 Example `default.nix` (from the shared family laptop `homebook`):
 
@@ -104,8 +112,12 @@ just iso-build            # -> ./result/iso/nixos-minimal-*.iso
 just iso-write /dev/sdX   # dd the built image to the device
 ```
 
-Boot the target from the USB stick and log in as **`nixos`** / **`nixos`**. The
-ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
+Boot the target from the USB stick. The **local console** logs in as
+**`nixos`** / **`nixos`**. **SSH is key-based** (password auth is disabled): the
+throwaway `nixos` user has no identity of its own, so the ssh module authorizes
+the **owner identity** (`lib` `defaults.user`) — i.e. you connect as
+`nixos@<host>` with your own private key, no password. The ISO is defined by the
+`minimal` role (SSH, networking, locale, fish) in
 `systems/x86_64-install-iso/minimal/`.
 
 > **Raspberry Pi 4:** first
@@ -124,6 +136,54 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 ```bash
 ssh -o ConnectTimeout=10 -o BatchMode=yes <username>@<hostname> "sudo -n true"
 ```
+
+### Capture the target's disks & hardware
+
+The `hardware.nix` and `disks.nix` you stubbed in [Step 1](#step-1--define-the-host-in-the-flake)
+must now be filled with values that only exist on the real machine. Do this while
+booted into the installer, **before** deploying — disko formats the disk named in
+`disks.nix`, so a wrong or placeholder device is destructive or fails outright.
+
+**1. Find the system disk's stable `by-id` path** (SSH in or use the console):
+
+```bash
+lsblk -o NAME,SIZE,MODEL,TYPE          # identify the internal disk (not the USB installer)
+ls -l /dev/disk/by-id/                 # map that disk to a stable id
+```
+
+Pick the **whole-disk** id for the internal drive — e.g. `nvme-Samsung_SSD_…`
+or `ata-…` — **not** a `-part1`/`-partN` entry and **not** the `usb-…` installer
+stick. Prefer `by-id` over `/dev/sda`/`/dev/nvme0n1`, which can reorder between
+boots. Put it in `disks.nix`:
+
+```nix
+root.device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_1TB_XXXXXXXX";  # was REPLACE-ME
+```
+
+**2. Generate the hardware config:**
+
+```bash
+sudo nixos-generate-config --show-hardware-config --no-filesystems
+```
+
+This prints the detected `boot.initrd.availableKernelModules`, `boot.kernelModules`,
+and CPU microcode vendor **without** writing any files. Copy the relevant values
+into `hardware.nix`:
+
+- Replace the `boot.initrd.availableKernelModules` list with the detected one.
+- Set the microcode line to match the CPU —
+  `hardware.cpu.intel.updateMicrocode` or `hardware.cpu.amd.updateMicrocode`.
+- `--no-filesystems` is intentional: **disko owns the filesystem/mount config**,
+  so you don't copy any generated `fileSystems.*` / `swapDevices` entries.
+
+**3. Sanity-check the config still evaluates** from your local machine:
+
+```bash
+just list-configs nixos          # <hostname> should appear and evaluate
+nix eval .#nixosConfigurations.<hostname>.config.system.build.toplevel.drvPath
+```
+
+Commit these edits before deploying so the built system matches what you tested.
 
 ## Step 4 — Generate host keys & register with SOPS
 
@@ -357,6 +417,8 @@ Then deploy the host to apply ([Step 6](#step-6--deploy) / `just deploy`).
 ### Disk layout with disko
 
 Each system defines its disk layout in `systems/<arch>/<hostname>/disks.nix`.
+The `root.device` must be set to the target's real disk before deploying — see
+[Step 3 → Capture the target's disks & hardware](#capture-the-targets-disks--hardware).
 During bootstrap, `nixos-anywhere` formats disks automatically. To run disko on
 its own (e.g. re-format an existing host):
 
