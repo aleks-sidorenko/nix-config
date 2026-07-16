@@ -13,6 +13,8 @@ with lib.${namespace};
       homebook = enabled;
     };
 
+    styles.stylix.wallpaper = "Kurzgesagt-Galaxies";
+
     user = {
       enable = true;
     };

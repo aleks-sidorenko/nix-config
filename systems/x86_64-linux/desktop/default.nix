@@ -19,19 +19,13 @@ with lib.${namespace};
       };
     };
 
-    styles.stylix.wallpaper = "galaxy";
+    styles.stylix.wallpaper = "Kurzgesagt-Galaxies";
   };
 
   boot = {
     # There is issue with latest 6.19 kernel & nvidia drivers https://github.com/nixos/nixpkgs/issues/489947
     # TODO - move to latest once it is resolved
     kernelPackages = pkgs.linuxPackages_6_18; # pkgs.linuxPackages_latest;
-  };
-
-  # Allow unfree packages and accept NVIDIA license
-  nixpkgs.config = {
-    allowUnfree = true;
-    nvidia.acceptLicense = true;
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

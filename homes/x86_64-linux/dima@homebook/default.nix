@@ -13,6 +13,8 @@ with lib.${namespace};
       child = enabled;
     };
 
+    styles.stylix.wallpaper = "Kurzgesagt-Galaxy_3";
+
     user = {
       enable = true;
       name = "dima";
