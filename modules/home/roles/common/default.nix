@@ -50,6 +50,15 @@ in
           archivers.enable = true;
           modern-unix.enable = true;
           network-tools.enable = true;
+          # Interactive-shell essentials the common fish config depends on:
+          # ls→eza, cat→bat, cd→z (zoxide), and fzf (key bindings, fzf-fish
+          # plugin, preview functions), plus the starship prompt. Without these
+          # a plain common host (e.g. the family laptop) has a broken shell.
+          eza.enable = true;
+          bat.enable = true;
+          zoxide.enable = true;
+          fzf.enable = true;
+          starship.enable = true;
         };
       };
       styles.stylix.enable = true;
