@@ -112,12 +112,12 @@ just iso-build            # -> ./result/iso/nixos-minimal-*.iso
 just iso-write /dev/sdX   # dd the built image to the device
 ```
 
-Boot the target from the USB stick. The **local console** logs in as
-**`nixos`** / **`nixos`**. **SSH is key-based** (password auth is disabled): the
-throwaway `nixos` user has no identity of its own, so the ssh module authorizes
-the **owner identity** (`lib` `defaults.user`) — i.e. you connect as
-`nixos@<host>` with your own private key, no password. The ISO is defined by the
-`minimal` role (SSH, networking, locale, fish) in
+Boot the target from the USB stick. The **local console autologins** as
+**`nixos`** (passwordless — the stock installer default). **SSH is key-based**
+(password auth is disabled): the throwaway `nixos` user has no identity of its
+own, so the ssh module authorizes the **owner identity** (`lib` `defaults.user`)
+— i.e. you connect as `nixos@<host>` with your own private key, no password. The
+ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 `systems/x86_64-install-iso/minimal/`.
 
 > **Raspberry Pi 4:** first

@@ -30,7 +30,6 @@ let
       ]) "adult" "Permission/group preset for the user";
       extraGroups = mkOpt (listOf str) [ ] "Additional groups for the user";
       extraOptions = mkOpt attrs { } "Extra options passed to users.users.<name>";
-      initialPassword = mkOpt (nullOr str) null "Initial password (used when SOPS is disabled)";
       hashedPasswordFile = mkOpt (nullOr str) null "Path to a hashed password file override";
     };
   };
@@ -53,8 +52,6 @@ let
   mkUser =
     name: u:
     let
-      initialPassword = if u.initialPassword != null then u.initialPassword else name;
-
       hashedPasswordFile =
         if u.hashedPasswordFile != null then
           u.hashedPasswordFile
@@ -76,8 +73,12 @@ let
       group = "users";
       inherit shell;
 
-      # Set either hashedPasswordFile or initialPassword, but not both
-      initialPassword = mkIf (hashedPasswordFile == null) initialPassword;
+      # Password comes from SOPS (or an explicit hashedPasswordFile override).
+      # We never set a plaintext password: mutableUsers = false, so an
+      # `initialPassword` would be translated into an insecure `password`. When
+      # no hashed file is available (e.g. SOPS disabled, as on the installer ISO)
+      # the account is simply left without a password here — set one via
+      # `extraOptions` (e.g. initialHashedPassword) if a host needs it.
       hashedPasswordFile = mkIf (hashedPasswordFile != null) hashedPasswordFile;
 
       extraGroups = groups;
@@ -89,9 +90,6 @@ let
   # system concatenates extraGroups and lets explicit scalars override.
   primaryAlias = {
     extraGroups = userAlias.extraGroups;
-  }
-  // optionalAttrs (userAlias.initialPassword != null) {
-    initialPassword = mkForce userAlias.initialPassword;
   }
   // optionalAttrs (userAlias.hashedPasswordFile != null) {
     hashedPasswordFile = mkForce userAlias.hashedPasswordFile;
@@ -112,7 +110,6 @@ in
     user = with types; {
       name = mkOpt str defaults.user "The primary user's account name (derived from `users`)";
       extraGroups = mkOpt (listOf str) [ ] "Extra groups to add to the primary user";
-      initialPassword = mkOpt (nullOr str) null "Initial password for the primary user";
       hashedPasswordFile = mkOpt (nullOr str) null "Hashed password file for the primary user";
       extraOptions = mkOpt attrs { } "Extra options for the primary user account";
     };

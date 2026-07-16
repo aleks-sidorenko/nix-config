@@ -12,15 +12,17 @@ with lib.${namespace};
 
     # SSH is key-based (password auth disabled). The primary user here is the
     # throwaway `nixos` account with no identity, so the ssh module falls back
-    # to authorizing the owner identity — the operator can SSH in to bootstrap,
-    # while the local console still logs in as nixos/nixos.
+    # to authorizing the owner identity — the operator can SSH in to bootstrap.
     users.nixos = {
       primary = true;
       admin = true;
-      initialPassword = "nixos";
     };
 
   };
+
+  # No password is set for `nixos` here: SOPS is disabled on the installer, so
+  # the users module leaves the account password-less, and the stock
+  # installation-device profile provides a passwordless console autologin.
 
   isoImage = {
     isoName = "nixos-minimal";
