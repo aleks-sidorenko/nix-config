@@ -198,7 +198,7 @@ setup_disk_password() {
     log_info "Setting up disk encryption password for $hostname..."
 
     local disk_key_file="$keysdir/disk.key"
-    local pass_key_path="Infra/Host/$hostname/disk"
+    local pass_key_path="infra/host/$hostname/disk"
 
     # Validate password
     if [[ -z "$disk_password" ]]; then
