@@ -25,6 +25,13 @@ in
       default = lib.optional (authorizedKey != null) authorizedKey;
       description = "List of SSH public keys to authorize (defaults to the primary identity's, or the owner identity when the primary has none).";
     };
+    rootLogin = mkBoolOpt false ''
+      Permit key-based root SSH login and authorize the same keys for root.
+      Disabled (PermitRootLogin = "no") everywhere by default; enable it only on
+      installer images, where nixos-anywhere reconnects as root@host to perform
+      the install (it detects the installer, skips kexec, and needs a root SSH
+      login it can reach).
+    '';
   };
 
   config = mkIf cfg.enable {
@@ -43,7 +50,9 @@ in
       settings = {
         # Harden
         PasswordAuthentication = false;
-        PermitRootLogin = "no";
+        # Key-only root login when explicitly enabled (installer images); "no"
+        # otherwise. See the `rootLogin` option.
+        PermitRootLogin = if cfg.rootLogin then "prohibit-password" else "no";
 
         # Automatically remove stale sockets
         StreamLocalBindUnlink = "yes";
@@ -67,6 +76,12 @@ in
 
     users.users = {
       ${config.${namespace}.user.name}.openssh.authorizedKeys.keys = cfg.authorizedKeys;
+    }
+    # nixos-anywhere copies the connecting user's authorized_keys to /root, but
+    # NixOS keeps them under /etc/ssh/authorized_keys.d/, so that runtime copy
+    # fails silently — authorize root here directly when root login is enabled.
+    // optionalAttrs cfg.rootLogin {
+      root.openssh.authorizedKeys.keys = cfg.authorizedKeys;
     };
 
   };
