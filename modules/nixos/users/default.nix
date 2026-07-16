@@ -89,7 +89,7 @@ let
   # primary account as a whole rather than property-by-property. The module
   # system concatenates extraGroups and lets explicit scalars override.
   primaryAlias = {
-    extraGroups = userAlias.extraGroups;
+    inherit (userAlias) extraGroups;
   }
   // optionalAttrs (userAlias.hashedPasswordFile != null) {
     hashedPasswordFile = mkForce userAlias.hashedPasswordFile;

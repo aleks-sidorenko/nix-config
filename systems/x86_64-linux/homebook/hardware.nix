@@ -1,5 +1,3 @@
-# TODO: PLACEHOLDER — replace with the output of `nixos-generate-config` run on
-# the real homebook machine (kernel modules, microcode vendor, video driver).
 {
   config,
   lib,
@@ -23,21 +21,18 @@ with lib.${namespace};
 
   boot = {
     initrd = {
-      # TODO: confirm against the real machine.
       availableKernelModules = [
-        "nvme"
         "xhci_pci"
-        "ahci"
+        "nvme"
         "usb_storage"
-        "usbhid"
         "sd_mod"
+        "rtsx_usb_sdmmc"
       ];
-      kernelModules = [ ];
+      kernelModules = [ "kvm-intel" ];
     };
   };
 
   hardware = {
-    # TODO: switch to `cpu.amd.updateMicrocode` if the laptop is AMD.
     cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   };
 }
