@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   namespace,
   ...
@@ -23,6 +24,18 @@ with lib.${namespace};
   # No password is set for `nixos` here: SOPS is disabled on the installer, so
   # the users module leaves the account password-less, and the stock
   # installation-device profile provides a passwordless console autologin.
+
+  # nixos-anywhere installs as root: on a host it detects as an installer it
+  # copies your authorized_keys to /root and reconnects as root@host (see
+  # nixos-anywhere.sh, the `isInstaller && sshUser != root` switch). The ssh role
+  # hardens sshd to PermitRootLogin = "no", so re-enable key-based root login for
+  # the installer and give root the same owner key. NixOS keeps authorized_keys
+  # under /etc/ssh/authorized_keys.d/, so nixos-anywhere's runtime `cp` of them
+  # fails silently — root must already hold the key. You still connect as `nixos`
+  # (non-root + sudo); nixos-anywhere performs the root switch itself. Ephemeral
+  # installer only — never a deployed host.
+  services.openssh.settings.PermitRootLogin = mkForce "prohibit-password";
+  users.users.root.openssh.authorizedKeys.keys = config.${namespace}.security.ssh.authorizedKeys;
 
   isoImage = {
     isoName = "nixos-minimal";
