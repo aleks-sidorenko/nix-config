@@ -73,6 +73,73 @@ check_prerequisites() {
     log_success "Prerequisites check passed"
 }
 
+# Derive the age recipient from an SSH ed25519 public key file.
+pubkey_to_age() {
+    local pubfile="$1"
+
+    if command_exists ssh-to-age; then
+        ssh-to-age -i "$pubfile" 2>/dev/null
+    else
+        nix-shell -p ssh-to-age --run "ssh-to-age -i '$pubfile'" 2>/dev/null
+    fi
+}
+
+# Pre-flight guard: the host key we are about to deploy must be the one
+# registered as a SOPS recipient in .sops.yaml. If it is not, the installed host
+# boots unable to decrypt its own secrets — user passwords never materialize, so
+# there is NO interactive login (only key-based SSH keeps working, which hides
+# the failure). Fail loudly here instead of discovering it after a locked-out
+# reboot. See docs/bootstrap.md.
+verify_host_key_matches_sops() {
+    local hostname="$1"
+    local keysdir="$2"
+    local pubfile="$keysdir/extra/persist/etc/ssh/ssh_host_ed25519_key.pub"
+    local sops_file="${FLAKE_DIR:-.}/.sops.yaml"
+
+    if [[ ! -f "$pubfile" ]]; then
+        log_warning "No host public key at $pubfile; skipping SOPS recipient check."
+        return 0
+    fi
+    if [[ ! -f "$sops_file" ]]; then
+        log_warning "No .sops.yaml at $sops_file; skipping SOPS recipient check."
+        return 0
+    fi
+
+    local deployed_age
+    deployed_age=$(pubkey_to_age "$pubfile")
+    if [[ -z "$deployed_age" ]]; then
+        log_warning "Could not derive an age key from $pubfile (ssh-to-age unavailable?); skipping SOPS recipient check."
+        return 0
+    fi
+
+    # Anchor lines look like:  '    - &homebook age1xxxx...'
+    local registered_age
+    registered_age=$(grep -oE "&${hostname}[[:space:]]+age1[a-z0-9]+" "$sops_file" | grep -oE 'age1[a-z0-9]+' | head -1)
+
+    if [[ -z "$registered_age" ]]; then
+        log_error "Host '$hostname' is not registered as a SOPS recipient in $sops_file."
+        log_error "Add its age key and rekey before deploying:"
+        log_error "  - &${hostname} ${deployed_age}"
+        log_error "  sops updatekeys modules/nixos/secrets.yaml modules/home/secrets.yaml"
+        log_error "Otherwise the installed host cannot decrypt its secrets (no interactive login)."
+        exit 1
+    fi
+
+    if [[ "$deployed_age" != "$registered_age" ]]; then
+        log_error "SOPS host-key mismatch for '$hostname' — refusing to deploy:"
+        log_error "  key being deployed : $deployed_age   (from $pubfile)"
+        log_error "  registered in sops : $registered_age   (&$hostname in $sops_file)"
+        log_error "The installed host would boot unable to decrypt SOPS secrets: user"
+        log_error "passwords never appear, so there is no interactive login (only SSH keys work)."
+        log_error "Fix: set &${hostname} to ${deployed_age} in $sops_file, then"
+        log_error "  sops updatekeys modules/nixos/secrets.yaml modules/home/secrets.yaml"
+        log_error "commit, and retry. (Or re-run bootstrap-secrets so the keysdir matches.)"
+        exit 1
+    fi
+
+    log_success "SOPS recipient check passed: &$hostname = $deployed_age"
+}
+
 
 # Function to run nixos-anywhere deployment
 run_deployment() {
@@ -146,10 +213,14 @@ main() {
     
     # Check prerequisites
     check_prerequisites "$hostname"
-    
+
+    # Guard: the key we're deploying must match this host's SOPS recipient, or
+    # the installed system can't decrypt its secrets (locks out interactive login).
+    verify_host_key_matches_sops "$hostname" "$keysdir"
+
     # Check SSH connectivity
     check_ssh_connectivity "$username" "$hostname"
-    
+
     # Run the deployment
     run_deployment "$username" "$hostname" "$keysdir" "${extra_opts[@]}"
     
