@@ -147,6 +147,12 @@ in
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
+      # Move pre-existing, unmanaged files aside instead of aborting activation
+      # when home-manager wants to own them (e.g. stylix's forge target manages
+      # ~/.config/forge/stylesheet/forge/stylesheet.css, which the Forge GNOME
+      # extension may have already created at runtime). Mirrors the darwin users
+      # module.
+      backupFileExtension = "backup";
     };
 
     sops.secrets = mkIf sopsEnabled (
