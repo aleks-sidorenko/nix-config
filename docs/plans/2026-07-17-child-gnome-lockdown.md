@@ -433,10 +433,11 @@ git -c commit.gpgsign=false commit -m "feat(users): polkit deny wifi/network tog
 Run: `just check`
 Expected: format-check + lint pass (no diffs, no statix/deadnix findings).
 
-- [ ] **Step 2: Build the host closures**
+- [ ] **Step 2: Build the host closure**
 
-Run: `just build homebook` (or `nix build '.#nixosConfigurations.homebook.config.system.build.toplevel' --no-link 2>&1 | tail -5`)
-Expected: builds without error. Confirms both `alexander` and `dima` home-manager generations evaluate and the polkit `etc` file is realised.
+Run: `nix build '.#nixosConfigurations.homebook.config.system.build.toplevel' --no-link 2>&1 | tail -5`
+(Note: `just build` takes no host argument — it builds the *local* hostname; use the explicit `nix build` above to target `homebook`.)
+Expected: builds without error. Because `homebook` is the host that declares the child `dima`, this exercises both the `alexander`/`dima` home-manager generations and realises the polkit `etc` file.
 
 - [ ] **Step 3: Final adult-unchanged regression**
 
@@ -463,5 +464,5 @@ REQUIRED: run the `verify` skill / `superpowers:verification-before-completion` 
 - [ ] Child (`dima`) has only user-theme + just-perfection; no adult power-user tools.
 - [ ] Child dconf has lockdown keys and Minecraft-only dock; Settings hidden.
 - [ ] `00-child-network-lockdown.rules` denies the three NM actions for `dima`.
-- [ ] `just check` + `just build homebook` pass.
+- [ ] `just check` + `nix build '.#nixosConfigurations.homebook.config.system.build.toplevel'` pass.
 - [ ] Runtime behavior on `homebook` verified and recorded (incl. Bluetooth outcome).
