@@ -31,11 +31,12 @@ in
       # Reuse the existing Minecraft module (installs Prism Launcher).
       games.minecraft = enabled;
 
-      # Full custom GNOME, but locked to a restricted launcher: only the
-      # allow-listed apps are pinned to the dock, and the app grid + overview
-      # search are hidden. The allow-list is sourced from the enabled app
-      # modules rather than hardcoded — extend it by enabling more modules that
-      # expose a desktop id (or appending literal ids here).
+      # Minimal, locked-down GNOME (profile = "child"): only the allow-listed
+      # apps are pinned to the dock; the app grid + search are hidden and system
+      # toggles are locked down (see modules/home/desktops/gnome/profiles/child).
+      # The allow-list is sourced from the enabled app modules rather than
+      # hardcoded — extend it by enabling more modules that expose a desktop id
+      # (or appending literal ids here).
       desktops.gnome = {
         enable = true;
         profile = "child";
