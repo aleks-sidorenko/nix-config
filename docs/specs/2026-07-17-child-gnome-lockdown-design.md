@@ -1,7 +1,7 @@
 # Design: parent/child GNOME split + child UI lockdown
 
 - **Date**: 2026-07-17
-- **Status**: Approved (design); pending spec-review + implementation plan
+- **Status**: Approved (design); spec-review complete (1 blocker + should-fixes folded in)
 - **Scope**: Stop the `child` profile from inheriting the full adult power-user
   GNOME. Refactor the home-manager GNOME module into a shared hardware/infra
   **base** plus per-**profile** layers (`adult` / `child`), give the child a
@@ -70,12 +70,24 @@ Restructure `modules/home/desktops/gnome/`:
 
 ```
 modules/home/desktops/gnome/
-  default.nix          # base + `profile` option; user-agnostic infra only
-  monitors.nix         # shared, unchanged (gated on enable)
+  default.nix              # base + `profile` option; user-agnostic infra only
+  keybindings.nix          # kept top-level; re-gated to profile == "adult" (see below)
+  monitors.nix             # shared, unchanged (gated on enable)
+  addons/default.nix       # unchanged
   profiles/
-    adult.nix          # today's power-user setup (extensions, keybindings, vitals, tray)
-    child.nix          # minimal desktop + lockdown dconf + restricted dock
+    adult/default.nix      # today's extensions/tray/vitals/dock
+    child/default.nix      # minimal desktop + lockdown dconf + restricted dock
 ```
+
+**Module discovery (critical).** `default.nix:14` imports siblings via
+`lib.snowfall.fs.get-non-default-nix-files ./.`, which is **non-recursive** and
+only returns top-level non-`default.nix` files. It will **not** pick up files in
+a `profiles/` subdir. Therefore the profile layers use `profiles/<x>/default.nix`
+so snowfall's own module auto-discovery (`get-default-nix-files-recursive`, which
+matches every `default.nix`) evaluates them as independent home modules — the
+exact proven pattern already used by `addons/default.nix`. Each is always loaded
+and gates its own `config` block on `cfg.profile`. A flat `profiles/adult.nix`
+would be a dead file — do **not** use that layout.
 
 **`default.nix` (base, `mkIf enable`)** keeps only what both profiles share:
 - New option `nix-config.desktops.gnome.profile` = `enum ["adult" "child"]`,
@@ -89,31 +101,47 @@ modules/home/desktops/gnome/
   ssh-agent workaround (`GSM_SKIP_SSH_AGENT_WORKAROUND` + autostart override),
   `kdeconnect` force-off.
 - `monitors.nix` unchanged.
-- The `keybindings.nix` content moves under the **adult** profile (see below);
-  the base defines no keybindings.
+- `keybindings.nix` stays a **top-level** sibling (still imported by the existing
+  non-recursive `imports`), but its guard changes from `mkIf cfg.enable`
+  (`keybindings.nix:13`) to `mkIf (cfg.enable && cfg.profile == "adult")`. This
+  keeps the adult power-user bindings working without moving the file (and avoids
+  the discovery pitfall above). The base defines no keybindings.
 
-**`profiles/adult.nix` (`mkIf enable && profile == "adult"`)** = current behavior
-**verbatim**, so `alexander@homebook` / `alexander@desktop` are unchanged:
+**`profiles/adult/default.nix` (`mkIf (cfg.enable && cfg.profile == "adult")`)** =
+current behavior **verbatim**, so `alexander@homebook` / `alexander@desktop` are
+unchanged (adult homes never set `profile`, so the `"adult"` default applies):
 - Full extension package list incl. `dconf-editor`, `gnome-tweaks`.
 - Full `enabled-extensions`, `favorite-apps = nautilus ++ favoriteApps`,
   appindicator tray (`legacy-tray-enabled`), vitals config.
-- All of today's `keybindings.nix` (forge tiling, workspaces, media keys,
-  terminal, power menu, screenshots).
+- (Keybindings remain in the re-gated top-level `keybindings.nix`, not here.)
 
-**`profiles/child.nix` (`mkIf enable && profile == "child"`)** = minimal + locked:
+**`profiles/child/default.nix` (`mkIf (cfg.enable && cfg.profile == "child")`)** =
+minimal + locked:
 - Packages: **only** `gnomeExtensions.just-perfection` (needed to hide grid +
-  search) and `gnomeExtensions.user-themes` (stylix). **No** dconf-editor,
-  gnome-tweaks, forge, pano, gsconnect, caffeine, vitals, hibernate, launch-new-instance.
+  search) and `gnomeExtensions.user-themes` (optional — enables GNOME Shell
+  theming so stylix styles the shell; included for visual consistency). **No**
+  dconf-editor, gnome-tweaks, forge, pano, gsconnect, caffeine, vitals,
+  hibernate, launch-new-instance.
 - `enabled-extensions = [ user-theme just-perfection ]`.
 - `favorite-apps = map (a: "${a}.desktop") cfg.allowedApps` (Minecraft; data-driven).
 - `just-perfection` = `{ show-apps-button = false; search = false; }`.
 - **Lockdown dconf** `org/gnome/desktop/lockdown`:
   - `disable-command-line = true` (kills Alt+F2 run dialog),
   - `user-administration-disabled = true`.
-- **Hide Settings**: `xdg.desktopEntries."org.gnome.Settings"` (or an
-  `xdg.dataFile` override) with `noDisplay = true` so Control Center is not in
-  the app grid/search.
+- **Hide Settings**: `xdg.desktopEntries."org.gnome.Settings"` with
+  `noDisplay = true` so Control Center is not in the app grid/search. Note the
+  generated entry still requires `name` (and realistically `exec`) fields — supply
+  them; `noDisplay` alone is not a complete entry.
 - No terminal keybinding, no tiling. Keybindings minimal / GNOME defaults.
+
+**dconf merge hazard (implementation note).** Several top-level dconf paths are
+contributed by more than one file and rely on home-manager merging *disjoint*
+subkeys: `org/gnome/mutter` (`monitors.nix:14` `experimental-features` +
+`keybindings.nix:161` `dynamic-workspaces`) and `org/gnome/desktop/wm/preferences`
+(`default.nix:92` `focus-mode` + `keybindings.nix:165` `num-workspaces`). When
+splitting, never set the **same** subkey under one path from both the base and a
+profile — home-manager throws a conflicting-definition error. Keep subkeys
+disjoint across base/profile files.
 
 ### 4.2 System-level polkit lockdown (WiFi/Bluetooth)
 
@@ -134,14 +162,17 @@ users module). It:
   off. No group changes needed.
 - Gated on `childUsers != []` so hosts without a child are untouched.
 
-**Bluetooth (best-effort, open item).** BlueZ does not polkit-gate the adapter
-power toggle as cleanly as NetworkManager, so a `NO` rule may not fully block the
-quick-settings BT toggle. Plan: add the analogous rule for any applicable BlueZ
-action and **verify on the running `homebook`** during implementation. If it does
-not take effect, fall back to one of (decide at that point): (a) accept it (a
-child toggling Bluetooth is low-risk), or (b) if the family doesn't use Bluetooth
-on that laptop, disable the host Bluetooth service. This is explicitly flagged
-rather than overclaimed.
+**Bluetooth (best-effort, fallback pre-committed).** BlueZ does not polkit-gate
+the adapter power toggle the way NetworkManager gates its actions (the GNOME BT
+toggle largely goes through rfkill/BlueZ D-Bus with no denyable action for a
+local active session), so a `NO` rule likely will **not** block the quick-settings
+BT toggle. Plan: add the analogous rule and **verify on `homebook`**. Realistic
+outcome: it doesn't take effect. **Committed fallback: accept it** — a child
+toggling Bluetooth is low-risk, and the obvious hard block (disabling
+`hardware.bluetooth` host-wide) is rejected because `homebook` is a *shared*
+laptop and that would also break Bluetooth for the adult, violating the
+"adult unchanged" goal. If a hard per-child block is ever required, it belongs in
+a future stretch (e.g. a login-session rfkill guard), not this change.
 
 ### 4.3 Wiring
 
@@ -168,14 +199,15 @@ No other homes or hosts change.
 - **dconf is not hard-locked.** Enforcement relies on removing the tools
   (dconf-editor/tweaks) and access (no terminal, no sudo). Sufficient for a
   child; hard system-dconf locks are a later option.
-- **Bluetooth** blocking is best-effort (see §4.2).
+- **Bluetooth** blocking is best-effort; committed fallback is to accept child
+  toggling rather than degrade the shared adult experience (see §4.2).
 
 ## 6. Affected files
 
 - `modules/home/desktops/gnome/default.nix` — reduce to base + `profile`/`allowedApps` options.
-- `modules/home/desktops/gnome/profiles/adult.nix` — **new**; today's setup verbatim (incl. moved keybindings).
-- `modules/home/desktops/gnome/profiles/child.nix` — **new**; minimal + lockdown.
-- `modules/home/desktops/gnome/keybindings.nix` — moved into / gated to adult profile.
+- `modules/home/desktops/gnome/profiles/adult/default.nix` — **new**; today's extensions/tray/vitals/dock verbatim.
+- `modules/home/desktops/gnome/profiles/child/default.nix` — **new**; minimal + lockdown.
+- `modules/home/desktops/gnome/keybindings.nix` — kept top-level; guard re-gated to `profile == "adult"`.
 - `modules/home/desktops/gnome/monitors.nix`, `addons/default.nix` — unchanged.
 - `modules/home/roles/child/default.nix` — switch to `profile = "child"`.
 - `modules/nixos/users/child-lockdown/default.nix` — **new**; polkit rules for child users.
