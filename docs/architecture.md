@@ -85,7 +85,7 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **graphical** | common, media, mobile, gaming, communication, router-manager | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
 | **desktop** | graphical, development | Root role for the desktop host (graphical + development) |
 | **homebook** | graphical | Root role for the shared family laptop (graphical, no development) |
-| **child** | common | Restricted account: Minecraft only, no browser |
+| **child** | common | Restricted account: locked-down GNOME (`profile = "child"`), Minecraft only, no browser, no sudo |
 | **work** | common, development, router-manager | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
@@ -123,6 +123,33 @@ nix-config.users = {
   existing references (doas, greetd, ssh, virtualisation group injection) keep
   working. It is not declared directly.
 - Per-user home environments are the usual snowfall `homes/<user>@<host>/`.
+
+### Profiles (`adult` / `child`)
+
+A user's `profile` is the single knob that shapes how locked-down their account
+is. It flows through two independent layers:
+
+**System layer** (`modules/nixos/users/`):
+- `adult` — standard groups; may be `admin` (adds `wheel`/sudo).
+- `child` — `audio`/`video`/`input` only, **never `wheel`** (an assertion forbids
+  a child being `admin`). `modules/nixos/users/child-lockdown/` adds a polkit
+  rule (written to `/etc/polkit-1/rules.d/00-…` so it precedes NixOS's own rules)
+  that **denies NetworkManager enable/disable** for every child user — the child
+  can't toggle WiFi/networking off from the UI, but connections stay up.
+
+**Desktop layer** (`modules/home/desktops/gnome/`): a shared base module plus a
+`desktops.gnome.profile` that selects an auto-discovered profile module:
+- `profiles/adult/` — the full power-user GNOME (all extensions, tray, Vitals,
+  tiling keybindings, `favoriteApps` dock). This is the default, so existing
+  adult homes are unchanged.
+- `profiles/child/` — a minimal, locked-down desktop: only `just-perfection` +
+  `user-themes`, a restricted `allowedApps` dock, hidden app-grid button +
+  overview search (and `Super+A` disabled), GNOME Settings hidden, and
+  `org/gnome/desktop/lockdown` (`disable-command-line`, `user-administration-disabled`).
+
+The home `child` role wires these together: it enables `roles.common`, Minecraft,
+and `desktops.gnome = { profile = "child"; allowedApps = …; }`, deliberately
+skipping `roles.graphical` so no browser/media/dev tooling is pulled in.
 
 ### Identities (public key material)
 

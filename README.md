@@ -4,7 +4,7 @@
 
 ## About
 
-Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-lib](https://github.com/snowfallorg/lib). Manages multiple systems across three architectures with declarative, role-based configuration, encrypted secrets, and opt-in persistence.
+Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-lib](https://github.com/snowfallorg/lib). Manages multiple systems across three architectures with declarative, role-based configuration, **multi-user "family" hosts with `adult`/`child` profiles**, encrypted secrets, and opt-in persistence.
 
 ## Features
 
@@ -14,6 +14,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 - Multiple terminals (ghostty, kitty, alacritty, foot) and shells (fish, zsh)
 
 **System Management**
+- **Multi-user "family" hosts**: every account (including the primary) declared uniformly via `nix-config.users`, with `adult`/`child` profiles driving group presets, sudo, and per-person identities
 - Declarative disk layout with **disko** (BTRFS + LUKS encryption)
 - **Opt-in persistence** through **impermanence** + blank snapshot
 - **SOPS-nix** secrets management with per-host age keys
@@ -21,6 +22,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 
 **Desktop**
 - **Hyprland** (hypridle, hyprlock, hyprpaper, pyprland) and **GNOME** desktop environments
+- **Profile-based GNOME**: full power-user desktop for adults vs. a **locked-down child desktop** — minimal extensions, hidden Settings, no WiFi/Bluetooth toggling, app grid disabled, restricted app dock
 - **Stylix** system-wide theming with **Catppuccin** color scheme
 - Waybar, swaync, rofi, wlogout, kanshi
 
@@ -44,7 +46,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | Hostname | Architecture | Hardware | Role | OS | State |
 |:--------:|:----------:|:---------|:----:|:--:|:-----:|
 | `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
-| `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook (shared) | NixOS | Scaffold |
+| `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook — multi-user (adult + child) | NixOS | Scaffold |
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
 | `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
@@ -55,7 +57,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 ```
 .
 ├── systems/          # System configs: desktop, server, vm, workbook, minimal
-├── homes/            # Home-manager configs: alexander@desktop, alexander@vm, oleksandrsy@workbook
+├── homes/            # Home-manager configs: alexander@{desktop,homebook,vm}, dima@homebook (child), oleksandrsy@workbook
 ├── modules/
 │   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
 │   ├── home/         # Home-manager modules (roles, desktops, cli, development, browsers, media)
