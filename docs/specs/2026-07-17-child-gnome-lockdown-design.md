@@ -151,15 +151,22 @@ users module). It:
 
 - Derives the child usernames from config:
   `childUsers = attrNames (filterAttrs (_: u: u.profile == "child") config.${ns}.users)`.
-- Emits, for each child user, a `security.polkit` rule returning
-  `polkit.Result.NO` (denied outright — no auth prompt, toggle silently fails)
-  for the NetworkManager enable/disable actions:
+- Emits, for each child user, a polkit rule returning `polkit.Result.NO`
+  (denied outright — no auth prompt, toggle silently fails) for the
+  NetworkManager enable/disable actions:
   - `org.freedesktop.NetworkManager.enable-disable-network`
   - `org.freedesktop.NetworkManager.enable-disable-wifi`
   - `org.freedesktop.NetworkManager.enable-disable-wwan`
-- An explicit `NO` overrides the `networkmanager`-group allow, so WiFi stays
-  connected and functional but the child cannot turn it (or the whole network)
-  off. No group changes needed.
+- **Ordering matters.** NixOS already emits a `networkmanager`-group **YES** rule
+  (verified in `config.security.polkit.extraConfig`) and NetworkManager's upstream
+  policy also allows active local sessions by default. polkit evaluates
+  `rules.d/*` in lexical filename order and stops at the **first** definitive
+  result. `security.polkit.extraConfig` lands in `10-nixos.rules` with no
+  guaranteed ordering vs. the group YES rule, so it is **not** reliable. The deny
+  is therefore written to its own lower-numbered file via
+  `environment.etc."polkit-1/rules.d/00-child-network-lockdown.rules"`, which is
+  evaluated before `10-nixos.rules` and wins. WiFi stays connected and functional;
+  the child simply cannot turn it (or the whole network) off. No group changes.
 - Gated on `childUsers != []` so hosts without a child are untouched.
 
 **Bluetooth (best-effort, fallback pre-committed).** BlueZ does not polkit-gate
