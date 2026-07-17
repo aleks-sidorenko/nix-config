@@ -11,6 +11,10 @@ let
   cfg = config.${namespace}.desktops.gnome;
 in
 {
+  options.${namespace}.desktops.gnome.favoriteApps =
+    mkOpt (types.listOf types.str) [ ]
+      "Desktop file names (without .desktop) pinned to the dock on the adult profile.";
+
   config = mkIf (cfg.enable && cfg.profile == "adult") {
     home.packages = with pkgs; [
       dconf-editor

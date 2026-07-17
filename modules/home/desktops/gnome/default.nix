@@ -13,18 +13,14 @@ in
 {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
+  # Profile-specific dock options (favoriteApps / allowedApps) are declared by
+  # their sole consumer: profiles/adult and profiles/child respectively.
   options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
     profile = mkOpt (types.enum [
       "adult"
       "child"
     ]) "adult" "GNOME setup preset: full adult desktop or minimal locked-down child desktop.";
-    favoriteApps =
-      mkOpt (types.listOf types.str) [ ]
-        "Desktop file names (without .desktop) pinned to the dock on the adult profile.";
-    allowedApps =
-      mkOpt (types.listOf types.str) [ ]
-        "Desktop file names (without .desktop) that make up the dock on the child profile.";
   };
 
   config = mkIf cfg.enable {

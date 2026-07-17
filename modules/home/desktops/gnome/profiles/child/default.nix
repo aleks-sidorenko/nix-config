@@ -11,6 +11,10 @@ let
   cfg = config.${namespace}.desktops.gnome;
 in
 {
+  options.${namespace}.desktops.gnome.allowedApps =
+    mkOpt (types.listOf types.str) [ ]
+      "Desktop file names (without .desktop) that make up the dock on the child profile.";
+
   config = mkIf (cfg.enable && cfg.profile == "child") {
     # Minimal extension set: user-theme for stylix shell theming, and
     # just-perfection to hide the app-grid button + overview search.
