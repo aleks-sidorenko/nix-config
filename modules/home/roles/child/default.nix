@@ -38,12 +38,10 @@ in
       # expose a desktop id (or appending literal ids here).
       desktops.gnome = {
         enable = true;
-        launcher = {
-          restrict = true;
-          allowedApps =
-            optional config.${namespace}.games.minecraft.enable
-              config.${namespace}.games.minecraft.desktopId;
-        };
+        profile = "child";
+        allowedApps =
+          optional config.${namespace}.games.minecraft.enable
+            config.${namespace}.games.minecraft.desktopId;
       };
     };
 

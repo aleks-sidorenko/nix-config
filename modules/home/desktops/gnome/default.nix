@@ -15,15 +15,16 @@ in
 
   options.${namespace}.desktops.gnome = {
     enable = mkEnableOption "Enable GNOME desktop environment";
+    profile = mkOpt (types.enum [
+      "adult"
+      "child"
+    ]) "adult" "GNOME setup preset: full adult desktop or minimal locked-down child desktop.";
     favoriteApps =
       mkOpt (types.listOf types.str) [ ]
-        "List of desktop file names (without .desktop) to add to GNOME dock";
-    launcher = {
-      restrict = mkBoolOpt false "Restrict the launcher to launcher.allowedApps: pin only those to the dock and hide the app grid button and overview search.";
-      allowedApps =
-        mkOpt (types.listOf types.str) [ ]
-          "Desktop file names (without .desktop) that make up the dock when launcher.restrict is enabled.";
-    };
+        "Desktop file names (without .desktop) pinned to the dock on the adult profile.";
+    allowedApps =
+      mkOpt (types.listOf types.str) [ ]
+        "Desktop file names (without .desktop) that make up the dock on the child profile.";
   };
 
   config = mkIf cfg.enable {
@@ -43,23 +44,6 @@ in
 
     stylix.targets.gnome.enable = true; # Enable Stylix for GNOME
 
-    home.packages = with pkgs; [
-      dconf-editor
-      gnome-tweaks
-      gnomeExtensions.user-themes
-      gnomeExtensions.space-bar
-      gnomeExtensions.hibernate-status-button
-      gnomeExtensions.forge
-      gnomeExtensions.appindicator
-      gnomeExtensions.just-perfection
-      gnomeExtensions.pano
-      gnomeExtensions.search-light
-      gnomeExtensions.gsconnect
-      gnomeExtensions.caffeine
-      gnomeExtensions.launch-new-instance
-      gnomeExtensions.vitals
-    ];
-
     # Configure GNOME display settings via dconf
     dconf.settings =
       let
@@ -72,7 +56,6 @@ in
             layout
           ]
         ) localeLayouts;
-        restricted = cfg.launcher.restrict;
       in
       {
 
@@ -93,49 +76,6 @@ in
           focus-mode = "sloppy";
         };
 
-        "org/gnome/shell" = {
-          disable-user-extensions = false;
-
-          favorite-apps =
-            if restricted then
-              map (app: "${app}.desktop") cfg.launcher.allowedApps
-            else
-              [ "org.gnome.Nautilus.desktop" ] ++ map (app: "${app}.desktop") cfg.favoriteApps;
-
-          enabled-extensions = [
-            "user-theme@gnome-shell-extensions.gcampax.github.com"
-            "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
-            "space-bar@luchrioh"
-            "hibernate-status@dromi"
-            "appindicatorsupport@rgcjonas.gmail.com"
-            "forge@jmmaranan.com"
-            "pano@elhan.io"
-            "search-light@icedman.github.com"
-            "gsconnect@andyholmes.github.io"
-            "caffeine@patapon.info"
-            "Vitals@CoreCoding.com"
-          ]
-          # just-perfection powers the restricted launcher (hide app grid + search).
-          ++ optionals restricted [ "just-perfection-desktop@just-perfection" ];
-        };
-
-        "org/gnome/shell/extensions/appindicator" = {
-          legacy-tray-enabled = true;
-        };
-
-        "org/gnome/shell/extensions/vitals" = {
-          show-temperature = true; # CPU/GPU temp
-          show-voltage = false; # Disable voltage (usually irrelevant)
-          show-fan = true; # Fan speed (if supported)
-          show-memory = true; # RAM usage
-          show-processor = true; # CPU usage
-          show-storage = true; # Disk usage
-          hot-sensors = [ "CPU" ]; # Which temps to show (e.g., "CPU", "GPU")
-          position-in-panel = "right"; # "left", "center", "right"
-          refresh-time = 2; # Update interval (seconds)
-
-        };
-
         # Power management settings
         "org/gnome/settings-daemon/plugins/power" = {
           sleep-inactive-ac-timeout = 7200; # 2 hours (7200 seconds) when plugged in
@@ -148,14 +88,6 @@ in
           idle-delay = 900; # Screen blank/lock after 15 minutes (900 seconds)
         };
 
-      }
-      // optionalAttrs restricted {
-        # Restricted launcher: hide the app grid button and overview search so
-        # only launcher.allowedApps (pinned to the dock) are reachable.
-        "org/gnome/shell/extensions/just-perfection" = {
-          show-apps-button = false;
-          search = false;
-        };
       };
 
     # ssh-agent workaround
