@@ -43,6 +43,12 @@ in
         search = false;
       };
 
+      # Also drop the default Super+A binding so the app grid can't be reached
+      # by keyboard (just-perfection only hides the button/search).
+      "org/gnome/shell/keybindings" = {
+        toggle-application-view = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+      };
+
       # Lockdown: no Alt+F2 run dialog, no user administration.
       "org/gnome/desktop/lockdown" = {
         disable-command-line = true;
