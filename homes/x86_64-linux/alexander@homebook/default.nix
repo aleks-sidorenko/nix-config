@@ -11,6 +11,7 @@ with lib.${namespace};
   nix-config = {
     roles = {
       homebook = enabled;
+      parent = enabled;
     };
 
     styles.stylix.wallpaper = "Kurzgesagt-Galaxies";
