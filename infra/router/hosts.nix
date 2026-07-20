@@ -119,11 +119,7 @@ in
   };
   ipad = {
     ip = ips.ipad;
-    # Randomized/private Wi-Fi MAC (iOS "Private Wi-Fi Address"). May rotate if
-    # iOS regenerates it; if the reservation drifts again, either update this or
-    # set the iPad's Private Wi-Fi Address to Off for this network (hardware MAC
-    # was D2:DD:9C:EC:E6:E8).
-    mac = "0A:99:AE:77:3C:1B";
+    mac = "D2:DD:9C:EC:E6:E8";
     comment = "iPad";
     dns = false;
     aliases = [ ];
