@@ -158,12 +158,18 @@ New module `modules/home/roles/parent/default.nix`, mirroring the shape of
   to `router-net` with the configured device list baked in:
   - `child-net block`   → `router-net block   <childDevices…>`
   - `child-net unblock` → `router-net unblock <childDevices…>`
-  - `child-net status`  → `router-net status` (filtered/labelled to the
-    child device set for a focused view).
+  - `child-net status`  → calls `router-net status` and post-filters its stdout
+    to the child device set for a focused view (display-only, no router logic).
 
 `child-net` contains **no** router logic of its own — all SSH/RouterOS behavior
-lives in the generic `router-net`. This keeps the policy layer trivial and the
-primitive reusable.
+lives in the generic `router-net`; `child-net`'s only added behavior is baking in
+the device list and the status display filter. This keeps the policy layer
+trivial and the primitive reusable.
+
+**Platform note.** Unlike `roles.child` (which asserts `pkgs.stdenv.isLinux`),
+`roles.parent` installs SSH client scripts meant to run from the parent's own
+machine — which may be the darwin workbook. It therefore carries **no** Linux
+assertion; do not copy one over by pattern-matching on `roles.child`.
 
 ### 4.4 Data flow
 
