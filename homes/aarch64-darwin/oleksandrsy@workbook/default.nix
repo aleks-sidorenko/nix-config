@@ -9,6 +9,7 @@ with lib.${namespace};
   # TODO - replace with ${namespace} once this is fixed https://github.com/snowfallorg/lib/issues/142
   nix-config = {
     roles.work = enabled;
+    roles.parent = enabled;
 
     desktops.monitors = {
       enable = true;
