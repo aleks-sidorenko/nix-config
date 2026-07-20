@@ -69,10 +69,13 @@ let
           script=""
           for h in "$@"; do
             ip="$(resolve "$h")" || exit 1
-            esc="''${ip//./\\.}"
+            # Do NOT backslash-escape the dots here: RouterOS treats `\` as a
+            # string escape and rejects `\.` as an invalid escape sequence
+            # ("syntax error"). Plain dots act as regex wildcards, which is
+            # harmless for real dotted-quad addresses anchored by ^...:.
             script+="/ip firewall address-list remove [find where list=banned address=$ip]"$'\n'
             script+="/ip firewall address-list add list=banned address=$ip comment=router-net"$'\n'
-            script+="/ip firewall connection remove [find where src-address~\"^$esc:\"]"$'\n'
+            script+="/ip firewall connection remove [find where src-address~\"^$ip:\"]"$'\n'
           done
           run_on_router "$script"
           echo "blocked: $*"
