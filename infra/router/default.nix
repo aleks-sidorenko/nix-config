@@ -71,12 +71,11 @@ let
           };
 
           firewall = {
-            addressLists.banned = [
-              defaults.network.hosts.tv
-              defaults.network.hosts.tv-wifi
-              defaults.network.hosts.homebook
-              defaults.network.hosts.ipad
-            ];
+            # Baseline: nobody blocked. Membership is managed at runtime by the
+            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}).
+            # A manual `just router-apply` re-asserts this empty baseline, clearing
+            # any active runtime block.
+            addressLists.banned = [ ];
             filterRules = [
               {
                 name = "forward_drop_banned_external";

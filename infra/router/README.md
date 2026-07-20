@@ -10,6 +10,17 @@ ssh router /ip dhcp-server lease print
 
 Hosts in the `banned` list are blocked from external (WAN) traffic.
 
+**Declared baseline:** `addressLists.banned` in `default.nix` is empty — nobody
+is blocked by default. Runtime membership is managed on demand by the
+`router-net` / `child-net` commands (see `modules/home/roles/router-manager`
+and `modules/home/roles/parent`), which add/remove hosts from the `banned`
+list over SSH without touching terraform state.
+
+Running `just router-apply` re-applies the declared (empty) baseline, which
+clears any active runtime block and brings everyone back online. Only add a
+host to `addressLists.banned` in `default.nix` if you want it blocked
+permanently, independent of the runtime tools.
+
 **Permanent:** Add the host to `addressLists.banned` in `default.nix` and apply with terraform.
 
 **Temporary (until next terraform apply):** Use CLI commands below.
