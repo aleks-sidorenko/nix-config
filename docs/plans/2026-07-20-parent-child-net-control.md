@@ -164,10 +164,12 @@ let
           script=""
           for h in "$@"; do
             ip="$(resolve "$h")" || exit 1
-            esc="''${ip//./\\.}"
+            # Do NOT backslash-escape the dots: RouterOS rejects `\.` as an
+            # invalid string escape ("syntax error"). Plain dots act as regex
+            # wildcards, harmless for real dotted-quad addresses anchored by ^...:.
             script+="/ip firewall address-list remove [find where list=banned address=$ip]"$'\n'
             script+="/ip firewall address-list add list=banned address=$ip comment=router-net"$'\n'
-            script+="/ip firewall connection remove [find where src-address~\"^$esc:\"]"$'\n'
+            script+="/ip firewall connection remove [find where src-address~\"^$ip:\"]"$'\n'
           done
           run_on_router "$script"
           echo "blocked: $*"
@@ -214,7 +216,7 @@ Expected output for `ROUTER_SSH=echo router-net block tv` (stub echoes its singl
 ```
 /ip firewall address-list remove [find where list=banned address=10.0.0.50]
 /ip firewall address-list add list=banned address=10.0.0.50 comment=router-net
-/ip firewall connection remove [find where src-address~"^10\.0\.0\.50:"]
+/ip firewall connection remove [find where src-address~"^10.0.0.50:"]
 ```
 And `ROUTER_SSH=echo router-net block bogushost` exits non-zero with `unknown host 'bogushost'`.
 
@@ -401,7 +403,7 @@ Expected output includes:
 ```
 /ip firewall address-list remove [find where list=banned address=10.0.0.50]
 /ip firewall address-list add list=banned address=10.0.0.50 comment=router-net
-/ip firewall connection remove [find where src-address~"^10\.0\.0\.50:"]
+/ip firewall connection remove [find where src-address~"^10.0.0.50:"]
 ```
 And:
 ```bash
