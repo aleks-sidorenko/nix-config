@@ -275,7 +275,10 @@ let
         block)   exec router-net block ${devicesArgs} ;;
         unblock) exec router-net unblock ${devicesArgs} ;;
         status)
-          if router-net status | grep -E '${childIpRegex}'; then
+          # Capture first so `set -e` surfaces a real router-net/SSH failure
+          # instead of it being swallowed as "nothing blocked" by the grep below.
+          status_out="$(router-net status)"
+          if printf '%s\n' "$status_out" | grep -E '${childIpRegex}'; then
             :
           else
             echo "(no child devices currently blocked)"
