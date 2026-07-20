@@ -11,6 +11,7 @@ with lib.${namespace};
   nix-config = {
     roles = {
       desktop = enabled;
+      parent = enabled;
     };
 
     user = {

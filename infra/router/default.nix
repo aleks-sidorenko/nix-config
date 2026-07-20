@@ -71,12 +71,12 @@ let
           };
 
           firewall = {
-            addressLists.banned = [
-              defaults.network.hosts.tv
-              defaults.network.hosts.tv-wifi
-              defaults.network.hosts.homebook
-              defaults.network.hosts.ipad
-            ];
+            # Baseline: nobody blocked. Membership is managed at runtime by the
+            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}),
+            # which add/remove entries over SSH outside terraform state. `just
+            # router-apply` only reconciles resources declared here, so it does
+            # NOT remove those runtime entries; use `router-net unblock` for that.
+            addressLists.banned = [ ];
             filterRules = [
               {
                 name = "forward_drop_banned_external";

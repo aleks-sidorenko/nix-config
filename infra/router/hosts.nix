@@ -119,7 +119,9 @@ in
   };
   ipad = {
     ip = ips.ipad;
-    mac = "D2:DD:9C:EC:E6:E8";
+    # iOS private/per-network Wi-Fi MAC (randomization left on; stable for this
+    # SSID). Hardware MAC is D2:DD:9C:EC:E6:E8 if randomization is ever disabled.
+    mac = "0A:99:AE:77:3C:1B";
     comment = "iPad";
     dns = false;
     aliases = [ ];
