@@ -206,27 +206,19 @@ in
 
 - [ ] **Step 2: Write a build-time test that the generated RouterOS commands are correct**
 
-The `writeShellApplication` shellcheck pass already validates shell syntax at build. Add a behavioral test of the command generation using the `ROUTER_SSH` seam. Create a scratch test script (not committed) and run it against the built binary:
+The `writeShellApplication` shellcheck pass already validates shell syntax at build. The behavioral test of command generation uses the `ROUTER_SSH` seam and runs in Task 5 Step 4 (once the binary is on PATH in a built home).
 
-Run:
-```bash
-# Build just the router-net binary via a home config that includes router-manager.
-nix build ".#homeConfigurations.\"alexander@desktop\".config.home.path" --no-link 2>/dev/null || true
-# Simpler: build the app directly through a throwaway expression.
-nix build --impure --expr '(import <nixpkgs> {}).writeShellApplication' 2>/dev/null || true
-```
+**Important — the stub must be a single-word command.** `run_on_router` invokes the transport as `"${ROUTER_SSH}" "$1"` (quoted, to satisfy shellcheck). A double-quoted expansion never word-splits, so `ROUTER_SSH` must name a single command that takes the RouterOS script as one argument. Use `ROUTER_SSH=echo` (prints the multi-line arg verbatim). Do **not** use `ROUTER_SSH="printf %s\n"` (bash would look for a command literally named `printf %s\n` → 127) and do **not** unquote `${ROUTER_SSH}` (trips shellcheck SC2086 and fails the build).
 
-Because the script is defined inline in a home module, the reliable build check is Task 5's full home build. For a fast, isolated behavioral check, use a stub `ROUTER_SSH` once the binary is on PATH in a built home (verified in Task 5). Document the expected output for `router-net block tv` with a stub:
-
-Expected RouterOS script emitted (stub echoes its single argument):
+Expected output for `ROUTER_SSH=echo router-net block tv` (stub echoes its single argument):
 ```
 /ip firewall address-list remove [find where list=banned address=10.0.0.50]
 /ip firewall address-list add list=banned address=10.0.0.50 comment=router-net
 /ip firewall connection remove [find where src-address~"^10\.0\.0\.50:"]
 ```
-And `router-net block bogushost` exits non-zero with `unknown host 'bogushost'`.
+And `ROUTER_SSH=echo router-net block bogushost` exits non-zero with `unknown host 'bogushost'`.
 
-> Note for executor: the inline-module form can't be `nix build`'d in isolation without wiring. The authoritative shellcheck + eval happens in Task 5 (`just build` of `alexander@homebook`). If you want an isolated unit test earlier, temporarily expose the derivation via `packages/` or a scratch `nix repl` (`:lf .` then evaluate the home), run the stub check, then discard. Do not commit scratch scaffolding.
+> Note for executor: the inline-module form can't be `nix build`'d in isolation without wiring. The authoritative shellcheck + eval happens in Task 5 (`just build` of `alexander@homebook`). Run the `ROUTER_SSH=echo` behavioral checks there, once the binary is on PATH.
 
 - [ ] **Step 3: Lint + format**
 
@@ -277,6 +269,7 @@ let
   # machine, which may be the darwin workbook (unlike roles.child).
   child-net = pkgs.writeShellApplication {
     name = "child-net";
+    runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router-manager)
     text = ''
       case "''${1:-}" in
         block)   exec router-net block ${devicesArgs} ;;
@@ -397,9 +390,9 @@ Expected: build **fails** with `roles.parent.childDevices contains unknown host(
 
 - [ ] **Step 4: Behavioral test of generated RouterOS commands (no live router)**
 
-On a machine with the built home on PATH (or via `nix run`), use the `ROUTER_SSH` stub seam:
+On a machine with the built home on PATH (or via `nix run`), use the `ROUTER_SSH` stub seam. The stub must be a single-word command (see Task 2 Step 2) — use `echo`:
 ```bash
-printf '%s' "$(ROUTER_SSH="printf %s\n" router-net block tv)"
+ROUTER_SSH=echo router-net block tv
 ```
 Expected output includes:
 ```
@@ -409,12 +402,12 @@ Expected output includes:
 ```
 And:
 ```bash
-ROUTER_SSH="printf %s\n" router-net block bogushost; echo "exit=$?"
+ROUTER_SSH=echo router-net block bogushost; echo "exit=$?"
 ```
 Expected: `unknown host 'bogushost'` on stderr, `exit=1`.
 And:
 ```bash
-ROUTER_SSH="printf %s\n" child-net block
+ROUTER_SSH=echo child-net block
 ```
 Expected: emits the block script for all four child device IPs (10.0.0.50, .51, .63, .70).
 
