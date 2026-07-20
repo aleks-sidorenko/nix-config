@@ -72,9 +72,10 @@ let
 
           firewall = {
             # Baseline: nobody blocked. Membership is managed at runtime by the
-            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}).
-            # A manual `just router-apply` re-asserts this empty baseline, clearing
-            # any active runtime block.
+            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}),
+            # which add/remove entries over SSH outside terraform state. `just
+            # router-apply` only reconciles resources declared here, so it does
+            # NOT remove those runtime entries; use `router-net unblock` for that.
             addressLists.banned = [ ];
             filterRules = [
               {
