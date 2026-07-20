@@ -10,10 +10,12 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.roles.parent;
 
-  # Resolve the child device names to IPs (for the focused status filter) from
-  # the single source of truth. `childDevices` are validated below.
-  childIps = map (name: defaults.network.hosts.${name}) cfg.childDevices;
-  childIpRegex = concatStringsSep "|" (map (ip: replaceStrings [ "." ] [ "\\." ] ip) childIps);
+  # `childDevices` are IPs sourced from the single source of truth
+  # (defaults.network.hosts.*); router-net accepts raw IPs, so no name→IP
+  # resolution is needed here. Dots are escaped for the grep -E status filter.
+  childIpRegex = concatStringsSep "|" (
+    map (ip: replaceStrings [ "." ] [ "\\." ] ip) cfg.childDevices
+  );
   devicesArgs = escapeShellArgs cfg.childDevices;
 
   # Thin policy wrapper over the generic `router-net` (installed via the
@@ -54,22 +56,22 @@ in
   options.${namespace}.roles.parent = {
     enable = mkEnableOption "Enable the parent role (control the child's devices' internet)";
     childDevices = mkOpt (types.listOf types.str) [
-      "tv"
-      "tv-wifi"
-      "homebook"
-      "ipad"
-    ] "Child's device host names (keys into defaults.network.hosts) the parent can cut off";
+      defaults.network.hosts.tv
+      defaults.network.hosts.tv-wifi
+      defaults.network.hosts.homebook
+      defaults.network.hosts.ipad
+    ] "Child's device IPs (from defaults.network.hosts) the parent can cut off";
   };
 
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = all (d: hasAttr d defaults.network.hosts) cfg.childDevices;
+        assertion = all (ip: elem ip (attrValues defaults.network.hosts)) cfg.childDevices;
         message =
-          "roles.parent.childDevices contains unknown host(s): "
-          + concatStringsSep ", " (filter (d: !hasAttr d defaults.network.hosts) cfg.childDevices)
-          + ". Valid hosts: "
-          + concatStringsSep ", " (attrNames defaults.network.hosts);
+          "roles.parent.childDevices contains unknown IP(s): "
+          + concatStringsSep ", " (filter (ip: !elem ip (attrValues defaults.network.hosts)) cfg.childDevices)
+          + ". Valid host IPs: "
+          + concatStringsSep ", " (attrValues defaults.network.hosts);
       }
     ];
 
