@@ -21,6 +21,10 @@ let
   # it only bakes in the child device list and a display filter for `status`.
   # NOTE: no pkgs.stdenv.isLinux assertion — this runs from the parent's own
   # machine, which may be the darwin workbook (unlike roles.child).
+  # SAFETY: prefer running `child-net`/`router-net` from a host that is NOT
+  # itself in `childDevices` (e.g. desktop/workbook), so a `block` can't sever
+  # the operator's own WAN path. From a blocked host it still works if invoked
+  # locally (the router is reachable over LAN, so `unblock` self-heals).
   child-net = pkgs.writeShellApplication {
     name = "child-net";
     runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router-manager)
