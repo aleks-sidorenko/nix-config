@@ -82,6 +82,13 @@ in
     dns = false;
     aliases = [ ];
   };
+  ps5 = {
+    ip = ips.ps5;
+    mac = "68:28:6C:7C:24:E9";
+    comment = "PS5";
+    dns = false;
+    aliases = [ ];
+  };
   inverter = {
     ip = ips.inverter;
     mac = "D4:27:87:27:B8:3E";
