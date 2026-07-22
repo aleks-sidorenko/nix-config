@@ -58,6 +58,7 @@ in
     childDevices = mkOpt (types.listOf types.str) [
       defaults.network.hosts.tv
       defaults.network.hosts.tv-wifi
+      defaults.network.hosts.ps5
       defaults.network.hosts.homebook
       defaults.network.hosts.ipad
     ] "Child's device IPs (from defaults.network.hosts) the parent can cut off";
