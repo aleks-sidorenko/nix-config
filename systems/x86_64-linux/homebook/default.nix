@@ -28,6 +28,8 @@ with lib.${namespace};
       dima = {
         profile = "child";
       };
+      ruslana = {
+      };
     };
   };
 
