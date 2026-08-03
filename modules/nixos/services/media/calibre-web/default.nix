@@ -45,7 +45,7 @@ in
     };
 
     services.calibre-web = {
-      enable = true;
+      inherit (cfg) enable;
       inherit (cfg) package;
       listen = {
         # nginx proxies to 127.0.0.1; upstream defaults to ::1 which would not connect.
@@ -75,8 +75,13 @@ in
       description = "Initialize an empty Calibre library for Calibre-Web";
       before = [ "calibre-web.service" ];
       requiredBy = [ "calibre-web.service" ];
+      # calibredb needs a writable HOME (~/.config/calibre); the calibre-web
+      # system user has none, so point it at the dataDir (created by upstream
+      # tmpfiles before services start).
+      environment.HOME = cfg.dataDir;
       serviceConfig = {
         Type = "oneshot";
+        RemainAfterExit = true;
         User = cfg.user;
         Group = cfg.group;
       };
