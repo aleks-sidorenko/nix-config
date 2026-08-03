@@ -91,7 +91,9 @@ in
 
     paths = mkOpt (types.listOf types.str) paths "List of paths to backup";
 
-    extraPaths = mkOpt (types.listOf types.str) [ ] "Additional paths to include in backups (appended to the computed defaults)";
+    extraPaths =
+      mkOpt (types.listOf types.str) [ ]
+        "Additional paths to include in backups (appended to the computed defaults)";
 
     exclude = mkOpt (types.listOf types.str) exclude "List of patterns to exclude from backup";
 
