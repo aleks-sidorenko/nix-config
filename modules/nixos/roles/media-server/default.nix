@@ -82,13 +82,11 @@ in
             ];
           };
 
-          calibre-web = {
+          calibre = {
             enable = true;
             libraryDir = dirs.mediaDir categories.books;
           };
         };
-
-        backup.restic.extraPaths = [ (dirs.mediaDir categories.books) ];
 
       };
 

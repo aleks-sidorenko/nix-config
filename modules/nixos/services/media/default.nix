@@ -14,7 +14,7 @@ let
     || config.${namespace}.services.media.jellyfin.enable
     || config.${namespace}.services.media.radarr.enable
     || config.${namespace}.services.media.prowlarr.enable
-    || config.${namespace}.services.media.calibre-web.enable;
+    || config.${namespace}.services.media.calibre.enable;
 
 in
 {

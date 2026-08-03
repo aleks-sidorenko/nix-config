@@ -90,7 +90,7 @@ _: rec {
         prowlarr = {
           web = 9696;
         };
-        calibre-web = {
+        calibre = {
           web = 8083;
         };
         home-assistant = {

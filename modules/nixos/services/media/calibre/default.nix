@@ -8,25 +8,23 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.services.media.calibre-web;
+  cfg = config.${namespace}.services.media.calibre;
 in
 {
-  options.${namespace}.services.media.calibre-web = {
-    enable = mkEnableOption "Enable Calibre-Web book library";
+  options.${namespace}.services.media.calibre = {
+    enable = mkEnableOption "Enable Calibre book library";
 
-    user = mkOpt types.str "calibre-web" "User to run Calibre-Web as";
+    user = mkOpt types.str "calibre-web" "User to run Calibre as";
 
-    group = mkOpt types.str config.${namespace}.services.media.group "Group to run Calibre-Web as";
+    group = mkOpt types.str config.${namespace}.services.media.group "Group to run Calibre as";
 
     libraryDir = mkOpt types.str "/data/media/Books" "Calibre library directory (contains metadata.db)";
 
-    dataDir = mkOpt types.str "/var/lib/calibre-web" "Directory where Calibre-Web stores its app data";
+    dataDir = mkOpt types.str "/var/lib/calibre-web" "Directory where Calibre stores its app data";
 
-    package = mkOpt types.package pkgs.calibre-web "Calibre-Web package to use";
+    package = mkOpt types.package pkgs.calibre-web "Calibre package to use";
 
-    webPort =
-      mkOpt types.port defaults.network.ports.calibre-web.web
-        "Port for the Calibre-Web web interface";
+    webPort = mkOpt types.port defaults.network.ports.calibre.web "Port for the Calibre web interface";
   };
 
   config = mkIf cfg.enable {
@@ -34,7 +32,7 @@ in
     ${namespace} = {
       services.networking.nginx = {
         virtualHosts = {
-          calibre-web = {
+          calibre = {
             serverName = hosts.local "books";
             port = cfg.webPort;
             # Books/comics can be large; allow big uploads through the proxy.
@@ -44,6 +42,8 @@ in
       };
     };
 
+    # Upstream nixpkgs module is named `calibre-web`; we expose it under our own
+    # `calibre` namespace for simplicity.
     services.calibre-web = {
       inherit (cfg) enable;
       inherit (cfg) package;
@@ -65,19 +65,18 @@ in
       };
     };
 
-    # Bootstrap an empty Calibre library if none exists, so calibre-web's
-    # ExecStartPre metadata.db check passes on a fresh deploy. A separate oneshot
-    # (before + requiredBy calibre-web) is used instead of a preStart so we avoid
-    # the ExecStartPre-concatenation ordering hazard (our init must run before
-    # upstream's metadata.db check). Ownership is handled by the tmpfiles rule +
-    # User=calibre-web, so no explicit chown is needed here.
-    systemd.services.calibre-web-init = {
-      description = "Initialize an empty Calibre library for Calibre-Web";
+    # Bootstrap an empty Calibre library if none exists, so the calibre-web
+    # service's ExecStartPre metadata.db check passes on a fresh deploy. A separate
+    # oneshot (before + requiredBy calibre-web.service) is used instead of a preStart
+    # so we avoid the ExecStartPre-concatenation ordering hazard (our init must run
+    # before upstream's metadata.db check).
+    systemd.services.calibre-init = {
+      description = "Initialize an empty Calibre library";
       before = [ "calibre-web.service" ];
       requiredBy = [ "calibre-web.service" ];
-      # calibredb needs a writable HOME (~/.config/calibre); the calibre-web
-      # system user has none, so point it at the dataDir (created by upstream
-      # tmpfiles before services start).
+      # calibredb needs a writable HOME (~/.config/calibre); the service user has
+      # none, so point it at the dataDir (created by upstream tmpfiles before
+      # services start).
       environment.HOME = cfg.dataDir;
       serviceConfig = {
         Type = "oneshot";
