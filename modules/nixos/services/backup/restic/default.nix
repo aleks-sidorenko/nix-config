@@ -15,7 +15,8 @@ let
     "/home"
     "/root"
   ]
-  ++ persistence.dirs config;
+  ++ persistence.dirs config
+  ++ cfg.extraPaths;
 
   exclude = [
     # Temporary and log files
@@ -89,6 +90,14 @@ in
         "Path to file containing repository password";
 
     paths = mkOpt (types.listOf types.str) paths "List of paths to backup";
+
+    # Generic extension point: any module or host can append the paths it wants
+    # included in backups (e.g. selected media dirs), without overriding the
+    # computed defaults. Note: the repo currently lives on the same external disk
+    # as /data, so this protects against deletion/corruption, not disk failure.
+    extraPaths =
+      mkOpt (types.listOf types.str) [ ]
+        "Extra paths to include in backups, appended to the computed defaults";
 
     exclude = mkOpt (types.listOf types.str) exclude "List of patterns to exclude from backup";
 
