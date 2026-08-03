@@ -12,6 +12,7 @@ let
   categories = rec {
     movies = "Movies";
     series = "Series";
+    books = "Books";
     all = [
       movies
       series
@@ -80,7 +81,14 @@ in
               "V,${dirs.mediaDir categories.series}"
             ];
           };
+
+          calibre-web = {
+            enable = true;
+            libraryDir = dirs.mediaDir categories.books;
+          };
         };
+
+        backup.restic.extraPaths = [ (dirs.mediaDir categories.books) ];
 
       };
 
