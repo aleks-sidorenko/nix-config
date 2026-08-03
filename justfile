@@ -91,6 +91,18 @@ deploy hostname *extra_opts="":
         deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
     fi
 
+# Migrate a local Calibre library to the server (one-time, after first deploy)
+# Usage:
+#   just calibre-import ~/Calibre\ Library                 # to server as alexander
+#   just calibre-import /path/to/lib server alexander
+calibre-import library_path hostname="server" username="alexander":
+    @echo "📚 Importing Calibre library from '{{library_path}}' to {{username}}@{{hostname}}:/data/media/Books ..."
+    @test -f "{{library_path}}/metadata.db" || { echo "❌ '{{library_path}}/metadata.db' not found — pass the Calibre library folder"; exit 1; }
+    rsync -a --info=progress2 --rsync-path="sudo rsync" "{{library_path}}/" "{{username}}@{{hostname}}:/data/media/Books/"
+    ssh {{username}}@{{hostname}} 'sudo chown -R calibre-web:media /data/media/Books'
+    ssh {{username}}@{{hostname}} 'sudo systemctl restart calibre-web'
+    @echo "✅ Import complete. Open http://calibre.local and verify your library."
+
 
 # Build configuration without switching (read-only artifact)
 build:

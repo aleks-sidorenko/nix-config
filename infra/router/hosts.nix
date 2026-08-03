@@ -62,6 +62,7 @@ in
       "prowlarr"
       "minidlna"
       "sonarr"
+      "calibre"
       "home-assistant"
       "zigbee2mqtt"
       "minecraft"

@@ -12,11 +12,19 @@ let
   categories = rec {
     movies = "Movies";
     series = "Series";
+    books = "Books";
     all = [
       movies
       series
     ];
   };
+
+  # Media categories whose library should be included in restic backups. Books
+  # are small and hand-curated, so they are backed up; Movies/Series are large
+  # and re-downloadable, so they are not. Extend this list to back up more.
+  backedUp = [
+    categories.books
+  ];
 
   dirs = rec {
     root = "/data";
@@ -80,7 +88,15 @@ in
               "V,${dirs.mediaDir categories.series}"
             ];
           };
+
+          calibre = {
+            enable = true;
+            libraryDir = dirs.mediaDir categories.books;
+          };
         };
+
+        # Back up the selected media libraries (see `backedUp` above).
+        backup.restic.extraPaths = map dirs.mediaDir backedUp;
 
       };
 
