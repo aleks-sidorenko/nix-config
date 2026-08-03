@@ -69,8 +69,11 @@ structure of `modules/nixos/services/media/jellyfin/default.nix`.
    `serverName = hosts.local "books"`, `port = cfg.webPort`. This yields
    `http://books.local`. Set a generous `clientMaxBodySize` (e.g. `"512m"`) so large
    book/comic uploads through the proxy aren't rejected.
-2. **System user** — `users.users.${cfg.user}` as `isSystemUser`, `group = media`,
-   `home = cfg.dataDir`, matching the radarr/prowlarr user blocks.
+2. **System user** — the upstream module already creates the `calibre-web` user, and
+   creates a `calibre-web` *group* only when `group == "calibre-web"`. Since we set
+   `group = "media"`, no stray group is created. Declaring `users.users.${cfg.user}`
+   ourselves (matching the radarr/prowlarr blocks) is harmless/idempotent but optional
+   — keep it minimal and defer to upstream where values match.
 3. **Upstream service** — configure `services.calibre-web`:
    - `enable = true`
    - `listen.ip = "127.0.0.1"` (nginx proxies to it), `listen.port = cfg.webPort`
@@ -84,21 +87,42 @@ structure of `modules/nixos/services/media/jellyfin/default.nix`.
    > copied into the Nix store.
 4. **Library bootstrap (critical)** — the upstream module's `ExecStartPre` fails if
    `${libraryDir}/metadata.db` does not exist. The module MUST guarantee a valid
-   Calibre library exists before the service starts: if `metadata.db` is absent,
-   initialize an **empty** Calibre library at `libraryDir` (via `calibredb` from the
-   `calibre` package) in a `preStart`/tmpfiles-guarded step. This lets a fresh
-   deploy come up healthy before the user has migrated anything, and makes the
-   service resilient. Migration then populates/replaces this library.
-5. **Directories** — `systemd.tmpfiles.rules` to create `cfg.dataDir` (owned
-   `calibre-web:media`) and `cfg.libraryDir` (owned `calibre-web:media`, mode `0775`)
-   — same idiom as radarr/jellyfin.
+   Calibre library exists before the service starts. Implement this as a **separate
+   oneshot unit `calibre-web-init.service`**, NOT a `preStart` on `calibre-web`:
+   - Rationale: NixOS maps `preStart` to `ExecStartPre` which *concatenates* with the
+     upstream module's own `ExecStartPre` (order across modules is not guaranteed, so
+     the upstream `metadata.db` check may run first and abort). Also, the upstream
+     `calibre-web` unit is heavily hardened (`MemoryDenyWriteExecute`,
+     `SystemCallFilter=~@privileged`, `ProtectHome`, restricted `ReadWritePaths`),
+     which can block `calibredb` (Python/Qt). So run the init in its own unsandboxed
+     unit.
+   - Unit shape: `Type=oneshot`, `User=calibre-web`, `Group=media`,
+     `before = [ "calibre-web.service" ]`, `requiredBy = [ "calibre-web.service" ]`.
+   - Command (idempotent): if `metadata.db` is absent, create an empty library —
+     `${pkgs.calibre}/bin/calibredb --with-library=${cfg.libraryDir} list` initializes
+     an empty `metadata.db` headlessly when the dir has none. Guard with
+     `test ! -f ${cfg.libraryDir}/metadata.db` and `chown -R calibre-web:media
+     ${cfg.libraryDir}` afterward. This lets a fresh deploy come up healthy before the
+     user has migrated anything; migration then populates/replaces the library.
+5. **Directories** — `systemd.tmpfiles.rules` to create `cfg.libraryDir` (owned
+   `calibre-web:media`, mode `0775`), same idiom as radarr/jellyfin. Do **not** add a
+   `cfg.dataDir` tmpfiles rule — the upstream module already creates `dataDir`
+   (mode `0700`); duplicating it is redundant.
 6. **Package** — add `calibre` to `environment.systemPackages` (provides `calibredb`
-   for bootstrap/migration and `ebook-convert`).
+   for bootstrap/migration and `ebook-convert`). Enabling `enableBookConversion`/
+   `enableKepubify` already pulls `calibre` into the closure, so this doesn't grow it.
+   Heads-up: `calibre` is a large closure on **aarch64/RPi4**; if it's not in the
+   binary cache for aarch64 the first deploy may build it (slow). Note this in the
+   migration/first-deploy docs.
 
 ### Media aggregate + role wiring
 
-- `modules/nixos/services/media/default.nix` — add `calibre-web.enable` to the `enabled`
-  disjunction that drives `services.media.enable`.
+- `modules/nixos/services/media/default.nix` — add `calibre-web.enable` to the
+  hand-maintained `enabled` disjunction that drives `services.media.enable`. This is
+  **required**: calibre-web's `group` default dereferences `services.media.group`, so
+  enabling calibre-web alone must still switch `services.media.enable` on to create the
+  shared `media` group. (Note: this disjunction already omits `sonarr` — pre-existing
+  tech-debt, not fixed here.)
 - `modules/nixos/roles/media-server/default.nix`:
   - Add a `books = "Books"` entry to the `categories` set (and to `categories.all`
     only if that list is used for download categories — Books has no downloader, so
@@ -144,15 +168,25 @@ The user has an existing **local** Calibre library. Provide a `just` recipe:
 just calibre-import <local-library-path> [hostname=server]
 ```
 
+**SSH addressing (critical):** root SSH login is **disabled** on the server
+(`security.ssh.rootLogin` defaults `false` → `PermitRootLogin no`). The recipe MUST
+connect as the **primary user** (`alexander`, same as deploy-rs `sshUser = user`) and
+escalate via passwordless sudo (server role sets `security.sudo.wheelNeedsPassword =
+false`). Do NOT use `root@server`. The host token `server` resolves fine (darwin
+`/etc/hosts` maps both `server` and `server.local` → 10.0.0.40).
+
 Behavior:
-1. `rsync -a --info=progress2 <local-library-path>/ root@<host>:/data/media/Books/`
-   (trailing slashes to copy contents, including `metadata.db`).
-2. `ssh root@<host> 'chown -R calibre-web:media /data/media/Books'`.
-3. `ssh root@<host> 'systemctl restart calibre-web'` so it re-reads the migrated
+1. `rsync -a --info=progress2 --rsync-path="sudo rsync" <local-library-path>/ ${user}@<host>:/data/media/Books/`
+   (trailing slashes to copy contents including `metadata.db`; `--rsync-path="sudo rsync"`
+   so the remote side can write under `/data`).
+2. `ssh ${user}@<host> 'sudo chown -R calibre-web:media /data/media/Books'`.
+3. `ssh ${user}@<host> 'sudo systemctl restart calibre-web'` so it re-reads the migrated
    `metadata.db`.
 
-Documented in the spec and `justfile`. Run once after the first deploy. Because
-`/data` persists, the library survives reboots and impermanence wipes.
+`user`/`hostname` default to the repo's primary user and `server`; parameterize the
+`just` recipe. Documented in the spec and `justfile`. Run once after the first deploy.
+Because `/data` persists (separate btrfs subvolume, untouched by the root wipe), the
+library survives reboots and impermanence wipes.
 
 ## Access model
 
