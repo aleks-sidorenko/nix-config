@@ -91,11 +91,9 @@ structure of `modules/nixos/services/media/jellyfin/default.nix`.
    oneshot unit `calibre-web-init.service`**, NOT a `preStart` on `calibre-web`:
    - Rationale: NixOS maps `preStart` to `ExecStartPre` which *concatenates* with the
      upstream module's own `ExecStartPre` (order across modules is not guaranteed, so
-     the upstream `metadata.db` check may run first and abort). Also, the upstream
-     `calibre-web` unit is heavily hardened (`MemoryDenyWriteExecute`,
-     `SystemCallFilter=~@privileged`, `ProtectHome`, restricted `ReadWritePaths`),
-     which can block `calibredb` (Python/Qt). So run the init in its own unsandboxed
-     unit.
+     the upstream `metadata.db` check may run first and abort). A separate unit with
+     `before`/`requiredBy` gives deterministic ordering. (The pinned upstream unit is
+     not sandboxed, but keeping init isolated is still the robust choice.)
    - Unit shape: `Type=oneshot`, `User=calibre-web`, `Group=media`,
      `before = [ "calibre-web.service" ]`, `requiredBy = [ "calibre-web.service" ]`.
    - Command (idempotent): if `metadata.db` is absent, create an empty library —

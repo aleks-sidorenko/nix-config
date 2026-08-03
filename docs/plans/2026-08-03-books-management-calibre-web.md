@@ -36,10 +36,10 @@
 
 - [ ] **Step 1: Write the failing check**
 
-Run: `nix eval --raw ".#lib.x86_64-linux.defaults.network.ports.calibre-web.web" 2>&1 | tail -1`
+Run: `nix eval .#lib.defaults.network.ports.calibre-web.web 2>&1 | tail -1`
 Expected: FAIL — attribute `calibre-web` missing (error mentioning it does not exist).
 
-> If that flake lib path differs, use: `nix eval .#nixosConfigurations.server.config.nix-config` is not it — instead just proceed to build in Step 3, which will surface the missing attr when Task 5 references it. The eval check is a convenience, not a gate.
+> Note: this flake's snowfall `lib` output is NOT per-system and NOT namespaced — the correct path is `.#lib.defaults.network.ports.<svc>.web` (e.g. `.#lib.defaults.network.ports.jellyfin.web` → `8096`). Do not use `--raw` (the value is an integer) and do not add `x86_64-linux`.
 
 - [ ] **Step 2: Add the port**
 
@@ -53,8 +53,8 @@ In `lib/defaults/default.nix`, inside `network.ports`, next to the other service
 
 - [ ] **Step 3: Verify it resolves**
 
-Run: `nix eval --raw ".#lib.x86_64-linux.defaults.network.ports.calibre-web.web" 2>&1 | tail -1`
-Expected: `8083` (or, if that lib attr path isn't exported, defer verification to Task 5's build).
+Run: `nix eval .#lib.defaults.network.ports.calibre-web.web`
+Expected: `8083`.
 
 - [ ] **Step 4: Commit**
 
@@ -229,9 +229,11 @@ in
     };
 
     # Bootstrap an empty Calibre library if none exists, so calibre-web's
-    # ExecStartPre metadata.db check passes on a fresh deploy. Runs in its own
-    # unsandboxed oneshot before (and required by) calibre-web, avoiding both the
-    # ExecStartPre ordering hazard and the hardened sandbox of the calibre-web unit.
+    # ExecStartPre metadata.db check passes on a fresh deploy. A separate oneshot
+    # (before + requiredBy calibre-web) is used instead of a preStart so we avoid
+    # the ExecStartPre-concatenation ordering hazard (our init must run before
+    # upstream's metadata.db check). Ownership is handled by the tmpfiles rule +
+    # User=calibre-web, so no explicit chown is needed here.
     systemd.services.calibre-web-init = {
       description = "Initialize an empty Calibre library for Calibre-Web";
       before = [ "calibre-web.service" ];
@@ -330,8 +332,8 @@ In `config.${namespace}`, add the calibre-web service under `services.media` and
 
 - [ ] **Step 3: Build the server closure**
 
-Run: `just build server` (or `nix build .#nixosConfigurations.server.config.system.build.toplevel --no-link`)
-Expected: PASS — evaluates and builds. If `calibre` must build from source on aarch64 (not cached), this may take a long time; that is expected (see spec heads-up), not a failure.
+Run: `nix build .#nixosConfigurations.server.config.system.build.toplevel --no-link`
+Expected: PASS — evaluates and builds. (Do NOT use `just build server`: the `build` recipe takes no args and targets the current host.) If `calibre` must build from source on aarch64 (not cached), this may take a long time; that is expected (see spec heads-up), not a failure.
 
 - [ ] **Step 4: Confirm wiring evaluates correctly**
 
@@ -405,7 +407,7 @@ Expected: PASS.
 
 - [ ] **Step 3: Deploy to the server**
 
-Run: `just deploy server --remote-build`
+Run: `just deploy server` (the `deploy` recipe already includes `--remote-build`)
 Expected: deploy succeeds; `calibre-web-init.service` runs, then `calibre-web.service` becomes active.
 
 Verify on the host:
