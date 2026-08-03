@@ -101,7 +101,7 @@ calibre-import library_path hostname="server" username="alexander":
     rsync -a --info=progress2 --rsync-path="sudo rsync" "{{library_path}}/" "{{username}}@{{hostname}}:/data/media/Books/"
     ssh {{username}}@{{hostname}} 'sudo chown -R calibre-web:media /data/media/Books'
     ssh {{username}}@{{hostname}} 'sudo systemctl restart calibre-web'
-    @echo "✅ Import complete. Open http://books.local and verify your library."
+    @echo "✅ Import complete. Open http://calibre.local and verify your library."
 
 
 # Build configuration without switching (read-only artifact)
