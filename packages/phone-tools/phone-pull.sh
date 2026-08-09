@@ -26,7 +26,10 @@ if [[ -z "$DEST" ]]; then DEST="$(default_dest "$device" "$(date +%Y%m%d)")"; fi
 mkdir -p "$DEST"
 
 rsync_media() { # $1 = source dir
-  rsync -rt --info=progress2 --no-perms --no-owner --no-group --size-only "$1" "$DEST/"
+  # Skip thumbnail caches / media-scanner markers that live inside DCIM on both
+  # Android (.thumbnails, .nomedia) and iOS — they are not camera-roll media.
+  rsync -rt --info=progress2 --no-perms --no-owner --no-group --size-only \
+    --exclude='.thumbnails/' --exclude='.nomedia' "$1" "$DEST/"
 }
 
 if [[ -n "$FROM" ]]; then

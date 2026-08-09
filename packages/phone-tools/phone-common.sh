@@ -13,13 +13,16 @@ default_dest() {
 }
 
 # Find DCIM directories under a mount root (depth-bounded; internal + SD).
-# Prunes iOS Photos-library metadata containers: PhotoData/PhotoStreamsData hold
-# a *second* DCIM tree (PhotoData/Mutations/DCIM) with edit artifacts, not the
-# real camera roll — we must not pull those.
+# Prunes non-camera-roll containers that hide a nested DCIM:
+#   - iOS: PhotoData / PhotoStreamsData (PhotoData/Mutations/DCIM = edit
+#     artifacts, not originals).
+#   - Android: the Android/ app sandbox (apps keep private DCIM under
+#     Android/{data,media}/<app>/DCIM); only the real per-storage DCIM should
+#     match.
 find_dcim() {
   local root="$1"
   find "$root" -maxdepth 4 \
-    \( -type d \( -name PhotoData -o -name PhotoStreamsData \) -prune \) -o \
+    \( -type d \( -name PhotoData -o -name PhotoStreamsData -o -name Android \) -prune \) -o \
     \( -type d -iname DCIM -print \) 2>/dev/null
 }
 
