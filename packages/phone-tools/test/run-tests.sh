@@ -41,12 +41,18 @@ assert_eq "dest ios"     "$HOME/Phone/ios-20260809"     "$(default_dest ios 2026
 assert_eq "dest android" "$HOME/Phone/android-20260809" "$(default_dest android 20260809)"
 
 # --- find_dcim against a fake mount tree (depth-bounded) ---
+# Real camera roll at /DCIM and Android /Internal storage/DCIM should match;
+# the too-deep DCIM (maxdepth) and the iOS PhotoData/Mutations/DCIM (edit
+# artifacts, must be pruned) should NOT.
 FAKE="$(mktemp -d)"
 mkdir -p "$FAKE/DCIM/100APPLE" \
          "$FAKE/Internal storage/DCIM/Camera" \
+         "$FAKE/PhotoData/Mutations/DCIM/100APPLE" \
          "$FAKE/too/deep/a/b/DCIM"
 mapfile -t got < <(find_dcim "$FAKE" | sort)
-assert_eq "find_dcim count (depth<=4, excludes deep)" "2" "${#got[@]}"
+assert_eq "find_dcim count (excludes deep + PhotoData mutations)" "2" "${#got[@]}"
+assert_eq "find_dcim excludes PhotoData mutations DCIM" \
+  "" "$(find_dcim "$FAKE" | grep PhotoData || true)"
 rm -rf "$FAKE"
 
 # classify_device <usbmuxd_socket_present:1|0> <idevice_ids> <override:ios|android|"">

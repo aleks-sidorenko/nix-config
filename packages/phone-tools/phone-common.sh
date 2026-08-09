@@ -13,9 +13,14 @@ default_dest() {
 }
 
 # Find DCIM directories under a mount root (depth-bounded; internal + SD).
+# Prunes iOS Photos-library metadata containers: PhotoData/PhotoStreamsData hold
+# a *second* DCIM tree (PhotoData/Mutations/DCIM) with edit artifacts, not the
+# real camera roll — we must not pull those.
 find_dcim() {
   local root="$1"
-  find "$root" -maxdepth 4 -type d -iname DCIM 2>/dev/null
+  find "$root" -maxdepth 4 \
+    \( -type d \( -name PhotoData -o -name PhotoStreamsData \) -prune \) -o \
+    \( -type d -iname DCIM -print \) 2>/dev/null
 }
 
 print_error() { echo "ERROR: $1" >&2; }
