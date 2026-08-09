@@ -22,6 +22,8 @@ in
         graphical = enabled;
       };
 
+      hardware.phone = enabled;
+
       # Virtualisation is desktop-specific (not wanted on the family laptop).
       services = {
         virtualisation = {
