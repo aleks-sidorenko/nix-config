@@ -10,8 +10,3 @@ config.tf.json
 
 # claude
 .claude/settings.local.json
-
-
-# Internal planning docs (kept local, not published)
-docs/plans/
-docs/specs/
