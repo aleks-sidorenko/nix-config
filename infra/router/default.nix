@@ -72,7 +72,7 @@ let
 
           firewall = {
             # Baseline: nobody blocked. Membership is managed at runtime by the
-            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}),
+            # `router-net` / `child-net` commands (see modules/home/roles/{router,parent}),
             # which add/remove entries over SSH outside terraform state. `just
             # router-apply` only reconciles resources declared here, so it does
             # NOT remove those runtime entries; use `router-net unblock` for that.

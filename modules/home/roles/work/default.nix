@@ -53,7 +53,7 @@ in
           };
         };
 
-        router-manager = enabled;
+        router = enabled;
       };
 
       desktops.aerospace = enabled;

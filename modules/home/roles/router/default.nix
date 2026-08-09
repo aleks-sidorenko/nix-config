@@ -8,7 +8,7 @@
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.router-manager;
+  cfg = config.${namespace}.roles.router;
 
   # name→IP resolution baked from the single source of truth (lib/defaults).
   hostCases = concatStringsSep "\n    " (
@@ -99,8 +99,8 @@ let
   };
 in
 {
-  options.${namespace}.roles.router-manager = {
-    enable = mkEnableOption "Enable router manager configuration";
+  options.${namespace}.roles.router = {
+    enable = mkEnableOption "Enable router configuration";
   };
 
   config = mkIf cfg.enable {

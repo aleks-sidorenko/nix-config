@@ -21,7 +21,7 @@ in
         communication = enabled;
         mobile = enabled;
         gaming = enabled;
-        router-manager = enabled;
+        router = enabled;
         development = {
           enable = true;
           ai = {

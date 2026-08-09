@@ -19,7 +19,7 @@ let
   devicesArgs = escapeShellArgs cfg.childDevices;
 
   # Thin policy wrapper over the generic `router-net` (installed via the
-  # router-manager role this role enables). Contains no router logic of its own;
+  # router role this role enables). Contains no router logic of its own;
   # it only bakes in the child device list and a display filter for `status`.
   # NOTE: no pkgs.stdenv.isLinux assertion — this runs from the parent's own
   # machine, which may be the darwin workbook (unlike roles.child).
@@ -29,7 +29,7 @@ let
   # locally (the router is reachable over LAN, so `unblock` self-heals).
   child-net = pkgs.writeShellApplication {
     name = "child-net";
-    runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router-manager)
+    runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router)
     text = ''
       case "''${1:-}" in
         block)   exec router-net block ${devicesArgs} ;;
@@ -77,7 +77,7 @@ in
     ];
 
     # Generic router control primitive (`router-net`) lives here.
-    ${namespace}.roles.router-manager = enabled;
+    ${namespace}.roles.router = enabled;
 
     home.packages = [ child-net ];
   };
