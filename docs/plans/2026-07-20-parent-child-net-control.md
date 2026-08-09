@@ -4,7 +4,7 @@
 
 **Goal:** Give a parent a `child-net block|unblock|status` command that cuts off (and restores) the child's devices' public internet by toggling their membership in the router's `banned` address-list over SSH.
 
-**Architecture:** A generic, host-agnostic `router-net` primitive lives in `roles.router-manager` and mutates the router's existing `banned` address-list over SSH (reusing the already-declared `forward_drop_banned_external` drop rule). A new policy layer `roles.parent` wires the child's device list into a thin `child-net` wrapper. The router's declared baseline flips to an empty `banned` list so "internet allowed" is the default and blocking is additive.
+**Architecture:** A generic, host-agnostic `router-net` primitive lives in `roles.router` and mutates the router's existing `banned` address-list over SSH (reusing the already-declared `forward_drop_banned_external` drop rule). A new policy layer `roles.parent` wires the child's device list into a thin `child-net` wrapper. The router's declared baseline flips to an empty `banned` list so "internet allowed" is the default and blocking is additive.
 
 **Tech Stack:** Nix (snowfall-lib modules), `pkgs.writeShellApplication` (build-time shellcheck), terranix/`nix-routeros`, RouterOS CLI over SSH.
 
@@ -22,8 +22,8 @@
 
 - `infra/router/default.nix` — **modify**: `firewall.addressLists.banned` seeded list → `[ ]`.
 - `infra/router/README.md` — **modify**: document the runtime-vs-`router-apply` trade-off.
-- `modules/home/roles/router-manager/default.nix` — **modify**: add the generic `router-net` command (keep `winbox4`).
-- `modules/home/roles/parent/default.nix` — **create**: `parent` role, `childDevices` option, `child-net` wrapper, enables `router-manager`.
+- `modules/home/roles/router/default.nix` — **modify**: add the generic `router-net` command (keep `winbox4`).
+- `modules/home/roles/parent/default.nix` — **create**: `parent` role, `childDevices` option, `child-net` wrapper, enables `router`.
 - `homes/x86_64-linux/alexander@homebook/default.nix` — **modify**: enable `roles.parent` (the family laptop the parent uses). *(Optionally also `alexander@desktop`; see Task 4 note.)*
 
 ---
@@ -58,7 +58,7 @@ to:
 ```nix
           firewall = {
             # Baseline: nobody blocked. Membership is managed at runtime by the
-            # `router-net` / `child-net` commands (see modules/home/roles/{router-manager,parent}).
+            # `router-net` / `child-net` commands (see modules/home/roles/{router,parent}).
             # A manual `just router-apply` re-asserts this empty baseline, clearing
             # any active runtime block.
             addressLists.banned = [ ];
@@ -85,16 +85,16 @@ git commit -m "feat(router): empty banned baseline; runtime membership is the co
 
 ---
 
-## Task 2: Generic `router-net` primitive in `roles.router-manager`
+## Task 2: Generic `router-net` primitive in `roles.router`
 
 Adds a host-agnostic block/unblock/status command. It resolves friendly host names to IPs from `defaults.network.hosts`, reuses the existing `banned` list, flushes live connections on block, and is idempotent (remove-then-add). A `ROUTER_SSH` override seam makes the generated RouterOS commands testable without a live router.
 
 **Files:**
-- Modify: `modules/home/roles/router-manager/default.nix`
+- Modify: `modules/home/roles/router/default.nix`
 
 - [ ] **Step 1: Add the `router-net` derivation and install it**
 
-Rewrite `modules/home/roles/router-manager/default.nix` to:
+Rewrite `modules/home/roles/router/default.nix` to:
 
 ```nix
 {
@@ -107,7 +107,7 @@ Rewrite `modules/home/roles/router-manager/default.nix` to:
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.router-manager;
+  cfg = config.${namespace}.roles.router;
 
   # name→IP resolution baked from the single source of truth (lib/defaults).
   hostCases = concatStringsSep "\n    " (
@@ -193,7 +193,7 @@ let
   };
 in
 {
-  options.${namespace}.roles.router-manager = {
+  options.${namespace}.roles.router = {
     enable = mkEnableOption "Enable router manager configuration";
   };
 
@@ -224,14 +224,14 @@ And `ROUTER_SSH=echo router-net block bogushost` exits non-zero with `unknown ho
 
 - [ ] **Step 3: Lint + format**
 
-Run: `just format modules/home/roles/router-manager/default.nix && just lint`
+Run: `just format modules/home/roles/router/default.nix && just lint`
 Expected: no errors.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add modules/home/roles/router-manager/default.nix
-git commit -m "feat(router-manager): generic router-net block/unblock/status over SSH"
+git add modules/home/roles/router/default.nix
+git commit -m "feat(router): generic router-net block/unblock/status over SSH"
 ```
 
 ---
@@ -265,13 +265,13 @@ let
   devicesArgs = escapeShellArgs cfg.childDevices;
 
   # Thin policy wrapper over the generic `router-net` (installed via the
-  # router-manager role this role enables). Contains no router logic of its own;
+  # router role this role enables). Contains no router logic of its own;
   # it only bakes in the child device list and a display filter for `status`.
   # NOTE: no pkgs.stdenv.isLinux assertion — this runs from the parent's own
   # machine, which may be the darwin workbook (unlike roles.child).
   child-net = pkgs.writeShellApplication {
     name = "child-net";
-    runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router-manager)
+    runtimeInputs = [ pkgs.gnugrep ]; # router-net is an ambient PATH dep (installed by roles.router)
     text = ''
       case "''${1:-}" in
         block)   exec router-net block ${devicesArgs} ;;
@@ -318,7 +318,7 @@ in
     ];
 
     # Generic router control primitive (`router-net`) lives here.
-    ${namespace}.roles.router-manager = enabled;
+    ${namespace}.roles.router = enabled;
 
     home.packages = [ child-net ];
   };
@@ -345,7 +345,7 @@ git commit -m "feat(parent): parent role with childDevices option and child-net 
 
 Enables the role on the family laptop the parent uses. `alexander@homebook` is the clear family context.
 
-> **Decision point (adjustable):** This plan enables `roles.parent` on `alexander@homebook` only. If the parent also wants the command on `alexander@desktop` and/or `oleksandrsy@workbook`, add `roles.parent = enabled;` there too (workbook is darwin — the role has no Linux assertion, so it builds). Enabling it also pulls in `roles.router-manager` (hence `winbox4` + `router-net`) on `homebook`, which currently lacks it.
+> **Decision point (adjustable):** This plan enables `roles.parent` on `alexander@homebook` only. If the parent also wants the command on `alexander@desktop` and/or `oleksandrsy@workbook`, add `roles.parent = enabled;` there too (workbook is darwin — the role has no Linux assertion, so it builds). Enabling it also pulls in `roles.router` (hence `winbox4` + `router-net`) on `homebook`, which currently lacks it.
 
 **Files:**
 - Modify: `homes/x86_64-linux/alexander@homebook/default.nix`

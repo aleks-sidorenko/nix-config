@@ -171,14 +171,14 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | Role | Composes | Configures |
 |------|----------|------------|
 | **common** | - | Nix, locale, GPG, SSH, SOPS, pass, fish, ghostty, neovim, archivers, modern-unix, network-tools, stylix |
-| **desktop** | common, development, media, mobile, gaming, communication, router-manager | Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
-| **work** | common, development, router-manager | Chrome, Teamviewer (macOS-oriented) |
+| **desktop** | common, development, media, mobile, gaming, communication, router | Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
+| **work** | common, development, router | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
 | **mobile** | - | MTP tools (Android integration) |
 | **gaming** | - | Minecraft |
 | **communication** | - | Telegram, Viber |
-| **router-manager** | - | Winbox (MikroTik management) |
+| **router** | - | Winbox (MikroTik management) |
 
 ### Darwin Roles (`modules/darwin/roles/`)
 

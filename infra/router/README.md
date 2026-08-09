@@ -12,7 +12,7 @@ Hosts in the `banned` list are blocked from external (WAN) traffic.
 
 **Declared baseline:** `addressLists.banned` in `default.nix` is empty — nobody
 is blocked by default. Runtime membership is managed on demand by the
-`router-net` / `child-net` commands (see `modules/home/roles/router-manager`
+`router-net` / `child-net` commands (see `modules/home/roles/router`
 and `modules/home/roles/parent`), which add/remove hosts from the `banned`
 list over SSH without touching terraform state.
 
