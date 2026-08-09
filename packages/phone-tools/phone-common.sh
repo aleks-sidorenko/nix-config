@@ -52,6 +52,20 @@ is_mounted() { mountpoint -q "$1"; }
 # /run/wrappers/bin; try fuse3 first, fall back to fuse2.
 fuse_unmount() { fusermount3 -u "$1" 2>/dev/null || fusermount -u "$1"; }
 
+# When ifuse/aft loses the device (e.g. the phone auto-locks), the FUSE daemon
+# dies without unmounting, leaving a stale endpoint: it stays in the kernel
+# mount table but stat()/mkdir on the path fail with "transport endpoint is not
+# connected". findmnt reads the table (no stat, so it won't hang), and
+# mountpoint -q reports it as *not* a live mountpoint. That pair => stale; clear
+# it so a fresh mount can proceed.
+clear_stale_mount() {
+  local mp="$1"
+  if findmnt -n "$mp" >/dev/null 2>&1 && ! is_mounted "$mp"; then
+    print_info "Clearing stale FUSE mount at $mp"
+    fuse_unmount "$mp" 2>/dev/null || umount -l "$mp" 2>/dev/null || true
+  fi
+}
+
 # Poll until the mount is ready (or fail). $1 = mountpoint, $2 = timeout secs (default 10).
 wait_for_mount() {
   local mp="$1" timeout="${2:-10}" i=0

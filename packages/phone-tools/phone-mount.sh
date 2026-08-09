@@ -8,6 +8,7 @@ MP="$(resolve_mount_point)"
 override="${1:-}"
 
 if is_mounted "$MP"; then print_info "Already mounted at $MP"; exit 0; fi
+clear_stale_mount "$MP"   # recover a dead endpoint left by a dropped connection
 mkdir -p "$MP"
 if [[ -n "$(ls -A "$MP" 2>/dev/null)" ]]; then
   print_error "Mount point $MP is not empty; refusing to mount over it."; exit 1

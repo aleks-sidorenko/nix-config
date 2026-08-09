@@ -103,6 +103,13 @@ hang.
 **Preconditions & guidance:**
 - Creates `MOUNT_POINT` and confirms it is empty; if already mounted, report and
   exit 0 (idempotent).
+- **Stale-endpoint recovery:** if a previous `ifuse`/`aft-mtp-mount` lost the
+  device (e.g. the iPhone auto-locked), its FUSE daemon dies without unmounting,
+  leaving a dead endpoint — the path stays in the kernel mount table but
+  `stat`/`mkdir` fail with "transport endpoint is not connected". Before
+  `mkdir`, `phone-mount` detects this (`findmnt` finds it in the table but
+  `mountpoint -q` says it is not a live mount) and lazy-unmounts it, so a fresh
+  mount succeeds instead of erroring on the un-stattable directory.
 - **GNOME/gvfs conflict (Android):** GNOME's `gvfs-mtp` auto-mounts the phone on
   plug-in and holds MTP's single initiator slot, so `aft-mtp-mount` fails with
   "device busy". `phone-mount` detects an existing gvfs MTP mount (e.g. under
@@ -142,7 +149,9 @@ Copy the camera roll from the mounted phone to a local directory via `rsync`.
 Read-only with respect to the phone.
 
 **Behavior:**
-- Requires the phone to be mounted (errors with guidance to run `phone-mount`).
+- If the phone isn't mounted (or the mount went stale after an auto-lock),
+  attempts one `phone-mount` (which also clears a stale endpoint) before giving
+  up — so a mid-session lock self-heals instead of forcing a manual remount.
 - Locates DCIM: `find "$MOUNT_POINT" -maxdepth 4 -type d -iname DCIM` (depth
   bounded — deep `find` over MTP is slow). This covers iPhone `DCIM/100APPLE…`,
   Android `Internal storage/DCIM/Camera`, `Internal shared storage/DCIM`, and

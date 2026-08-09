@@ -15,7 +15,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 if ! is_mounted "$MP"; then
-  print_error "No phone mounted at $MP. Run phone-mount first."; exit 1
+  # The phone may have auto-locked and dropped the mount; try to (re)mount once
+  # (phone-mount also clears any stale endpoint) before giving up.
+  print_info "Phone not mounted at $MP; attempting to mount..."
+  phone-mount || { print_error "Could not mount the phone. Run phone-mount first."; exit 1; }
 fi
 
 device="$(detect_device "")"; [[ "$device" == ios* ]] && device=ios || device=android
