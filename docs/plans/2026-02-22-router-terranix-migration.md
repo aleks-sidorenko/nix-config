@@ -1023,7 +1023,7 @@ git commit -m "feat(router): add terranix misc module for routeros_rest"
 
 **Step 1: Extract host data**
 
-This data comes from `modules/home/roles/router-manager/default.nix:25-95`.
+This data comes from `modules/home/roles/router/default.nix:25-95`.
 
 ```nix
 { defaults }:
@@ -1483,10 +1483,10 @@ git commit -m "feat(router): update justfile for OpenTofu workflow"
 
 ---
 
-## Task 17: Simplify router-manager role
+## Task 17: Simplify router role
 
 **Files:**
-- Modify: `modules/home/roles/router-manager/default.nix`
+- Modify: `modules/home/roles/router/default.nix`
 
 **Step 1: Remove router module configuration, keep winbox4**
 
@@ -1503,10 +1503,10 @@ Replace the entire file content with:
 with lib;
 with lib.${namespace};
 let
-  cfg = config.${namespace}.roles.router-manager;
+  cfg = config.${namespace}.roles.router;
 in
 {
-  options.${namespace}.roles.router-manager = {
+  options.${namespace}.roles.router = {
     enable = mkEnableOption "Enable router manager configuration";
   };
 
@@ -1519,8 +1519,8 @@ in
 **Step 2: Commit**
 
 ```bash
-git add modules/home/roles/router-manager/default.nix
-git commit -m "refactor(router): simplify router-manager role to winbox4 only"
+git add modules/home/roles/router/default.nix
+git commit -m "refactor(router): simplify router role to winbox4 only"
 ```
 
 ---
@@ -1608,6 +1608,6 @@ git commit -m "style(router): format terranix modules"
 14. Add SOPS secrets (`router-api-password`, `router-state-passphrase`)
 15. Create import config + run migration (manual, requires router access)
 16. Update justfile
-17. Simplify router-manager role
+17. Simplify router role
 18. Delete old router module
 19. Final verification + formatting
