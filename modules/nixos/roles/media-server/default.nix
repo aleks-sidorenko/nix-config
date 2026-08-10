@@ -81,6 +81,10 @@ in
             enable = true;
           };
 
+          recyclarr = {
+            enable = true;
+          };
+
           minidlna = {
             enable = true;
             directories = [
