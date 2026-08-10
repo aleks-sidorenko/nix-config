@@ -5,7 +5,7 @@
 - **Scope**: Give a parent a one-command way to cut off (and restore) the
   child's internet access across all the child's devices (TV, iPad, homebook)
   by toggling their membership in the router's `banned` address-list over SSH.
-  Split into a **generic** host on/off primitive in `roles.router-manager` and a
+  Split into a **generic** host on/off primitive in `roles.router` and a
   **policy** layer in a new `roles.parent` that targets the child's devices.
 
 ## 1. Goals
@@ -14,7 +14,7 @@
    (`tv`, `tv-wifi`, `homebook`, `ipad`) immediately lose public-internet
    access — including any TV/iPad stream already playing. `child-net unblock`
    restores it. `child-net status` shows the current state.
-2. **Separation of concerns.** `roles.router-manager` provides a *generic,
+2. **Separation of concerns.** `roles.router` provides a *generic,
    host-agnostic* primitive (`router-net block|unblock|status <host|ip>…`) that
    knows nothing about "child" or "parent". `roles.parent` is the *policy* layer
    that wires the child's device list into `child-net`.
@@ -56,7 +56,7 @@
   `ipad=10.0.0.70`, plus router/server/etc.). This is the single source of truth
   for addresses and is **not** changed by this design.
 - **Home roles** `modules/home/roles/`:
-  - `router-manager/default.nix` — currently just installs `pkgs.winbox4`.
+  - `router/default.nix` — currently just installs `pkgs.winbox4`.
   - `child/default.nix` — restricted child home (Minecraft-only GNOME). The new
     `parent` role is its policy counterpart.
 - **Users module** distinguishes an `adult`/`child` **profile** (account group
@@ -96,10 +96,10 @@ declared baseline, clearing any active runtime block. Applies are infrequent and
 manual; the reset-to-online behavior is acceptable (arguably desirable). This is
 documented in the router README and in §5.
 
-### 4.2 Generic primitive — `router-net` in `roles.router-manager`
+### 4.2 Generic primitive — `router-net` in `roles.router`
 
 Add a `router-net` command (`pkgs.writeShellScriptBin`) to
-`modules/home/roles/router-manager/default.nix` alongside `winbox4`. It is fully
+`modules/home/roles/router/default.nix` alongside `winbox4`. It is fully
 host-agnostic.
 
 **Interface:**
@@ -140,7 +140,7 @@ help/comment so the coupling is discoverable.
 ### 4.3 Policy layer — new `roles.parent`
 
 New module `modules/home/roles/parent/default.nix`, mirroring the shape of
-`roles.child` / `roles.router-manager`.
+`roles.child` / `roles.router`.
 
 **Options** (`nix-config.roles.parent`):
 - `enable` — `mkEnableOption`.
@@ -153,7 +153,7 @@ New module `modules/home/roles/parent/default.nix`, mirroring the shape of
 **Config** (`mkIf cfg.enable`):
 - `assertion`: every entry of `childDevices` is a key in
   `defaults.network.hosts` (fail fast at eval with the offending name).
-- Enables the generic infra: `nix-config.roles.router-manager = enabled;`.
+- Enables the generic infra: `nix-config.roles.router = enabled;`.
 - Installs `child-net` (`pkgs.writeShellScriptBin`) — a thin wrapper that forwards
   to `router-net` with the configured device list baked in:
   - `child-net block`   → `router-net block   <childDevices…>`
@@ -208,10 +208,10 @@ runtime:      child-net block
 
 - `infra/router/default.nix` — `banned` list → `[ ]` (empty baseline).
 - `infra/router/README.md` — note the runtime-vs-apply trade-off.
-- `modules/home/roles/router-manager/default.nix` — add generic `router-net`
+- `modules/home/roles/router/default.nix` — add generic `router-net`
   command (keep `winbox4`).
 - `modules/home/roles/parent/default.nix` — **new**; `parent` role with
-  `childDevices` option + `child-net` wrapper; enables `router-manager`.
+  `childDevices` option + `child-net` wrapper; enables `router`.
 
 ## 8. Verification
 

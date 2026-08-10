@@ -82,17 +82,17 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | Role | Composes | Configures |
 |------|----------|------------|
 | **common** | - | Nix, locale, GPG, SSH, SOPS, pass, fish, ghostty, neovim, archivers, modern-unix, network-tools, stylix |
-| **graphical** | common, media, phone, gaming, communication, router-manager | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
+| **graphical** | common, media, mobile, gaming, communication, router | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
 | **desktop** | graphical, development | Root role for the desktop host (graphical + development) |
 | **homebook** | graphical | Root role for the shared family laptop (graphical, no development) |
 | **child** | common | Restricted account: locked-down GNOME (`profile = "child"`), Minecraft only, no browser, no sudo |
-| **work** | common, development, router-manager | Chrome, Teamviewer (macOS-oriented) |
+| **work** | common, development, router | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
 | **phone** | - | Mount Android/iPhone as FUSE drives, back up camera roll (phone-tools) |
 | **gaming** | - | Minecraft |
 | **communication** | - | Telegram, Viber |
-| **router-manager** | - | Winbox (MikroTik management) |
+| **router** | - | Winbox (MikroTik management) |
 
 ### Darwin Roles (`modules/darwin/roles/`)
 

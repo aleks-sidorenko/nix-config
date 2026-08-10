@@ -230,7 +230,7 @@ config = mkIf cfg.enable {
 
 - Reuses `nix-config.games.minecraft` (`modules/home/games/minecraft/`), which
   installs **Prism Launcher** (offline-capable, no Microsoft account required).
-- **No** `browsers`, `development`, `communication`, `media`, `router-manager`.
+- **No** `browsers`, `development`, `communication`, `media`, `router`.
 - The GNOME session is provided by the host (nixos `homebook` role); the child
   only gets `common` + Minecraft.
 - Enforcement of "no browser": the child account has no `wheel` (from
