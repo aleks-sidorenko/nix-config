@@ -89,7 +89,7 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **work** | common, development, router | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
-| **mobile** | - | MTP tools (Android integration) |
+| **phone** | - | Mount Android/iPhone as FUSE drives, back up camera roll (phone-tools) |
 | **gaming** | - | Minecraft |
 | **communication** | - | Telegram, Viber |
 | **router** | - | Winbox (MikroTik management) |

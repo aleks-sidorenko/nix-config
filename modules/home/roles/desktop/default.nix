@@ -19,7 +19,7 @@ in
       roles = {
         graphical = enabled;
         communication = enabled;
-        mobile = enabled;
+        phone = enabled;
         gaming = enabled;
         router = enabled;
         development = {
