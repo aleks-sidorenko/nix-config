@@ -13,10 +13,12 @@ let
   sonarrCfg = config.${namespace}.services.media.sonarr;
   radarrCfg = config.${namespace}.services.media.radarr;
 
+  # Connect directly to the local Sonarr/Radarr rather than via the nginx
+  # reverse proxy: nginx here is plain HTTP with no TLS, both apps disable auth
+  # for local addresses, and going direct avoids coupling the sync to nginx and
+  # local DNS. This is also Recyclarr's documented pattern.
   sonarrUrl = "http://localhost:${toString sonarrCfg.webPort}";
   radarrUrl = "http://localhost:${toString radarrCfg.webPort}";
-
-  stateDir = "/var/lib/recyclarr";
 
   # Recyclarr configuration (TRaSH Guides sync). The quality profiles are the
   # stock TRaSH HD templates imported by trash_id (which pulls the full custom
@@ -89,6 +91,8 @@ in
 
     group = mkOpt types.str config.${namespace}.services.media.group "Group to run Recyclarr as";
 
+    dataDir = mkOpt types.str "/var/lib/recyclarr" "Directory where Recyclarr stores its data";
+
     package =
       mkOpt types.package pkgs.unstable.recyclarr
         "Recyclarr package to use (needs v8 config schema)";
@@ -117,39 +121,44 @@ in
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = mkForce cfg.group;
-      home = stateDir;
+      home = cfg.dataDir;
       createHome = true;
       description = "Recyclarr sync user";
     };
 
-    systemd.services.recyclarr = {
-      description = "Recyclarr TRaSH Guides sync";
-      after = [
-        "network-online.target"
-        "sonarr.service"
-        "radarr.service"
+    systemd = {
+      tmpfiles.rules = [
+        "d ${cfg.dataDir} 0755 ${cfg.user} ${cfg.group} -"
       ];
-      wants = [ "network-online.target" ];
 
-      serviceConfig = {
-        Type = "oneshot";
-        User = cfg.user;
-        Group = cfg.group;
-        StateDirectory = "recyclarr";
-        Environment = [
-          "RECYCLARR_CONFIG_DIR=${stateDir}"
-          "RECYCLARR_DATA_DIR=${stateDir}"
+      services.recyclarr = {
+        description = "Recyclarr TRaSH Guides sync";
+        after = [
+          "network-online.target"
+          "sonarr.service"
+          "radarr.service"
         ];
-        ExecStart = "${getExe cfg.package} sync --config ${config.sops.templates."recyclarr.yml".path}";
-      };
-    };
+        wants = [ "network-online.target" ];
 
-    systemd.timers.recyclarr = {
-      description = "Scheduled Recyclarr TRaSH Guides sync";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = cfg.schedule;
-        Persistent = true;
+        serviceConfig = {
+          Type = "oneshot";
+          User = cfg.user;
+          Group = cfg.group;
+          Environment = [
+            "RECYCLARR_CONFIG_DIR=${cfg.dataDir}"
+            "RECYCLARR_DATA_DIR=${cfg.dataDir}"
+          ];
+          ExecStart = "${getExe cfg.package} sync --config ${config.sops.templates."recyclarr.yml".path}";
+        };
+      };
+
+      timers.recyclarr = {
+        description = "Scheduled Recyclarr TRaSH Guides sync";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = cfg.schedule;
+          Persistent = true;
+        };
       };
     };
 
