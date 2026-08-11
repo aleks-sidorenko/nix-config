@@ -26,7 +26,7 @@ in
 
     mediaDir = mkOpt types.str "/data/media/Series" "Directory for media storage";
 
-    package = mkOpt types.package pkgs.sonarr "Sonarr package to use";
+    package = mkOpt types.package pkgs.unstable.sonarr "Sonarr package to use";
 
     webPort = mkOpt types.port defaults.network.ports.sonarr.web "Port for the Sonarr web interface";
 
