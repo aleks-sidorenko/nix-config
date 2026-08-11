@@ -21,7 +21,7 @@ in
 
     dataDir = mkOpt types.str "/var/lib/private/prowlarr" "Directory where Prowlarr stores its data";
 
-    package = mkOpt types.package pkgs.prowlarr "Prowlarr package to use";
+    package = mkOpt types.package pkgs.unstable.prowlarr "Prowlarr package to use";
 
     webPort =
       mkOpt types.port defaults.network.ports.prowlarr.web

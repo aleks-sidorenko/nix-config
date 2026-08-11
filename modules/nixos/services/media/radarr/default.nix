@@ -26,7 +26,7 @@ in
 
     mediaDir = mkOpt types.str "/data/media/Movies" "Directory for media storage";
 
-    package = mkOpt types.package pkgs.radarr "Radarr package to use";
+    package = mkOpt types.package pkgs.unstable.radarr "Radarr package to use";
 
     webPort = mkOpt types.port defaults.network.ports.radarr.web "Port for the Radarr web interface";
 
