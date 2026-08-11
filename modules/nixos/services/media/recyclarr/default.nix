@@ -93,9 +93,9 @@ in
 
     dataDir = mkOpt types.str "/var/lib/recyclarr" "Directory where Recyclarr stores its data";
 
-    package =
-      mkOpt types.package pkgs.unstable.recyclarr
-        "Recyclarr package to use (needs v8 config schema)";
+    # Unstable: needs recyclarr >= 8 for the v8 config schema (trash_id quality
+    # profiles + custom_format_groups); the stable pin ships 7.x.
+    package = mkOpt types.package pkgs.unstable.recyclarr "Recyclarr package to use";
 
     schedule = mkOpt types.str "daily" "systemd OnCalendar schedule for the sync";
   };
