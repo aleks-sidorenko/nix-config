@@ -103,6 +103,13 @@ Ghostty+Neovim session:
   **Fallback if `C-|` proves undeliverable** through the Kitty protocol: keep
   `C--` for horizontal split and use `C-\` (bare, no shift) for vertical split,
   documenting the deviation. Do not silently drop the binding.
+  **Resolution (verified live, 2026-08-17):** `C-|` (`ctrl+shift+\`) is
+  undeliverable through Ghostty — neither `<C-|>` nor `<C-Bar>` ever reaches
+  Neovim. `C--` is delivered reliably. Fallback adopted: horizontal split =
+  `<C-->`, vertical split = `<C-Bslash>` (`C-\`, the unshifted pipe key). `C-\`
+  is used in Nix as `<C-Bslash>` to avoid backslash escaping; it shadows the
+  built-in `<C-\><C-n>` prefix only in the mapped modes (normal + Telescope
+  prompt), which is harmless there.
 - Confirm the evicted chords (`C--`, `C-+`, `C-0`, `C-enter`, `C-;`) actually
   pass through to Neovim after eviction, and that the relocated Ghostty actions
   (`alt+-/=/0`, `alt+enter`, `ctrl+a>c/r`) fire.
