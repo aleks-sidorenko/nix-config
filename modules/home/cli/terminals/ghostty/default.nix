@@ -142,16 +142,15 @@ in
           "shift+insert=paste_from_selection"
           "ctrl+insert=copy_to_clipboard"
 
-          # Font/Display (Ctrl)
-          "ctrl++=increase_font_size:1"
-          "ctrl+-=decrease_font_size:1"
-          "ctrl+0=reset_font_size"
-          "ctrl+enter=toggle_fullscreen"
+          # Font/Display (Alt — terminal-owned; keeps bare Ctrl free for Neovim)
+          "alt+equal=increase_font_size:1"
+          "alt+-=decrease_font_size:1"
+          "alt+0=reset_font_size"
+          "alt+enter=toggle_fullscreen"
 
-          # Configuration (Ctrl+;)
-          "ctrl+;=open_config"
-          "ctrl+shift+;=reload_config"
-          # ctrl+,/. freed for Neovim move line
+          # Configuration (prefix — rare; keeps C-; free for Neovim)
+          "${prefix}>c=open_config"
+          "${prefix}>r=reload_config"
           "ctrl+shift+q=quit"
           "ctrl+shift+p=toggle_command_palette"
           "ctrl+shift+i=inspector:toggle"

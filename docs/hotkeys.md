@@ -244,20 +244,20 @@ Terminal-universal and OS-standard conventions — not part of the Alt scheme.
 | Select all | `Ctrl+Shift+A` |
 | Paste from selection | `Shift+Insert` |
 | Copy to clipboard (alt) | `Ctrl+Insert` |
-| Reload config | `Ctrl+Shift+;` |
 | Quit app | `Ctrl+Shift+Q` |
 | Command palette | `Ctrl+Shift+P` |
 | Inspector | `Ctrl+Shift+I` |
 
-### Display Bindings (`Ctrl`)
+### Font & Display (`Alt`)
+
+Font and fullscreen live on `Alt` (terminal-owned), keeping bare `Ctrl` free for Neovim. Config moves to the prefix (see Prefix Mode).
 
 | Action | Binding |
 |---|---|
-| Toggle fullscreen | `Ctrl+Enter` |
-| Increase font size | `Ctrl++` |
-| Decrease font size | `Ctrl+-` |
-| Reset font size | `Ctrl+0` |
-| Open config | `Ctrl+;` |
+| Toggle fullscreen | `Alt+Enter` |
+| Increase font size | `Alt+=` |
+| Decrease font size | `Alt+-` |
+| Reset font size | `Alt+0` |
 
 ### Other Conventions
 
@@ -282,6 +282,8 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 | `Prefix > T > [/]` | Prev/next tab |
 | `Prefix > W > N` | New window |
 | `Prefix > W > Q` | Close window |
+| `Prefix > C` | Open config |
+| `Prefix > R` | Reload config |
 | `Prefix > \|` | New split right |
 | `Prefix > -` | New split down |
 | `Prefix > S` | Write screen to file (paste) |
