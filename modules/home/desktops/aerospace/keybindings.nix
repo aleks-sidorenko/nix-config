@@ -13,11 +13,11 @@
   alt-cmd-shift-k = 'move up'
   alt-cmd-shift-l = 'move right'
 
-  # Resize windows — Ctrl+Cmd+hjkl (Linux: Super+Alt+hjkl)
-  ctrl-cmd-h = 'resize width -50'
-  ctrl-cmd-j = 'resize height -50'
-  ctrl-cmd-k = 'resize height +50'
-  ctrl-cmd-l = 'resize width +50'
+  # Resize windows — Ctrl+Cmd+Arrows (arrows resize, like Neovim/Ghostty)
+  ctrl-cmd-left = 'resize width +50'
+  ctrl-cmd-right = 'resize width -50'
+  ctrl-cmd-up = 'resize height -50'
+  ctrl-cmd-down = 'resize height +50'
 
   # Close window — Alt+Cmd+Q (Linux: Super+Q)
   alt-cmd-q = 'close'

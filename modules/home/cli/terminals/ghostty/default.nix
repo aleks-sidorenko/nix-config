@@ -51,17 +51,20 @@ in
         keybind = [
           "clear"
 
-          # ── Navigate (Alt) ──────────────────────────────────────
-          # Split focus — vim style
+          # ── Navigate & Resize (Alt) ─────────────────────────────
+          # Mirrors Neovim: hjkl focuses splits, arrows resize them.
+          # (Neovim uses C-hjkl / C-arrows; Alt here because Ghostty
+          #  keeps bare Ctrl free for Neovim.)
+          # Split focus — hjkl
           "alt+h=goto_split:left"
           "alt+j=goto_split:down"
           "alt+k=goto_split:up"
           "alt+l=goto_split:right"
-          # Split focus — arrows
-          "alt+arrow_up=goto_split:up"
-          "alt+arrow_down=goto_split:down"
-          "alt+arrow_left=goto_split:left"
-          "alt+arrow_right=goto_split:right"
+          # Split resize — arrows
+          "alt+arrow_up=resize_split:up,10"
+          "alt+arrow_down=resize_split:down,10"
+          "alt+arrow_left=resize_split:left,10"
+          "alt+arrow_right=resize_split:right,10"
           # Tab switch (1-8 direct, 9 = last)
           "alt+1=goto_tab:1"
           "alt+2=goto_tab:2"
@@ -80,17 +83,7 @@ in
           "alt+page_down=jump_to_prompt:1"
 
           # ── Structure (Alt+Shift) ───────────────────────────────
-          # Split creation — vim style
-          "alt+shift+h=new_split:left"
-          "alt+shift+j=new_split:down"
-          "alt+shift+k=new_split:up"
-          "alt+shift+l=new_split:right"
-          # Split creation — arrows
-          "alt+shift+arrow_up=new_split:up"
-          "alt+shift+arrow_down=new_split:down"
-          "alt+shift+arrow_left=new_split:left"
-          "alt+shift+arrow_right=new_split:right"
-          # Logical splits
+          # Split creation — mirrors Neovim's C-| / C-- (and Leader+| / -)
           "alt+shift+|=new_split:right"
           "alt+shift+-=new_split:down"
           # Tab management
@@ -100,18 +93,7 @@ in
           "alt+shift+w=new_window"
           "alt+shift+x=close_window"
 
-          # ── Modify (Alt+Ctrl) ───────────────────────────────────
-          # Split resize — vim style
-          "alt+ctrl+h=resize_split:left,10"
-          "alt+ctrl+j=resize_split:down,10"
-          "alt+ctrl+k=resize_split:up,10"
-          "alt+ctrl+l=resize_split:right,10"
-          # Split resize — arrows
-          "alt+ctrl+arrow_up=resize_split:up,10"
-          "alt+ctrl+arrow_down=resize_split:down,10"
-          "alt+ctrl+arrow_left=resize_split:left,10"
-          "alt+ctrl+arrow_right=resize_split:right,10"
-          # Split zoom
+          # ── Zoom (Alt+Ctrl) ─────────────────────────────────────
           "alt+ctrl+enter=toggle_split_zoom"
 
           # ── Prefix Mode (Ctrl+A) ───────────────────────────────
@@ -121,10 +103,6 @@ in
           "${prefix}>l=goto_split:right"
           "${prefix}>[=goto_split:previous"
           "${prefix}>]=goto_split:next"
-          "${prefix}>arrow_up=goto_split:up"
-          "${prefix}>arrow_down=goto_split:down"
-          "${prefix}>arrow_left=goto_split:left"
-          "${prefix}>arrow_right=goto_split:right"
           "${prefix}>t>n=new_tab"
           "${prefix}>t>q=close_tab:this"
           "${prefix}>t>[=previous_tab"
