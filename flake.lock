@@ -1155,11 +1155,11 @@
         "nixvim": "nixvim"
       },
       "locked": {
-        "lastModified": 1783517662,
-        "narHash": "sha256-e1vbWkyXYt7K/CCz4pIma6vzhwzlraZIy1CzbJHnYL4=",
+        "lastModified": 1786996368,
+        "narHash": "sha256-WILJgLhJtbj+D6ClYpOr5ghmOqSCh/aVYGb5O8r83SE=",
         "owner": "aleks-sidorenko",
         "repo": "nix-nvim",
-        "rev": "8c15307ef01ae5cb918efd3f5d10917c123c8ae9",
+        "rev": "2c52a9befa1b9bac2cf6121e0f349e4ff474bd64",
         "type": "github"
       },
       "original": {
