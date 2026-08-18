@@ -176,10 +176,12 @@ in
         window-move-right = [ "<Super><Shift>l" ];
         window-move-up = [ "<Super><Shift>k" ];
         window-move-down = [ "<Super><Shift>j" ];
-        window-resize-left-increase = [ "<Super><Alt>h" ];
-        window-resize-right-increase = [ "<Super><Alt>l" ];
-        window-resize-top-increase = [ "<Super><Alt>k" ];
-        window-resize-bottom-increase = [ "<Super><Alt>j" ];
+        # Resize — Super+Ctrl+Arrows (arrows resize, like Neovim/Ghostty;
+        # Super+Arrows and Super+Alt+Arrows are taken by max/min & workspaces)
+        window-resize-left-increase = [ "<Super><Ctrl>Left" ];
+        window-resize-right-increase = [ "<Super><Ctrl>Right" ];
+        window-resize-top-increase = [ "<Super><Ctrl>Up" ];
+        window-resize-bottom-increase = [ "<Super><Ctrl>Down" ];
       };
     };
   };

@@ -43,22 +43,29 @@ Each layer owns one primary modifier. Bindings never cross layers.
 
 ### Action Semantics
 
-The same secondary modifier means the same action at every layer:
+**Arrows resize; HJKL do everything else.** This is the Neovim model
+(`Ctrl+HJKL` focuses, `Ctrl+Arrows` resizes) lifted to every layer, so the
+muscle memory is identical everywhere: *HJKL move focus, arrows resize* — only
+the base modifier changes per layer. Each action binds exactly one spatial key
+set (no HJKL/arrow duplicates), keeping the other combinations free.
 
-| Secondary      | Meaning       | WM example              | Ghostty example               |
-| -------------- | ------------- | ----------------------- | ----------------------------- |
-| (none)         | **Navigate**  | `Super+HJKL` focus      | `Alt+HJKL` focus split        |
-| `+Shift`       | **Structure** | `Super+Shift+HJKL` swap | `Alt+Shift+HJKL` create split |
-| `+Alt`/`+Ctrl` | **Modify**    | `Super+Alt+HJKL` resize | `Alt+Ctrl+HJKL` resize split  |
+| Spatial keys | Meaning       | Neovim          | Ghostty          | AeroSpace            | Hyprland            | GNOME               |
+| ------------ | ------------- | --------------- | ---------------- | -------------------- | ------------------- | ------------------- |
+| HJKL         | **Navigate**  | `Ctrl+HJKL`     | `Alt+HJKL`       | `Alt+Cmd+HJKL`       | `Super+HJKL`        | `Super+HJKL`        |
+| HJKL + move  | **Structure** | `Ctrl+Alt+HJKL` | `Alt+Shift+\|/-` | `Alt+Cmd+Shift+HJKL` | `Super+Shift+HJKL`  | `Super+Shift+HJKL`  |
+| Arrows       | **Resize**    | `Ctrl+Arrows`   | `Alt+Arrows`     | `Ctrl+Cmd+Arrows`    | `Super+Alt+Arrows`  | `Super+Ctrl+Arrows` |
+
+The resize modifier differs per WM (AeroSpace `Ctrl+Cmd`, Hyprland `Super+Alt`,
+GNOME `Super+Ctrl`) because each WM already reserves other arrow tiers for
+workspaces, monitors, and maximize/minimize — but the arrow keys always mean
+resize.
 
 ### Spatial Keys
 
-Same everywhere:
-
-- `H/J/K/L` — left/down/up/right
+- `H/J/K/L` — left/down/up/right (focus and structural moves)
+- `Arrows` — resize (left = wider, right = narrower, up = shorter, down = taller)
 - `1-9, 0` — position 1-10
 - `[/]` — previous/next
-- `Arrows` — directional alternative
 
 ---
 
@@ -70,7 +77,7 @@ Same everywhere:
 | ------------------------ | --------------------- | ------------------------------------------ |
 | Focus left/down/up/right | `Super+H/J/K/L`       | Forge in GNOME                             |
 | Swap window              | `Super+Shift+H/J/K/L` | Forge swap in GNOME                        |
-| Resize window            | `Super+Alt+H/J/K/L`   | `binde` in Hyprland, Forge resize in GNOME |
+| Resize window            | `Super+Alt+Arrows` (Hyprland) · `Super+Ctrl+Arrows` (GNOME) | Arrows resize; frees `Super+Alt+HJKL` |
 | Close window             | `Super+Q`             |                                            |
 | Close window (alt)       | `Alt+F4`              |                                            |
 | Fullscreen               | `Super+F`             |                                            |
@@ -156,7 +163,7 @@ Same everywhere:
 | ------------------------ | ----------------------- | --------------------- |
 | Focus left/down/up/right | `Alt+Cmd+H/J/K/L`       | `Super+H/J/K/L`       |
 | Swap window              | `Alt+Cmd+Shift+H/J/K/L` | `Super+Shift+H/J/K/L` |
-| Resize window            | `Ctrl+Cmd+H/J/K/L`      | `Super+Alt+H/J/K/L`   |
+| Resize window            | `Ctrl+Cmd+Arrows`       | `Super+Alt+Arrows` (Hyprland) · `Super+Ctrl+Arrows` (GNOME) |
 | Close window             | `Alt+Cmd+Q`             | `Super+Q`             |
 | Fullscreen               | `Alt+Cmd+F`             | `Super+F`             |
 | Toggle maximize          | `Alt+Cmd+M`             | `Super+M`             |
@@ -199,12 +206,12 @@ Same everywhere:
 
 All direct Ghostty bindings use `Alt` as the base modifier.
 
-#### Navigate (`Alt`)
+#### Navigate & Resize (`Alt`)
 
 | Action                         | Binding        |
 | ------------------------------ | -------------- |
 | Focus split left/down/up/right | `Alt+H/J/K/L`  |
-| Focus split (arrows)           | `Alt+Arrows`   |
+| Resize split                   | `Alt+Arrows`   |
 | Switch to tab 1-8              | `Alt+1-8`      |
 | Switch to last tab             | `Alt+9`        |
 | Previous tab                   | `Alt+[`        |
@@ -214,24 +221,26 @@ All direct Ghostty bindings use `Alt` as the base modifier.
 
 #### Structure (`Alt+Shift`)
 
-| Action                          | Binding             |
-| ------------------------------- | ------------------- |
-| Create split left/down/up/right | `Alt+Shift+H/J/K/L` |
-| Create split (arrows)           | `Alt+Shift+Arrows`  |
-| New split right (logical)       | `Alt+Shift+\|`      |
-| New split down (logical)        | `Alt+Shift+-`       |
-| New tab                         | `Alt+Shift+T`       |
-| Close tab                       | `Alt+Shift+Q`       |
-| New window                      | `Alt+Shift+W`       |
-| Close window                    | `Alt+Shift+X`       |
+| Action                    | Binding        |
+| ------------------------- | -------------- |
+| New split right (logical) | `Alt+Shift+\|` |
+| New split down (logical)  | `Alt+Shift+-`  |
+| New tab                   | `Alt+Shift+T`  |
+| Close tab                 | `Alt+Shift+Q`  |
+| New window                | `Alt+Shift+W`  |
+| Close window              | `Alt+Shift+X`  |
 
-#### Modify (`Alt+Ctrl`)
+#### Zoom (`Alt+Ctrl`)
 
-| Action                          | Binding            |
-| ------------------------------- | ------------------ |
-| Resize split left/down/up/right | `Alt+Ctrl+H/J/K/L` |
-| Resize split (arrows)           | `Alt+Ctrl+Arrows`  |
-| Toggle split zoom               | `Alt+Ctrl+Enter`   |
+| Action            | Binding          |
+| ----------------- | ---------------- |
+| Toggle split zoom | `Alt+Ctrl+Enter` |
+
+> `Alt+HJKL` focuses splits and `Alt+Arrows` resizes them, mirroring Neovim's
+> `Ctrl+HJKL` / `Ctrl+Arrows`. This freed the whole `Alt+Ctrl+HJKL`/`Arrows`
+> tier plus the redundant `Alt+Shift+HJKL`/`Arrows` split-creation aliases.
+> Because Ghostty no longer grabs `Alt+Ctrl+HJKL`, that chord now passes
+> through to Neovim as `Ctrl+Alt+HJKL` (used there for window relocation).
 
 ### Standard Bindings (Non-Alt)
 
@@ -303,16 +312,24 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 | Action                   | Binding      | Modes            |
 | ------------------------ | ------------ | ---------------- |
-| Focus left window        | `Ctrl+H`     | Normal, Terminal |
-| Focus down window        | `Ctrl+J`     | Normal, Terminal |
-| Focus up window          | `Ctrl+K`     | Normal, Terminal |
-| Focus right window       | `Ctrl+L`     | Normal, Terminal |
-| Resize (decrease height) | `Ctrl+Up`    | Normal           |
-| Resize (increase height) | `Ctrl+Down`  | Normal           |
-| Resize (increase width)  | `Ctrl+Left`  | Normal           |
-| Resize (decrease width)  | `Ctrl+Right` | Normal           |
+| Focus left window        | `Ctrl+H`       | Normal, Terminal |
+| Focus down window        | `Ctrl+J`       | Normal, Terminal |
+| Focus up window          | `Ctrl+K`       | Normal, Terminal |
+| Focus right window       | `Ctrl+L`       | Normal, Terminal |
+| Move window far left     | `Ctrl+Alt+H`   | Normal           |
+| Move window to bottom    | `Ctrl+Alt+J`   | Normal           |
+| Move window to top       | `Ctrl+Alt+K`   | Normal           |
+| Move window far right    | `Ctrl+Alt+L`   | Normal           |
+| Resize (decrease height) | `Ctrl+Up`      | Normal           |
+| Resize (increase height) | `Ctrl+Down`    | Normal           |
+| Resize (increase width)  | `Ctrl+Left`    | Normal           |
+| Resize (decrease width)  | `Ctrl+Right`   | Normal           |
 
-> **Note:** Resize uses Arrows instead of HJKL because `Ctrl+HJKL` is taken for navigate, and `Ctrl+Shift`/`Ctrl+Alt` are intercepted by Ghostty.
+> **Note:** Resize uses Arrows because `Ctrl+HJKL` is navigate. Window
+> relocation (`Ctrl+Alt+HJKL`, the Structure tier) became available once
+> Ghostty stopped binding `Alt+Ctrl+HJKL` for split-resize — it now passes the
+> chord through to Neovim. Requires the Kitty keyboard protocol (Ghostty and
+> Neovim both support it).
 
 ### Line, Paragraph & File Navigation
 
@@ -381,14 +398,21 @@ Prefix mode mirrors direct bindings and adds power-user commands.
 
 ### Tab Management (`Leader+Tab`)
 
-| Action       | Binding        |
-| ------------ | -------------- |
-| Last tab     | `Leader+Tab+l` |
-| First tab    | `Leader+Tab+f` |
-| New tab      | `Leader+Tab+n` |
-| Next tab     | `Leader+Tab+]` |
-| Close tab    | `Leader+Tab+q` |
-| Previous tab | `Leader+Tab+[` |
+| Action           | Binding                       |
+| ---------------- | ----------------------------- |
+| New tab (fast)   | `Ctrl+T` (twin of `Leader+Tab+n`; shadows tag-pop, use `Ctrl+O`) |
+| Next tab (fast)  | `gt` (vim-native; `gT` is remapped to LSP type-definition) |
+| Last tab         | `Leader+Tab+l`                |
+| First tab        | `Leader+Tab+f`                |
+| New tab          | `Leader+Tab+n`                |
+| Next tab         | `Leader+Tab+]`                |
+| Close tab        | `Leader+Tab+q`                |
+| Previous tab     | `Leader+Tab+[`                |
+
+Fast tab chords can't mirror Ghostty's `Alt+[`/`Alt+]`: `Ctrl+[`/`Ctrl+]` are
+remapped to the jumplist (back/forward), and `gT` is remapped to LSP
+type-definition. So the only fast tab keys are `gt` (next) and `Ctrl+T` (new);
+previous-tab stays on `Leader+Tab+[`.
 
 ### Line Move
 

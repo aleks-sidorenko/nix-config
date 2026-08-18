@@ -140,10 +140,11 @@ in
         ",switch:Lid Switch, exec, ${lib.getExe laptop_lid_switch}"
       ];
       binde = [
-        "SUPERALT, h, resizeactive, -20 0"
-        "SUPERALT, l, resizeactive, 20 0"
-        "SUPERALT, k, resizeactive, 0 -20"
-        "SUPERALT, j, resizeactive, 0 20"
+        # Resize — Super+Alt+Arrows (arrows resize, like Neovim/Ghostty)
+        "SUPERALT, Left, resizeactive, 20 0"
+        "SUPERALT, Right, resizeactive, -20 0"
+        "SUPERALT, Up, resizeactive, 0 -20"
+        "SUPERALT, Down, resizeactive, 0 20"
       ];
       bindm = [
         "SUPER, mouse:272, movewindow"
