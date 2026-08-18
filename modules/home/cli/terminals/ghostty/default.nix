@@ -94,7 +94,7 @@ in
           "alt+shift+|=new_split:right"
           "alt+shift+-=new_split:down"
           # Tab management
-          "alt+shift+n=new_tab"
+          "alt+shift+t=new_tab"
           "alt+shift+q=close_tab:this"
           # Window management
           "alt+shift+w=new_window"
