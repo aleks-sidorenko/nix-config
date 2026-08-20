@@ -20,15 +20,19 @@ in
     extraUpFlags = mkOption {
       type = listOf str;
       default = [ ];
-      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node).";
+      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node). NOTE: upstream applies these only when authKeyFile is set; for flags that must apply without an auth key, prefer `tailscale set`.";
     };
   };
 
   config = mkIf cfg.enable {
     services.tailscale = {
       enable = true;
-      authKeyFile = mkIf (cfg.authKeyFile != null) cfg.authKeyFile;
-      extraUpFlags = optional cfg.ssh "--ssh" ++ cfg.extraUpFlags;
+      inherit (cfg) authKeyFile extraUpFlags;
+      # `--ssh` MUST go through extraSetFlags (drives tailscaled-set): upstream
+      # applies extraUpFlags only via tailscaled-autoconnect, which is gated on
+      # authKeyFile != null. Our always-on hosts join interactively (no auth key),
+      # so routing --ssh through extraUpFlags would silently no-op.
+      extraSetFlags = optional cfg.ssh "--ssh";
     };
   };
 }
