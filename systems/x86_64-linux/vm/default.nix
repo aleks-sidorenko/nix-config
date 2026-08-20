@@ -14,19 +14,10 @@ with lib.${namespace};
 
   ${namespace} = {
     roles = {
-      # Test VM: the bare graphical suite (no development, no laptop bits).
-      graphical = {
-        enable = true;
-        /*
-          addons = {
-            hyprland = enabled;
-          };
-        */
-      };
+      agent-host = enabled;
     };
 
     disks.impermanence = enabled;
-
   };
 
   boot = {
