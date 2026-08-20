@@ -41,7 +41,7 @@ contained to a sandboxed service account, not the operator's personal identity.
 | Claude auth | **Subscription OAuth**, seeded by one-time login, persisted on disk |
 | Structure | **Hybrid**: reusable primitives + thin umbrella role (option C) |
 | Home provisioning | **Inline** via `home-manager.users.<agent>` in the umbrella role (one switch, no per-host `homes/` file) |
-| Agent git identity | **Dedicated `agent` identity** + repo-scoped push credential; operator's private signing/push keys stay off the box |
+| Agent git identity | **Dedicated `agent` identity** + repo-scoped **fine-grained PAT** in SOPS (gh-token pattern); operator's private signing/push keys stay off the box |
 
 ## Architecture
 
@@ -174,8 +174,14 @@ key path reach the agent user.
 - **Dedicated `agent` identity** under `identities/agent/` (own SSH signing key,
   own git name/email, own `ssh.pub`/`gpg` material) — agent commits are
   attributable and signed with a key that is not the operator's.
-- **Repo-scoped push credential** for the agent (fine-grained PAT or deploy key —
-  exact choice a plan detail), not the operator's personal token.
+- **Repo-scoped push credential** for the agent: a **fine-grained PAT** stored in
+  SOPS and surfaced via the existing `gh-token` pattern
+  (`modules/home/cli/tools/gh/default.nix`), not the operator's personal token.
+  Chosen over a deploy key because it is declarative end-to-end, reuses an
+  existing config pattern, and scopes across multiple repos (deploy keys are
+  per-repo and need manual GitHub-side setup). The PAT should belong to a
+  dedicated GitHub machine account matching the `agent` identity (a GitHub-side
+  detail, not a Nix one).
 - Operator's **private** signing/push keys are **never** placed on the box. Only
   the operator's SSH **public** key is added, for login convenience.
 
@@ -212,10 +218,9 @@ prerequisite rather than dictating disk layout.
 - `user-${agentUser}-password` — auto-created by the users module.
 - `tailscale-authkey` — new secret in `modules/nixos/secrets.yaml` for headless
   first-boot join (unused on the already-joined desktop).
-- Agent push credential material — stored under the persisted agent home (seeded
-  during bootstrap) rather than as a Nix-managed secret, or as a SOPS home secret
-  following the `gh-token` pattern (`modules/home/cli/tools/gh/default.nix`) —
-  decided at plan time based on the credential type chosen.
+- `agent-github-pat` — fine-grained PAT for the agent, stored as a SOPS home
+  secret in `modules/home/secrets.yaml` and surfaced via the `gh-token` pattern
+  (`modules/home/cli/tools/gh/default.nix`).
 
 ## Testing — validate headless on the `vm` host
 
@@ -261,8 +266,6 @@ remove `roles.graphical` from `systems/x86_64-linux/vm/default.nix` (and simplif
 - Exact GNOME dconf override mechanism (system `programs.dconf` vs. GNOME home
   module signal).
 - Tailscale SSH vs. `openssh` `:22` coexistence resolution.
-- Agent push-credential type (fine-grained PAT vs. deploy key) and where it is
-  seeded/stored.
 - Whether `roles.development`'s full toolchain is acceptable on the target hosts
   or a slim toggle is needed (defer unless a host strains).
 - `system.power` GNOME override should replace, not conflict with, the existing
