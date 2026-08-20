@@ -40,13 +40,16 @@ in
       cli.tools.git = {
         email = cfg.gitEmail;
         fullName = cfg.gitFullName;
+        urlRewrites = {
+          "git@github.com:" = "https://github.com/";
+        };
       };
     };
 
     # Keyless agent → push over HTTPS with GH_TOKEN (injected by the umbrella
-    # role). Rewrite SSH remotes to HTTPS and let gh serve credentials.
+    # role). SSH remotes are rewritten to HTTPS via urlRewrites above; let gh
+    # serve credentials for the HTTPS remote.
     programs.git.settings = {
-      url."https://github.com/".insteadOf = "git@github.com:";
       credential."https://github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
     };
 
