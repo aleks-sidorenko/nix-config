@@ -41,6 +41,35 @@ in
       };
 
       file.".claude/CLAUDE.md".text = ''
+        # Global Guidelines
+
+        ## Communication
+
+        - Be concise and direct — lead with the answer, no filler or flattery.
+        - Ask when genuinely ambiguous — prefer a quick clarifying question over guessing on decisions that are hard to reverse.
+
+        ## Coding Principles
+
+        - **DRY** — one source of truth; extract shared logic instead of duplicating it.
+        - **YAGNI** — build for current needs, not speculative future ones.
+        - **KISS** — prefer the simplest solution that works; boring over clever.
+        - **SRP** — a module or function does one thing.
+
+        ## Code Style
+
+        - Match surrounding style — follow the conventions already in the file and repo rather than importing your own.
+        - Prefer editing existing files over creating new ones; don't add files (docs, scripts) that weren't requested.
+        - Avoid self-explanatory comments. Comment only when the reason is hard to guess from the code — explain WHY the code exists, not WHAT it does.
+
+        ## Verification
+
+        - Verify before claiming done — run the build, tests, and lint, and cite the output. Never assert "it works" without evidence.
+
+        ## Safety
+
+        - Never commit secrets — respect existing secret management (SOPS, env, etc.).
+        - Confirm before irreversible or outward-facing actions (force-push, deleting data, publishing).
+
         ## Git Commits
 
         Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[(scope)][!]: <description>`
@@ -64,17 +93,6 @@ in
 
         - `docs/specs/` - Feature specifications and requirements
         - `docs/plans/` - Implementation plans
-
-        ## Code Comments
-
-        Avoid self-explanatory comments. Comment only when the reason is hard to guess from the code — explain WHY the code exists, not WHAT it does.
-
-        ## Coding Principles
-
-        - **DRY** — one source of truth; extract shared logic instead of duplicating it.
-        - **YAGNI** — build for current needs, not speculative future ones.
-        - **KISS** — prefer the simplest solution that works; boring over clever.
-        - **SRP** — a module or function does one thing.
       '';
 
     };
