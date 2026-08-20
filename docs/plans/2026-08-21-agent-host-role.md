@@ -469,7 +469,7 @@ Expected: builds successfully — this is where inline `home-manager.users.agent
 
 ```bash
 nix eval .#nixosConfigurations.vm.config.systemd.targets.sleep.enable                 # expect: false
-nix eval .#nixosConfigurations.vm.config.services.tailscale.extraUpFlags               # expect: [ "--ssh" ]
+nix eval .#nixosConfigurations.vm.config.services.tailscale.extraSetFlags              # expect: [ "--ssh" ]
 nix eval --json .#nixosConfigurations.vm.config.users.users.agent.extraGroups | grep -q wheel && echo "HAS WHEEL (bad)" || echo "no wheel (good)"
 ```
 
