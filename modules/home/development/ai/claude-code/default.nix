@@ -64,6 +64,17 @@ in
 
         - `docs/specs/` - Feature specifications and requirements
         - `docs/plans/` - Implementation plans
+
+        ## Code Comments
+
+        Avoid self-explanatory comments. Comment only when the reason is hard to guess from the code — explain WHY the code exists, not WHAT it does.
+
+        ## Coding Principles
+
+        - **DRY** — one source of truth; extract shared logic instead of duplicating it.
+        - **YAGNI** — build for current needs, not speculative future ones.
+        - **KISS** — prefer the simplest solution that works; boring over clever.
+        - **SRP** — a module or function does one thing.
       '';
 
     };
