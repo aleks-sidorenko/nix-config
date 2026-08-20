@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   pkgs,
   lib,
   namespace,
@@ -72,13 +73,19 @@ in
           focus-mode = "sloppy";
         };
 
-        # Power management settings
-        "org/gnome/settings-daemon/plugins/power" = {
-          sleep-inactive-ac-timeout = 7200; # 2 hours (7200 seconds) when plugged in
-          sleep-inactive-ac-type = "hibernate"; # hibernate when timeout is reached
-          sleep-inactive-battery-timeout = 1800; # 30 minutes on battery
-          sleep-inactive-battery-type = "hibernate"; # hibernate on battery timeout
-        };
+        # Power management — driven by nix-config.system.power.mode (single source
+        # of truth; see modules/nixos/system/power). An always-on "no-sleep" host
+        # must not hibernate on idle.
+        "org/gnome/settings-daemon/plugins/power" =
+          let
+            noSleep = (osConfig.${namespace}.system.power.mode or "default") == "no-sleep";
+          in
+          {
+            sleep-inactive-ac-timeout = if noSleep then 0 else 7200;
+            sleep-inactive-ac-type = if noSleep then "nothing" else "hibernate";
+            sleep-inactive-battery-timeout = if noSleep then 0 else 1800;
+            sleep-inactive-battery-type = if noSleep then "nothing" else "hibernate";
+          };
 
         "org/gnome/desktop/session" = {
           idle-delay = 900; # Screen blank/lock after 15 minutes (900 seconds)
