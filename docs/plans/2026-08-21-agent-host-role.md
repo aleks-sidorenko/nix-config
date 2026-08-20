@@ -293,6 +293,8 @@ in
 ```
 
 > Note: `roles.development` already sets `cli.tools.gh.enable = true` and leaves `githubToken` off (see its comment at `modules/home/roles/development/default.nix:140`). We deliberately do NOT set `githubToken = true` for the agent — that path uses home SOPS (GPG), which a keyless user cannot decrypt. Token comes from NixOS SOPS instead (Task 5).
+>
+> Two harmless-but-worth-knowing points: (a) the shared gh module sets `git_protocol = "ssh"`, so pure-`gh` flows (`gh pr create`, `gh repo clone`) default to SSH; `git push` is covered by the `insteadOf` rewrite + credential helper above, but if a `gh` subcommand needs HTTPS, set `programs.gh.settings.git_protocol = lib.mkForce "https"` for the agent. (b) The agent is the first `roles.common` home with no `styles.stylix.wallpaper` set — verified safe (the repo pins `base16Scheme`, so stylix needs no image), noted here to preempt confusion.
 
 - [ ] **Step 2: Verify the option is registered**
 
