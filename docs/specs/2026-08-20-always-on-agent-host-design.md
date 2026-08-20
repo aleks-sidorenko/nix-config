@@ -41,7 +41,7 @@ contained to a sandboxed service account, not the operator's personal identity.
 | Claude auth | **Subscription OAuth**, seeded by one-time login, persisted on disk |
 | Structure | **Hybrid**: reusable primitives + thin umbrella role (option C) |
 | Home provisioning | **Inline** via `home-manager.users.<agent>` in the umbrella role (one switch, no per-host `homes/` file) |
-| Agent git identity | **Dedicated `agent` identity** + repo-scoped **fine-grained PAT** in SOPS (gh-token pattern); operator's private signing/push keys stay off the box |
+| Agent git identity | Distinct git **author** (name/email) for attribution; **keyless → unsigned commits** (honors the single-GPG-root principle, mirrors child accounts); push via **`agent-gh-token`** (PAT or classic) in SOPS. Operator's private keys stay off the box |
 
 ## Architecture
 
@@ -171,19 +171,25 @@ key path reach the agent user.
 
 ## Identity & credentials
 
-- **Dedicated `agent` identity** under `identities/agent/` (own SSH signing key,
-  own git name/email, own `ssh.pub`/`gpg` material) — agent commits are
-  attributable and signed with a key that is not the operator's.
-- **Repo-scoped push credential** for the agent: a **fine-grained PAT** stored in
-  SOPS and surfaced via the existing `gh-token` pattern
-  (`modules/home/cli/tools/gh/default.nix`), not the operator's personal token.
-  Chosen over a deploy key because it is declarative end-to-end, reuses an
-  existing config pattern, and scopes across multiple repos (deploy keys are
-  per-repo and need manual GitHub-side setup). The PAT should belong to a
-  dedicated GitHub machine account matching the `agent` identity (a GitHub-side
-  detail, not a Nix one).
+- **Distinct git author, keyless (unsigned commits).** The agent home sets a
+  distinct `cli.tools.git.fullName`/`email` for attribution and
+  `security.identity.name = "agent"` — a name with **no** `identities/` folder,
+  so `resolveIdentity` yields no key, the home ssh module reports
+  `publicKey = ""`, and the git module sets `commit.gpgsign = false`. This
+  mirrors the existing child-account precedent and **honors the single-GPG-root
+  principle** (no new signing secret root). If signed agent commits are ever
+  needed, re-sign out-of-band.
+- **Repo-scoped push credential** for the agent: **`agent-gh-token`** (a
+  fine-grained PAT *or* classic token) stored in SOPS and surfaced via the
+  existing `gh-token` pattern (`modules/home/cli/tools/gh/default.nix`), not the
+  operator's personal token. Chosen over a deploy key because it is declarative
+  end-to-end, reuses an existing config pattern, and scopes across multiple repos
+  (deploy keys are per-repo and need manual GitHub-side setup). The token should
+  belong to a dedicated GitHub machine account (a GitHub-side detail, not a Nix
+  one).
 - Operator's **private** signing/push keys are **never** placed on the box. Only
-  the operator's SSH **public** key is added, for login convenience.
+  the operator's SSH **public** key is added to the agent's `authorized_keys`,
+  for login convenience.
 
 Rationale: the agent runs skip-permissions; blast radius on mistake/compromise
 must be a sandboxed bot account with independently revocable, narrowly-scoped
@@ -218,9 +224,11 @@ prerequisite rather than dictating disk layout.
 - `user-${agentUser}-password` — auto-created by the users module.
 - `tailscale-authkey` — new secret in `modules/nixos/secrets.yaml` for headless
   first-boot join (unused on the already-joined desktop).
-- `agent-github-pat` — fine-grained PAT for the agent, stored as a SOPS home
-  secret in `modules/home/secrets.yaml` and surfaced via the `gh-token` pattern
-  (`modules/home/cli/tools/gh/default.nix`).
+- `agent-gh-token` — the agent's GitHub push token (fine-grained PAT or classic),
+  stored as a SOPS home secret in `modules/home/secrets.yaml` and surfaced via the
+  `gh-token` pattern (`modules/home/cli/tools/gh/default.nix`).
+- `user-agent-password` — auto-declared by the users module for the `agent`
+  account (must be added to `modules/nixos/secrets.yaml` before deploy).
 
 ## Testing — validate headless on the `vm` host
 
