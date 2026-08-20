@@ -4,18 +4,18 @@
 
 **Goal:** Add a reusable, configurable `nix-config.roles.agent-host` role that turns any host (desktop now, headless VPS/server later) into an always-on box running Claude Code under an isolated `agent` user, reachable over Tailscale SSH.
 
-**Architecture:** One umbrella NixOS role composes four reusable primitives — a DE-independent `system.power` never-sleep module, an extended Tailscale module with `ssh`, a dedicated non-admin `agent` user (via the existing unified users module), and a headless-safe `roles.agent` home role (development + zellij + claude-code) provisioned inline. Validated on the `vm` host reconfigured as a headless server, then enabled on the desktop.
+**Architecture:** One umbrella NixOS role composes four reusable primitives — a DE-independent `system.power` never-sleep module, an extended Tailscale module with `ssh`, a dedicated non-admin `agent` user (via the existing unified users module), and a headless-safe `roles.agent` home role (common + development + zellij + claude-code) provisioned inline. The agent is keyless (unsigned commits, single-GPG-root principle), so its GitHub push token is delivered via **NixOS** SOPS (host age key), not home SOPS. Validated on the `vm` host reconfigured as a headless server, then enabled on the desktop.
 
-**Tech Stack:** Nix / NixOS / home-manager / snowfall-lib; SOPS for secrets; Tailscale; zellij.
+**Tech Stack:** Nix / NixOS / home-manager / snowfall-lib; SOPS; Tailscale; zellij.
 
 **Spec:** `docs/specs/2026-08-20-always-on-agent-host-design.md`
 
 **Conventions for every task below:**
 - `namespace` = `nix-config`. Modules are auto-discovered by snowfall-lib (no manual imports).
-- Verification uses evaluation/build, not unit tests. Prefer fast `nix eval` over full builds where possible.
+- Verification uses evaluation/build, not unit tests. Prefer fast `nix eval` over full builds.
 - Run `just format` before committing; run `just check` (format-check + lint) as the lint gate.
 - Commits are signed automatically in this repo. Use Conventional Commits, scope `agent-host`.
-- On the `workbook` (darwin) machine, full `nixos-rebuild` builds won't run; use `nix eval`/`nix build .#nixosConfigurations.<host>.config.system.build.toplevel` which evaluate cross-platform, or run builds on a Linux host.
+- On `workbook` (darwin), full `nixos-rebuild` won't run; `nix eval` / `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` evaluate cross-platform.
 
 ---
 
@@ -24,18 +24,18 @@
 **Create:**
 - `modules/nixos/system/power/default.nix` — `nix-config.system.power.mode` (never-sleep guards; DE-independent).
 - `modules/home/roles/agent/default.nix` — headless-safe agent home suite.
-- `modules/nixos/roles/agent-host/default.nix` — umbrella role composing the primitives.
+- `modules/nixos/roles/agent-host/default.nix` — umbrella role composing the primitives + NixOS-SOPS token delivery.
 
 **Modify:**
 - `modules/nixos/services/networking/tailscale/default.nix` — add `ssh`, `authKeyFile`, `extraUpFlags`.
-- `modules/home/cli/tools/gh/default.nix` — parameterize the token secret name (reused for the agent).
-- `modules/home/desktops/gnome/default.nix` — drive the power dconf from `system.power.mode` (single source of truth).
+- `modules/home/desktops/gnome/default.nix` — drive the power dconf from `system.power.mode`.
 - `systems/x86_64-linux/vm/default.nix` + `homes/x86_64-linux/alexander@vm/default.nix` — reconfigure vm as headless agent host (test).
 - `systems/x86_64-linux/desktop/default.nix` — enable the role on the desktop (final).
 
-**Secrets (manual SOPS steps, called out in Tasks 7–8):**
-- `modules/nixos/secrets.yaml` → `user-agent-password` (required once the `agent` user is declared), optional `tailscale-authkey`.
-- `modules/home/secrets.yaml` → `agent-gh-token`.
+**Secrets (manual SOPS, called out in Tasks 6–7):**
+- `modules/nixos/secrets.yaml` → `user-agent-password` (required once the `agent` user is declared), `agent-gh-token` (the agent's GitHub token), optional `tailscale-authkey`.
+
+> Note: the agent's GitHub token lives in **NixOS** SOPS (not `modules/home/secrets.yaml`), because home SOPS decrypts via the user's GPG key and the `agent` user is intentionally keyless. NixOS SOPS decrypts with the host age key, which every host has.
 
 ---
 
@@ -44,7 +44,7 @@
 **Files:**
 - Create: `modules/nixos/system/power/default.nix`
 
-Design: `mode` defaults to `"default"` (inert — adding the module changes nothing) so it is safe to land before anything consumes it. The agent-host role sets `"no-sleep"`. Note relationship to the existing `modules/nixos/system/hibernation/` module (which only sets a resume device) — this module owns *sleep/suspend inhibition*; they are complementary. Add a one-line comment pointing to hibernation to avoid future confusion.
+`mode` defaults to `"default"` (inert) so it is safe to land before anything consumes it; the agent-host role sets `"no-sleep"`. Owns *sleep/suspend inhibition*; the existing `modules/nixos/system/hibernation/` (resume device only) is complementary.
 
 - [ ] **Step 1: Create the module**
 
@@ -71,9 +71,9 @@ in
   };
 
   config = mkIf (cfg.mode == "no-sleep") {
-    # DE-independent guards: mask the sleep targets and stop logind from
-    # suspending on idle/lid/power-key. GNOME's own power daemon is handled
-    # separately in the GNOME home module, which reads this same option.
+    # DE-independent guards: mask the sleep targets and stop logind suspending on
+    # idle/lid/power-key. GNOME's own power daemon is handled in the GNOME home
+    # module, which reads this same option.
     systemd.targets = {
       sleep.enable = false;
       suspend.enable = false;
@@ -91,30 +91,19 @@ in
 }
 ```
 
-> Note: NixOS 25.11 uses `services.logind.settings.Login.*` (freeform settings). If eval reports these options don't exist on this channel, fall back to the legacy top-level attrs (`services.logind.lidSwitch`, `lidSwitchExternalPower`, `lidSwitchDocked`, and `extraConfig = "IdleAction=ignore";`). Verify in Step 2.
+- [ ] **Step 2: Verify (option present + inert default + no-sleep masks targets)**
 
-- [ ] **Step 2: Verify it evaluates (option present, inert by default)**
-
-Run:
 ```bash
 nix eval .#nixosConfigurations.desktop.config.nix-config.system.power.mode
-```
-Expected: `"default"`
-
-Run (confirms the logind attr path is valid on this channel):
-```bash
+# expect: "default"
 nix eval --impure --expr '((builtins.getFlake (toString ./.)).nixosConfigurations.vm.extendModules { modules = [ { nix-config.system.power.mode = "no-sleep"; } ]; }).config.systemd.targets.sleep.enable'
+# expect: false  (and no eval error about services.logind.settings — confirmed valid on nixos-25.11)
 ```
-Expected: `false` (and no eval error about `services.logind.settings`). If it errors on logind, apply the fallback in the note and re-run.
 
-- [ ] **Step 3: Format & lint**
-
-Run: `just format && just check`
-Expected: no errors.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Format, lint, commit**
 
 ```bash
+just format && just check
 git add modules/nixos/system/power/default.nix
 git commit -m "feat(agent-host): add system.power never-sleep module"
 ```
@@ -124,13 +113,11 @@ git commit -m "feat(agent-host): add system.power never-sleep module"
 ## Task 2: Drive GNOME power dconf from `system.power.mode`
 
 **Files:**
-- Modify: `modules/home/desktops/gnome/default.nix:75-85`
+- Modify: `modules/home/desktops/gnome/default.nix` (arguments; power dconf block lines **76-81**)
 
-This makes `system.power` the single source of truth. The home GNOME module reads the NixOS option via `osConfig` (home-manager runs as a NixOS module here, so `osConfig` is available). This is a *replacement* of the hardcoded hibernate values, not additive.
+Makes `system.power` the single source of truth. Home-manager runs as a NixOS module here, so `osConfig` is available.
 
 - [ ] **Step 1: Add `osConfig` to the module arguments**
-
-Modify the module's argument set at the top of `modules/home/desktops/gnome/default.nix` to include `osConfig`:
 
 ```nix
 {
@@ -142,14 +129,12 @@ Modify the module's argument set at the top of `modules/home/desktops/gnome/defa
 }:
 ```
 
-- [ ] **Step 2: Replace the hardcoded power dconf block**
-
-Replace lines ~75-85 (`"org/gnome/settings-daemon/plugins/power"` and the `idle-delay` session block stays) with a computed version:
+- [ ] **Step 2: Replace the power dconf block (lines 76-81 only; leave `idle-delay` at 83-85 untouched)**
 
 ```nix
-        # Power management — driven by nix-config.system.power.mode so there is a
-        # single source of truth (see modules/nixos/system/power). When the host
-        # is an always-on "no-sleep" host, GNOME must not hibernate on idle.
+        # Power management — driven by nix-config.system.power.mode (single source
+        # of truth; see modules/nixos/system/power). An always-on "no-sleep" host
+        # must not hibernate on idle.
         "org/gnome/settings-daemon/plugins/power" =
           let
             noSleep = (osConfig.${namespace}.system.power.mode or "default") == "no-sleep";
@@ -162,15 +147,12 @@ Replace lines ~75-85 (`"org/gnome/settings-daemon/plugins/power"` and the `idle-
           };
 ```
 
-Leave the `"org/gnome/desktop/session".idle-delay = 900;` block unchanged (screen blank/lock is desirable regardless).
+- [ ] **Step 3: Verify default unchanged (desktop, role not yet enabled)**
 
-- [ ] **Step 3: Verify default behavior is unchanged (desktop, mode still default)**
-
-Run:
 ```bash
 nix eval '.#nixosConfigurations.desktop.config.home-manager.users.alexander.dconf.settings."org/gnome/settings-daemon/plugins/power"."sleep-inactive-ac-type"'
+# expect: "hibernate"
 ```
-Expected: `"hibernate"` (desktop hasn't enabled the role yet, so mode = default).
 
 - [ ] **Step 4: Format, lint, commit**
 
@@ -186,8 +168,6 @@ git commit -m "refactor(agent-host): drive GNOME power dconf from system.power.m
 
 **Files:**
 - Modify: `modules/nixos/services/networking/tailscale/default.nix`
-
-Keep `authKeyFile` optional (null default) so hosts already on the tailnet (desktop) need no secret; a fresh headless host can point it at a SOPS secret.
 
 - [ ] **Step 1: Replace the module body**
 
@@ -209,12 +189,12 @@ in
     authKeyFile = mkOption {
       type = nullOr str;
       default = null;
-      description = "Path to a file containing a Tailscale auth key for non-interactive first-boot join (e.g. a SOPS secret path). Null on hosts already joined.";
+      description = "Path to a file with a Tailscale auth key for non-interactive first-boot join (e.g. a SOPS secret path). Null on hosts already joined.";
     };
     extraUpFlags = mkOption {
       type = listOf str;
       default = [ ];
-      description = "Extra flags passed to `tailscale up` (escape hatch, e.g. --advertise-exit-node).";
+      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node).";
     };
   };
 
@@ -232,8 +212,8 @@ in
 
 ```bash
 nix eval --impure --expr '((builtins.getFlake (toString ./.)).nixosConfigurations.vm.extendModules { modules = [ { nix-config.services.networking.tailscale = { enable = true; ssh = true; }; } ]; }).config.services.tailscale.extraUpFlags'
+# expect: a list containing "--ssh"
 ```
-Expected: a list containing `"--ssh"`.
 
 - [ ] **Step 3: Format, lint, commit**
 
@@ -245,54 +225,12 @@ git commit -m "feat(agent-host): tailscale ssh + authKeyFile + extraUpFlags"
 
 ---
 
-## Task 4: Parameterize the gh token secret name
-
-**Files:**
-- Modify: `modules/home/cli/tools/gh/default.nix`
-
-Add a `githubTokenSecret` option (default `"gh-token"`) so the agent home can reuse the exact same pattern with `agent-gh-token`. Existing behavior is unchanged (default preserves `gh-token`).
-
-- [ ] **Step 1: Add the option and use it**
-
-Add to the options block:
-```nix
-    githubTokenSecret = mkStringOpt "gh-token" "Name of the SOPS home secret holding the GitHub token";
-```
-
-Change the `sops.secrets` and `home.sessionVariables` to use it:
-```nix
-    sops.secrets.${cfg.githubTokenSecret} = mkIf secretEnabled {
-      sopsFile = ../../../secrets.yaml;
-    };
-
-    home.sessionVariables = mkIf secretEnabled {
-      GH_TOKEN = "$(cat ${config.sops.secrets.${cfg.githubTokenSecret}.path})";
-    };
-```
-
-- [ ] **Step 2: Verify existing default unchanged**
-
-```bash
-nix eval '.#nixosConfigurations.desktop.config.home-manager.users.alexander.nix-config.cli.tools.gh.githubTokenSecret'
-```
-Expected: `"gh-token"`
-
-- [ ] **Step 3: Format, lint, commit**
-
-```bash
-just format && just check
-git add modules/home/cli/tools/gh/default.nix
-git commit -m "refactor(agent-host): parameterize gh token secret name"
-```
-
----
-
-## Task 5: `roles.agent` home role
+## Task 4: `roles.agent` home role
 
 **Files:**
 - Create: `modules/home/roles/agent/default.nix`
 
-Headless-safe agent home suite. Enables development (minimal languages to keep builds light — expand later if needed), zellij, claude-code, a distinct git author, keyless signing (via `security.identity.name = "agent"`, no `identities/agent/` folder), and the agent GitHub token via the parameterized gh module.
+Headless-safe agent home suite. Enables `roles.common` (shell essentials — starship/eza/bat/zoxide/fzf/fish/nvim; its home SOPS stays inert because the agent declares no home secrets) and `roles.development` (which enables `cli.tools.gh`). Keyless identity → unsigned commits. Because the agent has **no SSH key**, git pushes over **HTTPS using `GH_TOKEN`** via a gh credential helper; `GH_TOKEN` itself is injected by the umbrella role (Task 5) from a NixOS SOPS secret.
 
 - [ ] **Step 1: Create the role**
 
@@ -300,6 +238,7 @@ Headless-safe agent home suite. Enables development (minimal languages to keep b
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -317,6 +256,8 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
+      roles.common = enabled;
+
       # Keyless identity → unsigned commits (mirrors child accounts; honors the
       # single-GPG-root principle). "agent" has no identities/ folder on purpose.
       security.identity.name = "agent";
@@ -333,16 +274,17 @@ in
         };
       };
 
-      cli.tools.gh = {
-        enable = true;
-        githubToken = true;
-        githubTokenSecret = "agent-gh-token";
-      };
-
       cli.tools.git = {
         email = cfg.gitEmail;
         fullName = cfg.gitFullName;
       };
+    };
+
+    # Keyless agent → push over HTTPS with GH_TOKEN (injected by the umbrella
+    # role). Rewrite SSH remotes to HTTPS and let gh serve credentials.
+    programs.git.settings = {
+      url."https://github.com/".insteadOf = "git@github.com:";
+      credential."https://github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
     };
 
     programs.zellij.enable = true;
@@ -350,14 +292,13 @@ in
 }
 ```
 
-> Note: `roles.development` may already enable `cli.tools.git`/`gh`; setting their sub-options here composes via the module system. If eval reports a conflict (e.g. `git.enable` defined twice with `mkForce` somewhere), set only the leaf options shown and do not re-set `.enable`. Verify in Task 7 build.
+> Note: `roles.development` already sets `cli.tools.gh.enable = true` and leaves `githubToken` off (see its comment at `modules/home/roles/development/default.nix:140`). We deliberately do NOT set `githubToken = true` for the agent — that path uses home SOPS (GPG), which a keyless user cannot decrypt. Token comes from NixOS SOPS instead (Task 5).
 
-- [ ] **Step 2: Verify the option exists**
+- [ ] **Step 2: Verify the option is registered**
 
 ```bash
-nix eval '.#nixosConfigurations.desktop.options.nix-config.roles.agent.enable.type.description' 2>/dev/null || echo "option present via role file (confirmed at Task 7 build)"
+nix eval '.#nixosConfigurations.desktop.options.nix-config.roles.agent.enable.type.name' 2>/dev/null || echo "confirmed at Task 6 build"
 ```
-Expected: prints a type description, or the fallback line (full wiring is exercised when a home consumes it in Task 7).
 
 - [ ] **Step 3: Format, lint, commit**
 
@@ -369,12 +310,12 @@ git commit -m "feat(agent-host): add roles.agent headless home suite"
 
 ---
 
-## Task 6: `roles.agent-host` umbrella role
+## Task 5: `roles.agent-host` umbrella role (+ NixOS-SOPS token delivery)
 
 **Files:**
 - Create: `modules/nixos/roles/agent-host/default.nix`
 
-Composes: `system.power.mode = "no-sleep"`, tailscale enable + ssh, the `agent` system user (non-admin), operator SSH public key into the agent's `authorized_keys`, and the agent home provisioned **inline** via `home-manager.users.<agentUser>`.
+Composes power/tailscale/user/home, adds the operator's SSH public key to the agent's `authorized_keys`, and delivers `GH_TOKEN` from a NixOS SOPS secret owned by the agent user.
 
 - [ ] **Step 1: Create the role**
 
@@ -390,6 +331,8 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.roles.agent-host;
   operatorKey = (resolveIdentity config).sshPublicKey;
+  sopsEnabled = config.${namespace}.security.sops.enable;
+  tokenSecret = "agent-gh-token";
 in
 {
   options.${namespace}.roles.agent-host = with types; {
@@ -418,26 +361,39 @@ in
       };
     };
 
-    # Operator SSH *public* key → agent authorized_keys, so `ssh agent@host`
-    # with the operator key works over LAN / tailnet IP alongside Tailscale SSH.
+    # Operator SSH *public* key → agent authorized_keys (ssh agent@host with the
+    # operator key, over LAN / tailnet IP, alongside Tailscale SSH).
     users.users.${cfg.agentUser}.openssh.authorizedKeys.keys =
       optional (operatorKey != null) operatorKey;
 
-    # Provision the agent home inline (no per-host homes/ file needed).
+    # Agent GitHub token via NixOS SOPS (host age key), owned by the agent user.
+    sops.secrets.${tokenSecret} = mkIf sopsEnabled {
+      sopsFile = ../../secrets.yaml;
+      owner = cfg.agentUser;
+      mode = "0400";
+    };
+
+    # Provision the agent home inline (no per-host homes/ file needed) and inject
+    # GH_TOKEN from the NixOS secret path.
     home-manager.users.${cfg.agentUser} = {
       nix-config.roles.agent = enabled;
       home.stateVersion = "25.05";
+      home.sessionVariables = mkIf sopsEnabled {
+        GH_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
+      };
     };
   };
 }
 ```
 
+> Path check: `modules/nixos/roles/agent-host/default.nix` → `../../secrets.yaml` resolves to `modules/nixos/secrets.yaml`. Confirm during Step 2.
+
 - [ ] **Step 2: Verify it evaluates**
 
 ```bash
 nix eval '.#nixosConfigurations.desktop.options.nix-config.roles.agent-host.agentUser.default'
+# expect: "agent"
 ```
-Expected: `"agent"`
 
 - [ ] **Step 3: Format, lint, commit**
 
@@ -449,18 +405,18 @@ git commit -m "feat(agent-host): add roles.agent-host umbrella role"
 
 ---
 
-## Task 7: Validate headless on the `vm` host
+## Task 6: Validate headless on the `vm` host
 
 **Files:**
 - Modify: `systems/x86_64-linux/vm/default.nix`
 - Modify: `homes/x86_64-linux/alexander@vm/default.nix`
-- Modify (SOPS, manual): `modules/nixos/secrets.yaml`, `modules/home/secrets.yaml`
+- Modify (SOPS, manual): `modules/nixos/secrets.yaml`
 
-This is the real integration test: a headless host with no GNOME. It exercises the DE-independent power guards, inline home provisioning, agent isolation, access, and home persistence.
+The real integration test: a headless host with no GNOME. Exercises DE-independent power guards, inline home provisioning, agent isolation, access, token delivery, and home persistence.
 
 - [ ] **Step 1: Reconfigure the vm system as headless agent host**
 
-In `systems/x86_64-linux/vm/default.nix`, replace the `roles.graphical` block with the agent-host role:
+In `systems/x86_64-linux/vm/default.nix`, replace the `roles.graphical` block:
 ```nix
   ${namespace} = {
     roles = {
@@ -473,7 +429,7 @@ In `systems/x86_64-linux/vm/default.nix`, replace the `roles.graphical` block wi
 
 - [ ] **Step 2: Make the operator's vm home headless**
 
-In `homes/x86_64-linux/alexander@vm/default.nix`, remove `roles.graphical` (leave `user.enable = true;` and stylix line can be dropped). Minimal result:
+In `homes/x86_64-linux/alexander@vm/default.nix`, remove `roles.graphical` and the stylix line. Minimal result:
 ```nix
   nix-config = {
     user = {
@@ -484,79 +440,83 @@ In `homes/x86_64-linux/alexander@vm/default.nix`, remove `roles.graphical` (leav
   home.stateVersion = "25.05";
 ```
 
-- [ ] **Step 3: Add required secrets (manual)**
+- [ ] **Step 3: Add required NixOS secrets (manual)**
 
-The users module auto-requires `user-agent-password`, and the agent gh module requires `agent-gh-token`. Add them:
 ```bash
-just secrets-edit nixos   # add: user-agent-password: <hashed password, e.g. from `mkpasswd -m yescrypt`>
-just secrets-edit home    # add: agent-gh-token: <a GitHub PAT or classic token>
+just secrets-edit nixos
+# add:
+#   user-agent-password: <hashed pw, e.g. `mkpasswd -m yescrypt`>
+#   agent-gh-token: <a GitHub PAT or classic token for the agent's machine account>
 ```
-> Tailscale on the throwaway VM: leave `authKeyFile` unset for the build/eval test; join manually post-deploy with an ephemeral key if you want a live tailnet test (see Step 6). The `--ssh` flag and service are checkable without a real join.
+> Leave `tailscale-authkey` out for the build/eval test; join the throwaway VM manually post-deploy if you want a live tailnet test.
 
-- [ ] **Step 4: Build the vm configuration (validates inline provisioning end-to-end)**
+- [ ] **Step 4: Build the vm (proves inline home provisioning end-to-end)**
 
-Run:
 ```bash
 nix build .#nixosConfigurations.vm.config.system.build.toplevel
 ```
-Expected: builds successfully. This is the point where inline `home-manager.users.agent` is proven to receive the `nix-config` home modules.
+Expected: builds successfully — this is where inline `home-manager.users.agent` is proven to receive the `nix-config` home modules (snowfall adds `modules/home/*` to `home-manager.sharedModules`).
 
-> **Fallback if this fails with "The option `nix-config.roles.agent` does not exist"** (snowfall didn't share home modules to inline users): create `homes/x86_64-linux/agent@vm/default.nix` containing `{ ... }: { nix-config.roles.agent.enable = true; home.stateVersion = "25.05"; }`, and remove the `home-manager.users.${cfg.agentUser}` block from the umbrella role (Task 6), documenting that each agent host needs a `homes/<arch>/agent@<host>/` file. Re-run the build. Note this reversal in the spec's decision table.
+> **Fallback if it fails with "The option `nix-config.roles.agent` does not exist"**: create `homes/x86_64-linux/agent@vm/default.nix` = `{ ... }: { nix-config.roles.agent.enable = true; home.stateVersion = "25.05"; }`, remove the `home-manager.users.${cfg.agentUser}` block from Task 5, and move the `GH_TOKEN` sessionVariable into that home file (reading the NixOS secret path via `osConfig`). Document that each agent host then needs a `homes/<arch>/agent@<host>/` file, and note the reversal in the spec.
 
-- [ ] **Step 5: Verify headless power guards and isolation via eval**
+- [ ] **Step 5: Verify power guards + isolation via eval**
 
 ```bash
-nix eval .#nixosConfigurations.vm.config.systemd.targets.sleep.enable          # expect: false
-nix eval .#nixosConfigurations.vm.config.services.tailscale.extraUpFlags        # expect: [ "--ssh" ]
+nix eval .#nixosConfigurations.vm.config.systemd.targets.sleep.enable                 # expect: false
+nix eval .#nixosConfigurations.vm.config.services.tailscale.extraUpFlags               # expect: [ "--ssh" ]
 nix eval --json .#nixosConfigurations.vm.config.users.users.agent.extraGroups | grep -q wheel && echo "HAS WHEEL (bad)" || echo "no wheel (good)"
 ```
 
 - [ ] **Step 6: Deploy to the live VM and verify runtime behavior**
 
-Run (per CLAUDE.md VM workflow):
 ```bash
 just deploy vm --hostname vm --skip-checks
 ```
-Then verify on the VM:
+On the VM:
 ```bash
-ssh agent@vm 'id | grep -qv wheel && echo no-sudo-ok'          # agent cannot sudo
-ssh agent@vm 'systemctl is-active sleep.target'                 # expect: inactive/masked
-ssh agent@vm 'command -v zellij && command -v claude'          # tooling present
-ssh agent@vm 'zellij -s test options --help >/dev/null && echo zellij-ok'
-ssh agent@vm 'touch ~/persist-check'                            # write to /home/agent
+ssh agent@vm 'id | tr "," "\n" | grep -q wheel && echo HAS-WHEEL-bad || echo no-sudo-ok'
+ssh agent@vm 'systemctl is-enabled sleep.target || echo sleep-masked-ok'
+ssh agent@vm 'command -v zellij && command -v claude'
+ssh agent@vm 'test -n "$GH_TOKEN" && echo token-present-ok'          # NixOS-SOPS token reached the shell
+ssh agent@vm 'gh auth status 2>&1 | grep -qi "logged in\|token" && echo gh-token-ok || echo gh-token-check-manual'
+ssh agent@vm 'touch ~/persist-check'
 # reboot the VM, then:
 ssh agent@vm 'test -f ~/persist-check && echo home-survived-reboot'
 ```
-Expected: each echo prints its success marker; `~/persist-check` survives the reboot (home subvolume).
+Expected: `no-sudo-ok`, `sleep-masked-ok`, tooling present, `token-present-ok`, and `~/persist-check` survives the reboot.
 
-- [ ] **Step 7: One-time Claude login (subscription OAuth)**
+- [ ] **Step 7: One-time Claude login (subscription OAuth) + push smoke test**
 
 ```bash
-ssh -t agent@vm 'claude'   # complete the OAuth device/token flow once
+ssh -t agent@vm 'claude'   # complete OAuth once
 ssh agent@vm 'test -f ~/.claude/.credentials.json && echo claude-authed'
+# optional real push test in a scratch repo the agent's token can write to:
+ssh agent@vm 'cd $(mktemp -d) && git init -q && git remote add origin https://github.com/<agent-writable-repo>.git && echo "verify push manually"'
 ```
-Reboot once more and re-check `~/.claude/.credentials.json` persists.
+Reboot once more; re-check `~/.claude/.credentials.json` persists.
+
+> If the HTTPS credential-helper push proves fiddly, it is an acceptable follow-up: Claude Code auth is OAuth (works independently), and commits/local work are unaffected. Note it and move on rather than blocking.
 
 - [ ] **Step 8: Commit the vm reconfiguration**
 
 ```bash
-git add systems/x86_64-linux/vm/default.nix homes/x86_64-linux/alexander@vm/default.nix
+git add systems/x86_64-linux/vm/default.nix homes/x86_64-linux/alexander@vm/default.nix modules/nixos/secrets.yaml
 git commit -m "test(agent-host): reconfigure vm as headless agent host"
 ```
-> Do NOT commit `secrets.yaml` changes separately — SOPS-encrypted files are committed as part of normal workflow; verify `git diff --stat` shows only encrypted blobs before committing them.
+> Before committing `secrets.yaml`, run `git diff --stat` and confirm it shows only the encrypted blob (never plaintext).
 
 ---
 
-## Task 8: Enable on the desktop (production target)
+## Task 7: Enable on the desktop (production target)
 
 **Files:**
 - Modify: `systems/x86_64-linux/desktop/default.nix`
 
-Keep `roles.desktop`; add the agent-host role. On the desktop the power module also neutralizes GNOME's hibernate dconf (Task 2).
+Keep `roles.desktop`; add the agent-host role. On the desktop the power module also neutralizes GNOME's hibernate dconf (Task 2). The desktop already has `agent-gh-token`/`user-agent-password` available only if added to `modules/nixos/secrets.yaml` (Task 6 added them; they are shared across hosts via `.sops.yaml`).
 
 - [ ] **Step 1: Enable the role**
 
-In `systems/x86_64-linux/desktop/default.nix`, add to the `${namespace}` block:
+In `systems/x86_64-linux/desktop/default.nix`, in the `${namespace}` block:
 ```nix
     roles = {
       desktop = {
@@ -566,37 +526,33 @@ In `systems/x86_64-linux/desktop/default.nix`, add to the `${namespace}` block:
     };
 ```
 
-- [ ] **Step 2: Verify GNOME will no longer hibernate**
+- [ ] **Step 2: Verify GNOME no longer hibernates + targets masked**
 
 ```bash
 nix eval '.#nixosConfigurations.desktop.config.home-manager.users.alexander.dconf.settings."org/gnome/settings-daemon/plugins/power"."sleep-inactive-ac-type"'
-```
-Expected: `"nothing"`
-
-```bash
+# expect: "nothing"
 nix eval .#nixosConfigurations.desktop.config.systemd.targets.sleep.enable
+# expect: false
 ```
-Expected: `false`
 
-- [ ] **Step 3: Build the desktop configuration**
+- [ ] **Step 3: Build**
 
 ```bash
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel
 ```
-Expected: builds successfully.
 
 - [ ] **Step 4: Deploy locally and verify**
 
 ```bash
 nh os switch
-systemctl is-active sleep.target          # expect: inactive
-ssh agent@localhost 'echo reachable'      # operator key path
+systemctl is-enabled sleep.target || echo sleep-masked-ok
+ssh agent@localhost 'echo reachable && test -n "$GH_TOKEN" && echo token-ok'
 ```
 
 - [ ] **Step 5: One-time Claude login on the desktop agent user**
 
 ```bash
-ssh -t agent@localhost 'claude'           # complete OAuth once
+ssh -t agent@localhost 'claude'
 ```
 
 - [ ] **Step 6: Format, lint, commit**
@@ -613,12 +569,13 @@ git commit -m "feat(agent-host): enable agent-host role on desktop"
 
 - [ ] `just check` passes (format + lint).
 - [ ] `nix flake check` passes.
-- [ ] `nix build .#nixosConfigurations.vm.config.system.build.toplevel` and `...desktop...` both succeed.
-- [ ] On the live desktop: box does not sleep; `ssh agent@<tailnet-name>` works from another tailnet device; a zellij session survives disconnect; Claude Code runs under `agent` and cannot `sudo`.
+- [ ] `nix build .#nixosConfigurations.vm...toplevel` and `...desktop...` both succeed.
+- [ ] Live desktop: box does not sleep; `ssh agent@<tailnet-name>` works from another tailnet device; a zellij session survives disconnect; Claude Code runs under `agent` and cannot `sudo`; `$GH_TOKEN` is set in the agent shell.
 - [ ] Spec's "Open items" are all resolved or explicitly deferred with a note.
 
 ## Notes / deferred (from spec open items)
 
-- **Tailscale SSH vs. openssh on `:22`:** both are enabled. Tailscale SSH handles tailnet connections; openssh handles LAN/other. If a conflict surfaces at runtime, prefer openssh + operator key over the tailnet IP and drop `--ssh` (set `services.networking.tailscale.ssh = false` on that host). Verify during Task 7 Step 6.
-- **Firewall enablement** is tracked as separate work (not part of this role); Tailscale manages its own rules, so the role is correct either way.
-- **Slim toolchain variant** for weak hosts (RPi): not built (YAGNI). `roles.agent` currently enables typescript+python only; expand per host if needed.
+- **Tailscale SSH vs. openssh on `:22`:** both enabled. Tailscale SSH handles tailnet connections; openssh handles LAN/other. If a runtime conflict surfaces, prefer openssh + operator key over the tailnet IP and set `services.networking.tailscale.ssh = false` on that host. Verify during Task 6 Step 6.
+- **Git push for the keyless agent** is HTTPS + `GH_TOKEN` via a gh credential helper (Task 4). If the helper wiring is fiddly, it is a documented follow-up — Claude OAuth and local commits are unaffected.
+- **Firewall enablement** is separate work (not part of this role); Tailscale manages its own rules, so the role is correct either way.
+- **Slim toolchain variant** for weak hosts (RPi): not built (YAGNI). `roles.agent` enables typescript+python only; expand per host if needed.

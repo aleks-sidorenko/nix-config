@@ -180,13 +180,16 @@ key path reach the agent user.
   principle** (no new signing secret root). If signed agent commits are ever
   needed, re-sign out-of-band.
 - **Repo-scoped push credential** for the agent: **`agent-gh-token`** (a
-  fine-grained PAT *or* classic token) stored in SOPS and surfaced via the
-  existing `gh-token` pattern (`modules/home/cli/tools/gh/default.nix`), not the
-  operator's personal token. Chosen over a deploy key because it is declarative
-  end-to-end, reuses an existing config pattern, and scopes across multiple repos
-  (deploy keys are per-repo and need manual GitHub-side setup). The token should
-  belong to a dedicated GitHub machine account (a GitHub-side detail, not a Nix
-  one).
+  fine-grained PAT *or* classic token), not the operator's personal token. Chosen
+  over a deploy key because it scopes across multiple repos (deploy keys are
+  per-repo and need manual GitHub-side setup). It is stored in **NixOS** SOPS
+  (`modules/nixos/secrets.yaml`), owned by the agent user, and injected as
+  `GH_TOKEN` into the agent's home session. It is **not** a home SOPS secret:
+  home SOPS decrypts via the user's GPG key, and the agent is keyless — NixOS
+  SOPS decrypts with the host age key, which every host has. Because the agent
+  has no SSH key, git pushes over **HTTPS using `GH_TOKEN`** (gh credential
+  helper). The token should belong to a dedicated GitHub machine account (a
+  GitHub-side detail, not a Nix one).
 - Operator's **private** signing/push keys are **never** placed on the box. Only
   the operator's SSH **public** key is added to the agent's `authorized_keys`,
   for login convenience.
@@ -225,8 +228,10 @@ prerequisite rather than dictating disk layout.
 - `tailscale-authkey` — new secret in `modules/nixos/secrets.yaml` for headless
   first-boot join (unused on the already-joined desktop).
 - `agent-gh-token` — the agent's GitHub push token (fine-grained PAT or classic),
-  stored as a SOPS home secret in `modules/home/secrets.yaml` and surfaced via the
-  `gh-token` pattern (`modules/home/cli/tools/gh/default.nix`).
+  stored in **NixOS** SOPS (`modules/nixos/secrets.yaml`), owned by the agent
+  user, and injected as `GH_TOKEN` into the agent's home session by the umbrella
+  role. NixOS SOPS (host age key) is used rather than home SOPS (user GPG) because
+  the agent is keyless.
 - `user-agent-password` — auto-declared by the users module for the `agent`
   account (must be added to `modules/nixos/secrets.yaml` before deploy).
 
