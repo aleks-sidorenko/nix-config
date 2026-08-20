@@ -100,10 +100,20 @@ Option `nix-config.system.power.mode`:
 
 This becomes the **single source of truth** for sleep behavior, replacing the
 hardcoded hibernate values currently in
-`modules/home/desktops/gnome/default.nix:76-81`. The GNOME override mechanism
-(system `programs.dconf` vs. signalling the GNOME home module) is a plan-time
-detail; the contract is: one `mode` knob, correct on both headless and GNOME
-hosts.
+`modules/home/desktops/gnome/default.nix:76-81`. Because those values live in the
+**home-manager** GNOME module and `system.power` is a **NixOS** module, making it
+the single source of truth is **not purely additive**: the plan must gate or
+remove lines 76-81 in the home GNOME module (driven by the role/`mode`) rather
+than leave a second, conflicting definition. The exact override mechanism (system
+`programs.dconf` vs. signalling the GNOME home module) is a plan-time detail; the
+contract is: one `mode` knob, correct on both headless and GNOME hosts.
+
+**Relationship to existing `modules/nixos/system/hibernation/`.** A
+`system.hibernation` module already exists and only sets a resume device/offset;
+it does not functionally conflict with masking the sleep targets. The plan must
+decide ownership boundaries (extend `system.hibernation` vs. add `system.power`
+alongside it) and document which module owns sleep/hibernate behavior so the two
+adjacent concerns don't confuse a future reader.
 
 ### 2. `services.networking.tailscale` (extend existing stub)
 
@@ -256,4 +266,11 @@ remove `roles.graphical` from `systems/x86_64-linux/vm/default.nix` (and simplif
 - Whether `roles.development`'s full toolchain is acceptable on the target hosts
   or a slim toggle is needed (defer unless a host strains).
 - `system.power` GNOME override should replace, not conflict with, the existing
-  hardcoded values in `modules/home/desktops/gnome/default.nix`.
+  hardcoded values in `modules/home/desktops/gnome/default.nix` (requires editing
+  the home GNOME module, not just adding NixOS config).
+- Ownership boundary between the new `system.power` and the existing
+  `modules/nixos/system/hibernation/` module.
+- Verify inline `home-manager.users.${agentUser}` provisioning does not
+  double-define with snowfall's auto-user wiring when there is a `nix-config.users`
+  entry but **no** matching `homes/<arch>/${agentUser}@<host>/` directory
+  (snowfall sets `snowfallorg.users` per entry; confirm no eval conflict).
