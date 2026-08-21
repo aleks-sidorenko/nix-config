@@ -579,6 +579,29 @@ git commit -m "feat(agent-host): enable agent-host role on desktop"
 - [ ] Live desktop: box does not sleep; `ssh agent@<tailnet-name>` works from another tailnet device; a zellij session survives disconnect; Claude Code runs under `agent` and cannot `sudo`; `$GH_TOKEN` is set in the agent shell.
 - [ ] Spec's "Open items" are all resolved or explicitly deferred with a note.
 
+## Corrections applied during execution (found by full-config eval)
+
+The per-task `nix eval` checks passed, but forcing `system.build.toplevel` for the
+agent hosts surfaced issues the option-level evals missed. All fixed on-branch:
+
+- **Inline home needs `namespace`.** Snowfall injects most home specialArgs
+  globally (`lib`, `inputs`, …) but injects `namespace` only for *discovered*
+  homes. The umbrella role's inline `home-manager.users.<agent>` therefore adds
+  `_module.args.namespace = namespace;`.
+- **`roles.agent-host` enables `roles.common`.** A bare headless host otherwise
+  has no base (sshd/sops/boot/networking/impermanence). Idempotent where common
+  is already present (desktop → graphical → common).
+- **Hosts must declare their primary user.** Declaring `nix-config.users.<agent>`
+  drops the module's option-level default primary, so `desktop`/`vm` now set
+  `nix-config.users.alexander = { primary = true; admin = true; }` explicitly
+  (consistent with homebook/workbook/installer).
+- **Keyless `allowed_signers` guard.** `modules/home/cli/tools/git` wrapped the
+  whole `home.file.".ssh/allowed_signers"` entry in `mkIf (signingKey != "")`
+  (was guarding only `.text`, leaving a valueless entry for keyless accounts).
+- **Duplicate git credential helper removed** from `roles.agent` — `programs.gh`
+  (via `roles.development`) already wires it; the manual string collided with
+  gh's list form.
+
 ## Notes / deferred (from spec open items)
 
 - **Tailscale SSH vs. openssh on `:22`:** both enabled. Tailscale SSH handles tailnet connections; openssh handles LAN/other. If a runtime conflict surfaces, prefer openssh + operator key over the tailnet IP and set `services.networking.tailscale.ssh = false` on that host. Verify during Task 6 Step 6.
