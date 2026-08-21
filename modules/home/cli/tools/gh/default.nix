@@ -14,7 +14,7 @@ in
 {
   options.${namespace}.cli.tools.gh = with types; {
     enable = mkBoolOpt false "Whether or not to enable GitHub CLI";
-    githubToken = mkBoolOpt false "Whether to set GH_TOKEN from sops secret";
+    githubToken = mkBoolOpt false "Whether to set GITHUB_TOKEN from sops secret";
   };
 
   config = mkIf cfg.enable {
@@ -25,12 +25,12 @@ in
       };
     };
 
-    sops.secrets."gh-token" = mkIf secretEnabled {
+    sops.secrets."github-token" = mkIf secretEnabled {
       sopsFile = ../../../secrets.yaml;
     };
 
     home.sessionVariables = mkIf secretEnabled {
-      GH_TOKEN = "$(cat ${config.sops.secrets."gh-token".path})";
+      GITHUB_TOKEN = "$(cat ${config.sops.secrets."github-token".path})";
     };
   };
 }

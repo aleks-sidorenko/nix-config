@@ -45,7 +45,7 @@ in
       };
     };
 
-    # Keyless agent → push over HTTPS with GH_TOKEN (injected by the umbrella
+    # Keyless agent → push over HTTPS with GITHUB_TOKEN (injected by the umbrella
     # role). SSH remotes are rewritten to HTTPS via urlRewrites above; gh
     # (from roles.development) already wires programs.gh's credential helper
     # for the HTTPS remote.

@@ -57,13 +57,13 @@ in
     };
 
     # Provision the agent home inline (no per-host homes/ file needed) and inject
-    # GH_TOKEN from the NixOS secret path.
+    # GITHUB_TOKEN from the NixOS secret path.
     home-manager.users.${cfg.agentUser} = {
       _module.args.namespace = namespace;
       nix-config.roles.agent = enabled;
       home.stateVersion = "25.05";
       home.sessionVariables = mkIf sopsEnabled {
-        GH_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
+        GITHUB_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
       };
     };
   };

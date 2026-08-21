@@ -234,7 +234,7 @@ git commit -m "feat(agent-host): tailscale ssh + authKeyFile + extraUpFlags"
 **Files:**
 - Create: `modules/home/roles/agent/default.nix`
 
-Headless-safe agent home suite. Enables `roles.common` (shell essentials — starship/eza/bat/zoxide/fzf/fish/nvim; its home SOPS stays inert because the agent declares no home secrets) and `roles.development` (which enables `cli.tools.gh`). Keyless identity → unsigned commits. Because the agent has **no SSH key**, git pushes over **HTTPS using `GH_TOKEN`** via a gh credential helper; `GH_TOKEN` itself is injected by the umbrella role (Task 5) from a NixOS SOPS secret.
+Headless-safe agent home suite. Enables `roles.common` (shell essentials — starship/eza/bat/zoxide/fzf/fish/nvim; its home SOPS stays inert because the agent declares no home secrets) and `roles.development` (which enables `cli.tools.gh`). Keyless identity → unsigned commits. Because the agent has **no SSH key**, git pushes over **HTTPS using `GITHUB_TOKEN`** via a gh credential helper; `GITHUB_TOKEN` itself is injected by the umbrella role (Task 5) from a NixOS SOPS secret.
 
 - [ ] **Step 1: Create the role**
 
@@ -284,7 +284,7 @@ in
       };
     };
 
-    # Keyless agent → push over HTTPS with GH_TOKEN (injected by the umbrella
+    # Keyless agent → push over HTTPS with GITHUB_TOKEN (injected by the umbrella
     # role). Rewrite SSH remotes to HTTPS and let gh serve credentials.
     programs.git.settings = {
       url."https://github.com/".insteadOf = "git@github.com:";
@@ -321,7 +321,7 @@ git commit -m "feat(agent-host): add roles.agent headless home suite"
 **Files:**
 - Create: `modules/nixos/roles/agent-host/default.nix`
 
-Composes power/tailscale/user/home, adds the operator's SSH public key to the agent's `authorized_keys`, and delivers `GH_TOKEN` from a NixOS SOPS secret owned by the agent user.
+Composes power/tailscale/user/home, adds the operator's SSH public key to the agent's `authorized_keys`, and delivers `GITHUB_TOKEN` from a NixOS SOPS secret owned by the agent user.
 
 - [ ] **Step 1: Create the role**
 
@@ -380,12 +380,12 @@ in
     };
 
     # Provision the agent home inline (no per-host homes/ file needed) and inject
-    # GH_TOKEN from the NixOS secret path.
+    # GITHUB_TOKEN from the NixOS secret path.
     home-manager.users.${cfg.agentUser} = {
       nix-config.roles.agent = enabled;
       home.stateVersion = "25.05";
       home.sessionVariables = mkIf sopsEnabled {
-        GH_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
+        GITHUB_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
       };
     };
   };
@@ -463,7 +463,7 @@ nix build .#nixosConfigurations.vm.config.system.build.toplevel
 ```
 Expected: builds successfully — this is where inline `home-manager.users.agent` is proven to receive the `nix-config` home modules (snowfall adds `modules/home/*` to `home-manager.sharedModules`).
 
-> **Fallback if it fails with "The option `nix-config.roles.agent` does not exist"**: create `homes/x86_64-linux/agent@vm/default.nix` = `{ ... }: { nix-config.roles.agent.enable = true; home.stateVersion = "25.05"; }`, remove the `home-manager.users.${cfg.agentUser}` block from Task 5, and move the `GH_TOKEN` sessionVariable into that home file (reading the NixOS secret path via `osConfig`). Document that each agent host then needs a `homes/<arch>/agent@<host>/` file, and note the reversal in the spec.
+> **Fallback if it fails with "The option `nix-config.roles.agent` does not exist"**: create `homes/x86_64-linux/agent@vm/default.nix` = `{ ... }: { nix-config.roles.agent.enable = true; home.stateVersion = "25.05"; }`, remove the `home-manager.users.${cfg.agentUser}` block from Task 5, and move the `GITHUB_TOKEN` sessionVariable into that home file (reading the NixOS secret path via `osConfig`). Document that each agent host then needs a `homes/<arch>/agent@<host>/` file, and note the reversal in the spec.
 
 - [ ] **Step 5: Verify power guards + isolation via eval**
 
@@ -483,8 +483,8 @@ On the VM:
 ssh agent@vm 'id | tr "," "\n" | grep -q wheel && echo HAS-WHEEL-bad || echo no-sudo-ok'
 ssh agent@vm 'systemctl is-enabled sleep.target || echo sleep-masked-ok'
 ssh agent@vm 'command -v zellij && command -v claude'
-ssh agent@vm 'test -n "$GH_TOKEN" && echo token-present-ok'          # NixOS-SOPS token reached the shell
-ssh agent@vm 'gh auth status 2>&1 | grep -qi "logged in\|token" && echo gh-token-ok || echo gh-token-check-manual'
+ssh agent@vm 'test -n "$GITHUB_TOKEN" && echo token-present-ok'          # NixOS-SOPS token reached the shell
+ssh agent@vm 'gh auth status 2>&1 | grep -qi "logged in\|token" && echo github-token-ok || echo github-token-check-manual'
 ssh agent@vm 'touch ~/persist-check'
 # reboot the VM, then:
 ssh agent@vm 'test -f ~/persist-check && echo home-survived-reboot'
@@ -552,7 +552,7 @@ nix build .#nixosConfigurations.desktop.config.system.build.toplevel
 ```bash
 nh os switch
 systemctl is-enabled sleep.target || echo sleep-masked-ok
-ssh agent@localhost 'echo reachable && test -n "$GH_TOKEN" && echo token-ok'
+ssh agent@localhost 'echo reachable && test -n "$GITHUB_TOKEN" && echo token-ok'
 ```
 
 - [ ] **Step 5: One-time Claude login on the desktop agent user**
@@ -576,7 +576,7 @@ git commit -m "feat(agent-host): enable agent-host role on desktop"
 - [ ] `just check` passes (format + lint).
 - [ ] `nix flake check` passes.
 - [ ] `nix build .#nixosConfigurations.vm...toplevel` and `...desktop...` both succeed.
-- [ ] Live desktop: box does not sleep; `ssh agent@<tailnet-name>` works from another tailnet device; a zellij session survives disconnect; Claude Code runs under `agent` and cannot `sudo`; `$GH_TOKEN` is set in the agent shell.
+- [ ] Live desktop: box does not sleep; `ssh agent@<tailnet-name>` works from another tailnet device; a zellij session survives disconnect; Claude Code runs under `agent` and cannot `sudo`; `$GITHUB_TOKEN` is set in the agent shell.
 - [ ] Spec's "Open items" are all resolved or explicitly deferred with a note.
 
 ## Corrections applied during execution (found by full-config eval)
@@ -606,6 +606,6 @@ agent hosts surfaced issues the option-level evals missed. All fixed on-branch:
 
 - **Tailscale SSH vs. openssh on `:22`:** both enabled. Tailscale SSH handles tailnet connections; openssh handles LAN/other. If a runtime conflict surfaces, prefer openssh + operator key over the tailnet IP and set `services.networking.tailscale.ssh = false` on that host. Verify during Task 6 Step 6.
 - **First-boot Tailscale SSH activation:** `--ssh` is applied by the upstream `tailscaled-set` oneshot unit, which runs once at boot and does not retry. On a *fresh* host it runs before the operator has authenticated, so `tailscale set --ssh` fails silently that first boot. After the one-time interactive `tailscale up` (login), either reboot or run `sudo systemctl start tailscaled-set` (or `tailscale set --ssh`) once to apply it. On the already-joined desktop this is a non-issue.
-- **Git push for the keyless agent** is HTTPS + `GH_TOKEN` via a gh credential helper (Task 4). If the helper wiring is fiddly, it is a documented follow-up — Claude OAuth and local commits are unaffected.
+- **Git push for the keyless agent** is HTTPS + `GITHUB_TOKEN` via a gh credential helper (Task 4). If the helper wiring is fiddly, it is a documented follow-up — Claude OAuth and local commits are unaffected.
 - **Firewall enablement** is separate work (not part of this role); Tailscale manages its own rules, so the role is correct either way.
 - **Slim toolchain variant** for weak hosts (RPi): not built (YAGNI). `roles.agent` enables typescript+python only; expand per host if needed.
