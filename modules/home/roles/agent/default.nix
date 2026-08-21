@@ -12,8 +12,6 @@ in
 {
   options.${namespace}.roles.agent = with types; {
     enable = mkEnableOption "Enable the headless agent home suite (development + zellij + claude-code)";
-    gitEmail = mkStringOpt "agent@users.noreply.github.com" "Git author email for the agent's commits";
-    gitFullName = mkStringOpt "nix-config agent" "Git author name for the agent's commits";
   };
 
   config = mkIf cfg.enable {
@@ -22,6 +20,9 @@ in
 
       # Keyless identity → unsigned commits (mirrors child accounts; honors the
       # single-GPG-root principle). "agent" has no identities/ folder on purpose.
+      # Git AUTHOR is inherited from cli.tools.git defaults (the operator's
+      # name/email) so commits on shared repos read as the person the agent acts
+      # for; they stay unsigned and are re-signed at merge if the repo requires it.
       security.identity.name = "agent";
 
       roles.development = {
@@ -36,12 +37,8 @@ in
         };
       };
 
-      cli.tools.git = {
-        email = cfg.gitEmail;
-        fullName = cfg.gitFullName;
-        urlRewrites = {
-          "git@github.com:" = "https://github.com/";
-        };
+      cli.tools.git.urlRewrites = {
+        "git@github.com:" = "https://github.com/";
       };
     };
 

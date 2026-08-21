@@ -601,6 +601,13 @@ agent hosts surfaced issues the option-level evals missed. All fixed on-branch:
 - **Duplicate git credential helper removed** from `roles.agent` — `programs.gh`
   (via `roles.development`) already wires it; the manual string collided with
   gh's list form.
+- **Agent commits as the operator.** `roles.agent` no longer overrides
+  `cli.tools.git.email`/`fullName` (the `gitEmail`/`gitFullName` options were
+  dropped); the agent inherits the operator's git identity so shared-repo commits
+  read as the person it acts for. Still keyless/unsigned, re-signed at merge.
+- **GNOME `osConfig` made optional** (`osConfig ? { }`) — the module is also used
+  by standalone `homeConfigurations` (no NixOS), where `osConfig` is absent; it
+  now falls back to `"default"` there. Fixes `nix flake check --all-systems`.
 
 ## Notes / deferred (from spec open items)
 

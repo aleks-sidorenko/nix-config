@@ -41,7 +41,7 @@ contained to a sandboxed service account, not the operator's personal identity.
 | Claude auth | **Subscription OAuth**, seeded by one-time login, persisted on disk |
 | Structure | **Hybrid**: reusable primitives + thin umbrella role (option C) |
 | Home provisioning | **Inline** via `home-manager.users.<agent>` in the umbrella role (one switch, no per-host `homes/` file) |
-| Agent git identity | Distinct git **author** (name/email) for attribution; **keyless → unsigned commits** (honors the single-GPG-root principle, mirrors child accounts); push via **`user-agent-github-token`** (PAT or classic) in SOPS. Operator's private keys stay off the box |
+| Agent git identity | Commits as the **operator's** git identity (it acts on their behalf); **keyless → unsigned commits** (single-GPG-root principle, mirrors child accounts), re-signed at merge if the repo requires it; push via **`user-agent-github-token`** (PAT or classic) in SOPS. Operator's private keys stay off the box |
 
 ## Architecture
 
@@ -171,14 +171,18 @@ key path reach the agent user.
 
 ## Identity & credentials
 
-- **Distinct git author, keyless (unsigned commits).** The agent home sets a
-  distinct `cli.tools.git.fullName`/`email` for attribution and
-  `security.identity.name = "agent"` — a name with **no** `identities/` folder,
-  so `resolveIdentity` yields no key, the home ssh module reports
-  `publicKey = ""`, and the git module sets `commit.gpgsign = false`. This
-  mirrors the existing child-account precedent and **honors the single-GPG-root
-  principle** (no new signing secret root). If signed agent commits are ever
-  needed, re-sign out-of-band.
+- **Commits as the operator's git identity, keyless (unsigned).** The agent home
+  does **not** override `cli.tools.git.email`/`fullName`, so it inherits the
+  operator's git identity — on shared repos its commits read as the person it
+  acts for (aligning with the claude-code config, which already disables bot
+  attribution / `Co-authored-by`). It sets `security.identity.name = "agent"` — a
+  name with **no** `identities/` folder — so `resolveIdentity` yields no key, the
+  home ssh module reports `publicKey = ""`, and the git module sets
+  `commit.gpgsign = false`. This mirrors the child-account precedent and
+  **honors the single-GPG-root principle** (no new signing secret root). Commits
+  are re-signed at merge if the target repo requires signatures. Author name is
+  metadata only — isolation still rests on the non-admin user, the scoped push
+  token, and the absence of any signing key on the box.
 - **Repo-scoped push credential** for the agent: **`user-agent-github-token`** (a
   fine-grained PAT *or* classic token), not the operator's personal token. Chosen
   over a deploy key because it scopes across multiple repos (deploy keys are
