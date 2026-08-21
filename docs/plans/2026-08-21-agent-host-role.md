@@ -609,10 +609,20 @@ agent hosts surfaced issues the option-level evals missed. All fixed on-branch:
   by standalone `homeConfigurations` (no NixOS), where `osConfig` is absent; it
   now falls back to `"default"` there. Fixes `nix flake check --all-systems`.
 
+Review-driven refinements (PR #195):
+- `programs.git` kept a single node — `urlRewrites` mapping moved inside the
+  existing `programs.git.settings` block.
+- Agent git identity references `config.home.username` (not hardcoded "agent").
+- zellij moved to a `cli.tools.zellij` module enabled by `roles.development`
+  (available on workbook/desktop too), not just the agent.
+- Agent user trimmed to `{ admin = false; }` (dropped default `profile`/`primary`).
+- Agent dev languages inherited from the primary user's `roles.development`
+  instead of hardcoded.
+
 ## Notes / deferred (from spec open items)
 
 - **Tailscale SSH vs. openssh on `:22`:** both enabled. Tailscale SSH handles tailnet connections; openssh handles LAN/other. If a runtime conflict surfaces, prefer openssh + operator key over the tailnet IP and set `services.networking.tailscale.ssh = false` on that host. Verify during Task 6 Step 6.
 - **First-boot Tailscale SSH activation:** `--ssh` is applied by the upstream `tailscaled-set` oneshot unit, which runs once at boot and does not retry. On a *fresh* host it runs before the operator has authenticated, so `tailscale set --ssh` fails silently that first boot. After the one-time interactive `tailscale up` (login), either reboot or run `sudo systemctl start tailscaled-set` (or `tailscale set --ssh`) once to apply it. On the already-joined desktop this is a non-issue.
 - **Git push for the keyless agent** is HTTPS + `GITHUB_TOKEN` via a gh credential helper (Task 4). If the helper wiring is fiddly, it is a documented follow-up — Claude OAuth and local commits are unaffected.
 - **Firewall enablement** is separate work (not part of this role); Tailscale manages its own rules, so the role is correct either way.
-- **Slim toolchain variant** for weak hosts (RPi): not built (YAGNI). `roles.agent` enables typescript+python only; expand per host if needed.
+- **Agent dev languages** are inherited from the primary user's `roles.development.languages` by the umbrella role (not hardcoded) — the agent mirrors the operator's toolchain; empty when the operator has no dev home on that host. GUI editors are deliberately NOT mirrored (headless).
