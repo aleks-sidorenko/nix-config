@@ -33,10 +33,9 @@ in
           copilot = false;
           claude-code = true;
         };
-        languages = {
-          typescript = true;
-          python = true;
-        };
+        # Languages are NOT hardcoded here — the agent-host umbrella role mirrors
+        # the primary user's development languages so the agent's toolchain
+        # matches the operator it acts for.
       };
 
       # Keyless agent → push over HTTPS with GITHUB_TOKEN (injected by the

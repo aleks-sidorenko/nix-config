@@ -11,6 +11,13 @@ let
   operatorKey = (resolveIdentity config).sshPublicKey;
   sopsEnabled = config.${namespace}.security.sops.enable;
   tokenSecret = "user-agent-github-token";
+
+  # The agent acts on the primary user's behalf, so it mirrors that user's
+  # development languages instead of hardcoding its own. Empty when the primary
+  # has no development home on this host (e.g. a bare headless server).
+  primaryName = config.${namespace}.user.name;
+  primaryLanguages =
+    config.home-manager.users.${primaryName}.${namespace}.roles.development.languages or { };
 in
 {
   options.${namespace}.roles.agent-host = with types; {
@@ -59,7 +66,11 @@ in
     # GITHUB_TOKEN from the NixOS secret path.
     home-manager.users.${cfg.agentUser} = {
       _module.args.namespace = namespace;
-      nix-config.roles.agent = enabled;
+      nix-config = {
+        roles.agent = enabled;
+        # Mirror the primary user's development languages onto the agent.
+        roles.development.languages = primaryLanguages;
+      };
       home.stateVersion = "25.05";
       home.sessionVariables = mkIf sopsEnabled {
         GITHUB_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
