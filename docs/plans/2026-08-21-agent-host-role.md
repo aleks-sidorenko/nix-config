@@ -33,7 +33,7 @@
 - `systems/x86_64-linux/desktop/default.nix` — enable the role on the desktop (final).
 
 **Secrets (manual SOPS, called out in Tasks 6–7):**
-- `modules/nixos/secrets.yaml` → `user-agent-password` (required once the `agent` user is declared), `agent-gh-token` (the agent's GitHub token), optional `tailscale-authkey`.
+- `modules/nixos/secrets.yaml` → `user-agent-password` (required once the `agent` user is declared), `user-agent-github-token` (the agent's GitHub token), optional `tailscale-authkey`.
 
 > Note: the agent's GitHub token lives in **NixOS** SOPS (not `modules/home/secrets.yaml`), because home SOPS decrypts via the user's GPG key and the `agent` user is intentionally keyless. NixOS SOPS decrypts with the host age key, which every host has.
 
@@ -338,7 +338,7 @@ let
   cfg = config.${namespace}.roles.agent-host;
   operatorKey = (resolveIdentity config).sshPublicKey;
   sopsEnabled = config.${namespace}.security.sops.enable;
-  tokenSecret = "agent-gh-token";
+  tokenSecret = "user-agent-github-token";
 in
 {
   options.${namespace}.roles.agent-host = with types; {
@@ -452,7 +452,7 @@ In `homes/x86_64-linux/alexander@vm/default.nix`, remove `roles.graphical` and t
 just secrets-edit nixos
 # add:
 #   user-agent-password: <hashed pw, e.g. `mkpasswd -m yescrypt`>
-#   agent-gh-token: <a GitHub PAT or classic token for the agent's machine account>
+#   user-agent-github-token: <a GitHub PAT or classic token for the agent's machine account>
 ```
 > Leave `tailscale-authkey` out for the build/eval test; join the throwaway VM manually post-deploy if you want a live tailnet test.
 
@@ -518,7 +518,7 @@ git commit -m "test(agent-host): reconfigure vm as headless agent host"
 **Files:**
 - Modify: `systems/x86_64-linux/desktop/default.nix`
 
-Keep `roles.desktop`; add the agent-host role. On the desktop the power module also neutralizes GNOME's hibernate dconf (Task 2). The desktop already has `agent-gh-token`/`user-agent-password` available only if added to `modules/nixos/secrets.yaml` (Task 6 added them; they are shared across hosts via `.sops.yaml`).
+Keep `roles.desktop`; add the agent-host role. On the desktop the power module also neutralizes GNOME's hibernate dconf (Task 2). The desktop already has `user-agent-github-token`/`user-agent-password` available only if added to `modules/nixos/secrets.yaml` (Task 6 added them; they are shared across hosts via `.sops.yaml`).
 
 - [ ] **Step 1: Enable the role**
 

@@ -10,7 +10,7 @@ let
   cfg = config.${namespace}.roles.agent-host;
   operatorKey = (resolveIdentity config).sshPublicKey;
   sopsEnabled = config.${namespace}.security.sops.enable;
-  tokenSecret = "agent-gh-token";
+  tokenSecret = "user-agent-github-token";
 in
 {
   options.${namespace}.roles.agent-host = with types; {

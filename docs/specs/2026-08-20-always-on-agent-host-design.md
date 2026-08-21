@@ -41,7 +41,7 @@ contained to a sandboxed service account, not the operator's personal identity.
 | Claude auth | **Subscription OAuth**, seeded by one-time login, persisted on disk |
 | Structure | **Hybrid**: reusable primitives + thin umbrella role (option C) |
 | Home provisioning | **Inline** via `home-manager.users.<agent>` in the umbrella role (one switch, no per-host `homes/` file) |
-| Agent git identity | Distinct git **author** (name/email) for attribution; **keyless → unsigned commits** (honors the single-GPG-root principle, mirrors child accounts); push via **`agent-gh-token`** (PAT or classic) in SOPS. Operator's private keys stay off the box |
+| Agent git identity | Distinct git **author** (name/email) for attribution; **keyless → unsigned commits** (honors the single-GPG-root principle, mirrors child accounts); push via **`user-agent-github-token`** (PAT or classic) in SOPS. Operator's private keys stay off the box |
 
 ## Architecture
 
@@ -179,7 +179,7 @@ key path reach the agent user.
   mirrors the existing child-account precedent and **honors the single-GPG-root
   principle** (no new signing secret root). If signed agent commits are ever
   needed, re-sign out-of-band.
-- **Repo-scoped push credential** for the agent: **`agent-gh-token`** (a
+- **Repo-scoped push credential** for the agent: **`user-agent-github-token`** (a
   fine-grained PAT *or* classic token), not the operator's personal token. Chosen
   over a deploy key because it scopes across multiple repos (deploy keys are
   per-repo and need manual GitHub-side setup). It is stored in **NixOS** SOPS
@@ -227,7 +227,7 @@ prerequisite rather than dictating disk layout.
 - `user-${agentUser}-password` — auto-created by the users module.
 - `tailscale-authkey` — new secret in `modules/nixos/secrets.yaml` for headless
   first-boot join (unused on the already-joined desktop).
-- `agent-gh-token` — the agent's GitHub push token (fine-grained PAT or classic),
+- `user-agent-github-token` — the agent's GitHub push token (fine-grained PAT or classic),
   stored in **NixOS** SOPS (`modules/nixos/secrets.yaml`), owned by the agent
   user, and injected as `GH_TOKEN` into the agent's home session by the umbrella
   role. NixOS SOPS (host age key) is used rather than home SOPS (user GPG) because
