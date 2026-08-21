@@ -1,6 +1,8 @@
 {
   config,
-  osConfig,
+  # Optional: absent in standalone homeConfigurations (no NixOS). Defaults to {}
+  # so the power-mode read below falls back to "default" outside NixOS.
+  osConfig ? { },
   pkgs,
   lib,
   namespace,
