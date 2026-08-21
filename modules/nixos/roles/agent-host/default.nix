@@ -24,6 +24,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
+      # A headless agent host needs the base system (sshd, sops, boot, networking,
+      # impermanence). Idempotent on hosts that already enable common (e.g. desktop).
+      roles.common = enabled;
+
       system.power.mode = cfg.powerMode;
 
       services.networking.tailscale = {
@@ -55,6 +59,7 @@ in
     # Provision the agent home inline (no per-host homes/ file needed) and inject
     # GH_TOKEN from the NixOS secret path.
     home-manager.users.${cfg.agentUser} = {
+      _module.args.namespace = namespace;
       nix-config.roles.agent = enabled;
       home.stateVersion = "25.05";
       home.sessionVariables = mkIf sopsEnabled {

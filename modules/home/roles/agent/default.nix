@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   namespace,
   ...
 }:
@@ -47,12 +46,9 @@ in
     };
 
     # Keyless agent → push over HTTPS with GH_TOKEN (injected by the umbrella
-    # role). SSH remotes are rewritten to HTTPS via urlRewrites above; let gh
-    # serve credentials for the HTTPS remote.
-    programs.git.settings = {
-      credential."https://github.com".helper = "!${pkgs.gh}/bin/gh auth git-credential";
-    };
-
+    # role). SSH remotes are rewritten to HTTPS via urlRewrites above; gh
+    # (from roles.development) already wires programs.gh's credential helper
+    # for the HTTPS remote.
     programs.zellij.enable = true;
   };
 }

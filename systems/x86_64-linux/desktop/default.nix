@@ -20,6 +20,11 @@ with lib.${namespace};
       agent-host = enabled;
     };
 
+    users.alexander = {
+      primary = true;
+      admin = true;
+    };
+
     styles.stylix.wallpaper = "Kurzgesagt-Galaxies";
   };
 

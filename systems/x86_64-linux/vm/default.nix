@@ -17,6 +17,11 @@ with lib.${namespace};
       agent-host = enabled;
     };
 
+    users.alexander = {
+      primary = true;
+      admin = true;
+    };
+
     disks.impermanence = enabled;
   };
 
