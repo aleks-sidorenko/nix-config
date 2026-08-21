@@ -32,16 +32,14 @@ in
       text = "${cfg.email} ${lib.strings.trim cfg.signingKey}";
     };
 
-    # Map urlRewrites (from -> to) into git's url.<to>.insteadOf = <from>.
-    programs.git.settings.url = mapAttrs' (
-      from: to: nameValuePair to { insteadOf = from; }
-    ) cfg.urlRewrites;
-
     programs = {
       git = {
         enable = true;
 
         settings = {
+
+          # Map urlRewrites (from -> to) into git's url.<to>.insteadOf = <from>.
+          url = mapAttrs' (from: to: nameValuePair to { insteadOf = from; }) cfg.urlRewrites;
 
           user = {
             name = cfg.fullName;

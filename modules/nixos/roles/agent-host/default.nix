@@ -35,11 +35,10 @@ in
         ssh = true;
       };
 
-      # Dedicated, isolated account. Non-admin → no wheel → cannot sudo.
+      # Dedicated, isolated account: admin = false → no wheel → cannot sudo.
+      # (profile defaults to "adult"; non-primary by default.)
       users.${cfg.agentUser} = {
-        primary = false;
         admin = false;
-        profile = "adult";
       };
     };
 

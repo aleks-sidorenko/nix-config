@@ -146,6 +146,9 @@ in
           htop.enable = true;
           nix-index.enable = true;
           yazi.enable = true;
+          # Terminal multiplexer — persistent, reattachable sessions. Useful on
+          # any dev host and required for the agent host (attach over SSH).
+          zellij.enable = true;
         };
       };
 

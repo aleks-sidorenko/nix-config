@@ -19,11 +19,13 @@ in
       roles.common = enabled;
 
       # Keyless identity → unsigned commits (mirrors child accounts; honors the
-      # single-GPG-root principle). "agent" has no identities/ folder on purpose.
-      # Git AUTHOR is inherited from cli.tools.git defaults (the operator's
-      # name/email) so commits on shared repos read as the person the agent acts
-      # for; they stay unsigned and are re-signed at merge if the repo requires it.
-      security.identity.name = "agent";
+      # single-GPG-root principle). Reference the account name via home-manager
+      # instead of hardcoding; it resolves to the agent user, which has no
+      # identities/ folder, so no key material is pulled in. Git AUTHOR is
+      # inherited from cli.tools.git defaults (the operator's name/email) so
+      # commits on shared repos read as the person the agent acts for; they stay
+      # unsigned and are re-signed at merge if the repo requires it.
+      security.identity.name = config.home.username;
 
       roles.development = {
         enable = true;
@@ -37,15 +39,12 @@ in
         };
       };
 
+      # Keyless agent → push over HTTPS with GITHUB_TOKEN (injected by the
+      # umbrella role); rewrite ssh remotes to https and let gh (from
+      # roles.development) serve credentials.
       cli.tools.git.urlRewrites = {
         "git@github.com:" = "https://github.com/";
       };
     };
-
-    # Keyless agent → push over HTTPS with GITHUB_TOKEN (injected by the umbrella
-    # role). SSH remotes are rewritten to HTTPS via urlRewrites above; gh
-    # (from roles.development) already wires programs.gh's credential helper
-    # for the HTTPS remote.
-    programs.zellij.enable = true;
   };
 }
