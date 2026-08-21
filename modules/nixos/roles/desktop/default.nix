@@ -29,6 +29,7 @@ in
         virtualisation = {
           virtualbox = enabled;
           podman = enabled;
+          vagrant = enabled;
         };
       };
     };
