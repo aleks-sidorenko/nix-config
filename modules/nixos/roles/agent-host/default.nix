@@ -13,11 +13,9 @@ let
   tokenSecret = "user-agent-github-token";
 
   # The agent acts on the primary user's behalf, so it mirrors that user's
-  # development languages instead of hardcoding its own. Empty when the primary
-  # has no development home on this host (e.g. a bare headless server).
-  primaryName = config.${namespace}.user.name;
-  primaryLanguages =
-    config.home-manager.users.${primaryName}.${namespace}.roles.development.languages or { };
+  # development languages instead of hardcoding its own. Resolve the primary's
+  # home via the lib/context helper rather than reaching into home-manager.users.
+  primaryLanguages = (homeConfig config).${namespace}.roles.development.languages;
 in
 {
   options.${namespace}.roles.agent-host = with types; {
