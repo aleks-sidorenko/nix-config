@@ -159,13 +159,17 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > ```
 > Host vm
 >   HostName 127.0.0.1
->   Port <same forwarded port>
+>   Port 2222              # default Vagrant NAT forward — validate with `vagrant port`
 >   User alexander
 >   StrictHostKeyChecking no
 >   UserKnownHostsFile /dev/null
 > ```
 >
-> Then `just deploy vm` and `ssh vm` reach the installed system as your user.
+> `2222` is Vagrant's default host→guest:22 forward, but it auto-bumps (2200,
+> 2201, …) when the port is already taken — **validate the real port** with
+> `vagrant port --guest 22` (or `VBoxManage showvminfo vm --machinereadable |
+> grep -i forwarding`) before relying on it. Then `just deploy vm` and `ssh vm`
+> reach the installed system as your user.
 
 ### Verify connectivity
 
