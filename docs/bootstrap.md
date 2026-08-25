@@ -133,10 +133,10 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > vagrant up
 > # Resolve the `vm` name to the guest for BOTH the flake attr and the SSH
 > # address, using the same alias trick as an un-reserved physical host (Step 6).
-> # `--host vm` rewrites Vagrant's default `Host default` block to `Host vm`.
+> # The Vagrantfile names the machine `vm`, so ssh-config emits a `Host vm` block.
 > # Write it to ~/.ssh/config.local — the managed ~/.ssh/config is a read-only
 > # nix symlink that Includes this writable file (re-runs would duplicate it):
-> vagrant ssh-config --host vm >> ~/.ssh/config.local
+> vagrant ssh-config >> ~/.ssh/config.local
 > ```
 >
 > You log in as the box's **`vagrant`** user (passwordless sudo) — use it as
@@ -385,7 +385,7 @@ so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
 This is exactly how the **VM** is reached: it has no router lease, so
-`vagrant ssh-config --host vm >> ~/.ssh/config.local` (from
+`vagrant ssh-config >> ~/.ssh/config.local` (from
 [Step 3](#step-3--boot-the-target)) writes the equivalent alias — `Host vm`
 pointing at the forwarded `127.0.0.1:<port>` as user `vagrant` — and `.#vm`
 resolves through it unchanged.

@@ -1,4 +1,8 @@
 Vagrant.configure("2") do |config|
+  # Name the machine "vm" so `vagrant ssh-config` emits `Host vm` directly
+  # (matches the flake attr .#vm — no `--host` override needed).
+  config.vm.define "vm"
+
   config.vm.box = "generic/ubuntu2204"  # Base OS (will be replaced with NixOS)
 
   # Increase timeout and retries
