@@ -76,7 +76,7 @@ resize.
 | Action                   | Binding               | Notes                                      |
 | ------------------------ | --------------------- | ------------------------------------------ |
 | Focus left/down/up/right | `Super+H/J/K/L`       | Forge in GNOME                             |
-| Swap window              | `Super+Shift+H/J/K/L` | Forge swap in GNOME                        |
+| Move window              | `Super+Shift+H/J/K/L` | Forge `window-move` in GNOME               |
 | Resize window            | `Super+Alt+Arrows` (Hyprland) · `Super+Ctrl+Arrows` (GNOME) | Arrows resize; frees `Super+Alt+HJKL` |
 | Close window             | `Super+Q`             |                                            |
 | Close window (alt)       | `Alt+F4`              |                                            |
@@ -101,9 +101,9 @@ resize.
 
 ### Monitor (GNOME)
 
-| Action                 | Binding              |
-| ---------------------- | -------------------- |
-| Move window to monitor | `Super+Shift+Arrows` |
+| Action                 | Binding              | Notes                                            |
+| ---------------------- | -------------------- | ------------------------------------------------ |
+| Move window to monitor | `Super+Ctrl+H/J/K/L` | Matches Hyprland; Forge `window-swap` is disabled so mutter owns the chord |
 
 ### App Launchers & Utilities
 

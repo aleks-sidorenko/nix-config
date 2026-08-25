@@ -78,22 +78,14 @@ in
         maximize-horizontally = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         maximize-vertically = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         minimize = [ "<Super>Down" ];
-        move-to-monitor-down = [
-          "<Super><Ctrl>j"
-          "<Super><Shift>Down"
-        ];
-        move-to-monitor-left = [
-          "<Super><Ctrl>h"
-          "<Super><Shift>Left"
-        ];
-        move-to-monitor-right = [
-          "<Super><Ctrl>l"
-          "<Super><Shift>Right"
-        ];
-        move-to-monitor-up = [
-          "<Super><Ctrl>k"
-          "<Super><Shift>Up"
-        ];
+        # Move to monitor on Super+Ctrl+HJKL, matching Hyprland's send-to-monitor
+        # gesture. Reliable only because we disable Forge's window-swap-* (see the
+        # forge keybindings below), which otherwise grabs these exact chords at the
+        # shell level and shadows mutter's action.
+        move-to-monitor-down = [ "<Super><Ctrl>j" ];
+        move-to-monitor-left = [ "<Super><Ctrl>h" ];
+        move-to-monitor-right = [ "<Super><Ctrl>l" ];
+        move-to-monitor-up = [ "<Super><Ctrl>k" ];
         move-to-workspace-1 = [
           "<Super><Shift>1"
           "<Super><Shift>Home"
@@ -176,6 +168,12 @@ in
         window-move-right = [ "<Super><Shift>l" ];
         window-move-up = [ "<Super><Shift>k" ];
         window-move-down = [ "<Super><Shift>j" ];
+        # Disable Forge's window-swap (defaults to Super+Ctrl+HJKL) so those chords
+        # fall through to mutter's move-to-monitor above instead of being shadowed.
+        window-swap-left = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        window-swap-right = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        window-swap-up = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+        window-swap-down = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
         # Resize — Super+Ctrl+Arrows (arrows resize, like Neovim/Ghostty;
         # Super+Arrows and Super+Alt+Arrows are taken by max/min & workspaces)
         window-resize-left-increase = [ "<Super><Ctrl>Left" ];
