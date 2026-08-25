@@ -146,6 +146,26 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > a SOPS recipient (Steps 4–5) to boot with a working login, exactly like a
 > physical host. The ISO build, static DHCP lease / `/etc/hosts`, FIDO2, and RPi
 > steps do **not** apply to the VM.
+>
+> **After deploy, the alias goes stale.** Once NixOS is installed and the VM
+> reboots, the `vagrant` user, its key, and the old host key are gone, so this
+> `Host vm` block no longer authenticates. Edit it in `~/.ssh/config.local` to
+> the installed system's account and your identity key — set `User alexander`
+> and drop the Vagrant `IdentityFile`/`IdentitiesOnly` lines so your agent key is
+> offered (the NAT-forwarded `127.0.0.1:<port>` and the
+> `StrictHostKeyChecking no` / `UserKnownHostsFile /dev/null` lines can stay,
+> which also absorbs the changed host key):
+>
+> ```
+> Host vm
+>   HostName 127.0.0.1
+>   Port <same forwarded port>
+>   User alexander
+>   StrictHostKeyChecking no
+>   UserKnownHostsFile /dev/null
+> ```
+>
+> Then `just deploy vm` and `ssh vm` reach the installed system as your user.
 
 ### Verify connectivity
 
