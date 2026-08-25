@@ -26,12 +26,9 @@ Vagrant.configure("2") do |config|
     echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vagrant
     chmod 440 /etc/sudoers.d/vagrant
 
-    # Set up SSH access
-    mkdir -p /home/vagrant/.ssh
-    curl -o /home/vagrant/.ssh/authorized_keys https://github.com/aleks-sidorenko.keys
-    chown -R vagrant:vagrant /home/vagrant/.ssh
-    chmod 700 /home/vagrant/.ssh
-    chmod 600 /home/vagrant/.ssh/authorized_keys
+    # NOTE: SSH access is left to Vagrant's own inserted keypair — do not
+    # overwrite authorized_keys here, or `vagrant ssh` / key-based bootstrap
+    # break and only password auth survives.
 
   SHELL
 end
