@@ -14,7 +14,7 @@ decrypts user passwords and other secrets at boot (see
 ```
 1. Define the host in the flake        (systems/…, homes/…, users)
 2. Prepare your local machine          (tools: pass, nix, ssh, nixos-anywhere)
-3. Boot the target                     (installer ISO, verify SSH, capture disks + hardware)
+3. Boot the target                     (installer ISO — or Vagrant for a VM — verify SSH, capture disks + hardware)
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
 6. Deploy                              (bootstrap / bootstrap-deploy + disko)
@@ -125,11 +125,26 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4).
 
-> **VM (testing):** provision with Vagrant instead of an ISO:
+> **VM (testing):** provision with [Vagrant](https://www.vagrantup.com/) instead
+> of building/booting an ISO. The VirtualBox provider is enabled by the `desktop`
+> role, so run this **on the desktop** (from `systems/x86_64-linux/vm/`):
+>
 > ```bash
 > vagrant up
-> vagrant ssh-config >> .ssh.config
+> # Resolve the `vm` name to the guest for BOTH the flake attr and the SSH
+> # address, using the same ~/.ssh/config alias trick as an un-reserved physical
+> # host (see Step 6). `--host vm` rewrites Vagrant's default `Host default`
+> # block to `Host vm`; append it once (re-runs would duplicate the block):
+> vagrant ssh-config --host vm >> ~/.ssh/config
 > ```
+>
+> You log in as the box's **`vagrant`** user (passwordless sudo) — use it as
+> `<username>` throughout (e.g. `just bootstrap vm vagrant`). The VM is **not**
+> exempt from SOPS: with the default `alexander` account its
+> `user-alexander-password` is `neededForUsers`, so the VM must be registered as
+> a SOPS recipient (Steps 4–5) to boot with a working login, exactly like a
+> physical host. The ISO build, static DHCP lease / `/etc/hosts`, FIDO2, and RPi
+> steps do **not** apply to the VM.
 
 ### Verify connectivity
 
@@ -307,6 +322,7 @@ Examples (connect as the installer's `nixos` user — see the note in
 just bootstrap myserver nixos                              # no disk encryption
 just bootstrap myserver nixos "" --build-on-remote         # build on the target
 just bootstrap myserver nixos MyPassword123                # with LUKS disk encryption
+just bootstrap vm vagrant                                  # testing VM (Vagrant, connect as vagrant)
 ```
 
 ### Two-step (if you already ran `bootstrap-secrets`)
@@ -364,6 +380,12 @@ Host homebook
 
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
+
+This is exactly how the **VM** is reached: it has no router lease, so
+`vagrant ssh-config --host vm >> ~/.ssh/config` (from
+[Step 3](#step-3--boot-the-target)) writes the equivalent alias — `Host vm`
+pointing at the forwarded `127.0.0.1:<port>` as user `vagrant` — and `.#vm`
+resolves through it unchanged.
 
 ## Step 7 — Post-installation
 
