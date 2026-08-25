@@ -132,10 +132,11 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > ```bash
 > vagrant up
 > # Resolve the `vm` name to the guest for BOTH the flake attr and the SSH
-> # address, using the same ~/.ssh/config alias trick as an un-reserved physical
-> # host (see Step 6). `--host vm` rewrites Vagrant's default `Host default`
-> # block to `Host vm`; append it once (re-runs would duplicate the block):
-> vagrant ssh-config --host vm >> ~/.ssh/config
+> # address, using the same alias trick as an un-reserved physical host (Step 6).
+> # `--host vm` rewrites Vagrant's default `Host default` block to `Host vm`.
+> # Write it to ~/.ssh/config.local — the managed ~/.ssh/config is a read-only
+> # nix symlink that Includes this writable file (re-runs would duplicate it):
+> vagrant ssh-config --host vm >> ~/.ssh/config.local
 > ```
 >
 > You log in as the box's **`vagrant`** user (passwordless sudo) — use it as
@@ -370,7 +371,9 @@ works from your workstation even though the fresh installer only knows itself as
 `defaults.network.hosts`), or you deploy from a machine without those static
 hosts, `<hostname>` won't resolve. Since the script reuses `<hostname>` for both
 the flake attr *and* the SSH address, point the name at the real IP just for the
-deploy — a throwaway `~/.ssh/config` alias is cleanest:
+deploy — a throwaway alias is cleanest. The managed `~/.ssh/config` is a
+read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
+`Include`s (see `modules/home/security/ssh`):
 
 ```
 Host homebook
@@ -382,7 +385,7 @@ so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
 This is exactly how the **VM** is reached: it has no router lease, so
-`vagrant ssh-config --host vm >> ~/.ssh/config` (from
+`vagrant ssh-config --host vm >> ~/.ssh/config.local` (from
 [Step 3](#step-3--boot-the-target)) writes the equivalent alias — `Host vm`
 pointing at the forwarded `127.0.0.1:<port>` as user `vagrant` — and `.#vm`
 resolves through it unchanged.
