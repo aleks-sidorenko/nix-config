@@ -127,49 +127,48 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 
 > **VM (testing):** provision with [Vagrant](https://www.vagrantup.com/) instead
 > of building/booting an ISO. The VirtualBox provider is enabled by the `desktop`
-> role, so run this **on the desktop** (from `systems/x86_64-linux/vm/`):
+> role, so run this **on the desktop** (from `systems/x86_64-linux/vm/`).
+>
+> The VM is wired like a physical host: `lib/defaults` reserves `vm = 10.0.0.64`,
+> `infra/router/hosts.nix` gives it a static DHCP lease keyed by MAC
+> (`08:00:27:00:00:64`), and the Vagrantfile bridges onto the LAN (`eno1`) with
+> that MAC. **One-time prerequisites:** apply the router config (`just router-*`)
+> so the lease exists, and `nh os switch` on the machines you deploy from so their
+> `/etc/hosts` learns `vm → 10.0.0.64`.
 >
 > ```bash
 > vagrant up
-> # Resolve the `vm` name to the guest for BOTH the flake attr and the SSH
-> # address, using the same alias trick as an un-reserved physical host (Step 6).
-> # The Vagrantfile names the machine `vm`, so ssh-config emits a `Host vm` block.
-> # Write it to ~/.ssh/config.local — the managed ~/.ssh/config is a read-only
-> # nix symlink that Includes this writable file (re-runs would duplicate it):
-> vagrant ssh-config >> ~/.ssh/config.local
 > ```
 >
-> You log in as the box's **`vagrant`** user (passwordless sudo) — use it as
-> `<username>` throughout (e.g. `just bootstrap vm vagrant`). The VM is **not**
-> exempt from SOPS: with the default `alexander` account its
-> `user-alexander-password` is `neededForUsers`, so the VM must be registered as
-> a SOPS recipient (Steps 4–5) to boot with a working login, exactly like a
-> physical host. The ISO build, static DHCP lease / `/etc/hosts`, FIDO2, and RPi
-> steps do **not** apply to the VM.
->
-> **After deploy, the alias goes stale.** Once NixOS is installed and the VM
-> reboots, the `vagrant` user, its key, and the old host key are gone, so this
-> `Host vm` block no longer authenticates. Edit it in `~/.ssh/config.local` to
-> the installed system's account and your identity key — set `User alexander`
-> and drop the Vagrant `IdentityFile`/`IdentitiesOnly` lines so your agent key is
-> offered (the NAT-forwarded `127.0.0.1:<port>` and the
-> `StrictHostKeyChecking no` / `UserKnownHostsFile /dev/null` lines can stay,
-> which also absorbs the changed host key):
->
+> **Install phase (over Vagrant's NAT).** Vagrant's passwordless SSH runs on its
+> NAT adapter with the box's `vagrant` key, so bootstrap connects that way — not
+> over the bridge yet. Add a throwaway alias and bootstrap as `vagrant`:
+> ```bash
+> vagrant ssh-config >> ~/.ssh/config.local   # Host vm → 127.0.0.1:<nat-port>, User vagrant
+> just bootstrap vm vagrant
 > ```
-> Host vm
->   HostName 127.0.0.1
->   Port 2222              # default Vagrant NAT forward — validate with `vagrant port`
->   User alexander
->   StrictHostKeyChecking no
->   UserKnownHostsFile /dev/null
-> ```
+> The VM is **not** exempt from SOPS: with the default `alexander` account its
+> `user-alexander-password` is `neededForUsers`, so the VM must be a SOPS
+> recipient (Steps 4–5) to boot with a working login. The ISO build, FIDO2, and
+> RPi steps do **not** apply.
 >
-> `2222` is Vagrant's default host→guest:22 forward, but it auto-bumps (2200,
-> 2201, …) when the port is already taken — **validate the real port** with
-> `vagrant port --guest 22` (or `VBoxManage showvminfo vm --machinereadable |
-> grep -i forwarding`) before relying on it. Then `just deploy vm` and `ssh vm`
-> reach the installed system as your user.
+> **After install, switch firmware to UEFI.** The Vagrant box boots legacy BIOS
+> (fine for the install), but the installed NixOS only has a UEFI bootloader
+> (systemd-boot + ESP), so the post-install reboot lands in BIOS with *"cannot
+> read from boot medium"*. Power-cycle the VM into EFI once (its VirtualBox UUID
+> is in `.vagrant/machines/vm/virtualbox/id`):
+> ```bash
+> id=$(cat systems/x86_64-linux/vm/.vagrant/machines/vm/virtualbox/id)
+> VBoxManage controlvm "$id" poweroff        # if stuck at the BIOS boot screen
+> VBoxManage modifyvm  "$id" --firmware efi
+> VBoxManage startvm   "$id" --type headless
+> ```
+> systemd-boot's removable fallback (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
+>
+> **Steady state.** Delete the throwaway `~/.ssh/config.local` alias — the
+> installed VM is now a first-class host on the LAN, so `ssh vm` and
+> `just deploy vm` reach it as your user on port 22 via `/etc/hosts` (`10.0.0.64`),
+> exactly like `desktop` or `server`.
 
 ### Verify connectivity
 
@@ -408,11 +407,10 @@ Host homebook
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
-This is exactly how the **VM** is reached: it has no router lease, so
-`vagrant ssh-config >> ~/.ssh/config.local` (from
-[Step 3](#step-3--boot-the-target)) writes the equivalent alias — `Host vm`
-pointing at the forwarded `127.0.0.1:<port>` as user `vagrant` — and `.#vm`
-resolves through it unchanged.
+The **VM** has a reserved lease (`vm → 10.0.0.64`) just like a physical host, so
+its installed system resolves normally. Only its *install phase* needs the
+throwaway-alias trick, because Vagrant's bootstrap SSH runs over NAT with the
+box's key — see the VM note in [Step 3](#step-3--boot-the-target).
 
 ## Step 7 — Post-installation
 
