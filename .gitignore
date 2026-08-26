@@ -8,5 +8,8 @@ result
 *.tfstate.backup
 config.tf.json
 
+# vagrant
+.vagrant
+
 # claude
 .claude/settings.local.json
