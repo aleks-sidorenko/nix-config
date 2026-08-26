@@ -14,6 +14,12 @@ in
     enable = mkEnableOption "Whether or not to enable git";
     email = mkOpt (nullOr str) "aleks.sidorenko@gmail.com" "The email to use with git";
     fullName = mkOpt (nullOr str) "Alexander Sidorenko" "The full name to use with git";
+    accounts =
+      mkOpt (listOf str)
+        [
+          "aleks-sidorenko"
+        ]
+        "GitHub account handles that belong to this identity; repos owned by these accounts alias to self/ in the projects layout";
     urlRewrites = mkOpt (attrsOf str) { } "url we need to rewrite i.e. ssh to http";
     signingKey =
       mkOpt str config.${namespace}.security.ssh.publicKey

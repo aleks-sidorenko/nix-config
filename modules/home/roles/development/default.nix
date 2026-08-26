@@ -15,8 +15,8 @@ in
 
     projectsHome = mkOption {
       type = types.str;
-      default = "~/Projects";
-      description = "Path to the projects directory";
+      default = "${config.home.homeDirectory}/Projects";
+      description = "Absolute path to the projects directory";
     };
 
     ai = {
@@ -59,12 +59,13 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.sessionVariables = {
-      PROJECTS_HOME = cfg.projectsHome;
-    };
-
     ${namespace} = {
       development = {
+        projects = {
+          enable = true;
+          inherit (cfg) projectsHome;
+        };
+
         languages = {
           haskell.enable = cfg.languages.haskell;
           java.enable = cfg.languages.java;
