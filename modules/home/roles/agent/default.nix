@@ -15,6 +15,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Headless account: no D-Bus session bus, so home-manager's dconf activation
+    # (pulled in by stylix theming via roles.common) can't reach ca.desrt.dconf
+    # and aborts activation. The agent has no GUI, so skip dconf load entirely;
+    # the settings stylix declares simply become a no-op.
+    dconf.enable = false;
+
     ${namespace} = {
       roles.common = enabled;
 
