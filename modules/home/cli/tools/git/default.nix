@@ -25,15 +25,21 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.file.".ssh/allowed_signers".text = mkIf (
-      cfg.signingKey != ""
-    ) "${cfg.email} ${lib.strings.trim cfg.signingKey}";
+    # Wrap the whole file entry (not just .text) so keyless identities (e.g. the
+    # agent or a child account) don't leave a valueless home.file entry, which
+    # home-manager rejects.
+    home.file.".ssh/allowed_signers" = mkIf (cfg.signingKey != "") {
+      text = "${cfg.email} ${lib.strings.trim cfg.signingKey}";
+    };
 
     programs = {
       git = {
         enable = true;
 
         settings = {
+
+          # Map urlRewrites (from -> to) into git's url.<to>.insteadOf = <from>.
+          url = mapAttrs' (from: to: nameValuePair to { insteadOf = from; }) cfg.urlRewrites;
 
           user = {
             name = cfg.fullName;

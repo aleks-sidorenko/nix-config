@@ -137,7 +137,7 @@ in
           atuin.enable = true;
           bottom.enable = true;
           direnv.enable = true;
-          # githubToken (GH_TOKEN) left off: GH_TOKEN shadows the keyring OAuth
+          # githubToken (GITHUB_TOKEN) left off: GITHUB_TOKEN shadows the keyring OAuth
           # login, and the classic PAT it carries is rejected by SSO orgs.
           # Interactive machines use `gh auth login` instead.
           # Enable githubToken per-host on headless servers that have no keyring.
@@ -146,6 +146,9 @@ in
           htop.enable = true;
           nix-index.enable = true;
           yazi.enable = true;
+          # Terminal multiplexer — persistent, reattachable sessions. Useful on
+          # any dev host and required for the agent host (attach over SSH).
+          zellij.enable = true;
         };
       };
 

@@ -17,6 +17,12 @@ with lib.${namespace};
       desktop = {
         enable = true;
       };
+      agent-host = enabled;
+    };
+
+    users.alexander = {
+      primary = true;
+      admin = true;
     };
 
     styles.stylix.wallpaper = "Kurzgesagt-Galaxies";

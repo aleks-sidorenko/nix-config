@@ -14,23 +14,24 @@ in
 {
   options.${namespace}.cli.tools.gh = with types; {
     enable = mkBoolOpt false "Whether or not to enable GitHub CLI";
-    githubToken = mkBoolOpt false "Whether to set GH_TOKEN from sops secret";
+    githubToken = mkBoolOpt false "Whether to set GITHUB_TOKEN from sops secret";
   };
 
   config = mkIf cfg.enable {
     programs.gh = {
       enable = true;
       settings = {
-        git_protocol = "ssh";
+        # Default to ssh; keyless accounts (e.g. the agent) override to https.
+        git_protocol = mkDefault "ssh";
       };
     };
 
-    sops.secrets."gh-token" = mkIf secretEnabled {
+    sops.secrets."github-token" = mkIf secretEnabled {
       sopsFile = ../../../secrets.yaml;
     };
 
     home.sessionVariables = mkIf secretEnabled {
-      GH_TOKEN = "$(cat ${config.sops.secrets."gh-token".path})";
+      GITHUB_TOKEN = "$(cat ${config.sops.secrets."github-token".path})";
     };
   };
 }
