@@ -51,5 +51,9 @@ in
         "git@github.com:" = "https://github.com/";
       };
     };
+
+    # Keyless account has no ssh key, so gh must clone/operate over https
+    # (matches the git urlRewrites above and the agent-host credential helper).
+    programs.gh.settings.git_protocol = "https";
   };
 }

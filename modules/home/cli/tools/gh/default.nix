@@ -21,7 +21,8 @@ in
     programs.gh = {
       enable = true;
       settings = {
-        git_protocol = "ssh";
+        # Default to ssh; keyless accounts (e.g. the agent) override to https.
+        git_protocol = mkDefault "ssh";
       };
     };
 

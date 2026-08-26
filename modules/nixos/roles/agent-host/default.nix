@@ -73,6 +73,23 @@ in
       home.sessionVariables = mkIf sopsEnabled {
         GITHUB_TOKEN = "$(cat ${config.sops.secrets.${tokenSecret}.path})";
       };
+
+      # The keyless agent clones/pushes over HTTPS (roles.agent rewrites ssh
+      # remotes). home-manager's gh integration normally registers
+      # `gh auth git-credential`, but that only works when gh finds GITHUB_TOKEN
+      # in the environment — which is absent in non-interactive SSH sessions
+      # (hm-session-vars is never sourced there). Replace it with a helper that
+      # reads the SOPS token straight from its file, so auth works in every
+      # context. The leading empty entry clears the inherited helper list.
+      programs.gh.gitCredentialHelper.enable = mkIf sopsEnabled false;
+      programs.git.settings.credential = mkIf sopsEnabled {
+        "https://github.com".helper = [
+          ""
+          ''!f() { echo "username=x-access-token"; echo "password=$(cat ${
+            config.sops.secrets.${tokenSecret}.path
+          })"; }; f''
+        ];
+      };
     };
   };
 }
