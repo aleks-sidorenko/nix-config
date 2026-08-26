@@ -157,11 +157,11 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (systemd-boot + ESP), so the post-install reboot lands in BIOS with *"cannot
 > read from boot medium"*. Power-cycle the VM into EFI once (its VirtualBox UUID
 > is in `.vagrant/machines/vm/virtualbox/id`):
-> ```bash
-> id=$(cat systems/x86_64-linux/vm/.vagrant/machines/vm/virtualbox/id)
-> VBoxManage controlvm "$id" poweroff        # if stuck at the BIOS boot screen
-> VBoxManage modifyvm  "$id" --firmware efi
-> VBoxManage startvm   "$id" --type headless
+> ```fish
+> set id (cat systems/x86_64-linux/vm/.vagrant/machines/vm/virtualbox/id)
+> VBoxManage controlvm $id poweroff        # if stuck at the BIOS boot screen
+> VBoxManage modifyvm  $id --firmware efi
+> VBoxManage startvm   $id --type headless
 > ```
 > systemd-boot's removable fallback (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
 >
@@ -268,7 +268,7 @@ and prints the result while it waits, in the exact form to paste into
 ```
 
 Copy that `age1…` value. To derive it manually at any time, run (after
-`export KEYSDIR=…` from the recipe output — see [Step 6](#step-6--deploy)):
+`set -x KEYSDIR …` from the recipe output — see [Step 6](#step-6--deploy)):
 
 ```bash
 ssh-to-age -i "$KEYSDIR/extra/persist/etc/ssh/ssh_host_ed25519_key.pub"
@@ -353,8 +353,8 @@ just bootstrap vm vagrant                                  # testing VM (Vagrant
 
 Reuse the keys directory printed by Step 4:
 
-```bash
-export KEYSDIR=/tmp/tmp.XXXXXXXX        # path from bootstrap-secrets output
+```fish
+set -x KEYSDIR /tmp/tmp.XXXXXXXX        # path from bootstrap-secrets output
 just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]
 ```
 
