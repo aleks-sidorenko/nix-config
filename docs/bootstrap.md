@@ -155,15 +155,9 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > **After install, switch firmware to UEFI.** The Vagrant box boots legacy BIOS
 > (fine for the install), but the installed NixOS only has a UEFI bootloader
 > (systemd-boot + ESP), so the post-install reboot lands in BIOS with *"cannot
-> read from boot medium"*. Power-cycle the VM into EFI once (its VirtualBox UUID
-> is in `.vagrant/machines/vm/virtualbox/id`):
-> ```fish
-> set id (cat systems/x86_64-linux/vm/.vagrant/machines/vm/virtualbox/id)
-> VBoxManage controlvm $id poweroff        # if stuck at the BIOS boot screen
-> VBoxManage modifyvm  $id --firmware efi
-> VBoxManage startvm   $id --type headless
-> ```
-> systemd-boot's removable fallback (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
+> read from boot medium"*. Run **`just vm-uefi`** once — it power-cycles the VM
+> into EFI firmware, and systemd-boot's removable fallback
+> (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
 >
 > **Steady state.** Delete the throwaway `~/.ssh/config.local` alias — the
 > installed VM is now a first-class host on the LAN, so `ssh vm` and

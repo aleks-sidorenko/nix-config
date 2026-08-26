@@ -15,7 +15,7 @@ bootstrap-secrets hostname disk_password="":
         KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
     echo "✅ Keys directory: $KEYSDIR"; \
-    echo "💡 To use in next command: export KEYSDIR=$KEYSDIR"
+    echo "💡 To use in next command: set -x KEYSDIR $KEYSDIR"
 
 # Deploy using existing keys directory (Step 2 of bootstrap process)
 bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts="":
@@ -138,6 +138,11 @@ iso-write device:
 
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
+
+# Power-cycle the Vagrant test VM into UEFI firmware (run once after `just bootstrap vm ...`).
+# The box boots legacy BIOS for the install; the installed NixOS needs UEFI (systemd-boot).
+vm-uefi:
+    @scripts/vm-uefi.sh
 
 # Update flake inputs (optionally a single input)
 update *input:
@@ -278,7 +283,7 @@ bootstrap-help:
     @echo "  1. Complete bootstrap (recommended): just bootstrap <hostname> [username] [disk_password] [options...]"
     @echo "  2. Two-step process for advanced control:"
     @echo "     Step 1: just bootstrap-secrets <hostname> [disk_password]"
-    @echo "     Step 2: export KEYSDIR=<path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
+    @echo "     Step 2: set -x KEYSDIR <path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
     @echo "  3. Raspberry Pi firmware only: just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]"
     @echo ""
     @echo "Usage:"
@@ -306,7 +311,7 @@ bootstrap-help:
     @echo "  just bootstrap myserver                                    # Complete bootstrap with current user"
     @echo "  just bootstrap myserver alexander                          # Complete bootstrap with specific user"
     @echo "  just bootstrap myserver alexander MyPassword123            # Complete bootstrap with disk encryption"
-    @echo "  export KEYSDIR=/tmp/keysXXX && just bootstrap myserver     # Use existing keys directory"
+    @echo "  set -x KEYSDIR /tmp/keysXXX && just bootstrap myserver     # Use existing keys directory"
     @echo ""
     @echo "Raspberry Pi firmware examples:"
     @echo "  just bootstrap-rpi-firmware myrpi                          # Install firmware with defaults"
@@ -315,20 +320,20 @@ bootstrap-help:
     @echo ""
     @echo "Two-step examples:"
     @echo "  just bootstrap-secrets myserver                            # Step 1: Prepare secrets"
-    @echo "  export KEYSDIR=/tmp/keysXXX                                # Export the path from step 1"
+    @echo "  set -x KEYSDIR /tmp/keysXXX                                # Export the path from step 1"
     @echo "  just bootstrap-deploy myserver alexander                   # Step 2: Deploy using KEYSDIR"
     @echo ""
     @echo "Examples with nixos-anywhere options:"
     @echo "  just bootstrap myserver alexander --build-on-remote        # Complete bootstrap with options"
     @echo "  just bootstrap myserver alexander --phases disko           # Complete bootstrap, disko phase only"
-    @echo "  export KEYSDIR=/tmp/keysXXX                                # For two-step process"
+    @echo "  set -x KEYSDIR /tmp/keysXXX                                # For two-step process"
     @echo "  just bootstrap-deploy myserver alexander --build-on-remote # Two-step: deploy with options"
     @echo ""
     @echo "Complete bootstrap recipes:"
     @echo "  just bootstrap myserver                                    # Complete process with current user"
     @echo "  just bootstrap myserver alexander                          # Complete process with specific user"
     @echo "  just bootstrap myserver alexander mypassword               # Complete process with disk encryption"
-    @echo "  export KEYSDIR=/tmp/keysXXX && just bootstrap myserver     # Use existing keys, skip secrets generation"
+    @echo "  set -x KEYSDIR /tmp/keysXXX && just bootstrap myserver     # Use existing keys, skip secrets generation"
     @echo "  just bootstrap myserver alexander mypassword --build-on-remote # Complete with options"
     @echo ""
     @echo "Common nixos-anywhere options:"
