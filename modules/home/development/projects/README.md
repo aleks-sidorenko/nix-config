@@ -47,12 +47,11 @@ to `self/` via the rule above.)
 
 | Command | Action |
 | --- | --- |
-| `pj [query]` | fuzzy-jump to a `<org>/<repo>` checkout |
-| `pjo [query]` | fuzzy-jump to an `<org>` directory |
-| `pja [query]` | fuzzy-jump to an archived `<org>/<repo>` |
-| `pget <owner>/<repo>\|<url>` | clone into the derived path (own accounts → `self/`) and `cd` in |
-| `parch` | move the current project to `_archive/<org>/<repo>` |
-| `punarch` | move the current archived project back to `<org>/<repo>` |
+| `prj [-a] [query]` | fuzzy-jump to a `<org>/<repo>` checkout (`-a` searches `_archive`) |
+| `prjo [query]` | fuzzy-jump to an `<org>` directory |
+| `prjget <owner>/<repo>\|<url>` | clone into the derived path (own accounts → `self/`) and `cd` in |
+| `prjarch` | move the current project to `_archive/<org>/<repo>` |
+| `prjunarch` | move the current archived project back to `<org>/<repo>` |
 
 ## Environment
 

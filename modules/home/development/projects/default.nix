@@ -33,20 +33,34 @@ in
     };
 
     programs.fish.functions = mkIf fishEnabled {
-      pj = {
-        description = "Jump to a project (<org>/<repo>) under $PROJECTS_HOME";
+      prj = {
+        description = "Jump to a project (<org>/<repo>); -a searches $PROJECTS_ARCHIVE";
         body = ''
-          set -l dir (
-            command find "$PROJECTS_HOME" -mindepth 2 -maxdepth 2 -type d \
-              -not -path "$PROJECTS_ARCHIVE/*" 2>/dev/null \
-            | string replace "$PROJECTS_HOME/" "" \
-            | fzf --query "$argv" --select-1 --exit-0
-          )
-          and cd "$PROJECTS_HOME/$dir"
+          argparse a/archive -- $argv; or return 1
+          set -l base $PROJECTS_HOME
+          set -l dir
+          if set -q _flag_archive
+            set base $PROJECTS_ARCHIVE
+            set dir (
+              command find "$PROJECTS_ARCHIVE" -mindepth 2 -maxdepth 2 -type d 2>/dev/null \
+              | string replace "$PROJECTS_ARCHIVE/" "" \
+              | fzf --query "$argv" --select-1 --exit-0
+            )
+          else
+            set dir (
+              command find "$PROJECTS_HOME" -mindepth 2 -maxdepth 2 -type d \
+                -not -path "$PROJECTS_ARCHIVE/*" 2>/dev/null \
+              | string replace "$PROJECTS_HOME/" "" \
+              | fzf --query "$argv" --select-1 --exit-0
+            )
+          end
+          if test -n "$dir"
+            cd "$base/$dir"
+          end
         '';
       };
 
-      pjo = {
+      prjo = {
         description = "Jump to an org directory under $PROJECTS_HOME";
         body = ''
           set -l org (
@@ -59,24 +73,12 @@ in
         '';
       };
 
-      pja = {
-        description = "Jump to an archived project (<org>/<repo>) under $PROJECTS_ARCHIVE";
-        body = ''
-          set -l dir (
-            command find "$PROJECTS_ARCHIVE" -mindepth 2 -maxdepth 2 -type d 2>/dev/null \
-            | string replace "$PROJECTS_ARCHIVE/" "" \
-            | fzf --query "$argv" --select-1 --exit-0
-          )
-          and cd "$PROJECTS_ARCHIVE/$dir"
-        '';
-      };
-
-      pget = {
+      prjget = {
         description = "Clone a GitHub repo into $PROJECTS_HOME/<org>/<repo> and cd in";
         body = ''
           set -l spec $argv[1]
           if test -z "$spec"
-            echo "usage: pget <owner>/<repo> | <github-url>" >&2
+            echo "usage: prjget <owner>/<repo> | <github-url>" >&2
             return 1
           end
 
@@ -85,7 +87,7 @@ in
           set slug (string replace -r '\.git$' "" -- $slug)
           set -l parts (string split "/" -- $slug)
           if test (count $parts) -lt 2
-            echo "pget: expected <owner>/<repo>, got '$spec'" >&2
+            echo "prjget: expected <owner>/<repo>, got '$spec'" >&2
             return 1
           end
           set -l owner $parts[1]
@@ -107,13 +109,13 @@ in
         '';
       };
 
-      parch = {
+      prjarch = {
         description = "Archive the current project: move <org>/<repo> to $PROJECTS_ARCHIVE";
         body = ''
           set -l root (command git rev-parse --show-toplevel 2>/dev/null; or pwd)
           set -l rel (string replace "$PROJECTS_HOME/" "" -- $root)
           if test (count (string split "/" -- $rel)) -ne 2
-            echo "parch: not in an <org>/<repo> project under \$PROJECTS_HOME: $root" >&2
+            echo "prjarch: not in an <org>/<repo> project under \$PROJECTS_HOME: $root" >&2
             return 1
           end
           set -l dest "$PROJECTS_ARCHIVE/$rel"
@@ -124,13 +126,13 @@ in
         '';
       };
 
-      punarch = {
+      prjunarch = {
         description = "Unarchive the current project back to $PROJECTS_HOME/<org>/<repo>";
         body = ''
           set -l root (pwd)
           set -l rel (string replace "$PROJECTS_ARCHIVE/" "" -- $root)
           if test (count (string split "/" -- $rel)) -ne 2
-            echo "punarch: not in an <org>/<repo> project under \$PROJECTS_ARCHIVE: $root" >&2
+            echo "prjunarch: not in an <org>/<repo> project under \$PROJECTS_ARCHIVE: $root" >&2
             return 1
           end
           set -l dest "$PROJECTS_HOME/$rel"
