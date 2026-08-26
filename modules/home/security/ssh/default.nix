@@ -41,6 +41,12 @@ in
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
+
+      # Source a user-writable file first so throwaway host aliases (test VMs,
+      # un-reserved hosts during bootstrap) can be added without touching this
+      # nix-managed, read-only config. First match wins, so these override "*".
+      includes = [ "config.local" ];
+
       matchBlocks = {
 
         "*" = {

@@ -14,7 +14,7 @@ decrypts user passwords and other secrets at boot (see
 ```
 1. Define the host in the flake        (systems/…, homes/…, users)
 2. Prepare your local machine          (tools: pass, nix, ssh, nixos-anywhere)
-3. Boot the target                     (installer ISO, verify SSH, capture disks + hardware)
+3. Boot the target                     (installer ISO — or Vagrant for a VM — verify SSH, capture disks + hardware)
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
 6. Deploy                              (bootstrap / bootstrap-deploy + disko)
@@ -125,11 +125,44 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4).
 
-> **VM (testing):** provision with Vagrant instead of an ISO:
+> **VM (testing):** provision with [Vagrant](https://www.vagrantup.com/) instead
+> of building/booting an ISO. The VirtualBox provider is enabled by the `desktop`
+> role, so run this **on the desktop** (from `systems/x86_64-linux/vm/`).
+>
+> The VM is wired like a physical host: `lib/defaults` reserves `vm = 10.0.0.64`,
+> `infra/router/hosts.nix` gives it a static DHCP lease keyed by MAC
+> (`08:00:27:00:00:64`), and the Vagrantfile bridges onto the LAN (`eno1`) with
+> that MAC. **One-time prerequisites:** apply the router config (`just router-*`)
+> so the lease exists, and `nh os switch` on the machines you deploy from so their
+> `/etc/hosts` learns `vm → 10.0.0.64`.
+>
 > ```bash
 > vagrant up
-> vagrant ssh-config >> .ssh.config
 > ```
+>
+> **Install phase (over Vagrant's NAT).** Vagrant's passwordless SSH runs on its
+> NAT adapter with the box's `vagrant` key, so bootstrap connects that way — not
+> over the bridge yet. Add a throwaway alias and bootstrap as `vagrant`:
+> ```bash
+> vagrant ssh-config >> ~/.ssh/config.local   # Host vm → 127.0.0.1:<nat-port>, User vagrant
+> just bootstrap vm vagrant
+> ```
+> The VM is **not** exempt from SOPS: with the default `alexander` account its
+> `user-alexander-password` is `neededForUsers`, so the VM must be a SOPS
+> recipient (Steps 4–5) to boot with a working login. The ISO build, FIDO2, and
+> RPi steps do **not** apply.
+>
+> **After install, switch firmware to UEFI.** The Vagrant box boots legacy BIOS
+> (fine for the install), but the installed NixOS only has a UEFI bootloader
+> (systemd-boot + ESP), so the post-install reboot lands in BIOS with *"cannot
+> read from boot medium"*. Run **`just vm-uefi`** once — it power-cycles the VM
+> into EFI firmware, and systemd-boot's removable fallback
+> (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
+>
+> **Steady state.** Delete the throwaway `~/.ssh/config.local` alias — the
+> installed VM is now a first-class host on the LAN, so `ssh vm` and
+> `just deploy vm` reach it as your user on port 22 via `/etc/hosts` (`10.0.0.64`),
+> exactly like `desktop` or `server`.
 
 ### Verify connectivity
 
@@ -229,7 +262,7 @@ and prints the result while it waits, in the exact form to paste into
 ```
 
 Copy that `age1…` value. To derive it manually at any time, run (after
-`export KEYSDIR=…` from the recipe output — see [Step 6](#step-6--deploy)):
+`set -x KEYSDIR …` from the recipe output — see [Step 6](#step-6--deploy)):
 
 ```bash
 ssh-to-age -i "$KEYSDIR/extra/persist/etc/ssh/ssh_host_ed25519_key.pub"
@@ -307,14 +340,15 @@ Examples (connect as the installer's `nixos` user — see the note in
 just bootstrap myserver nixos                              # no disk encryption
 just bootstrap myserver nixos "" --build-on-remote         # build on the target
 just bootstrap myserver nixos MyPassword123                # with LUKS disk encryption
+just bootstrap vm vagrant                                  # testing VM (Vagrant, connect as vagrant)
 ```
 
 ### Two-step (if you already ran `bootstrap-secrets`)
 
 Reuse the keys directory printed by Step 4:
 
-```bash
-export KEYSDIR=/tmp/tmp.XXXXXXXX        # path from bootstrap-secrets output
+```fish
+set -x KEYSDIR /tmp/tmp.XXXXXXXX        # path from bootstrap-secrets output
 just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]
 ```
 
@@ -354,7 +388,9 @@ works from your workstation even though the fresh installer only knows itself as
 `defaults.network.hosts`), or you deploy from a machine without those static
 hosts, `<hostname>` won't resolve. Since the script reuses `<hostname>` for both
 the flake attr *and* the SSH address, point the name at the real IP just for the
-deploy — a throwaway `~/.ssh/config` alias is cleanest:
+deploy — a throwaway alias is cleanest. The managed `~/.ssh/config` is a
+read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
+`Include`s (see `modules/home/security/ssh`):
 
 ```
 Host homebook
@@ -364,6 +400,11 @@ Host homebook
 
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
+
+The **VM** has a reserved lease (`vm → 10.0.0.64`) just like a physical host, so
+its installed system resolves normally. Only its *install phase* needs the
+throwaway-alias trick, because Vagrant's bootstrap SSH runs over NAT with the
+box's key — see the VM note in [Step 3](#step-3--boot-the-target).
 
 ## Step 7 — Post-installation
 

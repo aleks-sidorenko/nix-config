@@ -125,6 +125,13 @@ in
     dns = false;
     aliases = [ ];
   };
+  vm = {
+    ip = ips.vm;
+    mac = "08:00:27:00:00:64";
+    comment = "Test VM";
+    dns = false;
+    aliases = [ ];
+  };
   ipad = {
     ip = ips.ipad;
     # iOS private/per-network Wi-Fi MAC (randomization left on; stable for this

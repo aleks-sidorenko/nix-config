@@ -24,6 +24,7 @@ keys:
     - &server age1qap92qp262npfhtqwwccu7jaxmjfyc22aeqwu5fv2kft828eaypqjzxx86
     - &workbook age123w5drucfk50cvw26lt6mrhhnmrdjshg7waqsp4ufnm69ujc04gqhu4h3r
     - &homebook age1wp0s79lec46vutqseazpm8m23uvn2qlpa49p8kpefuvt0v7agqwqeh3n3u
+    - &vm age1wfx3942t957wq5e62wp5t7zf6qm2mwunusz62q4rgs0x62mr3sgqr20gp9
 
 creation_rules:
   - path_regex: modules/nixos/secrets.ya?ml$
@@ -34,6 +35,7 @@ creation_rules:
           - *desktop
           - *server
           - *homebook
+          - *vm
 
   - path_regex: modules/home/secrets.ya?ml$
     key_groups:
@@ -43,6 +45,7 @@ creation_rules:
           - *desktop
           - *workbook
           - *homebook
+          - *vm
 
   - path_regex: modules/darwin/secrets.ya?ml$
     key_groups:

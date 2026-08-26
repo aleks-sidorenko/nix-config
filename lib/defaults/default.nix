@@ -53,6 +53,7 @@ _: rec {
         desktop = "10.0.0.61";
         workbook = "10.0.0.62";
         homebook = "10.0.0.63";
+        vm = "10.0.0.64";
         ipad = "10.0.0.70";
       };
       domains = {

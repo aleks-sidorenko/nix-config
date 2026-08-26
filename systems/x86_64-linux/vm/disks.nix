@@ -13,6 +13,7 @@ with lib.${namespace};
       disks = {
         root = {
           device = "/dev/sda";
+          encrypted = false;
           boot = {
             size = "512M";
           };
