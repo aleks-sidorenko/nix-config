@@ -17,33 +17,26 @@ in
   config = mkIf cfg.enable {
     ${namespace} = {
       # Inherit common configuration
-      roles.common = {
-        enable = true;
-        homebrew = {
-          taps = [
-            "akeylesslabs/tap" # Akeyless CLI tap
-          ];
-          brews = [
-            "mas" # Mac App Store CLI
-            "akeyless" # Akeyless secrets management CLI
-          ];
-          casks = [
-            "raycast" # Spotlight replacement
-          ];
+      roles = {
+        common = {
+          homebrew = {
+            taps = [
+              "akeylesslabs/tap" # Akeyless CLI tap
+            ];
+            brews = [
+              "akeyless" # Akeyless secrets management CLI
+            ];
+            casks = [
+            ];
+          };
         };
-      };
 
-      desktops.aerospace = enabled;
+        macbook = enabled;
+      };
 
       communication = {
-        viber = enabled;
-        telegram = enabled;
         zoom = enabled;
         slack = enabled;
-      };
-
-      browsers = {
-        chromium = enabled;
       };
 
       # Virtualisation

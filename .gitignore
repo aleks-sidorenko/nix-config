@@ -2,6 +2,9 @@ result
 .direnv
 *.rsc
 
+# Darwin
+.DS_Store
+
 # terraform
 .terraform
 .terraform.*

@@ -43,7 +43,8 @@ in
       inherit (cfg) knownNetworkServices;
 
       dns = [
-        defaults.network.gateway
+        "1.1.1.1"
+	"8.8.8.8"
       ];
 
       search = [
