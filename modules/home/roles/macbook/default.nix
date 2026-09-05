@@ -37,7 +37,7 @@ in
             haskell = true;
             typescript = true;
           };
-         
+
           testing = {
             testcontainers = false;
           };

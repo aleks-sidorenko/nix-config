@@ -36,7 +36,6 @@ with lib.${namespace};
       enable = true;
     };
 
-
     styles.stylix.wallpaper = "earth";
   };
 
