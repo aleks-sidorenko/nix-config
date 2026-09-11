@@ -43,6 +43,12 @@ bootstrap hostname username="$USER" disk_password="" *extra_opts="":
     echo "🚀 Proceeding with deployment..."; \
     ./scripts/bootstrap/bootstrap-deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{extra_opts}}
 
+# Bootstrap a fresh macOS (nix-darwin) host — run ON the target Mac
+# Usage: just bootstrap-darwin <hostname>   (e.g. just bootstrap-darwin workbook)
+bootstrap-darwin hostname:
+    @echo "🍎 Bootstrapping macOS host {{hostname}}..."
+    ./scripts/bootstrap/bootstrap-darwin.sh "{{hostname}}"
+
 # Bootstrap Raspberry Pi firmware via SSH
 bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version="v1.42":
     @echo "🥧 Bootstrapping Raspberry Pi firmware on {{username}}@{{hostname}}..."
@@ -273,6 +279,7 @@ bootstrap-validate:
     shellcheck scripts/bootstrap/bootstrap-secrets.sh
     shellcheck scripts/bootstrap/bootstrap-deploy.sh
     shellcheck scripts/bootstrap/bootstrap-rpi-firmware.sh
+    shellcheck scripts/bootstrap/bootstrap-darwin.sh
     @echo "✅ Bootstrap scripts validation passed"
 
 # Show bootstrap script help
@@ -285,6 +292,7 @@ bootstrap-help:
     @echo "     Step 1: just bootstrap-secrets <hostname> [disk_password]"
     @echo "     Step 2: set -x KEYSDIR <path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
     @echo "  3. Raspberry Pi firmware only: just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]"
+    @echo "  4. macOS host (run ON the Mac): just bootstrap-darwin <hostname>"
     @echo ""
     @echo "Usage:"
     @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [extra_opts...]"

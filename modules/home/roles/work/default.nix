@@ -25,19 +25,16 @@ in
 
     ${namespace} = {
       roles = {
-        common = enabled; # Reuse common CLI tools
+        # The macbook role is the base for any Mac: it owns the terminal,
+        # browser, aerospace and the baseline dev toolchain. The work role only
+        # layers work-specific extras on top.
+        macbook = enabled;
 
+        # Work-specific additions to the baseline development toolchain.
         development = {
-          enable = true;
-          ai = {
-            claude-code = true;
-            copilot = false;
-          };
           languages = {
             scala = true;
             java = true;
-            haskell = true;
-            typescript = true;
           };
           editors = {
             idea = true;
@@ -48,20 +45,9 @@ in
           database = {
             mysql = true;
           };
-          testing = {
-            testcontainers = false;
-          };
         };
 
         router = enabled;
-      };
-
-      desktops.aerospace = enabled;
-
-      cli.tools.git.lfs = true;
-
-      browsers = {
-        chrome.enable = true;
       };
 
       services = {

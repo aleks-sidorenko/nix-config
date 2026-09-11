@@ -73,17 +73,6 @@ check_prerequisites() {
     log_success "Prerequisites check passed"
 }
 
-# Derive the age recipient from an SSH ed25519 public key file.
-pubkey_to_age() {
-    local pubfile="$1"
-
-    if command_exists ssh-to-age; then
-        ssh-to-age -i "$pubfile" 2>/dev/null
-    else
-        nix-shell -p ssh-to-age --run "ssh-to-age -i '$pubfile'" 2>/dev/null
-    fi
-}
-
 # Pre-flight guard: the host key we are about to deploy must be the one
 # registered as a SOPS recipient in .sops.yaml. If it is not, the installed host
 # boots unable to decrypt its own secrets — user passwords never materialize, so

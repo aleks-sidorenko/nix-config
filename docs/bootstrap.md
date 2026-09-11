@@ -4,6 +4,10 @@ This guide walks through installing NixOS on a **new host** from start to finish
 using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and the
 bootstrap scripts in this repository.
 
+> **Bootstrapping a Mac?** macOS can't be installed with nixos-anywhere — it uses
+> a different, run-on-the-machine flow. Jump to
+> [macOS (nix-darwin) bootstrap](#macos-nix-darwin-bootstrap).
+
 Follow the steps **in order** — each one depends on the previous. In particular,
 the host must become a SOPS recipient *before* you deploy, because the system
 decrypts user passwords and other secrets at boot (see
@@ -445,6 +449,158 @@ nh os switch                           # local rebuild (on the host itself)
 
 ---
 
+## macOS (nix-darwin) bootstrap
+
+macOS hosts (`workbook`, `tempbook`) are **not** installed with nixos-anywhere —
+there is no kexec/netboot install phase for macOS. Instead you start from a
+stock macOS install and run the bootstrap **on the Mac itself**. The
+[`bootstrap-darwin`](../scripts/bootstrap/bootstrap-darwin.sh) script automates
+every step that can be automated and pauses at the one manual gate (registering
+the host with SOPS).
+
+### The flow at a glance
+
+```
+1. Define the host in the flake     (systems/<arch>-darwin/…, homes/…, users)
+2. On the Mac: clone the config, enable Remote Login (for the SSH host key)
+3. Run `just bootstrap-darwin <hostname>`
+     ├─ Xcode Command Line Tools (git + toolchain)
+     ├─ Homebrew                    (nix-darwin manages the Brewfile, not brew itself)
+     ├─ Nix                         (Determinate installer, upstream Nix)
+     ├─ Register host with SOPS      (pauses — add age key to .sops.yaml)
+     ├─ Trust third-party brew taps  (akeylesslabs/tap, nikitabobko/tap)
+     └─ First `darwin-rebuild switch`
+4. Post-install                     (import GPG key, clone pass store)
+```
+
+### Step 1 — Define the host in the flake
+
+Same model as NixOS, minus disks/hardware. Create
+`systems/<arch>-darwin/<hostname>/default.nix` (Apple Silicon is
+`aarch64-darwin`; Intel is `x86_64-darwin`) selecting a role and declaring the
+**already-existing** macOS account as primary (nix-darwin configures the primary
+account but does not create it — macOS/MDM owns account creation):
+
+```nix
+{ lib, namespace, ... }:
+with lib;
+with lib.${namespace};
+{
+  ${namespace} = {
+    roles.work = enabled;                       # common + macbook + dev + browsers
+    users.<macos-login> = { primary = true; admin = true; };
+    system.networking.knownNetworkServices = [ "Wi-Fi" ];
+  };
+  system.stateVersion = 5;
+}
+```
+
+Add a home under `homes/<arch>-darwin/<login>@<hostname>/`. Confirm it evaluates:
+
+```bash
+just list-configs darwin       # <hostname> should appear
+```
+
+### Step 2 — Prepare the Mac
+
+On the target Mac:
+
+```bash
+# Clone the config somewhere stable
+git clone https://github.com/aleks-sidorenko/nix-config ~/.nix-config
+cd ~/.nix-config
+
+# The SOPS host key is macOS's SSH host key; Remote Login ensures it exists.
+sudo systemsetup -setremotelogin on
+```
+
+### Step 3 — Run the bootstrap
+
+```bash
+just bootstrap-darwin <hostname>          # e.g. just bootstrap-darwin workbook
+```
+
+What it does, idempotently (safe to re-run):
+
+1. **Xcode Command Line Tools** — installs them if missing (launches Apple's GUI
+   installer the first time; re-run the command once it finishes).
+2. **Homebrew** — installs it. nix-darwin's `homebrew` module manages the
+   *Brewfile* declaratively but requires `brew` to already exist.
+3. **Nix** — installs via the
+   [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
+   in **upstream mode** (vanilla Nix, no `--determinate` flag). See
+   [Nix on macOS: daemon vs Determinate](#nix-on-macos-daemon-vs-determinate).
+4. **Register the host with SOPS** — derives the host's age key from
+   `/etc/ssh/ssh_host_ed25519_key.pub` (via `ssh-to-age`), prints the line to add
+   to `.sops.yaml`, and **pauses**. Add it under the anchors *and* the darwin
+   (and home) creation rules, then `sops updatekeys modules/darwin/secrets.yaml`
+   and `sops updatekeys modules/home/secrets.yaml`, then press Enter. This must
+   happen before the first switch — activation decrypts the GitHub token. (Set
+   `AUTO_APPROVE=1` to skip the pause once you've scripted the edit.)
+5. **Trust third-party Homebrew taps** — recent Homebrew refuses formulae from
+   untrusted taps (e.g. the `akeyless` error:
+   *"Refusing to load formula akeylesslabs/tap/akeyless from untrusted tap"*).
+   The script reads the taps declared in the flake and runs `brew trust` on each
+   so the first `brew bundle` during activation doesn't abort.
+6. **First switch** — `sudo nix run nix-darwin/master#darwin-rebuild -- switch
+   --flake .#<hostname>`.
+
+### Step 4 — Post-installation
+
+- **GPG / pass.** The public identity is declarative
+   (`identities/<name>/`), but the **private** GPG key is imported out-of-band,
+   exactly as on NixOS. Import it, then the `pass` store just works:
+
+   ```bash
+   gpg --import <your-private-key.asc>          # or restore from a backup
+   pass git clone <your-password-store-remote>  # if not already present
+   ```
+
+   > **`pass` comes from Nix, not Homebrew.** `pass` (with the `pass-otp`,
+   > `pass-file`, `pass-import` extensions) is installed by the home `common`
+   > role. **Do not `brew install pass`** — Homebrew's `cleanup = "zap"` would
+   > later uninstall any manually-added formula, and a stray brew `pass` on
+   > `PATH` can shadow the Nix one. The Nix `pass` is the single source of truth.
+
+- **Open a fresh shell** so fish and the Nix profile are active.
+
+### Subsequent updates
+
+Just like NixOS, from the Mac:
+
+```bash
+nh os switch                    # rebuild + switch (uses hostname)
+darwin-rebuild switch --flake .#<hostname>   # equivalent, explicit
+```
+
+### Nix on macOS: daemon vs Determinate
+
+Issue [#204](https://github.com/aleks-sidorenko/nix-config/issues/204) asks which
+Nix to run on macOS. There are two realistic choices:
+
+| | **Upstream Nix, daemon managed by nix-darwin** *(current)* | **Determinate Nix** |
+|---|---|---|
+| Install | Determinate *installer* in upstream mode, or official installer | Determinate installer with `--determinate` |
+| `nix.enable` | `true` — nix-darwin owns `nix.conf` + the daemon | must be `false` — `determinate-nixd` owns them |
+| macOS major upgrades | daemon/`_nixbld` users can break; re-run the installer to repair | handled automatically by `determinate-nixd` |
+| Config model | **one model across the whole fleet** (NixOS hosts use the same daemon) | macOS diverges from the Linux hosts |
+| Extras | none | flakes-on by default, `determinate-nixd login`, lazy-trees |
+| Lock-in | none (vanilla Nix) | vendor daemon layer |
+
+**Recommendation: stay on upstream Nix with the daemon managed by nix-darwin.**
+This repo already manages `nix.conf` and the daemon declaratively through
+`nix.enable = true` and shares that exact model with every NixOS host — one
+mental model, no vendor layer, and switching to Determinate would mean
+`nix.enable = false` plus adopting the `determinate-nix-darwin` module. The main
+thing Determinate buys you — surviving macOS *major* upgrades that wipe the
+daemon — is a rare, recoverable event (re-run the installer). Using the
+**Determinate _installer_ in upstream mode** (what `bootstrap-darwin` does) gives
+the best of both: a far more robust macOS install/uninstall than the legacy
+official installer, while still plain upstream Nix that nix-darwin manages.
+Revisit Determinate only if macOS-upgrade breakage becomes a recurring pain.
+
+---
+
 ## Adding a user to an existing host
 
 Hosts can carry several accounts (e.g. `homebook` has `alexander` and `dima`).
@@ -560,6 +716,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 |---------|-------------|
 | `just bootstrap <host> [user] [disk_pw] [opts]` | Complete bootstrap (secrets + deploy) |
 | `just bootstrap-secrets <host> [disk_pw]` | Generate SSH/age keys only |
+| `just bootstrap-darwin <host>` | Bootstrap a macOS host (run on the Mac) |
 | `just bootstrap-deploy <host> [user] [keysdir] [opts]` | Deploy using existing keys |
 | `just bootstrap-disk <host>` | Preview disk formatting (dry-run) |
 | `just bootstrap-disk <host> --apply` | Format disks with disko |

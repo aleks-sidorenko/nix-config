@@ -12,6 +12,9 @@ in
 {
   options.${namespace}.system.defaults = with types; {
     enable = mkBoolOpt false "Whether to manage Darwin (macOS) defaults (MDM may override)";
+    dock.apps =
+      mkOpt (listOf str) [ ]
+        "Absolute app paths to pin in the Dock (replaces the macOS default set); empty leaves the Dock untouched";
   };
 
   config = mkIf cfg.enable {
@@ -22,6 +25,10 @@ in
         mru-spaces = false;
         show-recents = false;
         tilesize = 48;
+        # When a curated app list is given, it fully replaces the default
+        # Dock (Launchpad, Safari, Mail, …). Left null when empty so we don't
+        # wipe a user-arranged Dock on hosts that don't opt in.
+        persistent-apps = mkIf (cfg.dock.apps != [ ]) cfg.dock.apps;
       };
       finder = {
         AppleShowAllExtensions = true;
@@ -35,6 +42,7 @@ in
         TrackpadThreeFingerDrag = true;
       };
       NSGlobalDomain = {
+        AppleInterfaceStyle = "Dark";
         AppleShowAllExtensions = true;
         InitialKeyRepeat = 15;
         KeyRepeat = 2;
