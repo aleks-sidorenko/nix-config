@@ -16,6 +16,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace} = {
+      # Append the work-specific app to the Dock (Ghostty + Chrome come from the
+      # macbook role); mkAfter keeps Slack last.
+      system.defaults.dock.apps = mkAfter [ "/Applications/Slack.app" ];
+
       # Inherit common configuration
       roles = {
         common = {

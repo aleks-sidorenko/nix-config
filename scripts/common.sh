@@ -43,6 +43,22 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Derive the age recipient from an SSH ed25519 public key file. Shared by the
+# NixOS and macOS bootstrap paths so both register SOPS recipients the same way.
+# Prefers an installed ssh-to-age, then the flake registry (works on a fresh
+# Determinate-Nix Mac with no <nixpkgs> channel), then classic nix-shell.
+pubkey_to_age() {
+    local pubfile="$1"
+
+    if command_exists ssh-to-age; then
+        ssh-to-age -i "$pubfile" 2>/dev/null
+    elif command_exists nix; then
+        nix run nixpkgs#ssh-to-age -- -i "$pubfile" 2>/dev/null
+    else
+        nix-shell -p ssh-to-age --run "ssh-to-age -i '$pubfile'" 2>/dev/null
+    fi
+}
+
 # Function to check if we're in a nix flake directory
 check_flake_directory() {
     if [[ ! -f "flake.nix" ]]; then
@@ -54,7 +70,8 @@ check_flake_directory() {
 # Function to set FLAKE_DIR if not already set
 setup_flake_dir() {
     if [[ -z "${FLAKE_DIR:-}" ]]; then
-        export FLAKE_DIR="$(pwd)"
+        FLAKE_DIR="$(pwd)"
+        export FLAKE_DIR
         log_info "FLAKE_DIR set to: $FLAKE_DIR"
     fi
 }

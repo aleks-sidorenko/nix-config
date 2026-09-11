@@ -4,6 +4,10 @@ This guide walks through installing NixOS on a **new host** from start to finish
 using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and the
 bootstrap scripts in this repository.
 
+> **Bootstrapping a Mac?** macOS can't be installed with nixos-anywhere — it uses
+> a different, run-on-the-machine flow. Jump to
+> [macOS (nix-darwin) bootstrap](#macos-nix-darwin-bootstrap).
+
 Follow the steps **in order** — each one depends on the previous. In particular,
 the host must become a SOPS recipient *before* you deploy, because the system
 decrypts user passwords and other secrets at boot (see
@@ -17,7 +21,7 @@ decrypts user passwords and other secrets at boot (see
 3. Boot the target                     (installer ISO — or Vagrant for a VM — verify SSH, capture disks + hardware)
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
-6. Deploy                              (bootstrap / bootstrap-deploy + disko)
+6. Deploy                              (bootstrap / bootstrap-deploy + disko — or on-machine disko + nixos-install)
 7. Post-install                        (FIDO2, RPi firmware, …)
 ```
 
@@ -356,6 +360,66 @@ just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]
 `/persist/etc/ssh`, installs NixOS, and reboots. If `disk.key` is present it is
 passed through as `--disk-encryption-keys`.
 
+### On-machine install (no nixos-anywhere)
+
+Use this when the target is your **only** Nix machine — a first host with no other
+box to push a build from. Everything runs **on the target**, booted into an
+installer (this flake's minimal ISO, or the stock NixOS ISO — both ship `nix`). It
+swaps only the deploy mechanism: Steps 1–5 are unchanged, you just run them here.
+Because the install is local there is no SSH addressing to arrange — the
+[addressing note below](#how-hostname-reaches-the-target-machine) applies only to
+the nixos-anywhere paths.
+
+The result is byte-for-byte the nixos-anywhere outcome: the same host key in
+`/persist/etc/ssh`, the same SOPS recipient, a normal first generation.
+
+1. **Get the flake onto the target and finalize hardware.** Clone the repo and
+   complete [Step 3 → Capture the target's disks & hardware](#capture-the-targets-disks--hardware)
+   on the machine itself, committing/pushing `disks.nix` + `hardware.nix`:
+   ```bash
+   export NIX_CONFIG='experimental-features = nix-command flakes'  # stock ISO only
+   nix shell nixpkgs#git                                           # stock ISO only
+   git clone https://github.com/aleks-sidorenko/nix-config && cd nix-config
+   ```
+
+2. **Format the disks with disko** — the very step the deploy path runs, just
+   invoked locally instead of over SSH:
+   ```bash
+   sudo nix run github:nix-community/disko -- --mode disko --flake .#<hostname>
+   ```
+   disko mounts the new filesystem at `/mnt`. A LUKS host prompts for the
+   passphrase you chose (enroll FIDO2 later —
+   [Step 7](#fido2-auto-unlock-luks-hosts-optional)).
+
+3. **Generate the host key into persisted storage and register SOPS**
+   ([Step 4](#step-4--generate-host-keys--register-with-sops)). Write the key
+   straight into `/mnt/persist/etc/ssh` — the exact spot nixos-anywhere's
+   `--extra-files` fills — so sops-nix finds it on first boot:
+   ```bash
+   sudo mkdir -p /mnt/persist/etc/ssh
+   sudo ssh-keygen -t ed25519 -N "" -C "root@<hostname>" \
+     -f /mnt/persist/etc/ssh/ssh_host_ed25519_key
+   nix run nixpkgs#ssh-to-age -- -i /mnt/persist/etc/ssh/ssh_host_ed25519_key.pub
+   ```
+   Add the printed `age1…` to `.sops.yaml` and rekey exactly as in Step 4, then add
+   the `user-<name>-password` secrets ([Step 5](#step-5--add-the-secrets-the-host-needs)).
+   `sops updatekeys` needs your operator key, so import your GPG private key on the
+   installer first (`gpg --import …`, as in the darwin
+   [post-install](#step-4--post-installation)). Commit and push.
+
+   > `bootstrap-secrets` still works here if you've set up `pass` on the installer;
+   > copy the `$KEYSDIR/extra/persist/etc/ssh/*` it produces into
+   > `/mnt/persist/etc/ssh` instead of generating the key by hand.
+
+4. **Install and reboot.** `nixos-install` builds locally (no remote builder) and
+   installs into `/mnt`; passwords come from SOPS, so skip the root prompt:
+   ```bash
+   sudo nixos-install --flake .#<hostname> --no-root-passwd
+   sudo reboot
+   ```
+
+Once it comes up, [subsequent updates](#subsequent-updates) deploy normally.
+
 ### How `<hostname>` reaches the target machine
 
 `bootstrap-deploy` uses the `<hostname>` argument **twice**:
@@ -441,6 +505,138 @@ After the initial bootstrap, deploy changes normally:
 just deploy <hostname>                 # remote deploy via deploy-rs
 just deploy <hostname> --remote-build  # build on target
 nh os switch                           # local rebuild (on the host itself)
+```
+
+---
+
+## macOS (nix-darwin) bootstrap
+
+macOS hosts (`workbook`, `tempbook`) are **not** installed with nixos-anywhere —
+there is no kexec/netboot install phase for macOS. Instead you start from a
+stock macOS install and run the bootstrap **on the Mac itself**. The
+[`bootstrap-darwin`](../scripts/bootstrap/bootstrap-darwin.sh) script automates
+every step that can be automated and pauses at the one manual gate (registering
+the host with SOPS).
+
+### The flow at a glance
+
+```
+1. Define the host in the flake     (systems/<arch>-darwin/…, homes/…, users)
+2. On the Mac: clone the config, enable Remote Login (for the SSH host key)
+3. Run `just bootstrap-darwin <hostname>`
+     ├─ Xcode Command Line Tools (git + toolchain)
+     ├─ Homebrew                    (nix-darwin manages the Brewfile, not brew itself)
+     ├─ Nix                         (Determinate installer, upstream Nix)
+     ├─ Register host with SOPS      (pauses — add age key to .sops.yaml)
+     ├─ Trust third-party brew taps  (akeylesslabs/tap, nikitabobko/tap)
+     └─ First `darwin-rebuild switch`
+4. Post-install                     (import GPG key, clone pass store)
+```
+
+### Step 1 — Define the host in the flake
+
+Same model as NixOS, minus disks/hardware. Create
+`systems/<arch>-darwin/<hostname>/default.nix` (Apple Silicon is
+`aarch64-darwin`; Intel is `x86_64-darwin`) selecting a role and declaring the
+**already-existing** macOS account as primary (nix-darwin configures the primary
+account but does not create it — macOS/MDM owns account creation):
+
+```nix
+{ lib, namespace, ... }:
+with lib;
+with lib.${namespace};
+{
+  ${namespace} = {
+    roles.work = enabled;                       # common + macbook + dev + browsers
+    users.<macos-login> = { primary = true; admin = true; };
+    system.networking.knownNetworkServices = [ "Wi-Fi" ];
+  };
+  system.stateVersion = 5;
+}
+```
+
+Add a home under `homes/<arch>-darwin/<login>@<hostname>/`. Confirm it evaluates:
+
+```bash
+just list-configs darwin       # <hostname> should appear
+```
+
+### Step 2 — Prepare the Mac
+
+On the target Mac:
+
+```bash
+# Clone the config somewhere stable
+git clone https://github.com/aleks-sidorenko/nix-config ~/.nix-config
+cd ~/.nix-config
+
+# The SOPS host key is macOS's SSH host key; Remote Login ensures it exists.
+sudo systemsetup -setremotelogin on
+```
+
+### Step 3 — Run the bootstrap
+
+```bash
+just bootstrap-darwin <hostname>          # e.g. just bootstrap-darwin workbook
+```
+
+What it does, idempotently (safe to re-run):
+
+1. **Xcode Command Line Tools** — installs them if missing (launches Apple's GUI
+   installer the first time; re-run the command once it finishes).
+2. **Homebrew** — installs it. nix-darwin's `homebrew` module manages the
+   *Brewfile* declaratively but requires `brew` to already exist.
+3. **Nix** — installs via the
+   [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
+   in **upstream mode** (vanilla Nix, no `--determinate` flag) — nix-darwin owns
+   `nix.conf` and the daemon (`nix.enable = true`), the same model as every NixOS
+   host.
+4. **Register the host with SOPS** — derives the host's age key from
+   `/etc/ssh/ssh_host_ed25519_key.pub` (via `ssh-to-age`), prints the line to add
+   to `.sops.yaml`, and **pauses**. Add it under the anchors *and* the darwin
+   (and home) creation rules, then `sops updatekeys modules/darwin/secrets.yaml`
+   and `sops updatekeys modules/home/secrets.yaml`, then press Enter. This must
+   happen before the first switch — activation decrypts the GitHub token. (Set
+   `AUTO_APPROVE=1` to skip the pause once you've scripted the edit.)
+5. **Trust third-party Homebrew taps** — recent Homebrew refuses formulae from
+   untrusted taps (e.g. the `akeyless` error:
+   *"Refusing to load formula akeylesslabs/tap/akeyless from untrusted tap"*).
+   The script reads the taps declared in the flake and runs `brew trust` on each
+   so the first `brew bundle` during activation doesn't abort.
+6. **First switch** — `sudo nix run nix-darwin/master#darwin-rebuild -- switch
+   --flake .#<hostname>`.
+
+### Step 4 — Post-installation
+
+- **GPG / pass.** The public identity is declarative
+   (`identities/<name>/`), but the **private** GPG key is imported out-of-band,
+   exactly as on NixOS. Import it, then the `pass` store just works:
+
+   ```bash
+   gpg --import <your-private-key.asc>          # or restore from a backup
+   pass git clone <your-password-store-remote>  # if not already present
+   ```
+
+   > **`pass` comes from Nix, not Homebrew.** `pass` (with the `pass-otp`,
+   > `pass-file`, `pass-import` extensions) is installed by the home `common`
+   > role. **Do not `brew install pass`** — a stray brew `pass` on `PATH` can
+   > shadow the Nix one. The Nix `pass` is the single source of truth.
+   >
+   > **Homebrew cleanup is `none`.** Homebrew 6 removed `brew bundle --cleanup`
+   > ("no replacement"); any other value makes nix-darwin pass that now-fatal
+   > switch and activation fails at the Homebrew step. `system.homebrew.cleanup`
+   > therefore defaults to `"none"` — undeclared brews/casks are left in place
+   > rather than auto-removed. Revisit once nix-darwin adapts to Homebrew 6.
+
+- **Open a fresh shell** so fish and the Nix profile are active.
+
+### Subsequent updates
+
+Just like NixOS, from the Mac:
+
+```bash
+nh os switch                    # rebuild + switch (uses hostname)
+darwin-rebuild switch --flake .#<hostname>   # equivalent, explicit
 ```
 
 ---
@@ -560,6 +756,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 |---------|-------------|
 | `just bootstrap <host> [user] [disk_pw] [opts]` | Complete bootstrap (secrets + deploy) |
 | `just bootstrap-secrets <host> [disk_pw]` | Generate SSH/age keys only |
+| `just bootstrap-darwin <host>` | Bootstrap a macOS host (run on the Mac) |
 | `just bootstrap-deploy <host> [user] [keysdir] [opts]` | Deploy using existing keys |
 | `just bootstrap-disk <host>` | Preview disk formatting (dry-run) |
 | `just bootstrap-disk <host> --apply` | Format disks with disko |
