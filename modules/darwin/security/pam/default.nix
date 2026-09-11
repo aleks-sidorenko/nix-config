@@ -15,7 +15,12 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Enable sudo with Touch ID
-    security.pam.services.sudo_local.touchIdAuth = true;
+    security.pam.services.sudo_local = {
+      # Authenticate sudo with Touch ID (fingerprint).
+      touchIdAuth = true;
+      # Make Touch ID work for sudo inside terminal multiplexers (zellij/tmux);
+      # without pam_reattach the prompt silently falls back to a password.
+      reattach = true;
+    };
   };
 }
