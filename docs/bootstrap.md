@@ -558,9 +558,14 @@ What it does, idempotently (safe to re-run):
 
    > **`pass` comes from Nix, not Homebrew.** `pass` (with the `pass-otp`,
    > `pass-file`, `pass-import` extensions) is installed by the home `common`
-   > role. **Do not `brew install pass`** — Homebrew's `cleanup = "zap"` would
-   > later uninstall any manually-added formula, and a stray brew `pass` on
-   > `PATH` can shadow the Nix one. The Nix `pass` is the single source of truth.
+   > role. **Do not `brew install pass`** — a stray brew `pass` on `PATH` can
+   > shadow the Nix one. The Nix `pass` is the single source of truth.
+   >
+   > **Homebrew cleanup is `none`.** Homebrew 6 removed `brew bundle --cleanup`
+   > ("no replacement"); any other value makes nix-darwin pass that now-fatal
+   > switch and activation fails at the Homebrew step. `system.homebrew.cleanup`
+   > therefore defaults to `"none"` — undeclared brews/casks are left in place
+   > rather than auto-removed. Revisit once nix-darwin adapts to Homebrew 6.
 
 - **Open a fresh shell** so fish and the Nix profile are active.
 
