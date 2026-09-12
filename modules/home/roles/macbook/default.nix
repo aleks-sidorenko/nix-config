@@ -26,6 +26,7 @@ in
     ${namespace} = {
       roles = {
         common = enabled; # Reuse common CLI tools
+        media = enabled; # Media management tooling (GUI apps are Linux-only)
 
         development = {
           enable = true;

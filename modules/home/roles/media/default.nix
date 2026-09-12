@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -16,8 +17,10 @@ in
 
   config = mkIf cfg.enable {
     ${namespace}.media = {
-      players.vlc = enabled;
-      shotwell = enabled;
+      # GUI players/organizers are Linux/GTK only; on darwin only the
+      # management CLI tools are portable (macOS gets GUI apps elsewhere).
+      players.vlc = mkIf pkgs.stdenv.isLinux enabled;
+      shotwell = mkIf pkgs.stdenv.isLinux enabled;
       tools = enabled;
     };
   };
