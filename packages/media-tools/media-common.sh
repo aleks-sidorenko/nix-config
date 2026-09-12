@@ -177,6 +177,22 @@ fill_missing_dates() {
   done
 }
 
+# Rename SRC to DST, tolerating case-only renames (e.g. .MP4 -> .mp4) on
+# case-insensitive filesystems (macOS APFS/HFS+). There a plain `mv a.MP4 a.mp4`
+# fails with "are the same file" because both names share one inode; go through a
+# temporary name so the on-disk case still changes.
+case_safe_mv() {
+  local src="$1" dst="$2"
+  [[ "$src" == "$dst" ]] && return 0
+  if [[ -e "$dst" && "$src" -ef "$dst" ]]; then
+    local tmp="${src}.casemv.$$"
+    mv -- "$src" "$tmp"
+    mv -- "$tmp" "$dst"
+  else
+    mv -- "$src" "$dst"
+  fi
+}
+
 # Build exiftool extension args: -ext jpg -ext jpeg -ext png ...
 exiftool_ext_args() {
   local args=""

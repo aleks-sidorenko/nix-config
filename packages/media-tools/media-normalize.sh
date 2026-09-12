@@ -68,7 +68,7 @@ lowercase_extensions() {
       if [[ "$DRY_RUN" == true ]]; then
         print_info "[dry-run] Rename: $file -> $newfile"
       else
-        mv -- "$file" "$newfile"
+        case_safe_mv "$file" "$newfile"
         print_info "Renamed: $file -> $newfile"
       fi
     done < <(find "$dir" "${find_depth[@]}" -name "*.$EXT" -type f -print0 2>/dev/null)

@@ -66,6 +66,18 @@ assert_eq "resolve_src_dest: explicit DEST overrides MEDIA_HOME" \
 assert_eq "resolve_src_dest: unset MEDIA_HOME yields empty DEST" \
   $'.\t' "$(MEDIA_HOME='' resolve_src_dest)"
 
+# --- case_safe_mv (case-only rename, e.g. .MP4 -> .mp4) ---
+# Must work even on case-insensitive filesystems (macOS), where a plain
+# `mv x.MP4 x.mp4` fails with "are the same file".
+CSM_WORK="$(mktemp -d)"
+: > "$CSM_WORK/107163_IMG_4466.MP4"
+csm_rc=0
+case_safe_mv "$CSM_WORK/107163_IMG_4466.MP4" "$CSM_WORK/107163_IMG_4466.mp4" || csm_rc=$?
+assert_eq "case_safe_mv: case-only rename succeeds" "0" "$csm_rc"
+assert_eq "case_safe_mv: extension is now lowercase" \
+  "107163_IMG_4466.mp4" "$(cd "$CSM_WORK" && ls)"
+rm -rf "$CSM_WORK"
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"
