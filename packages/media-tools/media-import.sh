@@ -9,9 +9,11 @@ MOVE=false
 
 usage() {
   cat <<EOF
-Usage: media-import [OPTIONS] [SOURCE]
+Usage: media-import [OPTIONS] [SOURCE] [DEST]
 
-Import media files into \$MEDIA_HOME/All/YYYY/MM/ structure.
+Import media files into <DEST>/All/YYYY/MM/, organized by capture date.
+DEST is the media library root and, like cp/mv, is the trailing argument;
+it defaults to \$MEDIA_HOME when omitted.
 
 Options:
   --dry-run     Preview changes without modifying files
@@ -19,8 +21,12 @@ Options:
   --recursive   Process subdirectories
   -h, --help    Show this help
 
-SOURCE defaults to current directory.
-Requires MEDIA_HOME environment variable.
+SOURCE defaults to the current directory.
+DEST defaults to \$MEDIA_HOME (e.g., ~/Media).
+
+Examples:
+  media-import ./dump                                # -> \$MEDIA_HOME/All/YYYY/MM
+  media-import ./dump /mnt/usb/home/alexander/Media  # back up to a USB disk
 EOF
 }
 
@@ -41,11 +47,18 @@ parse_args() {
 
 # Main
 parse_args "$@"
-SRC="${POSITIONAL[0]:-.}"
 
-if [[ -z "${MEDIA_HOME:-}" ]]; then
-  print_error "MEDIA_HOME environment variable is not set."
-  print_error "Set it to your media library root (e.g., ~/Pictures/Photo)"
+if [[ ${#POSITIONAL[@]} -gt 2 ]]; then
+  print_error "Too many arguments; expected at most [SOURCE] [DEST]."
+  usage
+  exit 1
+fi
+
+IFS=$'\t' read -r SRC DEST_ROOT < <(resolve_src_dest "${POSITIONAL[@]}")
+
+if [[ -z "$DEST_ROOT" ]]; then
+  print_error "No destination given and MEDIA_HOME is not set."
+  print_error "Pass a DEST or set MEDIA_HOME to your library root (e.g., ~/Media)."
   exit 1
 fi
 
@@ -54,7 +67,7 @@ if [[ ! -d "$SRC" ]]; then
   exit 1
 fi
 
-DST="$MEDIA_HOME/All"
+DST="$DEST_ROOT/All"
 mkdir -p "$DST"
 
 print_info "Importing media from: $SRC"

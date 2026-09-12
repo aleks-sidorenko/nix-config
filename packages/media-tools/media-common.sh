@@ -218,6 +218,25 @@ parse_common_args() {
   done
 }
 
+# Resolve media-import SRC and DEST from positional args (cp/mv-style: the
+# trailing arg is the destination). $MEDIA_HOME is the default library root.
+# Echoes TAB-separated "<SRC>\t<DEST_ROOT>"; DEST_ROOT may be empty when neither
+# a DEST arg nor $MEDIA_HOME is set (the caller is responsible for erroring).
+#   0 args -> SRC=.   DEST=$MEDIA_HOME
+#   1 arg  -> SRC=$1  DEST=$MEDIA_HOME
+#   2 args -> SRC=$1  DEST=$2
+resolve_src_dest() {
+  local src dest
+  if [[ $# -ge 2 ]]; then
+    src="$1"
+    dest="$2"
+  else
+    src="${1:-.}"
+    dest="${MEDIA_HOME:-}"
+  fi
+  printf '%s\t%s\n' "$src" "$dest"
+}
+
 # Exiftool maxdepth flag based on RECURSIVE
 exiftool_depth_args() {
   if [[ "$RECURSIVE" == false ]]; then
