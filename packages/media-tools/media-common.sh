@@ -159,16 +159,18 @@ fill_missing_dates() {
         filename)
           if [[ "$DRY_RUN" == true ]]; then
             print_info "[dry-run] Set date from filename: $file -> $date"
-          else
-            set_all_dates "$file" "$date"
+          elif set_all_dates "$file" "$date"; then
             print_info "Set date from filename: $file -> $date"
+          else
+            print_error "Skipping (metadata write failed): $file"
           fi ;;
         mtime)
           if [[ "$DRY_RUN" == true ]]; then
             print_info "[dry-run] Set date from mtime: $file"
-          else
-            set_all_dates "$file" --from-mtime
+          elif set_all_dates "$file" --from-mtime; then
             print_info "Set date from mtime: $file"
+          else
+            print_error "Skipping (metadata write failed): $file"
           fi ;;
         *)
           print_error "fill_missing_dates: unknown source '$source' for $file" ;;

@@ -88,6 +88,26 @@ assert_eq "canonical_name_from_date: empty date yields empty name" \
 assert_eq "canonical_name_from_date: malformed date yields empty name" \
   "" "$(canonical_name_from_date 'not-a-date' 'x.jpg')"
 
+# --- media-normalize resilience: one unwritable file must not abort the batch ---
+if command -v exiftool >/dev/null 2>&1; then
+  RES_WORK="$(mktemp -d)"
+  # Minimal valid JPEG that exiftool can write dates into.
+  base64 -d > "$RES_WORK/good.jpg" <<'EOF'
+/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkI
+CQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAA
+AAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==
+EOF
+  head -c 4096 /dev/urandom > "$RES_WORK/corrupt.jpg"  # exiftool cannot write this
+  res_rc=0
+  bash "$LIB_DIR/media-normalize.sh" "$RES_WORK" >/dev/null 2>&1 || res_rc=$?
+  assert_eq "media-normalize: corrupt file does not abort the run" "0" "$res_rc"
+  assert_eq "media-normalize: good file normalized despite sibling error" \
+    "1" "$(cd "$RES_WORK" && ls | grep -cE '^[0-9]{8}_[0-9]{6}\.jpg$')"
+  rm -rf "$RES_WORK"
+else
+  echo "skip - media-normalize resilience (exiftool unavailable)"
+fi
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"
