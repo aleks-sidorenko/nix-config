@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -18,16 +19,16 @@ in
 
     ${namespace} = {
 
-      user.extraGroups = [
-        "podman"
-      ];
+      # podman on macOS is only shipped for Apple Silicon here; Intel Macs get
+      # the docker CLIs but no podman brew/group.
+      user.extraGroups = optional pkgs.stdenv.isAarch64 "podman";
 
       system.homebrew.brews = [
         "docker"
         "docker-compose"
         "docker-credential-helper"
-        "podman"
-      ];
+      ]
+      ++ optional pkgs.stdenv.isAarch64 "podman";
     };
 
   };
