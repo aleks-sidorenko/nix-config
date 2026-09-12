@@ -66,6 +66,48 @@ assert_eq "resolve_src_dest: explicit DEST overrides MEDIA_HOME" \
 assert_eq "resolve_src_dest: unset MEDIA_HOME yields empty DEST" \
   $'.\t' "$(MEDIA_HOME='' resolve_src_dest)"
 
+# --- case_safe_mv (case-only rename, e.g. .MP4 -> .mp4) ---
+# Must work even on case-insensitive filesystems (macOS), where a plain
+# `mv x.MP4 x.mp4` fails with "are the same file".
+CSM_WORK="$(mktemp -d)"
+: > "$CSM_WORK/107163_IMG_4466.MP4"
+csm_rc=0
+case_safe_mv "$CSM_WORK/107163_IMG_4466.MP4" "$CSM_WORK/107163_IMG_4466.mp4" || csm_rc=$?
+assert_eq "case_safe_mv: case-only rename succeeds" "0" "$csm_rc"
+assert_eq "case_safe_mv: extension is now lowercase" \
+  "107163_IMG_4466.mp4" "$(cd "$CSM_WORK" && ls)"
+rm -rf "$CSM_WORK"
+
+# --- canonical_name_from_date (pure name builder used by dry-run previews) ---
+assert_eq "canonical_name_from_date: builds YYYYMMDD_HHMMSS + lowercased ext" \
+  "20230115_143000.jpg" "$(canonical_name_from_date '2023:01:15 14:30:00' 'IMG_0001.JPG')"
+assert_eq "canonical_name_from_date: preserves mov/mp4 lowercased" \
+  "20260618_185010.mov" "$(canonical_name_from_date '2026:06:18 18:50:10' 'IMG_3449.MOV')"
+assert_eq "canonical_name_from_date: empty date yields empty name" \
+  "" "$(canonical_name_from_date '' 'x.jpg')"
+assert_eq "canonical_name_from_date: malformed date yields empty name" \
+  "" "$(canonical_name_from_date 'not-a-date' 'x.jpg')"
+
+# --- media-normalize resilience: one unwritable file must not abort the batch ---
+if command -v exiftool >/dev/null 2>&1; then
+  RES_WORK="$(mktemp -d)"
+  # Minimal valid JPEG that exiftool can write dates into.
+  base64 -d > "$RES_WORK/good.jpg" <<'EOF'
+/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkI
+CQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAA
+AAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==
+EOF
+  head -c 4096 /dev/urandom > "$RES_WORK/corrupt.jpg"  # exiftool cannot write this
+  res_rc=0
+  bash "$LIB_DIR/media-normalize.sh" "$RES_WORK" >/dev/null 2>&1 || res_rc=$?
+  assert_eq "media-normalize: corrupt file does not abort the run" "0" "$res_rc"
+  assert_eq "media-normalize: good file normalized despite sibling error" \
+    "1" "$(cd "$RES_WORK" && ls | grep -cE '^[0-9]{8}_[0-9]{6}\.jpg$')"
+  rm -rf "$RES_WORK"
+else
+  echo "skip - media-normalize resilience (exiftool unavailable)"
+fi
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"

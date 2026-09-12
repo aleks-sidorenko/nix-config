@@ -159,22 +159,66 @@ fill_missing_dates() {
         filename)
           if [[ "$DRY_RUN" == true ]]; then
             print_info "[dry-run] Set date from filename: $file -> $date"
-          else
-            set_all_dates "$file" "$date"
+          elif set_all_dates "$file" "$date"; then
             print_info "Set date from filename: $file -> $date"
+          else
+            print_error "Skipping (metadata write failed): $file"
           fi ;;
         mtime)
           if [[ "$DRY_RUN" == true ]]; then
             print_info "[dry-run] Set date from mtime: $file"
-          else
-            set_all_dates "$file" --from-mtime
+          elif set_all_dates "$file" --from-mtime; then
             print_info "Set date from mtime: $file"
+          else
+            print_error "Skipping (metadata write failed): $file"
           fi ;;
         *)
           print_error "fill_missing_dates: unknown source '$source' for $file" ;;
       esac
     done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
   done
+}
+
+# Build the canonical normalized basename (YYYYMMDD_HHMMSS + lowercased
+# extension) from an exiftool-style date and a file (used for its extension).
+# Echoes empty string if <date> is not a valid "YYYY:MM:DD HH:MM:SS".
+canonical_name_from_date() {
+  local date="$1" file="$2"
+  [[ "$date" =~ ^[0-9]{4}:[0-9]{2}:[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]] || return 0
+  local compact="${date//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
+  local ext="${file##*.}"
+  [[ "$ext" == "$file" ]] && ext="" || ext=".${ext,,}"
+  printf '%s_%s%s\n' "${compact:0:8}" "${compact:8:6}" "$ext"
+}
+
+# Echo the canonical basename a file would be renamed to under normal (no
+# --date) normalization: resolve its date (EXIF -> filename -> mtime) and format
+# it. Empty when no date can be resolved.
+canonical_basename() {
+  local file="$1" date
+  IFS=$'\t' read -r date _ < <(resolve_date "$file")
+  canonical_name_from_date "$date" "$file"
+}
+
+# Echo a file's modification time as a Unix epoch (GNU stat, then BSD stat).
+mtime_epoch() {
+  stat -c "%Y" "$1" 2>/dev/null || stat -f "%m" "$1" 2>/dev/null
+}
+
+# Rename SRC to DST, tolerating case-only renames (e.g. .MP4 -> .mp4) on
+# case-insensitive filesystems (macOS APFS/HFS+). There a plain `mv a.MP4 a.mp4`
+# fails with "are the same file" because both names share one inode; go through a
+# temporary name so the on-disk case still changes.
+case_safe_mv() {
+  local src="$1" dst="$2"
+  [[ "$src" == "$dst" ]] && return 0
+  if [[ -e "$dst" && "$src" -ef "$dst" ]]; then
+    local tmp="${src}.casemv.$$"
+    mv -- "$src" "$tmp"
+    mv -- "$tmp" "$dst"
+  else
+    mv -- "$src" "$dst"
+  fi
 }
 
 # Build exiftool extension args: -ext jpg -ext jpeg -ext png ...
