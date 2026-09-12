@@ -51,6 +51,21 @@ FILENAME_DATE_PATTERNS+=(
 assert_eq "newly-registered viber pattern works without code change" \
   "2025:12:31 09:08:07" "$(parse_date_from_filename 'viber_image_2025-12-31-09-08-07.jpg')"
 
+# --- resolve_src_dest (import SRC/DEST resolution; pure, no exiftool needed) ---
+# 0 args: SRC defaults to ".", DEST defaults to $MEDIA_HOME
+assert_eq "resolve_src_dest: no args -> cwd + MEDIA_HOME" \
+  $'.\t/home/u/Media' "$(MEDIA_HOME=/home/u/Media resolve_src_dest)"
+# 1 arg: that arg is SRC, DEST still defaults to $MEDIA_HOME
+assert_eq "resolve_src_dest: one arg is SRC, DEST from MEDIA_HOME" \
+  $'./dump\t/home/u/Media' "$(MEDIA_HOME=/home/u/Media resolve_src_dest ./dump)"
+# 2 args: explicit DEST wins over $MEDIA_HOME (cp/mv-style trailing DEST)
+assert_eq "resolve_src_dest: explicit DEST overrides MEDIA_HOME" \
+  $'./dump\t/mnt/usb/home/dima/Media' \
+  "$(MEDIA_HOME=/home/u/Media resolve_src_dest ./dump /mnt/usb/home/dima/Media)"
+# no MEDIA_HOME and no DEST arg: DEST resolves empty (caller must error)
+assert_eq "resolve_src_dest: unset MEDIA_HOME yields empty DEST" \
+  $'.\t' "$(MEDIA_HOME='' resolve_src_dest)"
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"

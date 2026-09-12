@@ -14,8 +14,8 @@ in
   options.${namespace}.media.tools = {
     enable = mkBoolOpt false "Media management CLI tools (media-normalize, media-import)";
     mediaHome =
-      mkOpt types.str "${config.home.homeDirectory}/Pictures/Photo"
-        "Root directory for media library";
+      mkOpt types.str "${config.home.homeDirectory}/Media"
+        "Default media library root (holds photos and videos); used as MEDIA_HOME and media-import's default DEST";
   };
 
   config = mkIf cfg.enable {
