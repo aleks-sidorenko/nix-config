@@ -78,6 +78,16 @@ assert_eq "case_safe_mv: extension is now lowercase" \
   "107163_IMG_4466.mp4" "$(cd "$CSM_WORK" && ls)"
 rm -rf "$CSM_WORK"
 
+# --- canonical_name_from_date (pure name builder used by dry-run previews) ---
+assert_eq "canonical_name_from_date: builds YYYYMMDD_HHMMSS + lowercased ext" \
+  "20230115_143000.jpg" "$(canonical_name_from_date '2023:01:15 14:30:00' 'IMG_0001.JPG')"
+assert_eq "canonical_name_from_date: preserves mov/mp4 lowercased" \
+  "20260618_185010.mov" "$(canonical_name_from_date '2026:06:18 18:50:10' 'IMG_3449.MOV')"
+assert_eq "canonical_name_from_date: empty date yields empty name" \
+  "" "$(canonical_name_from_date '' 'x.jpg')"
+assert_eq "canonical_name_from_date: malformed date yields empty name" \
+  "" "$(canonical_name_from_date 'not-a-date' 'x.jpg')"
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"
