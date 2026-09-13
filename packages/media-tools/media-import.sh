@@ -68,7 +68,6 @@ if [[ ! -d "$SRC" ]]; then
 fi
 
 DST="$DEST_ROOT/All"
-mkdir -p "$DST"
 
 print_info "Importing media from: $SRC"
 print_info "Destination: $DST"
@@ -76,88 +75,58 @@ print_info "Destination: $DST"
 [[ "$MOVE" == true ]] && print_info "Mode: move" || print_info "Mode: copy"
 
 depth_args=$(exiftool_depth_args)
-date_format="$DST/%Y/%m/$FILENAME_FORMAT"
 
-# Copy-import matching media files into DST/YYYY/MM, logging each created file
-# as ":: Imported: <src> -> <dst>" (consistent with media-normalize). Returns
-# exiftool's exit status. Uses -v so exiftool emits the "'src' --> 'dst'"
-# mapping we reformat; other verbose lines are ignored.
+# Select media files to import: by extension, above the size threshold, honoring
+# --recursive. exiftool has no -print0; -p prints one path per line.
 # shellcheck disable=SC2086
-import_with_logging() {
-  exiftool \
-    $depth_args \
-    $(exiftool_ext_args) \
+mapfile -t import_files < <(
+  exiftool $depth_args $(exiftool_ext_args) \
     -if "\$filesize# > $MIN_FILE_SIZE" \
-    -o . \
-    "-FileName<CreateDate" \
-    -d "$date_format" \
-    -v \
-    "$SRC" 2>/dev/null \
-  | while IFS= read -r line; do
-      case "$line" in
-        *" --> "*) print_info "Imported: $(reformat_arrow_line "$line")" ;;
-      esac
-    done
-  return "${PIPESTATUS[0]}"
-}
+    -p "\$Directory/\$FileName" \
+    "$SRC" 2>/dev/null || true
+)
 
-if [[ "$DRY_RUN" == true ]]; then
-  # Preview source -> destination without modifying anything. exiftool selects
-  # the same files a real run would (extensions + size threshold + depth); dates
-  # come from resolve_date (EXIF -> filename -> mtime) so Telegram filenames
-  # preview correctly — exiftool's $CreateDate would be blank for them.
-  mapfile -t preview_files < <(
-    # shellcheck disable=SC2086
-    exiftool -q -m $depth_args $(exiftool_ext_args) \
-      -if "\$filesize# > $MIN_FILE_SIZE" \
-      -p "\$Directory/\$FileName" \
-      "$SRC" 2>/dev/null || true
-  )
-
-  if [[ ${#preview_files[@]} -eq 0 ]]; then
-    print_info "No files to import."
-  fi
-  for file in "${preview_files[@]}"; do
-    IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
-    compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
-    ext="${file##*.}"
-    dest="$DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.${ext,,}"
-    print_info "[dry-run] Imported: $file -> $dest  [$rsource]"
-  done
-elif [[ "$MOVE" == true ]]; then
-  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
-  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
-  fill_missing_dates "$SRC"
-
-  # Collect matching source file paths before copying (same selection as the
-  # dry-run preview). exiftool has no -print0; -p prints one path per line.
-  mapfile -t src_files < <(
-    # shellcheck disable=SC2086
-    exiftool $depth_args $(exiftool_ext_args) \
-      -if "\$filesize# > $MIN_FILE_SIZE" \
-      -p "\$Directory/\$FileName" \
-      "$SRC" 2>/dev/null || true
-  )
-
-  if [[ ${#src_files[@]} -eq 0 ]]; then
-    print_info "No files to import."
-  elif import_with_logging; then
-    # Delete source files only after a successful copy.
-    for file in "${src_files[@]}"; do
-      rm -- "$file"
-      print_info "Removed source: $file"
-    done
-  else
-    print_error "Copy failed; source files kept."
-    exit 1
-  fi
-else
-  # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
-  # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
-  fill_missing_dates "$SRC"
-
-  # Copy mode (tolerant of per-file errors, like a real dump import)
-  import_with_logging || true
+if [[ ${#import_files[@]} -eq 0 ]]; then
+  print_info "No files to import."
+  print_info "Done."
+  exit 0
 fi
+
+# Import one file at a time so progress is logged live (a bulk exiftool copy
+# block-buffers its output, which looks stuck on large/slow imports). Each file
+# is independent: a failure is logged and the run continues.
+for file in "${import_files[@]}"; do
+  IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
+  newname=$(canonical_name_from_date "$rdate" "$file")
+  if [[ -z "$newname" ]]; then
+    print_error "Skipping (could not determine date): $file"
+    continue
+  fi
+  compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
+  dest_dir="$DST/${compact:0:4}/${compact:4:2}"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    print_info "[dry-run] Imported: $file -> $dest_dir/$newname  [$rsource]"
+    continue
+  fi
+
+  # Stamp the resolved date into the source's EXIF (unless it already came from
+  # EXIF) so the imported copy carries a durable CreateDate.
+  case "$rsource" in
+    filename) set_all_dates "$file" "$rdate" >/dev/null 2>&1 || true ;;
+    mtime)    set_all_dates "$file" --from-mtime >/dev/null 2>&1 || true ;;
+  esac
+
+  mkdir -p "$dest_dir"
+  target=$(unique_target "$dest_dir" "$newname" "$file")
+  if cp -p -- "$file" "$target"; then
+    print_info "Imported: $file -> $target"
+    if [[ "$MOVE" == true ]]; then
+      rm -- "$file" && print_info "Removed source: $file"
+    fi
+  else
+    print_error "Skipping (copy failed): $file"
+  fi
+done
 
 print_info "Done."

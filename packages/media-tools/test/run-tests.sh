@@ -133,11 +133,6 @@ else
   echo "skip - media-normalize step-3 logging/resilience (exiftool unavailable)"
 fi
 
-# --- reformat_arrow_line (exiftool verbose "'a' --> 'b'" -> "a -> b") ---
-assert_eq "reformat_arrow_line: strips quotes and rewrites arrow" \
-  "/src/a.jpg -> /dst/2023/01/20230115_143000.jpg" \
-  "$(reformat_arrow_line "'/src/a.jpg' --> '/dst/2023/01/20230115_143000.jpg'")"
-
 # --- media-import logging (consistent with media-normalize) ---
 if command -v exiftool >/dev/null 2>&1; then
   IMP_WORK="$(mktemp -d)"

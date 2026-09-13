@@ -200,13 +200,6 @@ canonical_basename() {
   canonical_name_from_date "$date" "$file"
 }
 
-# Convert an exiftool verbose rename line ("'src' --> 'dst'") into our log
-# form ("src -> dst").
-reformat_arrow_line() {
-  local line="${1//\'/}"      # drop exiftool's single quotes
-  echo "${line/ --> / -> }"   # exiftool arrow -> our arrow
-}
-
 # Echo a collision-free target path for renaming <src> to <dir>/<name>. If the
 # name is already taken by a *different* file, insert a "-N" counter before the
 # extension (20230115_143000.jpg -> 20230115_143000-1.jpg), mirroring exiftool's
