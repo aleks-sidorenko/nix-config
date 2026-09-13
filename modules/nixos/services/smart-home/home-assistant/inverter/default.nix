@@ -32,7 +32,7 @@ let
       sha256 = "sha256-SsUObH3g3i9xQ4JvRDcCm1Fg2giH+MN3rC3NMPYO5m0=";
       # just github-fetch-hash davidrapan ha-solarman v25.08.16
     };
-    dependencies = with pkgs.home-assistant.python.pkgs; [
+    dependencies = with pkgs.home-assistant.python3Packages; [
       aiohttp
       aiofiles
       propcache
