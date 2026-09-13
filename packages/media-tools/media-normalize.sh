@@ -68,7 +68,7 @@ lowercase_extensions() {
       if [[ "$DRY_RUN" == true ]]; then
         print_info "[dry-run] Rename: $file -> $newfile"
       else
-        mv -- "$file" "$newfile"
+        case_safe_mv "$file" "$newfile"
         print_info "Renamed: $file -> $newfile"
       fi
     done < <(find "$dir" "${find_depth[@]}" -name "*.$EXT" -type f -print0 2>/dev/null)
@@ -99,24 +99,42 @@ set_dates() {
   fi
 }
 
+# Base epoch parsed from FORCE_DATE (accepts "-" or ":" date separators).
+forced_base_epoch() {
+  local formatted_date
+  formatted_date=$(echo "$FORCE_DATE" | sed 's/-/:/g; s/\//:/g')
+  date -d "${FORCE_DATE}" "+%s" 2>/dev/null || \
+    date -j -f "%Y:%m:%d %H:%M:%S" "$formatted_date" "+%s" 2>/dev/null
+}
+
+# Oldest media file mtime (epoch) in <dir>, or empty when there are none.
+oldest_media_mtime() {
+  local dir="$1" oldest="" file mtime
+  while IFS= read -r -d '' file; do
+    mtime=$(mtime_epoch "$file")
+    if [[ -z "$oldest" || "$mtime" -lt "$oldest" ]]; then
+      oldest="$mtime"
+    fi
+  done < <(collect_media_files "$dir")
+  echo "$oldest"
+}
+
+# Forced target date for <file>: base + (file_mtime - oldest_mtime), formatted
+# as "YYYY:MM:DD HH:MM:SS". This is the --date offset rule used by both the real
+# run and the dry-run preview.
+forced_target_date() {
+  local file="$1" base_epoch="$2" oldest_mtime="$3"
+  local target_epoch=$(( base_epoch + ( $(mtime_epoch "$file") - oldest_mtime ) ))
+  date -d "@${target_epoch}" "+%Y:%m:%d %H:%M:%S" 2>/dev/null || \
+    date -j -f "%s" "$target_epoch" "+%Y:%m:%d %H:%M:%S" 2>/dev/null
+}
+
 # --date mode: force-set date with relative offsets from oldest file
 force_set_dates() {
   local dir="$1"
-  local formatted_date
-  formatted_date=$(echo "$FORCE_DATE" | sed 's/-/:/g; s/\//:/g')
-  local base_epoch
-  base_epoch=$(date -d "${FORCE_DATE}" "+%s" 2>/dev/null || \
-               date -j -f "%Y:%m:%d %H:%M:%S" "$formatted_date" "+%s" 2>/dev/null)
-
-  # Find the oldest file by mtime
-  local oldest_mtime=""
-  while IFS= read -r -d '' file; do
-    local mtime
-    mtime=$(stat -c "%Y" "$file" 2>/dev/null || stat -f "%m" "$file" 2>/dev/null)
-    if [[ -z "$oldest_mtime" || "$mtime" -lt "$oldest_mtime" ]]; then
-      oldest_mtime="$mtime"
-    fi
-  done < <(collect_media_files "$dir")
+  local base_epoch oldest_mtime
+  base_epoch=$(forced_base_epoch)
+  oldest_mtime=$(oldest_media_mtime "$dir")
 
   if [[ -z "$oldest_mtime" ]]; then
     print_info "No media files found."
@@ -125,52 +143,63 @@ force_set_dates() {
 
   # Set each file's date as base_date + (file_mtime - oldest_mtime)
   while IFS= read -r -d '' file; do
-    local mtime
-    mtime=$(stat -c "%Y" "$file" 2>/dev/null || stat -f "%m" "$file" 2>/dev/null)
-    local offset=$(( mtime - oldest_mtime ))
-    local target_epoch=$(( base_epoch + offset ))
-    local target_date
-    target_date=$(date -d "@${target_epoch}" "+%Y:%m:%d %H:%M:%S" 2>/dev/null || \
-                  date -j -f "%s" "$target_epoch" "+%Y:%m:%d %H:%M:%S" 2>/dev/null)
+    local target_date offset
+    target_date=$(forced_target_date "$file" "$base_epoch" "$oldest_mtime")
+    offset=$(( $(mtime_epoch "$file") - oldest_mtime ))
 
     if [[ "$DRY_RUN" == true ]]; then
       print_info "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
-    else
-      set_all_dates "$file" "$target_date" "$(get_tz_offset "$target_epoch")"
+    elif set_all_dates "$file" "$target_date" "$(get_tz_offset "$(( base_epoch + offset ))")"; then
       print_info "Force CreateDate: $file -> $target_date (offset: ${offset}s)"
+    else
+      print_error "Skipping (metadata write failed): $file"
     fi
   done < <(collect_media_files "$dir")
 }
 
-# Step 3: Rename files to canonical format
+# Step 3: rename each media file to its canonical YYYYMMDD_HHMMSS name.
+# Renaming is done in-shell (not via exiftool) so every file is handled
+# independently, logged individually, and a single failure never aborts the
+# batch. Normal mode skips already-normalized files and derives the name from
+# resolve_date; --date mode renames all files using the same forced base +
+# mtime-offset rule as force_set_dates. --dry-run only previews.
 rename_files() {
   local dir="$1"
-  local depth_args
-  depth_args=$(exiftool_depth_args)
-
-  local dry_run_flag=""
-  if [[ "$DRY_RUN" == true ]]; then
-    dry_run_flag="-testname"
-  else
-    dry_run_flag="-filename"
+  local base_epoch="" oldest_mtime=""
+  if [[ -n "$FORCE_DATE" ]]; then
+    base_epoch=$(forced_base_epoch)
+    oldest_mtime=$(oldest_media_mtime "$dir")
   fi
 
-  # When --date is used, rename all files (no skip)
-  # Otherwise, skip files already matching the normalized pattern
-  local if_args=()
-  if [[ -z "$FORCE_DATE" ]]; then
-    if_args=(-if 'not ($filename =~ /^[0-9]{8}_[0-9]{6}/)')
-  fi
+  local file base newname target
+  while IFS= read -r -d '' file; do
+    if [[ -n "$FORCE_DATE" ]]; then
+      newname=$(canonical_name_from_date \
+        "$(forced_target_date "$file" "$base_epoch" "$oldest_mtime")" "$file")
+    else
+      # Skip files already in canonical form.
+      base=$(basename "$file")
+      if [[ "$base" =~ $NORMALIZED_PATTERN ]]; then
+        continue
+      fi
+      newname=$(canonical_basename "$file")
+    fi
 
-  # shellcheck disable=SC2086
-  exiftool \
-    $depth_args \
-    $(exiftool_ext_args) \
-    "${if_args[@]}" \
-    "${dry_run_flag}<CreateDate" \
-    -d "$FILENAME_FORMAT" \
-    -overwrite_original \
-    "$dir" 2>/dev/null || true
+    if [[ -z "$newname" ]]; then
+      print_error "Skipping (could not determine date): $file"
+      continue
+    fi
+
+    target=$(unique_target "$(dirname "$file")" "$newname" "$file")
+
+    if [[ "$DRY_RUN" == true ]]; then
+      print_info "[dry-run] Normalized: $file -> $target"
+    elif case_safe_mv "$file" "$target"; then
+      print_info "Normalized: $file -> $target"
+    else
+      print_error "Skipping (rename failed): $file"
+    fi
+  done < <(collect_media_files "$dir")
 }
 
 # Main
