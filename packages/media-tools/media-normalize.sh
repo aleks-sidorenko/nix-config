@@ -157,12 +157,13 @@ force_set_dates() {
   done < <(collect_media_files "$dir")
 }
 
-# Dry-run preview of step 3: print the rename each media file would receive,
-# without touching anything. Normal mode skips already-normalized files and
-# derives the name from resolve_date; --date mode renames all files using the
-# same forced base + mtime-offset rule as force_set_dates. exiftool's own
-# -testname is unusable here because in dry-run step 2 never writes CreateDate.
-preview_rename() {
+# Step 3: rename each media file to its canonical YYYYMMDD_HHMMSS name.
+# Renaming is done in-shell (not via exiftool) so every file is handled
+# independently, logged individually, and a single failure never aborts the
+# batch. Normal mode skips already-normalized files and derives the name from
+# resolve_date; --date mode renames all files using the same forced base +
+# mtime-offset rule as force_set_dates. --dry-run only previews.
+rename_files() {
   local dir="$1"
   local base_epoch="" oldest_mtime=""
   if [[ -n "$FORCE_DATE" ]]; then
@@ -170,13 +171,13 @@ preview_rename() {
     oldest_mtime=$(oldest_media_mtime "$dir")
   fi
 
-  local file base newname
+  local file base newname target
   while IFS= read -r -d '' file; do
     if [[ -n "$FORCE_DATE" ]]; then
       newname=$(canonical_name_from_date \
         "$(forced_target_date "$file" "$base_epoch" "$oldest_mtime")" "$file")
     else
-      # Skip files already in canonical form (mirrors the real run's -if guard).
+      # Skip files already in canonical form.
       base=$(basename "$file")
       if [[ "$base" =~ $NORMALIZED_PATTERN ]]; then
         continue
@@ -184,42 +185,21 @@ preview_rename() {
       newname=$(canonical_basename "$file")
     fi
 
-    if [[ -n "$newname" ]]; then
-      print_info "[dry-run] Rename: $file -> $(dirname "$file")/$newname"
+    if [[ -z "$newname" ]]; then
+      print_error "Skipping (could not determine date): $file"
+      continue
+    fi
+
+    target=$(unique_target "$(dirname "$file")" "$newname" "$file")
+
+    if [[ "$DRY_RUN" == true ]]; then
+      print_info "[dry-run] Normalized: $file -> $target"
+    elif case_safe_mv "$file" "$target"; then
+      print_info "Normalized: $file -> $target"
     else
-      print_info "[dry-run] Rename: $file -> (could not determine date)"
+      print_error "Skipping (rename failed): $file"
     fi
   done < <(collect_media_files "$dir")
-}
-
-# Step 3: Rename files to canonical format
-rename_files() {
-  local dir="$1"
-
-  if [[ "$DRY_RUN" == true ]]; then
-    preview_rename "$dir"
-    return
-  fi
-
-  local depth_args
-  depth_args=$(exiftool_depth_args)
-
-  # When --date is used, rename all files (no skip)
-  # Otherwise, skip files already matching the normalized pattern
-  local if_args=()
-  if [[ -z "$FORCE_DATE" ]]; then
-    if_args=(-if 'not ($filename =~ /^[0-9]{8}_[0-9]{6}/)')
-  fi
-
-  # shellcheck disable=SC2086
-  exiftool \
-    $depth_args \
-    $(exiftool_ext_args) \
-    "${if_args[@]}" \
-    "-filename<CreateDate" \
-    -d "$FILENAME_FORMAT" \
-    -overwrite_original \
-    "$dir" 2>/dev/null || true
 }
 
 # Main

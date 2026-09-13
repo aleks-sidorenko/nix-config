@@ -200,6 +200,23 @@ canonical_basename() {
   canonical_name_from_date "$date" "$file"
 }
 
+# Echo a collision-free target path for renaming <src> to <dir>/<name>. If the
+# name is already taken by a *different* file, insert a "-N" counter before the
+# extension (20230115_143000.jpg -> 20230115_143000-1.jpg), mirroring exiftool's
+# %-c. The source itself never counts as a collision.
+unique_target() {
+  local dir="$1" name="$2" src="$3"
+  local stem ext
+  stem="${name%.*}"
+  if [[ "$name" == *.* ]]; then ext=".${name##*.}"; else ext=""; fi
+  local candidate="$dir/$name" n=0
+  while [[ -e "$candidate" && ! "$candidate" -ef "$src" ]]; do
+    n=$((n + 1))
+    candidate="$dir/${stem}-${n}${ext}"
+  done
+  echo "$candidate"
+}
+
 # Echo a file's modification time as a Unix epoch (GNU stat, then BSD stat).
 mtime_epoch() {
   stat -c "%Y" "$1" 2>/dev/null || stat -f "%m" "$1" 2>/dev/null

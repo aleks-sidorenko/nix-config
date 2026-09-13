@@ -88,24 +88,49 @@ assert_eq "canonical_name_from_date: empty date yields empty name" \
 assert_eq "canonical_name_from_date: malformed date yields empty name" \
   "" "$(canonical_name_from_date 'not-a-date' 'x.jpg')"
 
-# --- media-normalize resilience: one unwritable file must not abort the batch ---
+# --- unique_target (collision-safe rename target, mirrors exiftool %-c) ---
+UT_WORK="$(mktemp -d)"
+assert_eq "unique_target: no collision returns dir/name" \
+  "$UT_WORK/20230115_143000.jpg" \
+  "$(unique_target "$UT_WORK" "20230115_143000.jpg" "$UT_WORK/src.jpg")"
+: > "$UT_WORK/20230115_143000.jpg"
+assert_eq "unique_target: collision inserts -1 before extension" \
+  "$UT_WORK/20230115_143000-1.jpg" \
+  "$(unique_target "$UT_WORK" "20230115_143000.jpg" "$UT_WORK/src.jpg")"
+: > "$UT_WORK/20230115_143000-1.jpg"
+assert_eq "unique_target: second collision inserts -2" \
+  "$UT_WORK/20230115_143000-2.jpg" \
+  "$(unique_target "$UT_WORK" "20230115_143000.jpg" "$UT_WORK/src.jpg")"
+assert_eq "unique_target: target that is the source stays unchanged" \
+  "$UT_WORK/20230115_143000.jpg" \
+  "$(unique_target "$UT_WORK" "20230115_143000.jpg" "$UT_WORK/20230115_143000.jpg")"
+rm -rf "$UT_WORK"
+
+# --- media-normalize step-3 logging + resilience ---
+# A real run must log the actual normalization rename (not just the extension
+# rename), and one un-taggable file must not abort the batch.
 if command -v exiftool >/dev/null 2>&1; then
   RES_WORK="$(mktemp -d)"
-  # Minimal valid JPEG that exiftool can write dates into.
+  # Minimal valid JPEG that exiftool can write dates into; fixed mtime so its
+  # canonical name is deterministic (date comes from mtime).
   base64 -d > "$RES_WORK/good.jpg" <<'EOF'
 /9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkI
 CQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAA
 AAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==
 EOF
-  head -c 4096 /dev/urandom > "$RES_WORK/corrupt.jpg"  # exiftool cannot write this
+  touch -t 202101020304.05 "$RES_WORK/good.jpg"       # -> 20210102_030405.jpg
+  head -c 4096 /dev/urandom > "$RES_WORK/corrupt.jpg" # exiftool cannot tag this
+  touch -t 202202020000.00 "$RES_WORK/corrupt.jpg"    # different date, no collision
   res_rc=0
-  bash "$LIB_DIR/media-normalize.sh" "$RES_WORK" >/dev/null 2>&1 || res_rc=$?
-  assert_eq "media-normalize: corrupt file does not abort the run" "0" "$res_rc"
-  assert_eq "media-normalize: good file normalized despite sibling error" \
-    "1" "$(cd "$RES_WORK" && ls | grep -cE '^[0-9]{8}_[0-9]{6}\.jpg$')"
+  res_out="$(bash "$LIB_DIR/media-normalize.sh" "$RES_WORK" 2>&1)" || res_rc=$?
+  assert_eq "media-normalize: corrupt sibling does not abort the run" "0" "$res_rc"
+  assert_eq "media-normalize: good file renamed to its canonical name" \
+    "1" "$([[ -f "$RES_WORK/20210102_030405.jpg" ]] && echo 1 || echo 0)"
+  assert_eq "media-normalize: logs the actual normalization rename" \
+    "1" "$(grep -c 'Normalized:.*20210102_030405.jpg' <<<"$res_out")"
   rm -rf "$RES_WORK"
 else
-  echo "skip - media-normalize resilience (exiftool unavailable)"
+  echo "skip - media-normalize step-3 logging/resilience (exiftool unavailable)"
 fi
 
 # --- resolve_date (integration; needs sample files + exiftool) ---
