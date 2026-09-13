@@ -133,6 +133,66 @@ else
   echo "skip - media-normalize step-3 logging/resilience (exiftool unavailable)"
 fi
 
+# --- reformat_arrow_line (exiftool verbose "'a' --> 'b'" -> "a -> b") ---
+assert_eq "reformat_arrow_line: strips quotes and rewrites arrow" \
+  "/src/a.jpg -> /dst/2023/01/20230115_143000.jpg" \
+  "$(reformat_arrow_line "'/src/a.jpg' --> '/dst/2023/01/20230115_143000.jpg'")"
+
+# --- media-import logging (consistent with media-normalize) ---
+if command -v exiftool >/dev/null 2>&1; then
+  IMP_WORK="$(mktemp -d)"
+  # Write a valid JPEG padded past MIN_FILE_SIZE so import selects it.
+  mk_media() {
+    base64 -d > "$1" <<'EOF'
+/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkI
+CQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAA
+AAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==
+EOF
+    head -c 40000 /dev/zero >> "$1"
+  }
+
+  # -- copy + dry-run logging --
+  IMP_SRC="$IMP_WORK/src"; IMP_DST="$IMP_WORK/lib"; mkdir -p "$IMP_SRC"
+  mk_media "$IMP_SRC/IMG_20230115_143000.jpg"
+  DEST_FILE="$IMP_DST/All/2023/01/20230115_143000.jpg"
+
+  dry_out="$(bash "$LIB_DIR/media-import.sh" --dry-run "$IMP_SRC" "$IMP_DST" 2>&1)"
+  assert_eq "media-import: dry-run logs '[dry-run] Imported'" \
+    "1" "$(grep -c '\[dry-run\] Imported:.*20230115_143000.jpg' <<<"$dry_out")"
+  assert_eq "media-import: dry-run copies no file" \
+    "0" "$([[ -f "$DEST_FILE" ]] && echo 1 || echo 0)"
+
+  imp_rc=0
+  imp_out="$(bash "$LIB_DIR/media-import.sh" "$IMP_SRC" "$IMP_DST" 2>&1)" || imp_rc=$?
+  assert_eq "media-import: copy exits 0" "0" "$imp_rc"
+  assert_eq "media-import: real run logs 'Imported'" \
+    "1" "$(grep -c 'Imported:.*20230115_143000.jpg' <<<"$imp_out")"
+  assert_eq "media-import: file copied to All/YYYY/MM" \
+    "1" "$([[ -f "$DEST_FILE" ]] && echo 1 || echo 0)"
+
+  # -- move mode: source removed only after a successful copy --
+  MV_SRC="$IMP_WORK/msrc"; MV_DST="$IMP_WORK/mlib"; mkdir -p "$MV_SRC"
+  mk_media "$MV_SRC/IMG_20240202_120000.jpg"
+  mv_rc=0
+  bash "$LIB_DIR/media-import.sh" --move "$MV_SRC" "$MV_DST" >/dev/null 2>&1 || mv_rc=$?
+  assert_eq "media-import: move exits 0" "0" "$mv_rc"
+  assert_eq "media-import: move copies to dest" \
+    "1" "$([[ -f "$MV_DST/All/2024/02/20240202_120000.jpg" ]] && echo 1 || echo 0)"
+  assert_eq "media-import: move deletes source" \
+    "0" "$([[ -f "$MV_SRC/IMG_20240202_120000.jpg" ]] && echo 1 || echo 0)"
+
+  # -- --recursive descends into subdirectories --
+  RC_SRC="$IMP_WORK/rsrc"; RC_DST="$IMP_WORK/rlib"; mkdir -p "$RC_SRC/sub"
+  mk_media "$RC_SRC/sub/IMG_20250303_090000.jpg"
+  bash "$LIB_DIR/media-import.sh" --recursive "$RC_SRC" "$RC_DST" >/dev/null 2>&1
+  assert_eq "media-import: --recursive imports nested files" \
+    "1" "$([[ -f "$RC_DST/All/2025/03/20250303_090000.jpg" ]] && echo 1 || echo 0)"
+
+  rm -rf "$IMP_WORK"
+else
+  echo "skip - media-import logging (exiftool unavailable)"
+fi
+
 # --- resolve_date (integration; needs sample files + exiftool) ---
 SAMPLES="${MEDIA_TEST_SAMPLES:-$HOME/Downloads/tmp1}"
 PHOTO="$SAMPLES/photo_455@21-06-2026_15-17-04.jpg"

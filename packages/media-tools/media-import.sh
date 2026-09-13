@@ -78,15 +78,27 @@ print_info "Destination: $DST"
 depth_args=$(exiftool_depth_args)
 date_format="$DST/%Y/%m/$FILENAME_FORMAT"
 
-# Common exiftool args for selecting media files above size threshold
+# Copy-import matching media files into DST/YYYY/MM, logging each created file
+# as ":: Imported: <src> -> <dst>" (consistent with media-normalize). Returns
+# exiftool's exit status. Uses -v so exiftool emits the "'src' --> 'dst'"
+# mapping we reformat; other verbose lines are ignored.
 # shellcheck disable=SC2086
-run_exiftool_import() {
+import_with_logging() {
   exiftool \
     $depth_args \
     $(exiftool_ext_args) \
     -if "\$filesize# > $MIN_FILE_SIZE" \
-    "$@" \
-    "$SRC" 2>/dev/null || true
+    -o . \
+    "-FileName<CreateDate" \
+    -d "$date_format" \
+    -v \
+    "$SRC" 2>/dev/null \
+  | while IFS= read -r line; do
+      case "$line" in
+        *" --> "*) print_info "Imported: $(reformat_arrow_line "$line")" ;;
+      esac
+    done
+  return "${PIPESTATUS[0]}"
 }
 
 if [[ "$DRY_RUN" == true ]]; then
@@ -109,49 +121,43 @@ if [[ "$DRY_RUN" == true ]]; then
     IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
     compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
     ext="${file##*.}"
-    print_info "$file -> $DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.${ext,,}  [$rsource]"
+    dest="$DST/${compact:0:4}/${compact:4:2}/${compact:0:8}_${compact:8:6}.${ext,,}"
+    print_info "[dry-run] Imported: $file -> $dest  [$rsource]"
   done
 elif [[ "$MOVE" == true ]]; then
   # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
   # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
   fill_missing_dates "$SRC"
 
-  # Collect matching source file paths before copying
-  mapfile -d '' src_files < <(
+  # Collect matching source file paths before copying (same selection as the
+  # dry-run preview). exiftool has no -print0; -p prints one path per line.
+  mapfile -t src_files < <(
     # shellcheck disable=SC2086
     exiftool $depth_args $(exiftool_ext_args) \
       -if "\$filesize# > $MIN_FILE_SIZE" \
-      -print0 "$SRC" 2>/dev/null || true
+      -p "\$Directory/\$FileName" \
+      "$SRC" 2>/dev/null || true
   )
 
   if [[ ${#src_files[@]} -eq 0 ]]; then
     print_info "No files to import."
-  else
-    # Copy to destination (no || true — fail loudly on copy errors)
-    # shellcheck disable=SC2086
-    exiftool \
-      $depth_args \
-      $(exiftool_ext_args) \
-      -if "\$filesize# > $MIN_FILE_SIZE" \
-      -o . \
-      "-FileName<CreateDate" \
-      -d "$date_format" \
-      -progress \
-      "$SRC"
-
-    # Delete source files after successful copy
+  elif import_with_logging; then
+    # Delete source files only after a successful copy.
     for file in "${src_files[@]}"; do
       rm -- "$file"
       print_info "Removed source: $file"
     done
+  else
+    print_error "Copy failed; source files kept."
+    exit 1
   fi
 else
   # Fill missing CreateDate (filename pattern, else mtime) so exiftool -o can
   # resolve all files. NOTE: writes EXIF tags back to the SOURCE files.
   fill_missing_dates "$SRC"
 
-  # Copy mode
-  run_exiftool_import -o . "-FileName<CreateDate" -d "$date_format" -progress
+  # Copy mode (tolerant of per-file errors, like a real dump import)
+  import_with_logging || true
 fi
 
 print_info "Done."
