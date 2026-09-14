@@ -19,6 +19,8 @@ in
     programs.yazi = {
       enable = true;
       enableFishIntegration = true;
+      # Adopt the new upstream default wrapper name (was "yy" pre-26.05).
+      shellWrapperName = "y";
     };
 
     home.packages =

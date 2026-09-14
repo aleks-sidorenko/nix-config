@@ -2,14 +2,14 @@
   description = "Alexander's Nix/NixOS Config";
 
   inputs = {
-    # Stable channel - NixOS 25.11
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    # Stable channel - NixOS 26.05
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
     # Unstable channel for specific packages
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -124,13 +124,11 @@
     };
 
     stylix = {
-      url = "github:nix-community/stylix/release-25.11";
+      url = "github:nix-community/stylix/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     catppuccin = {
-      # Pinned: newer revs define programs.antigravity, which home-manager release-25.11 lacks.
-      # Unpin once home-manager has the antigravity module.
-      url = "github:catppuccin/nix/4b0f5b7bf7b3eeb484d49524f3c9791864ab9362";
+      url = "github:catppuccin/nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -142,7 +140,7 @@
     };
 
     nixvim = {
-      url = "github:nix-community/nixvim/nixos-25.11";
+      url = "github:nix-community/nixvim/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -179,7 +177,7 @@
 
     # Darwin (macOS)
     darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -258,7 +256,26 @@
       overlays = with inputs; [
         nixgl.overlay
         nur.overlays.default
-        llm-agents.overlays.default
+        llm-agents.overlays.shared-nixpkgs
+        # jeepney's checkPhase runs `dbus-run-session`, which cannot start a session
+        # bus in the macOS build sandbox (DBUS_LAUNCHD_SESSION_BUS_SOCKET is empty),
+        # so it fails on darwin. Neutralize just that phase (keeping the check inputs
+        # its pythonImportsCheck needs). Reaches us via pass-import -> secretstorage.
+        (
+          _final: prev:
+          prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+            pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+              (_pyfinal: pyprev: {
+                jeepney = pyprev.jeepney.overridePythonAttrs (_old: {
+                  checkPhase = ''
+                    runHook preCheck
+                    runHook postCheck
+                  '';
+                });
+              })
+            ];
+          }
+        )
         # Make unstable packages available as pkgs.unstable
         (final: _prev: {
           unstable = import nixpkgs-unstable {

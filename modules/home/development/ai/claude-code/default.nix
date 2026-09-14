@@ -11,6 +11,9 @@ let
   cfg = config.${namespace}.development.ai.claude-code;
   claudePkg = pkgs.llm-agents.claude-code;
   claudeExe = getExe claudePkg;
+  # llm-agents does not build claude-code for every platform (e.g. x86_64-darwin),
+  # so only apply this module where the CLI is actually available.
+  claudeAvailable = lib.meta.availableOn pkgs.stdenv.hostPlatform claudePkg;
   # settings.json is kept writable (a copy, not a store symlink) because Claude
   # mutates it at runtime (e.g. writes extraKnownMarketplaces on marketplace add).
   # We seed it declaratively here; the activation below overwrites on each switch.
@@ -42,7 +45,7 @@ in
     enable = mkEnableOption "Whether or not to enable claude-code";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf (cfg.enable && claudeAvailable) {
     programs = {
       # Native home-manager module owns the package and CLAUDE.md (read-only is fine
       # for both). settings.json is intentionally left to the writable activation
@@ -51,7 +54,7 @@ in
         enable = true;
         package = claudePkg;
 
-        memory.text = ''
+        context = ''
           # Global Guidelines
 
           ## Communication

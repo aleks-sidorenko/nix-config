@@ -27,12 +27,11 @@ in
     };
 
     networking = {
-      # Enable NetworkManager to manage the network interfaces
       useDHCP = mkDefault true;
-      # Enable NetworkManager to manage the network interfaces
+      # Let NetworkManager manage the network interfaces. It also manages
+      # networking.wireless itself (enables wpa_supplicant under DBus control on
+      # 26.05+), so don't set wireless.enable here.
       networkmanager.enable = true;
-      # Disable wireless networking since it conflicts with the networkmanager
-      wireless.enable = false;
 
       # Set the domain to the local domain
       domain = mkForce cfg.domains.local;
