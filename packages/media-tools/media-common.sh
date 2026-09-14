@@ -184,11 +184,15 @@ fill_missing_dates() {
 # Echoes empty string if <date> is not a valid "YYYY:MM:DD HH:MM:SS".
 canonical_name_from_date() {
   local date="$1" file="$2"
-  [[ "$date" =~ ^[0-9]{4}:[0-9]{2}:[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]] || return 0
-  local compact="${date//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
+  # Match only the wall-clock prefix (no trailing $): exiftool CreateDate may
+  # carry a timezone offset and/or subseconds (e.g. macOS screenshots report
+  # "2026:09:11 16:17:40+03:00"), which must not corrupt the name.
+  [[ "$date" =~ ^([0-9]{4}):([0-9]{2}):([0-9]{2})\ ([0-9]{2}):([0-9]{2}):([0-9]{2}) ]] || return 0
   local ext="${file##*.}"
   [[ "$ext" == "$file" ]] && ext="" || ext=".${ext,,}"
-  printf '%s_%s%s\n' "${compact:0:8}" "${compact:8:6}" "$ext"
+  printf '%s%s%s_%s%s%s%s\n' \
+    "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" \
+    "${BASH_REMATCH[4]}" "${BASH_REMATCH[5]}" "${BASH_REMATCH[6]}" "$ext"
 }
 
 # Echo the canonical basename a file would be renamed to under normal (no

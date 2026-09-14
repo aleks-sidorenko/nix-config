@@ -87,6 +87,12 @@ assert_eq "canonical_name_from_date: empty date yields empty name" \
   "" "$(canonical_name_from_date '' 'x.jpg')"
 assert_eq "canonical_name_from_date: malformed date yields empty name" \
   "" "$(canonical_name_from_date 'not-a-date' 'x.jpg')"
+# EXIF CreateDate may carry a trailing timezone (macOS screenshots) or
+# subseconds; the canonical name must be derived from the wall-clock portion.
+assert_eq "canonical_name_from_date: tolerates trailing timezone offset" \
+  "20260911_161740.png" "$(canonical_name_from_date '2026:09:11 16:17:40+03:00' 'Screenshot.PNG')"
+assert_eq "canonical_name_from_date: tolerates subseconds + negative tz" \
+  "20230115_143000.jpg" "$(canonical_name_from_date '2023:01:15 14:30:00.123-05:00' 'x.JPG')"
 
 # --- unique_target (collision-safe rename target, mirrors exiftool %-c) ---
 UT_WORK="$(mktemp -d)"

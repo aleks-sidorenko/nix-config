@@ -26,7 +26,7 @@ inspect() {
     return 1
   fi
 
-  local create_date modify_date fs_date parsed pname date source ext base would_become
+  local create_date modify_date fs_date parsed pname date source would_become
   create_date=$(exiftool -s3 -CreateDate "$file" 2>/dev/null || true)
   modify_date=$(exiftool -s3 -ModifyDate "$file" 2>/dev/null || true)
   fs_date=$(exiftool -s3 -d "%Y:%m:%d %H:%M:%S" -FileModifyDate "$file" 2>/dev/null || true)
@@ -35,15 +35,9 @@ inspect() {
 
   IFS=$'\t' read -r date source < <(resolve_date "$file")
 
-  ext="${file##*.}"
-  [[ "$ext" == "$file" ]] && ext="" || ext="${ext,,}"
-
-  # canonical name from resolved date (YYYY:MM:DD HH:MM:SS -> YYYYMMDD_HHMMSS)
-  would_become="(could not determine)"
-  if [[ "$date" =~ ^[0-9]{4}:[0-9]{2}:[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]]; then
-    base="${date//[: ]/}"
-    would_become="${base:0:8}_${base:8:6}${ext:+.$ext}"
-  fi
+  # Preview the rename using the same builder media-normalize uses.
+  would_become=$(canonical_name_from_date "$date" "$file")
+  [[ -z "$would_become" ]] && would_become="(could not determine)"
 
   echo "$file"
   printf '  EXIF CreateDate : %s\n' "${create_date:-(none)}"
