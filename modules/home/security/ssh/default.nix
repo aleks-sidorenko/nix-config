@@ -47,7 +47,7 @@ in
       # nix-managed, read-only config. First match wins, so these override "*".
       includes = [ "config.local" ];
 
-      matchBlocks = {
+      settings = {
 
         "*" = {
           inherit (cfg) user;

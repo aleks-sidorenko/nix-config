@@ -79,7 +79,7 @@ in
       };
 
       ssh = {
-        matchBlocks."*".addKeysToAgent = mkForce "no"; # Let GPG agent handle the keys, don't add keys to the agent automatically
+        settings."*".addKeysToAgent = mkForce "no"; # Let GPG agent handle the keys, don't add keys to the agent automatically
       };
       keychain.enable = mkForce false;
 

@@ -61,7 +61,14 @@ in
     lib.mkMerge [
       # Common config for all platforms
       {
-        catppuccin.flavor = "mocha";
+        catppuccin = {
+          flavor = "mocha";
+          # catppuccin/nix is moving to autoEnable-driven port enrollment with
+          # `enable` as the global toggle. Opt out of auto-enrollment and keep
+          # only the ports we enable explicitly (fish, ghostty, ...).
+          enable = true;
+          autoEnable = false;
+        };
       }
 
       # NixOS (Linux): full stylix configuration
