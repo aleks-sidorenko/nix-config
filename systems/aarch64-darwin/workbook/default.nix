@@ -12,6 +12,10 @@ with lib.${namespace};
       enable = true;
     };
 
+    # Always-on host: keeps the machine from idle-sleeping so long-running agent
+    # sessions (and the VPN they rely on) survive being left unattended.
+    roles.agent-host = enabled;
+
     # This machine's macOS account (declared like NixOS hosts).
     users.oleksandrsy = {
       primary = true;
