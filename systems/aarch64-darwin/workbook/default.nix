@@ -7,14 +7,16 @@ with lib;
 with lib.${namespace};
 {
   ${namespace} = {
-    # Use work role (includes common + homebrew + defaults)
-    roles.work = {
-      enable = true;
-    };
+    roles = {
+      # Use work role (includes common + homebrew + defaults)
+      work = {
+        enable = true;
+      };
 
-    # Always-on host: keeps the machine from idle-sleeping so long-running agent
-    # sessions (and the VPN they rely on) survive being left unattended.
-    roles.agent-host = enabled;
+      # Always-on host: keeps the machine from idle-sleeping so long-running
+      # agent sessions (and the VPN they rely on) survive being left unattended.
+      agent-host = enabled;
+    };
 
     # This machine's macOS account (declared like NixOS hosts).
     users.oleksandrsy = {
