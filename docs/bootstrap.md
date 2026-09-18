@@ -604,7 +604,8 @@ What it does, idempotently (safe to re-run):
    [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
    in **upstream mode** (vanilla Nix, no `--determinate` flag) — nix-darwin owns
    `nix.conf` and the daemon (`nix.enable = true`), the same model as every NixOS
-   host.
+   host. On Intel the installer is pinned to **v3.12.2**, the last release with
+   an `x86_64-darwin` build (newer tags 404) — again only for `tempbook`.
 4. **Register the host with SOPS** — derives the host's age key from
    `/etc/ssh/ssh_host_ed25519_key.pub` (via `ssh-to-age`), prints the line to add
    to `.sops.yaml`, and **pauses**. Add it under the anchors *and* the darwin

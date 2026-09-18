@@ -155,8 +155,18 @@ install_nix() {
     if [[ -n "${NIX_INSTALLER:-}" ]]; then
         eval "$NIX_INSTALLER"
     else
+        # Determinate stopped publishing an x86_64-darwin build after v3.12.2
+        # (newer tags 404), so pin that tag on Intel. Empty means "whatever the
+        # installer defaults to" — it reads the var with `:-`. Only the
+        # temporary `tempbook` needs this; drop it with that host.
+        local binary_root=""
+        if [[ "$(uname -m)" != "arm64" ]]; then
+            binary_root="https://install.determinate.systems/nix/tag/v3.12.2"
+            log_warning "Intel Mac: pinning the Nix installer to v3.12.2 (last release with an x86_64-darwin build)."
+        fi
+
         curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
-            | sh -s -- install --no-confirm
+            | NIX_INSTALLER_BINARY_ROOT="$binary_root" sh -s -- install --no-confirm
     fi
 
     # Load Nix into the current shell so the first switch can run without a
