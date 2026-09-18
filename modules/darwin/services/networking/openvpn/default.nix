@@ -10,13 +10,9 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.networking.openvpn;
 
-  # nix-darwin derives each daemon's label from launchd.labelPrefix, and the
-  # wrapper needs the full label to address the job in launchd's system domain.
   daemonName = name: "openvpn-${name}";
   labelOf = name: "${config.launchd.labelPrefix}.${daemonName name}";
 
-  # launchctl and sudo are macOS system binaries rather than Nix packages;
-  # nix-darwin itself addresses launchctl by absolute path for the same reason.
   launchctl = "/bin/launchctl";
   sudo = "/usr/bin/sudo";
 
@@ -69,8 +65,6 @@ in
 
     environment.systemPackages = [ vpn ];
 
-    # The whole profile is the secret (inlined <key>), so there is nothing
-    # public to split out. sops-nix defaults these to root-owned 0400.
     sops.secrets = mapAttrs' (_: conn: nameValuePair conn.profileSecret { }) cfg.connections;
 
     launchd.daemons = mapAttrs' (
@@ -86,9 +80,7 @@ in
 
           RunAtLoad = conn.autoStart;
 
-          # Deliberately not KeepAlive: openvpn reconnects on its own (the
-          # profiles carry resolv-retry infinite + persist-tun), and letting
-          # launchd resurrect the job would make `vpn down` useless.
+          # openvpn reconnects on its own; launchd restarting it would defeat `vpn down`.
           KeepAlive = false;
 
           StandardOutPath = "/var/log/openvpn-${name}.log";
