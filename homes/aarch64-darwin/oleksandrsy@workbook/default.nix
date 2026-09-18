@@ -55,6 +55,9 @@ with lib.${namespace};
     # identity's key material (identities/alexander/).
     security.identity.name = "alexander";
 
+    # Endpoint security on this managed host kills the qbittorrent process.
+    media.qbittorrent.enable = mkForce false;
+
     styles.stylix.wallpaper = "earth";
   };
 
