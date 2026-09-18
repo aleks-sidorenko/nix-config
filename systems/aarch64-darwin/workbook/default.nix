@@ -13,8 +13,8 @@ with lib.${namespace};
         enable = true;
       };
 
-      # Always-on host: keeps the machine from idle-sleeping so long-running
-      # agent sessions (and the VPN they rely on) survive being left unattended.
+      # Always-on: long-running agent sessions, and the VPN they rely on, must
+      # survive the machine being left unattended.
       agent-host = enabled;
     };
 
