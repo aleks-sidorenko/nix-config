@@ -522,7 +522,7 @@ the host with SOPS).
 
 ```
 1. Define the host in the flake     (systems/<arch>-darwin/…, homes/…, users)
-2. On the Mac: clone the config, enable Remote Login (for the SSH host key)
+2. On the Mac: fetch the config (curl+tar), enable Remote Login (for the SSH host key)
 3. Run `just bootstrap-darwin <hostname>`
      ├─ Xcode Command Line Tools (git + toolchain)
      ├─ Homebrew                    (nix-darwin manages the Brewfile, not brew itself)
@@ -565,9 +565,16 @@ just list-configs darwin       # <hostname> should appear
 
 On the target Mac:
 
+A stock macOS install has **no `git`** — `/usr/bin/git` is only a stub that
+pops up the Xcode Command Line Tools installer. Fetch the flake with `curl` and
+`tar`, which *are* part of the base system (the bootstrap installs the CLT, and
+with it a real `git`, in step 3):
+
 ```bash
-# Clone the config somewhere stable
-git clone https://github.com/aleks-sidorenko/nix-config ~/.nix-config
+# Fetch the config somewhere stable — no git required
+mkdir -p ~/.nix-config
+curl -fsSL https://github.com/aleks-sidorenko/nix-config/archive/refs/heads/master.tar.gz \
+  | tar -xz --strip-components=1 -C ~/.nix-config
 cd ~/.nix-config
 
 # The SOPS host key is macOS's SSH host key; Remote Login ensures it exists.
@@ -576,8 +583,12 @@ sudo systemsetup -setremotelogin on
 
 ### Step 3 — Run the bootstrap
 
+`just` is itself installed by the flake, so on a fresh Mac call the script
+directly:
+
 ```bash
-just bootstrap-darwin <hostname>          # e.g. just bootstrap-darwin workbook
+./scripts/bootstrap/bootstrap-darwin.sh <hostname>   # e.g. … workbook
+just bootstrap-darwin <hostname>                     # equivalent, once `just` exists
 ```
 
 What it does, idempotently (safe to re-run):
@@ -585,7 +596,10 @@ What it does, idempotently (safe to re-run):
 1. **Xcode Command Line Tools** — installs them if missing (launches Apple's GUI
    installer the first time; re-run the command once it finishes).
 2. **Homebrew** — installs it. nix-darwin's `homebrew` module manages the
-   *Brewfile* declaratively but requires `brew` to already exist.
+   *Brewfile* declaratively but requires `brew` to already exist. On Intel the
+   upstream installer aborts (*"only supported on Apple Silicon processors"*), so
+   the script installs `brew` from a checkout under `/usr/local` instead — needed
+   only by the temporary `tempbook`; nixpkgs drops `x86_64-darwin` after 26.05.
 3. **Nix** — installs via the
    [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
    in **upstream mode** (vanilla Nix, no `--determinate` flag) — nix-darwin owns
@@ -627,6 +641,18 @@ What it does, idempotently (safe to re-run):
    > switch and activation fails at the Homebrew step. `system.homebrew.cleanup`
    > therefore defaults to `"none"` — undeclared brews/casks are left in place
    > rather than auto-removed. Revisit once nix-darwin adapts to Homebrew 6.
+
+- **Turn the extracted tarball into a git checkout.** The CLT installed in
+   step 3 provide `git`, and `~/.nix-config` needs history for later pulls:
+
+   ```bash
+   cd ~/.nix-config
+   git init -q -b master
+   git remote add origin https://github.com/aleks-sidorenko/nix-config
+   git fetch origin master
+   git reset --hard FETCH_HEAD          # discards local edits — commit or stash them first
+   git branch --set-upstream-to=origin/master master
+   ```
 
 - **Open a fresh shell** so fish and the Nix profile are active.
 
