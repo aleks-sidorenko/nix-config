@@ -525,6 +525,11 @@ with nixos-anywhere. You start from a stock macOS install and run the bootstrap
 every step that can be automated and pauses at the one manual gate (registering
 the host with SOPS).
 
+> **Apple Silicon only.** The script refuses to run on Intel: Homebrew's
+> installer and Determinate's Nix installer have both stopped publishing
+> `x86_64-darwin` builds, and nixpkgs drops that platform after 26.05. An Intel
+> Mac has to be set up by hand.
+
 ### The macOS flow at a glance
 
 ```
@@ -603,10 +608,7 @@ What it does, idempotently (safe to re-run):
 1. **Xcode Command Line Tools** — installs them if missing (launches Apple's GUI
    installer the first time; re-run the command once it finishes).
 2. **Homebrew** — installs it. nix-darwin's `homebrew` module manages the
-   *Brewfile* declaratively but requires `brew` to already exist. On Intel the
-   upstream installer aborts (*"only supported on Apple Silicon processors"*), so
-   the script installs `brew` from a checkout under `/usr/local` instead — needed
-   only by the temporary `tempbook`; nixpkgs drops `x86_64-darwin` after 26.05.
+   *Brewfile* declaratively but requires `brew` to already exist.
 3. **Nix** — installs via the
    [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
    in **upstream mode** (vanilla Nix, no `--determinate` flag) — nix-darwin owns
