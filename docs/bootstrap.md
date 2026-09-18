@@ -596,7 +596,10 @@ What it does, idempotently (safe to re-run):
 1. **Xcode Command Line Tools** — installs them if missing (launches Apple's GUI
    installer the first time; re-run the command once it finishes).
 2. **Homebrew** — installs it. nix-darwin's `homebrew` module manages the
-   *Brewfile* declaratively but requires `brew` to already exist.
+   *Brewfile* declaratively but requires `brew` to already exist. On Intel the
+   upstream installer aborts (*"only supported on Apple Silicon processors"*), so
+   the script installs `brew` from a checkout under `/usr/local` instead — needed
+   only by the temporary `tempbook`; nixpkgs drops `x86_64-darwin` after 26.05.
 3. **Nix** — installs via the
    [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
    in **upstream mode** (vanilla Nix, no `--determinate` flag) — nix-darwin owns

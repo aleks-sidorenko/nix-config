@@ -85,6 +85,35 @@ install_xcode_clt() {
     exit 0
 }
 
+# Homebrew's installer aborts on Intel ("Homebrew on macOS is only supported on
+# Apple Silicon processors!"), but a checkout under /usr/local still yields a
+# working `brew` that nix-darwin's homebrew module drives exactly as on arm64.
+# Only the temporary `tempbook` host needs this — delete it with that host
+# (nixpkgs drops x86_64-darwin after 26.05 anyway).
+install_homebrew_intel() {
+    log_warning "Intel Mac: Homebrew's installer refuses this arch; installing from a checkout."
+
+    # Same directories and ownership the upstream installer sets up on Intel;
+    # brew writes into all of them. chown non-recursively — /usr/local may hold
+    # unrelated files.
+    local dir
+    for dir in bin etc include lib opt sbin share var Caskroom Cellar Frameworks Homebrew; do
+        sudo mkdir -p "/usr/local/$dir"
+        sudo chown "$(id -un):admin" "/usr/local/$dir"
+        sudo chmod g+rwx "/usr/local/$dir"
+    done
+
+    # Not a shallow clone: `brew update` refuses to work in one. Guarded so a
+    # re-run after a partial install doesn't trip over the existing checkout.
+    if [[ ! -x /usr/local/Homebrew/bin/brew ]]; then
+        git clone https://github.com/Homebrew/brew /usr/local/Homebrew
+    fi
+    ln -sf /usr/local/Homebrew/bin/brew /usr/local/bin/brew
+
+    # Fail here rather than mid-activation if brew itself rejects this arch.
+    /usr/local/bin/brew update --force --quiet
+}
+
 # nix-darwin's homebrew module manages the Brewfile but does NOT install Homebrew
 # itself — brew must exist first, or the first activation fails.
 install_homebrew() {
@@ -94,8 +123,12 @@ install_homebrew() {
     fi
 
     log_info "Installing Homebrew..."
-    NONINTERACTIVE=1 /bin/bash -c \
-        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        NONINTERACTIVE=1 /bin/bash -c \
+            "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    else
+        install_homebrew_intel
+    fi
 
     # Make brew available for the rest of this run (Apple Silicon vs Intel path).
     if [[ -x /opt/homebrew/bin/brew ]]; then
