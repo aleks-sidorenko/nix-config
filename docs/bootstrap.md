@@ -6,14 +6,20 @@ bootstrap scripts in this repository.
 
 > **Bootstrapping a Mac?** macOS can't be installed with nixos-anywhere — it uses
 > a different, run-on-the-machine flow. Jump to
-> [macOS (nix-darwin) bootstrap](#macos-nix-darwin-bootstrap).
+> [macOS (nix-darwin) bootstrap](#macos-nix-darwin).
 
 Follow the steps **in order** — each one depends on the previous. In particular,
 the host must become a SOPS recipient *before* you deploy, because the system
 decrypts user passwords and other secrets at boot (see
 [Step 4](#step-4--generate-host-keys--register-with-sops)).
 
-## The flow at a glance
+## NixOS
+
+**Remote and local** — Steps 1–5 are shared; [Step 6](#step-6--deploy) splits
+into a remote install driven from your machine (nixos-anywhere) and a local,
+on-machine install run on the target itself.
+
+### The NixOS flow at a glance
 
 ```
 1. Define the host in the flake        (systems/…, homes/…, users)
@@ -30,7 +36,7 @@ step for you), or split apart for more control. Both paths are covered below.
 
 ---
 
-## Step 1 — Define the host in the flake
+### Step 1 — Define the host in the flake
 
 Nothing can be deployed until the host exists in the flake. Create the system
 directory following snowfall-lib conventions:
@@ -86,7 +92,7 @@ just bootstrap-targets    # should list your new hostname
 just list-configs nixos   # sanity-check the config evaluates
 ```
 
-## Step 2 — Prepare your local machine
+### Step 2 — Prepare your local machine
 
 Bootstrap runs from your machine and pushes to the target. You need:
 
@@ -96,11 +102,11 @@ Bootstrap runs from your machine and pushes to the target. You need:
 - These tools on `PATH`: `ssh-keygen`, `pass`, `nix`, `mktemp`, `nixos-anywhere`
 - For disk encryption: a LUKS password you choose now
 
-## Step 3 — Boot the target
+### Step 3 — Boot the target
 
 The target must be reachable over SSH before bootstrap can run.
 
-### Fresh machine with no OS — build the installer ISO
+#### Fresh machine with no OS — build the installer ISO
 
 Build the custom minimal installer ISO from this flake and write it to a USB stick:
 
@@ -127,7 +133,7 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > **Raspberry Pi 4:** first
 > [prepare the bootloader](https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md#prepare-bootloader-on-raspberry-pi-5)
 > (update firmware, change boot order), then continue here. Firmware is installed
-> post-deploy — see [Raspberry Pi 4](#raspberry-pi-4).
+> post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
 > **VM (testing):** provision with [Vagrant](https://www.vagrantup.com/) instead
 > of building/booting an ISO. The VirtualBox provider is enabled by the `desktop`
@@ -168,13 +174,13 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > `just deploy vm` reach it as your user on port 22 via `/etc/hosts` (`10.0.0.64`),
 > exactly like `desktop` or `server`.
 
-### Verify connectivity
+#### Verify connectivity
 
 ```bash
 ssh -o ConnectTimeout=10 -o BatchMode=yes <username>@<hostname> "sudo -n true"
 ```
 
-### Capture the target's disks & hardware
+#### Capture the target's disks & hardware
 
 The `hardware.nix` and `disks.nix` you stubbed in [Step 1](#step-1--define-the-host-in-the-flake)
 must now be filled with values that only exist on the real machine. Do this while
@@ -222,7 +228,7 @@ nix eval .#nixosConfigurations.<hostname>.config.system.build.toplevel.drvPath
 
 Commit these edits before deploying so the built system matches what you tested.
 
-## Step 4 — Generate host keys & register with SOPS
+### Step 4 — Generate host keys & register with SOPS
 
 This is the pivotal step. The host needs an **age key** so sops-nix can decrypt
 secrets at boot, but that key is *derived from the host's SSH host key*, which
@@ -252,7 +258,7 @@ $KEYSDIR/extra/persist/etc/ssh/
 $KEYSDIR/disk.key            # only when disk encryption is used
 ```
 
-### Register the host in `.sops.yaml`
+#### Register the host in `.sops.yaml`
 
 You don't generate a separate age key — it's the host's **SSH public key
 converted to age format** by `ssh-to-age`. `bootstrap-secrets` does this for you
@@ -307,7 +313,7 @@ skip the interactive pause once you've scripted the SOPS edit.)
 > If you reuse SSH keys already in `pass`, the host is presumably already a SOPS
 > recipient and the script skips this prompt.
 
-## Step 5 — Add the secrets the host needs
+### Step 5 — Add the secrets the host needs
 
 Every account declared in Step 1 expects a `user-<name>-password` secret in
 `modules/nixos/secrets.yaml`:
@@ -326,11 +332,11 @@ just secrets-edit nixos
 
 Add any other host-specific secrets the same way.
 
-## Step 6 — Deploy
+### Step 6 — Deploy
 
 With keys registered and secrets in place, deploy with `nixos-anywhere`.
 
-### One command (recommended)
+#### Remote — one command (recommended)
 
 `just bootstrap` runs Steps 4–6 together, pausing at the SOPS prompt:
 
@@ -347,7 +353,7 @@ just bootstrap myserver nixos MyPassword123                # with LUKS disk encr
 just bootstrap vm vagrant                                  # testing VM (Vagrant, connect as vagrant)
 ```
 
-### Two-step (if you already ran `bootstrap-secrets`)
+#### Remote — two-step (if you already ran `bootstrap-secrets`)
 
 Reuse the keys directory printed by Step 4:
 
@@ -360,7 +366,7 @@ just bootstrap-deploy <hostname> [username] [keysdir] [extra_opts...]
 `/persist/etc/ssh`, installs NixOS, and reboots. If `disk.key` is present it is
 passed through as `--disk-encryption-keys`.
 
-### On-machine install (no nixos-anywhere)
+#### Local — on-machine install (no nixos-anywhere)
 
 Use this when the target is your **only** Nix machine — a first host with no other
 box to push a build from. Everything runs **on the target**, booted into an
@@ -418,9 +424,9 @@ The result is byte-for-byte the nixos-anywhere outcome: the same host key in
    sudo reboot
    ```
 
-Once it comes up, [subsequent updates](#subsequent-updates) deploy normally.
+Once it comes up, [subsequent deploys](#subsequent-deploys) deploy normally.
 
-### How `<hostname>` reaches the target machine
+#### How `<hostname>` reaches the target machine
 
 `bootstrap-deploy` uses the `<hostname>` argument **twice**:
 
@@ -470,9 +476,9 @@ its installed system resolves normally. Only its *install phase* needs the
 throwaway-alias trick, because Vagrant's bootstrap SSH runs over NAT with the
 box's key — see the VM note in [Step 3](#step-3--boot-the-target).
 
-## Step 7 — Post-installation
+### Step 7 — Post-installation
 
-### FIDO2 auto-unlock (LUKS hosts, optional)
+#### FIDO2 auto-unlock (LUKS hosts, optional)
 
 The system ships with `fido2-device=auto` in the LUKS settings. Enroll a token:
 
@@ -481,7 +487,7 @@ ssh <username>@<hostname>
 systemd-cryptenroll --fido2-device=auto /dev/disk/by-label/<device_name>
 ```
 
-### Raspberry Pi 4 firmware
+#### Raspberry Pi 4 firmware
 
 ```bash
 just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]
@@ -497,7 +503,7 @@ just bootstrap-rpi-firmware 192.168.1.100 root             # by IP
 This downloads [RPi4 UEFI firmware](https://github.com/pftf/RPi4) and extracts it
 to the target directory.
 
-### Subsequent updates
+### Subsequent deploys
 
 After the initial bootstrap, deploy changes normally:
 
@@ -509,11 +515,12 @@ nh os switch                           # local rebuild (on the host itself)
 
 ---
 
-## macOS (nix-darwin) bootstrap
+## macOS (nix-darwin)
 
-macOS hosts (`workbook`, `tempbook`) are **not** installed with nixos-anywhere —
-there is no kexec/netboot install phase for macOS. Instead you start from a
-stock macOS install and run the bootstrap **on the Mac itself**. The
+**Local only** — there is no remote install path: macOS has no kexec/netboot
+install phase, so macOS hosts (`workbook`, `tempbook`) are **not** installed
+with nixos-anywhere. You start from a stock macOS install and run the bootstrap
+**on the Mac itself**. The
 [`bootstrap-darwin`](../scripts/bootstrap/bootstrap-darwin.sh) script automates
 every step that can be automated and pauses at the one manual gate (registering
 the host with SOPS).
@@ -523,7 +530,7 @@ the host with SOPS).
 > `x86_64-darwin` builds, and nixpkgs drops that platform after 26.05. An Intel
 > Mac has to be set up by hand.
 
-### The flow at a glance
+### The macOS flow at a glance
 
 ```
 1. Define the host in the flake     (systems/<arch>-darwin/…, homes/…, users)
@@ -538,7 +545,7 @@ the host with SOPS).
 4. Post-install                     (import GPG key, clone pass store)
 ```
 
-### Step 1 — Define the host in the flake
+### Step 1 — Define the Mac in the flake
 
 Same model as NixOS, minus disks/hardware. Create
 `systems/<arch>-darwin/<hostname>/default.nix` (Apple Silicon is
