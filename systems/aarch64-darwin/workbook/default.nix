@@ -32,6 +32,11 @@ with lib.${namespace};
         "Thunderbolt Bridge"
       ];
     };
+
+    services.networking.openvpn = {
+      enable = true;
+      connections.kpi = { };
+    };
   };
 
   system.stateVersion = 5;
