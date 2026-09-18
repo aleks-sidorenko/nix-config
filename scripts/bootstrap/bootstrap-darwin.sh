@@ -71,7 +71,29 @@ install_xcode_clt() {
     fi
 
     log_info "Installing Xcode Command Line Tools..."
-    xcode-select --install || true
+
+    # `xcode-select --install` fails for reasons worth seeing: the on-demand
+    # request is silently dropped once its dialog has been dismissed, and a
+    # half-installed CLT reports "already installed" while `xcode-select -p`
+    # still fails. Swallowing that left the caller waiting for a GUI installer
+    # that was never launched.
+    local output status=0
+    output="$(xcode-select --install 2>&1)" || status=$?
+
+    if (( status != 0 )); then
+        log_error "xcode-select --install failed (exit ${status}):"
+        log_error "  ${output:-<no output>}"
+        log_error ""
+        log_error "Install the Command Line Tools without the on-demand dialog:"
+        log_error "  sudo touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+        log_error "  PROD=\$(softwareupdate -l | awk -F'Label: ' '/Label: Command Line Tools/ {print \$2}' | tail -1)"
+        log_error "  sudo softwareupdate -i \"\$PROD\" --verbose"
+        log_error "  sudo rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
+        log_error ""
+        log_error "Then re-run this script."
+        exit 1
+    fi
+
     log_warning "A GUI installer was launched. Complete it, then re-run this script."
     exit 0
 }
