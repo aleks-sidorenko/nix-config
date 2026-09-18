@@ -10,6 +10,9 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.media.players.vlc;
 
+  # nixpkgs' `vlc` is the Linux Qt build; darwin has no source build, only the
+  # upstream binary app bundle.
+  vlc = if pkgs.stdenv.isDarwin then pkgs.vlc-bin else pkgs.vlc;
 in
 {
   options.${namespace}.media.players.vlc = {
@@ -24,13 +27,10 @@ in
       name = "vlc";
     };
 
-    home.packages = builtins.attrValues {
-      inherit (pkgs)
-
-        ffmpeg
-        vlc
-        ;
-    };
+    home.packages = [
+      pkgs.ffmpeg
+      vlc
+    ];
 
   };
 

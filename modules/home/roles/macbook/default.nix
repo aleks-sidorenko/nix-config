@@ -26,7 +26,7 @@ in
     ${namespace} = {
       roles = {
         common = enabled; # Reuse common CLI tools
-        media = enabled; # Media management tooling (GUI apps are Linux-only)
+        media = enabled; # Media management tooling and player
 
         development = {
           enable = true;
@@ -47,6 +47,9 @@ in
       };
 
       desktops.aerospace = enabled;
+
+      # Local fallback for when the media server is unreachable.
+      media.qbittorrent = enabled;
 
       cli.tools.git.lfs = true;
 
