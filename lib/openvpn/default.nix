@@ -27,7 +27,11 @@ rec {
           mkOpt str "system-vpn-${name}-profile"
             "Name of the SOPS secret holding the whole .ovpn profile.";
         autoStart = mkBoolOpt false "Connect at boot rather than on demand.";
-        splitTunnel = mkBoolOpt true "Refuse a server-pushed redirect-gateway, so only the VPN's own routes are installed and an existing default route (e.g. a corporate VPN's) keeps winning.";
+        # Off by default: accepting what the server pushes is plain openvpn
+        # behaviour. Enabling this against a server that pushes no subnet routes
+        # of its own -- one that only offers redirect-gateway -- yields a tunnel
+        # that connects and then carries nothing, which is worse than no tunnel.
+        splitTunnel = mkBoolOpt false "Refuse a server-pushed redirect-gateway, so only the VPN's own routes are installed and an existing default route (e.g. a corporate VPN's) keeps winning. Only useful when the server pushes subnet routes of its own.";
         ignorePushedDns = mkBoolOpt true "Refuse server-pushed DNS servers. macOS has no resolvconf, so a pushed resolver needs an up-script to apply at all; refusing it keeps the host's own DNS intact.";
         extraConfig = mkOpt (listOf str) [ ] "Extra openvpn command-line arguments.";
       };

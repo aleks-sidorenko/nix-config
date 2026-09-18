@@ -33,9 +33,18 @@ with lib.${namespace};
       ];
     };
 
-    # KPI VPN. Split-tunnel by default, so it installs only its own routes and
-    # GlobalProtect keeps the default route: both stay connected, nothing to
-    # toggle. On demand via `vpn up kpi` / `vpn down kpi`.
+    # KPI VPN, on demand via `vpn up kpi` / `vpn down kpi`.
+    #
+    # Full tunnel, because the server offers nothing else: its PUSH_REPLY
+    # carries redirect-gateway plus its own gateway route, and no KPI subnet
+    # routes at all. Resources there (e.g. teamcity.cloud.kpi.ua, hosted off
+    # site on AWS) are allow-listed by source IP, so traffic has to exit
+    # through KPI to be recognised.
+    #
+    # It therefore claims the default route and cannot share the host with
+    # GlobalProtect: disconnect that first. Nesting the two fails on its own
+    # terms anyway, since GlobalProtect's utun runs at MTU 1350 and openvpn's
+    # handshake packets do not survive the fragmentation.
     services.networking.openvpn = {
       enable = true;
       connections.kpi = { };
