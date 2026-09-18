@@ -32,6 +32,14 @@ with lib.${namespace};
         "Thunderbolt Bridge"
       ];
     };
+
+    # KPI VPN. Split-tunnel by default, so it installs only its own routes and
+    # GlobalProtect keeps the default route: both stay connected, nothing to
+    # toggle. On demand via `vpn up kpi` / `vpn down kpi`.
+    services.networking.openvpn = {
+      enable = true;
+      connections.kpi = { };
+    };
   };
 
   system.stateVersion = 5;
