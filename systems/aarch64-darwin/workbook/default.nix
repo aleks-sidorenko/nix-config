@@ -53,8 +53,8 @@ with lib.${namespace};
         guests.vm = {
           cpus = 6;
           memory = "12G";
-          rootDisk = "${homeDir config}/.local/share/qemu/vm/root.img";
-          dataDisk = "${homeDir config}/.local/share/qemu/vm/data.img";
+          rootDisk = "${homeDir config}/.local/share/qemu/vm/root.qcow2";
+          dataDisk = "${homeDir config}/.local/share/qemu/vm/data.qcow2";
           varsDisk = "${homeDir config}/.local/share/qemu/vm/vars.img";
           mac = "52:54:00:00:00:64";
         };

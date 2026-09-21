@@ -6,6 +6,12 @@
 with lib;
 with lib.${namespace};
 {
+  # Raw images are sparse in the builder, but that sparseness does not survive
+  # the NAR transfer into /nix/store, so a raw 48G+96G build writes ~144G twice
+  # (store + destination). qcow2 is thin-provisioned end to end; imageSize
+  # above stays a virtual cap, not a real allocation.
+  disko.imageBuilder.imageFormat = "qcow2";
+
   ${namespace} = {
     disks.disko = {
       enable = true;
