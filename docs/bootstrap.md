@@ -153,13 +153,16 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 >    `10.0.0.64`, and that `/etc/hosts` entry also shadows the tailnet name.
 >
 > ```bash
-> just vm-image          # build root.img + data.img (+ seed the UEFI vars image)
+> just vm-image          # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
 > launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-vm
 > ```
 >
-> `just vm-image` refuses to run while the guest is loaded, asks before
-> replacing an existing `root.img`, and never overwrites `data.img` — the bulk
-> disk is meant to outlive re-imaging. To rebuild it, delete it by hand.
+> `just vm-image` asks before replacing an existing `root.qcow2` and never
+> overwrites `data.qcow2` — the bulk disk is meant to outlive re-imaging. To
+> rebuild it, delete it by hand. If the guest's launchd job is only registered
+> (e.g. left over from a `darwin-rebuild switch` where qemu never actually
+> started), it is cleared automatically; if the guest is genuinely running, the
+> recipe asks you to type `bootout` before it stops it and continues.
 >
 > On first boot the guest generates its SSH host key. **Replace** the `&vm` age
 > key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
