@@ -127,7 +127,7 @@ in
   };
   vm = {
     ip = ips.vm;
-    mac = "08:00:27:00:00:64";
+    mac = "52:54:00:00:00:64";
     comment = "Test VM";
     dns = false;
     aliases = [ ];

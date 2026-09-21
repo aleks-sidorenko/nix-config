@@ -145,6 +145,20 @@ iso-write device:
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
 
+# Build the vm guest's disk images (output under ~/.local/share/qemu/vm/)
+vm-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    out="$HOME/.local/share/qemu/vm"
+    mkdir -p "$out"
+    log_info "Building vm disk images (requires an aarch64-linux builder)..."
+    nix build '.#nixosConfigurations.vm.config.system.build.diskoImages' --out-link result-vm
+    cp -f result-vm/root.raw "$out/root.img"
+    cp -f result-vm/data.raw "$out/data.img"
+    chmod u+w "$out/root.img" "$out/data.img"
+    log_success "Images written to $out"
+
 # Update flake inputs (optionally a single input)
 update *input:
     @echo "📦 Updating flake inputs..."

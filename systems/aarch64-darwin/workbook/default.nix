@@ -33,16 +33,39 @@ with lib.${namespace};
       ];
     };
 
-    services.networking.openvpn = {
-      enable = true;
-      connections.kpi = { };
-    };
+    services = {
+      networking = {
+        openvpn = {
+          enable = true;
+          connections.kpi = { };
+        };
 
-    services.networking.socket-vmnet = {
-      enable = true;
-      mode = "bridged";
-      interface = "en0";
+        socket-vmnet = {
+          enable = true;
+          mode = "bridged";
+          interface = "en0";
+        };
+      };
+
+      virtualisation.qemu = {
+        enable = true;
+        guests.vm = {
+          cpus = 6;
+          memory = "12G";
+          rootDisk = "/Users/oleksandrsy/.local/share/qemu/vm/root.img";
+          dataDisk = "/Users/oleksandrsy/.local/share/qemu/vm/data.img";
+          mac = "52:54:00:00:00:64";
+          gui = true;
+        };
+      };
     };
+  };
+
+  # Building the aarch64-linux guest from macOS needs a Linux builder.
+  nix.linux-builder = {
+    enable = true;
+    ephemeral = true;
+    maxJobs = 4;
   };
 
   system.stateVersion = 5;
