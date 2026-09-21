@@ -37,6 +37,12 @@ with lib.${namespace};
       enable = true;
       connections.kpi = { };
     };
+
+    services.networking.socket-vmnet = {
+      enable = true;
+      mode = "bridged";
+      interface = "en0";
+    };
   };
 
   system.stateVersion = 5;
