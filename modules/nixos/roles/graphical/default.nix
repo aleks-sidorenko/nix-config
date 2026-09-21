@@ -21,7 +21,8 @@ in
         # A graphical host is a gaming host by default, but the suite is
         # x86-only (hardware.graphics.enable32Bit), so hosts can opt out.
         gaming.enable = mkDefault true;
-        backup = enabled;
+        # Disposable hosts have nothing worth backing up, so they can opt out.
+        backup.enable = mkDefault true;
       };
 
       styles.stylix.enable = true;
