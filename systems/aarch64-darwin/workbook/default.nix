@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   namespace,
   ...
 }:
@@ -52,8 +53,8 @@ with lib.${namespace};
         guests.vm = {
           cpus = 6;
           memory = "12G";
-          rootDisk = "/Users/oleksandrsy/.local/share/qemu/vm/root.img";
-          dataDisk = "/Users/oleksandrsy/.local/share/qemu/vm/data.img";
+          rootDisk = "${homeDir config}/.local/share/qemu/vm/root.img";
+          dataDisk = "${homeDir config}/.local/share/qemu/vm/data.img";
           mac = "52:54:00:00:00:64";
           gui = true;
         };
