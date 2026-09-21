@@ -48,7 +48,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
 | `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook — multi-user (adult + child) | NixOS | Scaffold |
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
-| `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
+| `vm` | aarch64-linux | QEMU guest | Workbook | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
 | `minimal` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
 

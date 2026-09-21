@@ -9,17 +9,18 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 ├── flake.nix                       # Flake definition and inputs
 ├── systems/                        # System configurations (auto-discovered)
 │   ├── x86_64-linux/
-│   │   ├── desktop/                # Primary desktop workstation
-│   │   └── vm/                     # Vagrant test VM
+│   │   └── desktop/                # Primary desktop workstation
 │   ├── x86_64-install-iso/
 │   │   └── minimal/                # Custom NixOS installer ISO
 │   ├── aarch64-linux/
-│   │   └── server/                 # Raspberry Pi 4 home server
+│   │   ├── server/                 # Raspberry Pi 4 home server
+│   │   └── vm/                     # QEMU guest (workbook)
 │   └── aarch64-darwin/
 │       └── workbook/               # macOS work laptop
 ├── homes/                          # Home-manager configurations (auto-discovered)
 │   ├── x86_64-linux/
-│   │   ├── alexander@desktop/
+│   │   └── alexander@desktop/
+│   ├── aarch64-linux/
 │   │   └── alexander@vm/
 │   └── aarch64-darwin/
 │       └── oleksandrsy@workbook/
@@ -65,7 +66,7 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **minimal** | - | Bare base: SSH, Nix, locale, networking, fish shell |
 | **common** | minimal | SOPS, boot, filesystems, impermanence, GitHub-authed Nix, nh, nix-ld |
 | **graphical** | common, gaming, backup | Shared graphical suite: stylix, GNOME, hibernation |
-| **desktop** | graphical | Root role for the desktop host (adds VirtualBox, Podman) |
+| **desktop** | graphical | Root role for the desktop host (adds KVM, Podman) |
 | **homebook** | graphical, laptop | Root role for the shared family laptop |
 | **laptop** | - | Laptop power management (power-profiles-daemon, upower) |
 | **server** | common | nginx, NFS utils, NetworkManager hardening, TCP BBR, systemd watchdog |
@@ -258,8 +259,8 @@ Data structure (not functions) providing shared defaults:
 
 | Architecture | Systems | Description |
 |-------------|---------|-------------|
-| `x86_64-linux` | desktop, homebook, vm | Desktop workstation, shared family laptop, test VM |
-| `aarch64-linux` | server | Raspberry Pi 4 home server |
+| `x86_64-linux` | desktop, homebook | Desktop workstation, shared family laptop |
+| `aarch64-linux` | server, vm | Raspberry Pi 4 home server, QEMU guest (workbook) |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
 | `x86_64-install-iso` | minimal | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal`) |
 

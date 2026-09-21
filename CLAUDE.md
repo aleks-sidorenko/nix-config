@@ -271,9 +271,9 @@ Supports multiple desktop environments:
 
 ### Multi-Architecture Support
 
-- **x86_64-linux**: Desktop, VM
+- **x86_64-linux**: Desktop
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal`)
-- **aarch64-linux**: Raspberry Pi 4 server
+- **aarch64-linux**: Raspberry Pi 4 server, QEMU guest VM
 - **aarch64-darwin**: macOS workbook
 
 Darwin-specific modules in `modules/darwin/` with separate role system.
@@ -328,8 +328,8 @@ IaC configurations in `infra/`:
 
 Use the VM configuration for testing:
 ```bash
-# In systems/x86_64-linux/vm/
-just deploy vm --hostname vm --skip-checks
+just vm-image                 # build the guest disk images
+just deploy vm                # deploy to the running guest
 ```
 
-VM is provisioned via Vagrant with SSH keys from GitHub.
+The VM is an aarch64-linux guest running under QEMU on the workbook.
