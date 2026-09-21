@@ -150,14 +150,56 @@ vm-image:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
+    agent="gui/$(id -u)/org.nixos.qemu-vm"
+    if launchctl print "$agent" >/dev/null 2>&1; then
+        log_error "The guest is loaded — stop it first: launchctl bootout $agent"; exit 1
+    fi
+
     out="$HOME/.local/share/qemu/vm"
     mkdir -p "$out"
+
+    # Anything in the root image that is not on /persist or the data disk is
+    # lost, so replacing it is never implicit.
+    if [ -e "$out/root.img" ]; then
+        log_warning "About to REPLACE $out/root.img — the guest's host key and state go with it"
+        read -rp "Type 'replace' to continue: " confirm
+        if [ "$confirm" != "replace" ]; then
+            log_error "Aborted"; exit 1
+        fi
+    fi
+
     log_info "Building vm disk images (requires an aarch64-linux builder)..."
     nix build '.#nixosConfigurations.vm.config.system.build.diskoImages' --out-link result-vm
-    cp -f result-vm/root.raw "$out/root.img"
-    cp -f result-vm/data.raw "$out/data.img"
-    chmod u+w "$out/root.img" "$out/data.img"
-    log_success "Images written to $out"
+
+    install_image() {
+        rm -f "$out/.$1.tmp"
+        cp "result-vm/$2" "$out/.$1.tmp"
+        chmod u+w "$out/.$1.tmp"
+        mv -f "$out/.$1.tmp" "$out/$1"
+    }
+
+    install_image root.img root.raw
+    log_success "root.img written"
+
+    # The data disk is the one thing that survives re-imaging: create-only.
+    if [ -e "$out/data.img" ]; then
+        log_info "Keeping the existing $out/data.img — delete it by hand to start over"
+    else
+        install_image data.img data.raw
+        log_success "data.img created"
+    fi
+
+    # The guest writes EFI variables, so its vars store is state too: seed once.
+    if [ ! -e "$out/vars.img" ]; then
+        qemu=$(nix build --no-link --print-out-paths '.#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.package')
+        rm -f "$out/.vars.img.tmp"
+        cp "$qemu/share/qemu/edk2-arm-vars.fd" "$out/.vars.img.tmp"
+        chmod u+w "$out/.vars.img.tmp"
+        mv -f "$out/.vars.img.tmp" "$out/vars.img"
+        log_success "vars.img seeded"
+    fi
+
+    log_success "Images ready in $out"
 
 # Update flake inputs (optionally a single input)
 update *input:
