@@ -140,14 +140,44 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > builds a disko disk image that is already installed, and the guest boots
 > straight into it.
 >
+> **One-time prerequisites, in this order:**
+>
+> 1. `darwin-rebuild switch --flake .` on the `workbook`. This installs the
+>    aarch64-linux builder `just vm-image` builds on, the `socket_vmnet`
+>    daemon, and the `org.nixos.qemu-vm` agent. Nothing below works without it.
+> 2. `just router-apply`, so the static DHCP lease keyed by the guest's MAC
+>    (`52:54:00:00:00:64` → `10.0.0.64`) exists.
+> 3. `nh os switch` on the machines you deploy from, so their `/etc/hosts`
+>    learns `vm → 10.0.0.64`. Skipping steps 2–3 is worse than doing nothing:
+>    the guest takes a random lease while every host still resolves `vm` to
+>    `10.0.0.64`, and that `/etc/hosts` entry also shadows the tailnet name.
+>
 > ```bash
-> just vm-image          # build root.img + data.img
+> just vm-image          # build root.img + data.img (+ seed the UEFI vars image)
 > launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-vm
 > ```
 >
-> On first boot the guest generates its SSH host key. Add its age key to
-> `.sops.yaml`, run `sops updatekeys` on both secret files, then
-> `just deploy vm` as usual.
+> `just vm-image` refuses to run while the guest is loaded, asks before
+> replacing an existing `root.img`, and never overwrites `data.img` — the bulk
+> disk is meant to outlive re-imaging. To rebuild it, delete it by hand.
+>
+> On first boot the guest generates its SSH host key. **Replace** the `&vm` age
+> key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
+> two creation rules — edit it in place, do not append a second entry), run
+> `sops updatekeys` on both secret files, then `just deploy vm` as usual.
+>
+> Finally, join the tailnet from the guest. The bridged address follows
+> whichever LAN the Mac is on, so the tailnet is the only stable way in from
+> elsewhere, and nothing enrols the guest for you — there is no auth key in
+> SOPS. Run it once and open the URL it prints:
+>
+> ```bash
+> ssh vm -- sudo tailscale up --ssh
+> ```
+>
+> (The guest's wheel group is passwordless — see
+> `systems/aarch64-linux/vm/default.nix` — so this works before the account has
+> a usable password.)
 
 #### Verify connectivity
 

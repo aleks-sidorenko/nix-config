@@ -328,8 +328,12 @@ IaC configurations in `infra/`:
 
 Use the VM configuration for testing:
 ```bash
-just vm-image                 # build the guest disk images
-just deploy vm                # deploy to the running guest
+darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
+just vm-image                    # build the guest disk images
+just deploy vm                   # deploy to the running guest
 ```
 
 The VM is an aarch64-linux guest running under QEMU on the workbook.
+`just vm-image` needs the `nix.linux-builder` that `darwin-rebuild switch`
+installs, so that step comes first. See `docs/bootstrap.md` for the full
+first-boot sequence (router lease, SOPS re-key, Tailscale).
