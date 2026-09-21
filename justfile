@@ -145,11 +145,6 @@ iso-write device:
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
 
-# Power-cycle the Vagrant test VM into UEFI firmware (run once after `just bootstrap vm ...`).
-# The box boots legacy BIOS for the install; the installed NixOS needs UEFI (systemd-boot).
-vm-uefi:
-    @scripts/vm-uefi.sh
-
 # Update flake inputs (optionally a single input)
 update *input:
     @echo "📦 Updating flake inputs..."
