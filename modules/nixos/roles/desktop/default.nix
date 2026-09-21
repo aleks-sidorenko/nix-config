@@ -27,9 +27,8 @@ in
       # Virtualisation is desktop-specific (not wanted on the family laptop).
       services = {
         virtualisation = {
-          virtualbox = enabled;
+          kvm = enabled;
           podman = enabled;
-          vagrant = enabled;
         };
       };
     };
