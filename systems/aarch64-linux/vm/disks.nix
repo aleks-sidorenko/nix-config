@@ -13,6 +13,7 @@ with lib.${namespace};
         root = {
           device = "/dev/vda";
           encrypted = false;
+          imageSize = "48G";
           boot = {
             size = "512M";
           };
@@ -48,6 +49,7 @@ with lib.${namespace};
         data = {
           device = "/dev/vdb";
           encrypted = false;
+          imageSize = "96G";
           content = [
             {
               name = "home";
