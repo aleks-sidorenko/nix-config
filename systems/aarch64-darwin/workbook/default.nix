@@ -62,11 +62,20 @@ with lib.${namespace};
     };
   };
 
-  # Building the aarch64-linux guest from macOS needs a Linux builder.
+  # Building the aarch64-linux guest from macOS needs a Linux builder. disko
+  # runs its own VM inside this one with no nested virtualisation, so that
+  # inner build is emulated and wants real cores; the disk has to hold the
+  # guest's images, and is kept across restarts so a rebuild is not a rebuild
+  # of everything. maxJobs follows virtualisation.cores on its own.
   nix.linux-builder = {
     enable = true;
-    ephemeral = true;
-    maxJobs = 4;
+    config.virtualisation = {
+      cores = 8;
+      darwin-builder = {
+        memorySize = 16 * 1024;
+        diskSize = 120 * 1024;
+      };
+    };
   };
 
   system.stateVersion = 5;

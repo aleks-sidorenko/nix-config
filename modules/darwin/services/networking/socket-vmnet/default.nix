@@ -34,6 +34,11 @@ in
 
     # vmnet bridged mode needs root, but no Apple entitlement — which is why
     # guests reach it through this socket instead of attaching directly.
+    #
+    # Accepted risk: the binary lives in a user-writable Homebrew prefix and is
+    # started as root, so anyone who can write there can run code as root. This
+    # is how upstream ships it (`sudo brew services start socket_vmnet`); the
+    # alternative is packaging socket_vmnet in nixpkgs.
     launchd.daemons.socket-vmnet = {
       serviceConfig = {
         ProgramArguments = [
