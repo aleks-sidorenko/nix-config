@@ -150,26 +150,43 @@ vm-image:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    agent="gui/$(id -u)/org.nixos.qemu-vm"
-    if launchctl print "$agent" >/dev/null 2>&1; then
-        log_error "The guest is loaded — stop it first: launchctl bootout $agent"; exit 1
-    fi
+
+    # A `read` on a closed/non-interactive stdin hits EOF and, under -e, exits
+    # 1 silently before the prompt's own decline message ever prints. Any
+    # confirmation must check this first so a non-interactive caller (CI, a
+    # script) fails loudly instead of looking like a clean no-op.
+    confirm() {
+        local word="$1" prompt="$2" reply
+        if [ ! -t 0 ]; then
+            log_error "Confirmation required (expected '$word') but stdin is not a terminal — run this interactively"
+            exit 1
+        fi
+        read -rp "$prompt" reply
+        [ "$reply" = "$word" ]
+    }
 
     out="$HOME/.local/share/qemu/vm"
     mkdir -p "$out"
 
-    # Anything in the root image that is not on /persist or the data disk is
-    # lost, so replacing it is never implicit.
-    if [ -e "$out/root.img" ]; then
-        log_warning "About to REPLACE $out/root.img — the guest's host key and state go with it"
-        read -rp "Type 'replace' to continue: " confirm
-        if [ "$confirm" != "replace" ]; then
-            log_error "Aborted"; exit 1
+    # RunAtLoad=true/KeepAlive=false leaves the launchd job registered even
+    # after qemu fails to exec (e.g. no disk images yet), so "loaded" alone
+    # cannot mean "in use" — that would block the documented first-run
+    # sequence. Only a job actually in `state = running` is a guest someone
+    # may be using; killing that costs unsaved guest state, so it needs
+    # explicit consent. A loaded-but-not-running job is stale and cleared
+    # without asking.
+    agent="gui/$(id -u)/org.nixos.qemu-vm"
+    if agent_status=$(launchctl print "$agent" 2>/dev/null); then
+        if echo "$agent_status" | grep -q "state = running"; then
+            log_warning "The guest is running — imaging now risks corrupting its disks"
+            if ! confirm bootout "Type 'bootout' to stop the guest and continue: "; then
+                log_error "Aborted"; exit 1
+            fi
+        else
+            log_info "Clearing the guest's stale launchd registration (not running)"
         fi
+        launchctl bootout "$agent" 2>/dev/null || true
     fi
-
-    log_info "Building vm disk images (requires an aarch64-linux builder)..."
-    nix build '.#nixosConfigurations.vm.config.system.build.diskoImages' --out-link result-vm
 
     install_image() {
         rm -f "$out/.$1.tmp"
@@ -178,18 +195,9 @@ vm-image:
         mv -f "$out/.$1.tmp" "$out/$1"
     }
 
-    install_image root.img root.raw
-    log_success "root.img written"
-
-    # The data disk is the one thing that survives re-imaging: create-only.
-    if [ -e "$out/data.img" ]; then
-        log_info "Keeping the existing $out/data.img — delete it by hand to start over"
-    else
-        install_image data.img data.raw
-        log_success "data.img created"
-    fi
-
-    # The guest writes EFI variables, so its vars store is state too: seed once.
+    # Firmware state is independent of the root-image decision below: seed it
+    # up front so a decline there still leaves the guest with a consistent
+    # varstore instead of none at all.
     if [ ! -e "$out/vars.img" ]; then
         qemu=$(nix build --no-link --print-out-paths '.#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.package')
         rm -f "$out/.vars.img.tmp"
@@ -197,6 +205,29 @@ vm-image:
         chmod u+w "$out/.vars.img.tmp"
         mv -f "$out/.vars.img.tmp" "$out/vars.img"
         log_success "vars.img seeded"
+    fi
+
+    # Anything in the root image that is not on /persist or the data disk is
+    # lost, so replacing it is never implicit.
+    if [ -e "$out/root.qcow2" ]; then
+        log_warning "About to REPLACE $out/root.qcow2 — the guest's host key and state go with it"
+        if ! confirm replace "Type 'replace' to continue: "; then
+            log_error "Aborted"; exit 1
+        fi
+    fi
+
+    log_info "Building vm disk images (requires an aarch64-linux builder)..."
+    nix build '.#nixosConfigurations.vm.config.system.build.diskoImages' --out-link result-vm
+
+    install_image root.qcow2 root.qcow2
+    log_success "root.qcow2 written"
+
+    # The data disk is the one thing that survives re-imaging: create-only.
+    if [ -e "$out/data.qcow2" ]; then
+        log_info "Keeping the existing $out/data.qcow2 — delete it by hand to start over"
+    else
+        install_image data.qcow2 data.qcow2
+        log_success "data.qcow2 created"
     fi
 
     log_success "Images ready in $out"
