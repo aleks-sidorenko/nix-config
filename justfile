@@ -170,22 +170,35 @@ vm-image:
 
     # RunAtLoad=true/KeepAlive=false leaves the launchd job registered even
     # after qemu fails to exec (e.g. no disk images yet), so "loaded" alone
-    # cannot mean "in use" — that would block the documented first-run
-    # sequence. Only a job actually in `state = running` is a guest someone
-    # may be using; killing that costs unsaved guest state, so it needs
-    # explicit consent. A loaded-but-not-running job is stale and cleared
-    # without asking.
+    # cannot mean "in use". A job in `not running` or `spawn scheduled` holds
+    # no open file handles — `launchctl kickstart -k` starts it directly, so
+    # it's left alone entirely (a bootout here would only unregister it from
+    # the domain until next login, turning the documented `kickstart -k` that
+    # follows into a hard failure). Only `running` is a guest someone may be
+    # using, and killing that costs unsaved guest state, so it needs explicit
+    # consent; a state this doesn't recognize gets the same consent prompt,
+    # since it can't prove the job holds no handles either — fail safe, not
+    # open. A missing job (`launchctl print` exits 113) never enters this
+    # block at all.
     agent="gui/$(id -u)/org.nixos.qemu-vm"
     if agent_status=$(launchctl print "$agent" 2>/dev/null); then
-        if echo "$agent_status" | grep -q "state = running"; then
-            log_warning "The guest is running — imaging now risks corrupting its disks"
+        state=$(echo "$agent_status" | sed -n 's/^[[:space:]]*state = //p' | head -1)
+        case "$state" in
+        "not running" | "spawn scheduled")
+            : # idle registration; nothing to clear, kickstart -k will start it
+            ;;
+        *)
+            if [ "$state" = "running" ]; then
+                log_warning "The guest is running — imaging now risks corrupting its disks"
+            else
+                log_warning "The guest's launchd job is in an unrecognized state ('$state') — treating it as potentially in use"
+            fi
             if ! confirm bootout "Type 'bootout' to stop the guest and continue: "; then
                 log_error "Aborted"; exit 1
             fi
-        else
-            log_info "Clearing the guest's stale launchd registration (not running)"
-        fi
-        launchctl bootout "$agent" 2>/dev/null || true
+            launchctl bootout "$agent" 2>/dev/null || true
+            ;;
+        esac
     fi
 
     install_image() {

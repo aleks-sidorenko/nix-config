@@ -86,7 +86,22 @@ let
         "rootDisk"
         "dataDisk"
         "varsDisk"
-      ];
+      ]
+    # qemuArgs hardcodes format=qcow2 for these two drives; disko's
+    # imageBuilder and the justfile's `install_image` calls agree on that
+    # extension by convention only, and a drift between them fails silently
+    # into /tmp/qemu-*.error.log rather than here. Skip an already-empty path
+    # so it fails with the message above instead of a second, redundant one.
+    ++
+      map
+        (disk: {
+          assertion = g.${disk} == "" || hasSuffix ".qcow2" g.${disk};
+          message = "${namespace}.services.virtualisation.qemu.guests.${name}.${disk} must end in .qcow2 to match the format=qcow2 qemuArgs uses for this drive.";
+        })
+        [
+          "rootDisk"
+          "dataDisk"
+        ];
 in
 {
   options.${namespace}.services.virtualisation.qemu = with types; {

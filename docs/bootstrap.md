@@ -161,8 +161,9 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > overwrites `data.qcow2` — the bulk disk is meant to outlive re-imaging. To
 > rebuild it, delete it by hand. If the guest's launchd job is only registered
 > (e.g. left over from a `darwin-rebuild switch` where qemu never actually
-> started), it is cleared automatically; if the guest is genuinely running, the
-> recipe asks you to type `bootout` before it stops it and continues.
+> started), it is left alone — `kickstart -k` below starts it directly. If the
+> guest is genuinely running, the recipe asks you to type `bootout` before it
+> stops it and continues.
 >
 > On first boot the guest generates its SSH host key. **Replace** the `&vm` age
 > key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
