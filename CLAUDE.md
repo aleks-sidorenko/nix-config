@@ -23,7 +23,7 @@ just deploy <hostname> --dry-run                 # Preview changes
 
 # Examples
 just deploy server --remote-build
-just deploy server-vm --remote-build --verbose
+just deploy desktop --remote-build --verbose
 ```
 
 ### Testing & Validation
@@ -332,11 +332,13 @@ Use the `server-vm` configuration for testing:
 ```bash
 darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
 just image server-vm             # build the guest disk images
-just deploy server-vm            # deploy to the running guest
+deploy .#server-vm --hostname vm --skip-checks --remote-build
 ```
 
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
 workbook — a home-server stand-in, not a desktop. `just image server-vm`
 needs the `nix.linux-builder` that `darwin-rebuild switch` installs, so that
-step comes first. See `docs/bootstrap.md` for the full first-boot sequence
-(router lease, SOPS re-key, Tailscale).
+step comes first. The network registry still keys the guest `vm`, so
+`just deploy server-vm` cannot resolve it (and cannot take a second
+`--hostname`) until the network rebuild lands. See `docs/bootstrap.md` for the
+full first-boot sequence (router lease, SOPS re-key, Tailscale).

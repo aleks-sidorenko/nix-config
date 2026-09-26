@@ -154,24 +154,44 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 >    the guest takes a random lease while every host still resolves `vm` to
 >    `10.0.0.64`, and that `/etc/hosts` entry also shadows the tailnet name.
 >
+> **Naming:** the network registry still keys this guest `vm`, deliberately —
+> the household network is being rebuilt separately, so the lease, the router
+> entry and the `/etc/hosts` name all stay `vm` while the flake host is
+> `server-vm`. Until that rebuild lands, reach the guest as `vm` (or by its
+> DHCP address); the tailnet name is `server-vm`. `just deploy server-vm`
+> therefore cannot resolve on its own, and it already passes `--hostname
+> server-vm`, so a second `--hostname` is rejected — deploy directly instead:
+>
+> ```bash
+> deploy .#server-vm --hostname vm --skip-checks --remote-build
+> ```
+>
 > ```bash
 > just image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
 > launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 > ```
 >
 > `just image server-vm` asks before replacing an existing `root.qcow2` and
-> never overwrites `data.qcow2` — the bulk disk is meant to outlive re-imaging.
-> To rebuild it, delete it by hand. If the guest's launchd job is only
-> registered (e.g. left over from a `darwin-rebuild switch` where qemu never
-> actually started), it is left alone — `kickstart -k` below starts it
-> directly. If the guest is genuinely running, the recipe asks you to type
-> `bootout` before it stops it and continues.
+> never overwrites `data.qcow2`. Understand which is which: **`/persist` lives
+> in the root image**, so re-imaging destroys the guest's host key and all
+> service state — the *arr databases, the Jellyfin library, the Minecraft
+> world. Only the data disk survives: `/data`, `/backup` and `/home`. To
+> rebuild the data disk, delete it by hand.
+>
+> **If `data.qcow2` predates the `/data` + `/backup` layout** (it only carries
+> `@home`), delete it before imaging — the create-only rule would otherwise
+> keep it and the missing mounts fail silently on a headless guest.
+>
+> If the guest's launchd job is only registered (e.g. left over from a
+> `darwin-rebuild switch` where qemu never actually started), it is left alone
+> — `kickstart -k` below starts it directly. If the guest is genuinely running,
+> the recipe asks you to type `bootout` before it stops it and continues.
 >
 > On first boot the guest generates its SSH host key. **Replace** the `&vm` age
 > key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
 > two creation rules — edit it in place, do not append a second entry), run
-> `sops updatekeys` on both secret files, then `just deploy server-vm` as
-> usual.
+> `sops updatekeys` on both secret files, then deploy with the `deploy`
+> invocation above.
 >
 > Finally, join the tailnet from the guest. The bridged address follows
 > whichever LAN the Mac is on, so the tailnet is the only stable way in from
@@ -482,9 +502,10 @@ Host homebook
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
-**`server-vm`** has a reserved lease (`vm → 10.0.0.64`) just like a physical
-host, so `just deploy server-vm` resolves normally once the guest is running —
-see the VM note in [Step 3](#step-3--boot-the-target).
+**`server-vm`** is the exception: its reserved lease and `/etc/hosts` name are
+still `vm`, so the flake attr does not resolve and `just deploy server-vm`
+cannot be used as-is. Deploy with `deploy .#server-vm --hostname vm` — see the
+VM note in [Step 3](#step-3--boot-the-target).
 
 ### Step 7 — Post-installation
 
