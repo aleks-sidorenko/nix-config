@@ -145,11 +145,16 @@ iso-write device:
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
 
-# Build the vm guest's disk images (output under ~/.local/share/qemu/vm/)
-vm-image:
+# Build a VM guest's disk images (usage: just image server-vm)
+image host:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
+
+    if ! nix eval --raw ".#nixosConfigurations.{{host}}.config.system.build.toplevel.drvPath" >/dev/null 2>&1; then
+        log_error "No such host in this flake: {{host}}"
+        exit 1
+    fi
 
     # A `read` on a closed/non-interactive stdin hits EOF and, under -e, exits
     # 1 silently before the prompt's own decline message ever prints. Any
@@ -165,7 +170,7 @@ vm-image:
         [ "$reply" = "$word" ]
     }
 
-    out="$HOME/.local/share/qemu/vm"
+    out="$HOME/.local/share/qemu/{{host}}"
     mkdir -p "$out"
 
     # RunAtLoad=true/KeepAlive=false leaves the launchd job registered even
@@ -180,7 +185,7 @@ vm-image:
     # since it can't prove the job holds no handles either — fail safe, not
     # open. A missing job (`launchctl print` exits 113) never enters this
     # block at all.
-    agent="gui/$(id -u)/org.nixos.qemu-vm"
+    agent="gui/$(id -u)/org.nixos.qemu-{{host}}"
     if agent_status=$(launchctl print "$agent" 2>/dev/null); then
         state=$(echo "$agent_status" | sed -n 's/^[[:space:]]*state = //p' | head -1)
         case "$state" in
@@ -229,8 +234,8 @@ vm-image:
         fi
     fi
 
-    log_info "Building vm disk images (requires an aarch64-linux builder)..."
-    nix build '.#nixosConfigurations.vm.config.system.build.diskoImages' --out-link result-vm
+    log_info "Building {{host}} disk images (requires an aarch64-linux builder)..."
+    nix build ".#nixosConfigurations.{{host}}.config.system.build.diskoImages" --out-link result-vm
 
     install_image root.qcow2 root.qcow2
     log_success "root.qcow2 written"

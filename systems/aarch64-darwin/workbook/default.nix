@@ -50,13 +50,14 @@ with lib.${namespace};
 
       virtualisation.qemu = {
         enable = true;
-        guests.vm = {
-          cpus = 6;
-          memory = "12G";
-          rootDisk = "${homeDir config}/.local/share/qemu/vm/root.qcow2";
-          dataDisk = "${homeDir config}/.local/share/qemu/vm/data.qcow2";
-          varsDisk = "${homeDir config}/.local/share/qemu/vm/vars.img";
+        guests.server-vm = {
+          cpus = 4;
+          memory = "8G";
+          rootDisk = "${homeDir config}/.local/share/qemu/server-vm/root.qcow2";
+          dataDisk = "${homeDir config}/.local/share/qemu/server-vm/data.qcow2";
+          varsDisk = "${homeDir config}/.local/share/qemu/server-vm/vars.img";
           mac = "52:54:00:00:00:64";
+          display = "none";
         };
       };
     };
