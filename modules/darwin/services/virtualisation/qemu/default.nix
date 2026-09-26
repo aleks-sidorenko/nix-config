@@ -20,6 +20,10 @@ let
       dataDisk = mkOpt str "" "Path to the guest's bulk data disk image";
       varsDisk = mkOpt str "" "Path to the guest's writable UEFI variable store";
       mac = mkOpt str "52:54:00:00:00:64" "Guest MAC address (QEMU OUI 52:54:00)";
+      display = mkOpt (enum [
+        "cocoa"
+        "none"
+      ]) "cocoa" "Where the guest's display goes: a Cocoa window, or headless with a serial console";
       # llvmpipe at Retina resolution is the weak point of a software-rendered
       # guest, so the framebuffer is capped instead of matching the host panel.
       resolution = {
@@ -35,43 +39,59 @@ let
   firmware = "${cfg.package}/share/qemu/edk2-aarch64-code.fd";
 
   # socket_vmnet_client opens the daemon's socket and hands QEMU fd 3.
-  qemuArgs = g: [
-    (homebrew.getOptExe "socket_vmnet" "socket_vmnet_client")
-    vmnet.socket
-    "${cfg.package}/bin/qemu-system-aarch64"
-    "-machine"
-    "virt,accel=hvf"
-    "-cpu"
-    "host"
-    "-smp"
-    (toString g.cpus)
-    "-m"
-    g.memory
-    "-drive"
-    "if=pflash,format=raw,unit=0,readonly=on,file=${firmware}"
-    "-drive"
-    "if=pflash,format=raw,unit=1,file=${g.varsDisk}"
-    "-drive"
-    "if=virtio,format=qcow2,file=${g.rootDisk}"
-    "-drive"
-    "if=virtio,format=qcow2,file=${g.dataDisk}"
-    "-netdev"
-    "socket,id=net0,fd=3"
-    "-device"
-    "virtio-net-pci,netdev=net0,mac=${g.mac}"
-    "-device"
-    "virtio-gpu-pci,xres=${toString g.resolution.width},yres=${toString g.resolution.height}"
-    "-device"
-    "virtio-rng-pci"
-    "-device"
-    "qemu-xhci"
-    "-device"
-    "usb-kbd"
-    "-device"
-    "usb-tablet"
-    "-display"
-    "cocoa"
-  ];
+  qemuArgs =
+    name: g:
+    [
+      (homebrew.getOptExe "socket_vmnet" "socket_vmnet_client")
+      vmnet.socket
+      "${cfg.package}/bin/qemu-system-aarch64"
+      "-machine"
+      "virt,accel=hvf"
+      "-cpu"
+      "host"
+      "-smp"
+      (toString g.cpus)
+      "-m"
+      g.memory
+      "-drive"
+      "if=pflash,format=raw,unit=0,readonly=on,file=${firmware}"
+      "-drive"
+      "if=pflash,format=raw,unit=1,file=${g.varsDisk}"
+      "-drive"
+      "if=virtio,format=qcow2,file=${g.rootDisk}"
+      "-drive"
+      "if=virtio,format=qcow2,file=${g.dataDisk}"
+      "-netdev"
+      "socket,id=net0,fd=3"
+      "-device"
+      "virtio-net-pci,netdev=net0,mac=${g.mac}"
+      "-device"
+      "virtio-rng-pci"
+    ]
+    ++ (
+      if g.display == "none" then
+        [
+          "-display"
+          "none"
+          # A headless guest with no console is silent exactly when it fails to
+          # boot. Pairs with console=ttyAMA0 on the guest's kernel cmdline.
+          "-serial"
+          "file:/tmp/qemu-${name}.console.log"
+        ]
+      else
+        [
+          "-device"
+          "virtio-gpu-pci,xres=${toString g.resolution.width},yres=${toString g.resolution.height}"
+          "-device"
+          "qemu-xhci"
+          "-device"
+          "usb-kbd"
+          "-device"
+          "usb-tablet"
+          "-display"
+          "cocoa"
+        ]
+    );
 
   # An unset path yields `-drive file=`, which fails only at exec — into a log
   # file, with no retry. Catch it at eval instead.
@@ -126,7 +146,7 @@ in
       name: g:
       nameValuePair "qemu-${name}" {
         serviceConfig = {
-          ProgramArguments = qemuArgs g;
+          ProgramArguments = qemuArgs name g;
           RunAtLoad = true;
           KeepAlive = false;
           StandardOutPath = "/tmp/qemu-${name}.log";
