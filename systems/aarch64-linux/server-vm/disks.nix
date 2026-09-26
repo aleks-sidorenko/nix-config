@@ -50,6 +50,17 @@ with lib.${namespace};
               name = "persist";
               neededForBoot = true;
             }
+          ];
+        };
+        data = {
+          device = "/dev/vdb";
+          encrypted = false;
+          imageSize = "64G";
+          content = [
+            # Deliberate divergence from the Pi, which keeps `home` on the root
+            # disk: the Pi is never re-imaged, this guest is. `just image`
+            # overwrites root.qcow2 while data.qcow2 is create-only, so the data
+            # disk is the only one a re-image leaves alone.
             {
               name = "home";
               mountOptions = [
@@ -58,13 +69,6 @@ with lib.${namespace};
                 "noatime"
               ];
             }
-          ];
-        };
-        data = {
-          device = "/dev/vdb";
-          encrypted = false;
-          imageSize = "64G";
-          content = [
             {
               name = "data";
               mountOptions = [
