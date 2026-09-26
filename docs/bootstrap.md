@@ -34,6 +34,11 @@ on-machine install run on the target itself.
 Steps 4–6 can be run as a single `just bootstrap` command (it pauses at the SOPS
 step for you), or split apart for more control. Both paths are covered below.
 
+This is the flow for a machine you install onto. A **VM guest** is provisioned
+differently — its disk image is built already installed, so Steps 3–6 are
+replaced by a shorter path. See
+[VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
+
 ---
 
 ### Step 1 — Define the host in the flake
@@ -135,76 +140,10 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
-> **VM (testing):** the `server-vm` host is a headless aarch64-linux guest —
-> a home-server stand-in, not a desktop — that runs under QEMU on the
-> `workbook`. It is not bootstrapped over SSH — `just image server-vm` builds
-> a disko disk image that is already installed, and the guest boots straight
-> into it.
->
-> **One-time prerequisites, in this order:**
->
-> 1. `darwin-rebuild switch --flake .` on the `workbook`. This installs the
->    aarch64-linux builder `just image server-vm` builds on, the `socket_vmnet`
->    daemon, and the `org.nixos.qemu-server-vm` agent. Nothing below works
->    without it.
-> 2. `just router-apply`, so the static DHCP lease keyed by the guest's MAC
->    (`52:54:00:00:00:64` → `10.0.0.64`) exists.
-> 3. `nh os switch` on the machines you deploy from, so their `/etc/hosts`
->    learns `vm → 10.0.0.64`. Skipping steps 2–3 is worse than doing nothing:
->    the guest takes a random lease while every host still resolves `vm` to
->    `10.0.0.64`, and that `/etc/hosts` entry also shadows the tailnet name.
->
-> **Naming:** the network registry still keys this guest `vm`, deliberately —
-> the household network is being rebuilt separately, so the lease, the router
-> entry and the `/etc/hosts` name all stay `vm` while the flake host is
-> `server-vm`. Until that rebuild lands, reach the guest as `vm` (or by its
-> DHCP address); the tailnet name is `server-vm`. `just deploy server-vm`
-> therefore cannot resolve on its own, and it already passes `--hostname
-> server-vm`, so a second `--hostname` is rejected — deploy directly instead:
->
-> ```bash
-> deploy .#server-vm --hostname vm --skip-checks --remote-build
-> ```
->
-> ```bash
-> just image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
-> launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
-> ```
->
-> `just image server-vm` asks before replacing an existing `root.qcow2` and
-> never overwrites `data.qcow2`. Understand which is which: **`/persist` lives
-> in the root image**, so re-imaging destroys the guest's host key and all
-> service state — the *arr databases, the Jellyfin library, the Minecraft
-> world. Only the data disk survives: `/data`, `/backup` and `/home`. To
-> rebuild the data disk, delete it by hand.
->
-> **If `data.qcow2` predates the `/data` + `/backup` layout** (it only carries
-> `@home`), delete it before imaging — the create-only rule would otherwise
-> keep it and the missing mounts fail silently on a headless guest.
->
-> If the guest's launchd job is only registered (e.g. left over from a
-> `darwin-rebuild switch` where qemu never actually started), it is left alone
-> — `kickstart -k` below starts it directly. If the guest is genuinely running,
-> the recipe asks you to type `bootout` before it stops it and continues.
->
-> On first boot the guest generates its SSH host key. **Replace** the `&vm` age
-> key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
-> two creation rules — edit it in place, do not append a second entry), run
-> `sops updatekeys` on both secret files, then deploy with the `deploy`
-> invocation above.
->
-> Finally, join the tailnet from the guest. The bridged address follows
-> whichever LAN the Mac is on, so the tailnet is the only stable way in from
-> elsewhere, and nothing enrols the guest for you — there is no auth key in
-> SOPS. Run it once and open the URL it prints:
->
-> ```bash
-> ssh vm -- sudo tailscale up --ssh
-> ```
->
-> (The guest's wheel group is passwordless — see
-> `systems/aarch64-linux/server-vm/default.nix` — so this works before the
-> account has a usable password.)
+> **Provisioning a VM guest?** `server-vm` runs under QEMU on the `workbook`
+> and does **not** follow these steps — there is no ISO, no nixos-anywhere and
+> no install phase, because its disk image is built already installed. See
+> [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
 
 #### Verify connectivity
 
@@ -502,10 +441,9 @@ Host homebook
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
-**`server-vm`** is the exception: its reserved lease and `/etc/hosts` name are
-still `vm`, so the flake attr does not resolve and `just deploy server-vm`
-cannot be used as-is. Deploy with `deploy .#server-vm --hostname vm` — see the
-VM note in [Step 3](#step-3--boot-the-target).
+**`server-vm`** resolves like any other host once the registry has been applied
+— see [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for what to do
+before then.
 
 ### Step 7 — Post-installation
 
@@ -543,6 +481,143 @@ just deploy <hostname>                 # remote deploy via deploy-rs
 just deploy <hostname> --remote-build  # build on target
 nh os switch                           # local rebuild (on the host itself)
 ```
+
+---
+
+## VM guests (QEMU on macOS)
+
+`server-vm` is a headless aarch64-linux guest — a home-server stand-in, not a
+desktop — running under QEMU on the `workbook`.
+
+It does **not** use the NixOS flow above. There is no installer ISO and no
+`nixos-anywhere` phase: `just image server-vm` builds a disko disk image that is
+already installed, and the guest boots straight into it. The steps below replace
+Steps 3–6 entirely; Steps 1–2 (defining the host, preparing your machine) still
+apply.
+
+### Step 1 — Install the hypervisor side
+
+```bash
+darwin-rebuild switch --flake .   # on the workbook
+```
+
+This is the one hard prerequisite. It installs the aarch64-linux builder that
+`just image` builds on, the `socket_vmnet` daemon that gives the guest a bridged
+address, and the `org.nixos.qemu-server-vm` launchd agent. Nothing below works
+without it.
+
+### Step 2 — Build the images and start the guest
+
+```bash
+just image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
+```
+
+`just image` takes the host as an argument, so it serves any future `<name>-vm`
+guest. It asks before replacing an existing `root.qcow2` and never overwrites
+`data.qcow2`.
+
+**Know which disk holds what before you re-image.** `/persist` lives in the
+**root** image, so replacing it destroys the guest's SSH host key and all
+service state — the \*arr databases, the Jellyfin library, the Minecraft world.
+Only the data disk survives: `/data`, `/backup` and `/home`. To rebuild the data
+disk, delete it by hand.
+
+**If `data.qcow2` predates the `/data` + `/backup` layout** (it only carries
+`@home`), delete it before imaging — the create-only rule would otherwise keep
+it, and the missing mounts fail silently on a headless guest.
+
+If the guest's launchd job is merely registered — left over from a
+`darwin-rebuild switch` where qemu never actually started — it is left alone and
+`kickstart -k` starts it directly. If the guest is genuinely running, the recipe
+asks you to type `bootout` before stopping it.
+
+The guest is headless, so its console is a serial log rather than a window:
+
+```bash
+tail -f /tmp/qemu-server-vm.console.log
+```
+
+That is the only place a failed boot is visible. Check it first when something
+does not come up.
+
+### Step 3 — Register the host key with SOPS
+
+On first boot the guest generates its SSH host key. **Replace** the `&server-vm`
+age key in `.sops.yaml` with the new one — the anchor is dereferenced by
+`*server-vm` in two creation rules, so edit it in place rather than appending a
+second entry — then:
+
+```bash
+sops updatekeys modules/nixos/secrets.yaml
+sops updatekeys modules/home/secrets.yaml
+```
+
+### Step 4 — Deploy
+
+```bash
+just deploy server-vm --remote-build
+```
+
+If the name does not resolve yet — see **Reaching the guest** below — target the
+address instead. `just deploy` already passes `--hostname`, and deploy-rs rejects
+that flag twice, so override it by calling deploy directly:
+
+```bash
+deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
+```
+
+The guest's wheel group is passwordless — from `modules/nixos/roles/server/default.nix`,
+which `home-server` pulls in — so this works before the account has a usable
+password. That matters: on first boot SOPS cannot decrypt yet, so the account is
+locked until this deploy lands.
+
+### Step 5 — Join the tailnet
+
+Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
+open the URL it prints:
+
+```bash
+ssh server-vm -- sudo tailscale up --ssh
+```
+
+The bridged address follows whichever LAN the host Mac is on, so the tailnet is
+the only stable way in from elsewhere.
+
+### Reaching the guest
+
+The guest is `server-vm` everywhere — flake attribute, `networking.hostName`,
+host registry, router entry, `/etc/hosts` and the tailnet.
+
+The registry maps it to `10.0.0.64`, which is an address on the **home** network.
+That network is being rebuilt, so until the rebuild lands:
+
+- `nh os switch` writes `10.0.0.64 server-vm` into `/etc/hosts`, and that entry
+  **shadows the tailnet name** — the name will resolve to an address nothing
+  answers on.
+- Reach the guest by its **DHCP address** instead. Bridged networking gives it a
+  real lease on whatever LAN the Mac has joined, with no router configuration.
+- Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
+  refreshed on the machine you are calling from.
+
+Once the home network exists again, two steps make the name work end to end:
+
+```bash
+just router-apply   # static lease: MAC 52:54:00:00:00:64 -> 10.0.0.64
+nh os switch        # on each machine you deploy from: /etc/hosts learns server-vm
+```
+
+Do both or neither. Applying the lease without refreshing `/etc/hosts` leaves the
+guest on a random address while callers still resolve `server-vm` to
+`10.0.0.64`.
+
+### Backups
+
+The guest runs **no** backups: both the restic client and the restic REST server
+are disabled on it. Backing a laptop guest up to its own disk would survive
+neither disk loss nor the re-imaging that replaces the root image, so it would
+buy only the appearance of coverage. Re-enable them once there is somewhere
+off-box to send backups to.
 
 ---
 

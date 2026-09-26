@@ -332,7 +332,7 @@ Use the `server-vm` configuration for testing:
 ```bash
 darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
 just image server-vm             # build the guest disk images
-deploy .#server-vm --hostname vm --skip-checks --remote-build
+just deploy server-vm --remote-build
 ```
 
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
