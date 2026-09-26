@@ -490,7 +490,7 @@ nh os switch                           # local rebuild (on the host itself)
 desktop — running under QEMU on the `workbook`.
 
 It does **not** use the NixOS flow above. There is no installer ISO and no
-`nixos-anywhere` phase: `just image server-vm` builds a disko disk image that is
+`nixos-anywhere` phase: `just vm-image server-vm` builds a disko disk image that is
 already installed, and the guest boots straight into it. The steps below replace
 Steps 3–6 entirely; Steps 1–2 (defining the host, preparing your machine) still
 apply.
@@ -502,18 +502,18 @@ darwin-rebuild switch --flake .   # on the workbook
 ```
 
 This is the one hard prerequisite. It installs the aarch64-linux builder that
-`just image` builds on, the `socket_vmnet` daemon that gives the guest a bridged
+`just vm-image` builds on, the `socket_vmnet` daemon that gives the guest a bridged
 address, and the `org.nixos.qemu-server-vm` launchd agent. Nothing below works
 without it.
 
 ### Step 2 — Build the images and start the guest
 
 ```bash
-just image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
+just vm-image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
 launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
 
-`just image` takes the host as an argument, so it serves any future `<name>-vm`
+`just vm-image` takes the host as an argument, so it serves any future `<name>-vm`
 guest. It asks before replacing an existing `root.qcow2` and never overwrites
 `data.qcow2`.
 
@@ -903,7 +903,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 | `just bootstrap-disk <host> --apply` | Format disks with disko |
 | `just bootstrap-rpi-firmware <host> [user] [dir] [ver]` | Install RPi4 firmware |
 | `just bootstrap-targets` | List available bootstrap targets |
-| `just bootstrap-validate` | Shellcheck bootstrap scripts |
+| `just scripts-validate` | Shellcheck every script under `scripts/` |
 | `just bootstrap-help` | Show detailed bootstrap help |
 
 ### nixos-anywhere options

@@ -63,23 +63,32 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
 #   just bootstrap-disk hostname                  # Preview changes (dry-run)
 #   just bootstrap-disk hostname --apply          # Apply and format disks
 bootstrap-disk hostname mode="--dry-run":
-    @echo "💾 Formatting disks for {{hostname}} using disko..."
-    @if [ "{{mode}}" = "--dry-run" ]; then \
-        echo "🔍 Running in dry-run mode (preview only)..."; \
-        echo "⚠️  No changes will be made to disks"; \
-        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}} --dry-run; \
-    elif [ "{{mode}}" = "--apply" ]; then \
-        echo "⚠️  WARNING: This will DESTROY ALL DATA on configured disks!"; \
-        echo "⚠️  Press Ctrl+C within 5 seconds to cancel..."; \
-        sleep 5; \
-        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}}; \
-        echo "✅ Disks formatted successfully!"; \
-        echo "💡 Run 'just deploy {{hostname}}' to apply mount configuration"; \
-    else \
-        echo "❌ Invalid mode: {{mode}}"; \
-        echo "💡 Use '--dry-run' to preview or '--apply' to format"; \
-        exit 1; \
-    fi
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    log_info "Formatting disks for {{hostname}} using disko..."
+    case "{{mode}}" in
+    --dry-run)
+        log_info "Running in dry-run mode (preview only) — no changes will be made"
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}} --dry-run
+        ;;
+    --apply)
+        log_warning "This DESTROYS ALL DATA on the disks configured for {{hostname}}"
+        # Typing the host back is the check: a timed window cancels on
+        # inattention but not on naming the wrong host, which is the mistake
+        # that actually costs a machine.
+        if ! confirm {{hostname}} "Type '{{hostname}}' to confirm: "; then
+            log_error "Aborted"; exit 1
+        fi
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}}
+        log_success "Disks formatted — run 'just deploy {{hostname}}' to apply mount configuration"
+        ;;
+    *)
+        log_error "Invalid mode: {{mode}}"
+        log_error "Use '--dry-run' to preview or '--apply' to format"
+        exit 1
+        ;;
+    esac
 
 # Deploy to a specific host using deploy-rs (or router-import for router)
 # Usage:
@@ -136,126 +145,21 @@ iso-write device:
         log_error "No ISO found — run 'just iso-build' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
-    log_warning "About to write $iso to {{device}}"
-    log_warning "This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
-    sleep 5
+    log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
+    # Typing the device back is the check: a timed window cancels on inattention
+    # but not on naming the wrong disk, which is the mistake that actually hurts.
+    if ! confirm {{device}} "Type '{{device}}' to confirm: "; then
+        log_error "Aborted"; exit 1
+    fi
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
 # Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
 iso device: iso-build (iso-write device)
 
-# Build a VM guest's disk images (usage: just image server-vm)
-image host:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source scripts/common.sh
-
-    # Test the name, not the closure: evaluating toplevel here would turn any
-    # assertion failure in an existing host into "No such host".
-    if [ "$(nix eval --raw .#nixosConfigurations --apply 'c: if builtins.hasAttr "{{host}}" c then "yes" else "no"')" != "yes" ]; then
-        log_error "No such host in this flake: {{host}}"
-        exit 1
-    fi
-
-    # A `read` on a closed/non-interactive stdin hits EOF and, under -e, exits
-    # 1 silently before the prompt's own decline message ever prints. Any
-    # confirmation must check this first so a non-interactive caller (CI, a
-    # script) fails loudly instead of looking like a clean no-op.
-    confirm() {
-        local word="$1" prompt="$2" reply
-        if [ ! -t 0 ]; then
-            log_error "Confirmation required (expected '$word') but stdin is not a terminal — run this interactively"
-            exit 1
-        fi
-        read -rp "$prompt" reply
-        [ "$reply" = "$word" ]
-    }
-
-    out="$HOME/.local/share/qemu/{{host}}"
-    mkdir -p "$out"
-
-    # RunAtLoad=true/KeepAlive=false leaves the launchd job registered even
-    # after qemu fails to exec (e.g. no disk images yet), so "loaded" alone
-    # cannot mean "in use". A job in `not running` or `spawn scheduled` holds
-    # no open file handles — `launchctl kickstart -k` starts it directly, so
-    # it's left alone entirely (a bootout here would only unregister it from
-    # the domain until next login, turning the documented `kickstart -k` that
-    # follows into a hard failure). Only `running` is a guest someone may be
-    # using, and killing that costs unsaved guest state, so it needs explicit
-    # consent; a state this doesn't recognize gets the same consent prompt,
-    # since it can't prove the job holds no handles either — fail safe, not
-    # open. A missing job (`launchctl print` exits 113) never enters this
-    # block at all.
-    agent="gui/$(id -u)/org.nixos.qemu-{{host}}"
-    if agent_status=$(launchctl print "$agent" 2>/dev/null); then
-        state=$(echo "$agent_status" | sed -n 's/^[[:space:]]*state = //p' | head -1)
-        case "$state" in
-        "not running" | "spawn scheduled")
-            : # idle registration; nothing to clear, kickstart -k will start it
-            ;;
-        *)
-            if [ "$state" = "running" ]; then
-                log_warning "The guest is running — imaging now risks corrupting its disks"
-            else
-                log_warning "The guest's launchd job is in an unrecognized state ('$state') — treating it as potentially in use"
-            fi
-            if ! confirm bootout "Type 'bootout' to stop the guest and continue: "; then
-                log_error "Aborted"; exit 1
-            fi
-            launchctl bootout "$agent" 2>/dev/null || true
-            ;;
-        esac
-    fi
-
-    install_image() {
-        rm -f "$out/.$1.tmp"
-        cp "result-vm/$2" "$out/.$1.tmp"
-        chmod u+w "$out/.$1.tmp"
-        mv -f "$out/.$1.tmp" "$out/$1"
-    }
-
-    # Firmware state is independent of the root-image decision below: seed it
-    # up front so a decline there still leaves the guest with a consistent
-    # varstore instead of none at all.
-    if [ ! -e "$out/vars.img" ]; then
-        # Limitation: the recipe is parameterised by guest, but the firmware
-        # comes from the workbook's qemu unconditionally. Another VM host would
-        # need this to follow the guest's actual hypervisor host.
-        qemu=$(nix build --no-link --print-out-paths '.#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.package')
-        rm -f "$out/.vars.img.tmp"
-        cp "$qemu/share/qemu/edk2-arm-vars.fd" "$out/.vars.img.tmp"
-        chmod u+w "$out/.vars.img.tmp"
-        mv -f "$out/.vars.img.tmp" "$out/vars.img"
-        log_success "vars.img seeded"
-    fi
-
-    # /persist lives in the root image, so replacing it destroys the guest's
-    # host key and every service's state (the *arr databases, the Jellyfin
-    # library, the Minecraft world). Only the data disk — /data, /backup and
-    # /home — survives. Never implicit.
-    if [ -e "$out/root.qcow2" ]; then
-        log_warning "About to REPLACE $out/root.qcow2 — the guest's host key and all of /persist go with it"
-        if ! confirm replace "Type 'replace' to continue: "; then
-            log_error "Aborted"; exit 1
-        fi
-    fi
-
-    log_info "Building {{host}} disk images (requires an aarch64-linux builder)..."
-    nix build ".#nixosConfigurations.{{host}}.config.system.build.diskoImages" --out-link result-vm
-
-    install_image root.qcow2 root.qcow2
-    log_success "root.qcow2 written"
-
-    # The data disk is the one thing that survives re-imaging: create-only.
-    if [ -e "$out/data.qcow2" ]; then
-        log_info "Keeping the existing $out/data.qcow2 — delete it by hand to start over"
-    else
-        install_image data.qcow2 data.qcow2
-        log_success "data.qcow2 created"
-    fi
-
-    log_success "Images ready in $out"
+# Build a VM guest's disk images (usage: just vm-image server-vm)
+vm-image host:
+    @./scripts/vm-image.sh {{host}}
 
 # Update flake inputs (optionally a single input)
 update *input:
@@ -379,15 +283,18 @@ disk-usage:
     @echo "💾 Nix store disk usage:"
     du -sh /nix/store | head -20
 
-# Validate bootstrap scripts
-bootstrap-validate:
-    @echo "🔍 Validating bootstrap scripts..."
-    shellcheck scripts/common.sh
-    shellcheck scripts/bootstrap/bootstrap-secrets.sh
-    shellcheck scripts/bootstrap/bootstrap-deploy.sh
-    shellcheck scripts/bootstrap/bootstrap-rpi-firmware.sh
-    shellcheck scripts/bootstrap/bootstrap-darwin.sh
-    @echo "✅ Bootstrap scripts validation passed"
+# Shellcheck every script under scripts/
+scripts-validate:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    log_info "Shellchecking scripts..."
+    # Globbed rather than listed: a hand-maintained list silently stops covering
+    # scripts as they are added, which is exactly when checking them matters.
+    mapfile -t sources < <(find scripts -name '*.sh' | sort)
+    # -x follows sourced files, so common.sh helpers resolve in each script.
+    shellcheck -x "${sources[@]}"
+    log_success "Shellcheck passed (${#sources[@]} scripts)"
 
 # Show bootstrap script help
 bootstrap-help:

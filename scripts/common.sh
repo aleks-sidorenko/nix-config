@@ -187,6 +187,24 @@ validate_write_disk() {
     fi
 }
 
+# Require the operator to type an exact word before a destructive step.
+#
+# A `read` on a closed/non-interactive stdin hits EOF and, under `set -e`, exits
+# 1 silently before the prompt's own decline message ever prints. Checking that
+# first means a non-interactive caller (CI, a script) fails loudly instead of
+# looking like a clean no-op.
+#
+# Usage: confirm replace "Type 'replace' to continue: " || { log_error "Aborted"; exit 1; }
+confirm() {
+    local word="$1" prompt="$2" reply
+    if [ ! -t 0 ]; then
+        log_error "Confirmation required (expected '$word') but stdin is not a terminal — run this interactively"
+        exit 1
+    fi
+    read -rp "$prompt" reply
+    [ "$reply" = "$word" ]
+}
+
 # Function to cleanup temporary directories
 cleanup_temp_dir() {
     local temp_dir="$1"

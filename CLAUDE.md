@@ -42,8 +42,8 @@ just switch                # Build and switch to new generation locally
 just flake-check           # nix flake check
 nix flake check            # Same as above
 
-# Bootstrap validation
-just bootstrap-validate    # Shellcheck on bootstrap scripts
+# Script validation
+just scripts-validate      # Shellcheck every script under scripts/
 ```
 
 ### Bootstrap & Installation
@@ -331,14 +331,13 @@ IaC configurations in `infra/`:
 Use the `server-vm` configuration for testing:
 ```bash
 darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
-just image server-vm             # build the guest disk images
+just vm-image server-vm          # build the guest disk images
 just deploy server-vm --remote-build
 ```
 
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
-workbook — a home-server stand-in, not a desktop. `just image server-vm`
+workbook — a home-server stand-in, not a desktop. `just vm-image server-vm`
 needs the `nix.linux-builder` that `darwin-rebuild switch` installs, so that
-step comes first. The network registry still keys the guest `vm`, so
-`just deploy server-vm` cannot resolve it (and cannot take a second
-`--hostname`) until the network rebuild lands. See `docs/bootstrap.md` for the
-full first-boot sequence (router lease, SOPS re-key, Tailscale).
+step comes first. The registry maps `server-vm` to a home-network address, so
+until that network is rebuilt reach the guest by its DHCP address or over the
+tailnet. See `docs/bootstrap.md` for the full first-boot sequence.
