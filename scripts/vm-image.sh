@@ -24,6 +24,17 @@ fi
 
 host="$1"
 
+# macOS only, and it fails confusingly without this: launchctl does not exist
+# elsewhere (the agent block would silently skip), and seeding the UEFI vars
+# store realises an aarch64-darwin derivation, which no Linux machine can build.
+# A NixOS host runs its guests under libvirt/KVM, which needs different plumbing
+# entirely — not a variation of this script.
+if [[ "$(uname -s)" != "Darwin" ]]; then
+    log_error "This script must run on the macOS host that runs the guest."
+    log_error "NixOS hosts run guests under libvirt/KVM, which this does not drive."
+    exit 1
+fi
+
 # Fail before creating directories or inspecting launchd, so a typo does not
 # leave debris behind. hasAttr is cheap; evaluating toplevel would also report a
 # real assertion failure inside an existing host as "no such host".
