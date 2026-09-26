@@ -50,17 +50,32 @@ with lib.${namespace};
               name = "persist";
               neededForBoot = true;
             }
+            {
+              name = "home";
+              mountOptions = [
+                "subvol=home"
+                "compress=zstd"
+                "noatime"
+              ];
+            }
           ];
         };
         data = {
           device = "/dev/vdb";
           encrypted = false;
-          imageSize = "96G";
+          imageSize = "64G";
           content = [
             {
-              name = "home";
+              name = "data";
               mountOptions = [
-                "subvol=home"
+                "subvol=data"
+                "noatime"
+              ];
+            }
+            {
+              name = "backup";
+              mountOptions = [
+                "subvol=backup"
                 "compress=zstd"
                 "noatime"
               ];
