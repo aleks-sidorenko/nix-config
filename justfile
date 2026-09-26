@@ -151,7 +151,9 @@ image host:
     set -euo pipefail
     source scripts/common.sh
 
-    if ! nix eval --raw ".#nixosConfigurations.{{host}}.config.system.build.toplevel.drvPath" >/dev/null 2>&1; then
+    # Test the name, not the closure: evaluating toplevel here would turn any
+    # assertion failure in an existing host into "No such host".
+    if [ "$(nix eval --raw .#nixosConfigurations --apply 'c: if builtins.hasAttr "{{host}}" c then "yes" else "no"')" != "yes" ]; then
         log_error "No such host in this flake: {{host}}"
         exit 1
     fi
@@ -217,6 +219,9 @@ image host:
     # up front so a decline there still leaves the guest with a consistent
     # varstore instead of none at all.
     if [ ! -e "$out/vars.img" ]; then
+        # Limitation: the recipe is parameterised by guest, but the firmware
+        # comes from the workbook's qemu unconditionally. Another VM host would
+        # need this to follow the guest's actual hypervisor host.
         qemu=$(nix build --no-link --print-out-paths '.#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.package')
         rm -f "$out/.vars.img.tmp"
         cp "$qemu/share/qemu/edk2-arm-vars.fd" "$out/.vars.img.tmp"
@@ -225,10 +230,12 @@ image host:
         log_success "vars.img seeded"
     fi
 
-    # Anything in the root image that is not on /persist or the data disk is
-    # lost, so replacing it is never implicit.
+    # /persist lives in the root image, so replacing it destroys the guest's
+    # host key and every service's state (the *arr databases, the Jellyfin
+    # library, the Minecraft world). Only the data disk — /data, /backup and
+    # /home — survives. Never implicit.
     if [ -e "$out/root.qcow2" ]; then
-        log_warning "About to REPLACE $out/root.qcow2 — the guest's host key and state go with it"
+        log_warning "About to REPLACE $out/root.qcow2 — the guest's host key and all of /persist go with it"
         if ! confirm replace "Type 'replace' to continue: "; then
             log_error "Aborted"; exit 1
         fi
