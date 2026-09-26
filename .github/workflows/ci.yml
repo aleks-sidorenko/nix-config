@@ -56,7 +56,7 @@ jobs:
         system:
           - "desktop"
           - "homebook"
-          - "vm"
+          - "server-vm"
           - "server"
           - "minimal"
     steps:
@@ -85,8 +85,8 @@ jobs:
             "desktop"|"homebook")
               nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
               ;;
-            "vm")
-              # aarch64 graphical guest: a full build under x86 emulation would
+            "server-vm")
+              # aarch64 headless guest: a full build under x86 emulation would
               # outrun the runner's time limit. Evaluation still catches missing
               # options and failed assertions.
               nix eval .#nixosConfigurations.$system.config.system.build.toplevel.drvPath --show-trace
@@ -113,7 +113,7 @@ jobs:
           - "alexander@desktop"
           - "alexander@homebook"
           - "dima@homebook"
-          - "alexander@vm"
+          - "alexander@server-vm"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -128,7 +128,7 @@ jobs:
         run: |
           config="${{ matrix.config }}"
           attr='.#homeConfigurations."'"$config"'".activationPackage'
-          if [ "$config" = "alexander@vm" ]; then
+          if [ "$config" = "alexander@server-vm" ]; then
             # aarch64 guest — evaluate only, as in build-systems above.
             nix eval "$attr".drvPath --show-trace
           else

@@ -14,14 +14,14 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 │   │   └── minimal/                # Custom NixOS installer ISO
 │   ├── aarch64-linux/
 │   │   ├── server/                 # Raspberry Pi 4 home server
-│   │   └── vm/                     # QEMU guest (workbook)
+│   │   └── server-vm/              # Headless QEMU guest, home-server stand-in (workbook)
 │   └── aarch64-darwin/
 │       └── workbook/               # macOS work laptop
 ├── homes/                          # Home-manager configurations (auto-discovered)
 │   ├── x86_64-linux/
 │   │   └── alexander@desktop/
 │   ├── aarch64-linux/
-│   │   └── alexander@vm/
+│   │   └── alexander@server-vm/
 │   └── aarch64-darwin/
 │       └── oleksandrsy@workbook/
 ├── modules/                        # Shared modules
@@ -39,6 +39,14 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
     ├── common.sh
     └── bootstrap/
 ```
+
+### VM host naming
+
+Hosts that are virtual machines are named `<name>-vm`, where `<name>` is the
+host they stand in for — `server-vm` is the QEMU guest that replaces the
+Raspberry Pi `server`. The suffix applies everywhere the host name appears: the
+flake attribute, `systems/<arch>/<name>-vm/`, `homes/<arch>/<user>@<name>-vm/`,
+and the deploy-rs node.
 
 ## Custom Namespace
 
@@ -260,7 +268,7 @@ Data structure (not functions) providing shared defaults:
 | Architecture | Systems | Description |
 |-------------|---------|-------------|
 | `x86_64-linux` | desktop, homebook | Desktop workstation, shared family laptop |
-| `aarch64-linux` | server, vm | Raspberry Pi 4 home server, QEMU guest (workbook) |
+| `aarch64-linux` | server, server-vm | Raspberry Pi 4 home server, headless QEMU guest standing in for it (workbook) |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
 | `x86_64-install-iso` | minimal | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal`) |
 

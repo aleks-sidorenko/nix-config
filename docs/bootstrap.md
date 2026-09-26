@@ -135,16 +135,18 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
-> **VM (testing):** the `vm` host is an aarch64-linux guest that runs under
-> QEMU on the `workbook`. It is not bootstrapped over SSH — `just vm-image`
-> builds a disko disk image that is already installed, and the guest boots
-> straight into it.
+> **VM (testing):** the `server-vm` host is a headless aarch64-linux guest —
+> a home-server stand-in, not a desktop — that runs under QEMU on the
+> `workbook`. It is not bootstrapped over SSH — `just image server-vm` builds
+> a disko disk image that is already installed, and the guest boots straight
+> into it.
 >
 > **One-time prerequisites, in this order:**
 >
 > 1. `darwin-rebuild switch --flake .` on the `workbook`. This installs the
->    aarch64-linux builder `just vm-image` builds on, the `socket_vmnet`
->    daemon, and the `org.nixos.qemu-vm` agent. Nothing below works without it.
+>    aarch64-linux builder `just image server-vm` builds on, the `socket_vmnet`
+>    daemon, and the `org.nixos.qemu-server-vm` agent. Nothing below works
+>    without it.
 > 2. `just router-apply`, so the static DHCP lease keyed by the guest's MAC
 >    (`52:54:00:00:00:64` → `10.0.0.64`) exists.
 > 3. `nh os switch` on the machines you deploy from, so their `/etc/hosts`
@@ -153,22 +155,23 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 >    `10.0.0.64`, and that `/etc/hosts` entry also shadows the tailnet name.
 >
 > ```bash
-> just vm-image          # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
-> launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-vm
+> just image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
+> launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 > ```
 >
-> `just vm-image` asks before replacing an existing `root.qcow2` and never
-> overwrites `data.qcow2` — the bulk disk is meant to outlive re-imaging. To
-> rebuild it, delete it by hand. If the guest's launchd job is only registered
-> (e.g. left over from a `darwin-rebuild switch` where qemu never actually
-> started), it is left alone — `kickstart -k` below starts it directly. If the
-> guest is genuinely running, the recipe asks you to type `bootout` before it
-> stops it and continues.
+> `just image server-vm` asks before replacing an existing `root.qcow2` and
+> never overwrites `data.qcow2` — the bulk disk is meant to outlive re-imaging.
+> To rebuild it, delete it by hand. If the guest's launchd job is only
+> registered (e.g. left over from a `darwin-rebuild switch` where qemu never
+> actually started), it is left alone — `kickstart -k` below starts it
+> directly. If the guest is genuinely running, the recipe asks you to type
+> `bootout` before it stops it and continues.
 >
 > On first boot the guest generates its SSH host key. **Replace** the `&vm` age
 > key in `.sops.yaml` with the new one (the anchor is dereferenced by `*vm` in
 > two creation rules — edit it in place, do not append a second entry), run
-> `sops updatekeys` on both secret files, then `just deploy vm` as usual.
+> `sops updatekeys` on both secret files, then `just deploy server-vm` as
+> usual.
 >
 > Finally, join the tailnet from the guest. The bridged address follows
 > whichever LAN the Mac is on, so the tailnet is the only stable way in from
@@ -180,8 +183,8 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > ```
 >
 > (The guest's wheel group is passwordless — see
-> `systems/aarch64-linux/vm/default.nix` — so this works before the account has
-> a usable password.)
+> `systems/aarch64-linux/server-vm/default.nix` — so this works before the
+> account has a usable password.)
 
 #### Verify connectivity
 
@@ -479,9 +482,9 @@ Host homebook
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
-The **VM** has a reserved lease (`vm → 10.0.0.64`) just like a physical host, so
-`just deploy vm` resolves normally once the guest is running — see the VM note
-in [Step 3](#step-3--boot-the-target).
+**`server-vm`** has a reserved lease (`vm → 10.0.0.64`) just like a physical
+host, so `just deploy server-vm` resolves normally once the guest is running —
+see the VM note in [Step 3](#step-3--boot-the-target).
 
 ### Step 7 — Post-installation
 

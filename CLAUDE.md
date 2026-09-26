@@ -23,7 +23,7 @@ just deploy <hostname> --dry-run                 # Preview changes
 
 # Examples
 just deploy server --remote-build
-just deploy vm --remote-build --verbose
+just deploy server-vm --remote-build --verbose
 ```
 
 ### Testing & Validation
@@ -111,6 +111,8 @@ This config uses **snowfall-lib** conventions for automatic module discovery:
 - **`overlays/`**: Nixpkgs overlays
 - **`lib/`**: Custom library functions
 - **`infra/`**: Infrastructure-as-code (terranix/OpenTofu, not auto-discovered by snowfall-lib)
+
+VM hosts are named `<name>-vm`, where `<name>` is the host they stand in for (e.g. `server-vm`). The suffix applies to the flake attribute, `systems/<arch>/<name>-vm/`, `homes/<arch>/<user>@<name>-vm/`, and the deploy-rs node.
 
 ### Custom Namespace
 
@@ -273,7 +275,7 @@ Supports multiple desktop environments:
 
 - **x86_64-linux**: Desktop
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal`)
-- **aarch64-linux**: Raspberry Pi 4 server, QEMU guest VM
+- **aarch64-linux**: Raspberry Pi 4 server, headless QEMU guest (`server-vm`) standing in for it
 - **aarch64-darwin**: macOS workbook
 
 Darwin-specific modules in `modules/darwin/` with separate role system.
@@ -326,14 +328,15 @@ IaC configurations in `infra/`:
 
 ## Testing Configurations
 
-Use the VM configuration for testing:
+Use the `server-vm` configuration for testing:
 ```bash
 darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
-just vm-image                    # build the guest disk images
-just deploy vm                   # deploy to the running guest
+just image server-vm             # build the guest disk images
+just deploy server-vm            # deploy to the running guest
 ```
 
-The VM is an aarch64-linux guest running under QEMU on the workbook.
-`just vm-image` needs the `nix.linux-builder` that `darwin-rebuild switch`
-installs, so that step comes first. See `docs/bootstrap.md` for the full
-first-boot sequence (router lease, SOPS re-key, Tailscale).
+`server-vm` is a headless aarch64-linux guest running under QEMU on the
+workbook — a home-server stand-in, not a desktop. `just image server-vm`
+needs the `nix.linux-builder` that `darwin-rebuild switch` installs, so that
+step comes first. See `docs/bootstrap.md` for the full first-boot sequence
+(router lease, SOPS re-key, Tailscale).
