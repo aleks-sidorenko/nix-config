@@ -21,7 +21,9 @@ in
         common = enabled;
         server = enabled;
         media-server = enabled;
-        smart-home = enabled;
+        # Its automations name physical devices, so a host without them
+        # (a VM stand-in) has to be able to opt out.
+        smart-home.enable = mkDefault true;
         gaming-server = enabled;
         backup-server = enabled;
         backup = enabled;
