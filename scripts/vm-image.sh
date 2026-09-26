@@ -120,7 +120,12 @@ if [ -e "$out/root.qcow2" ]; then
 fi
 
 log_info "Building $host disk images (requires an aarch64-linux builder)..."
-nix build ".#nixosConfigurations.$host.config.system.build.diskoImages" --out-link result-vm
+log_info "This runs under emulation and takes hours — -L streams the builder's"
+log_info "output so you can see partitioning and installation progress."
+# Without -L nix buffers a remote builder's log and flushes it only on
+# completion, so a multi-hour build shows one static progress line and no way
+# to tell work from a wedge.
+nix build ".#nixosConfigurations.$host.config.system.build.diskoImages" --out-link result-vm -L
 
 install_image root.qcow2 root.qcow2
 log_success "root.qcow2 written"
