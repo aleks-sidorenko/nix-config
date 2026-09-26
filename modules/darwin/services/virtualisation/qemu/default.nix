@@ -141,7 +141,8 @@ in
 
     environment.systemPackages = [ cfg.package ];
 
-    # A user agent, not a daemon: the guest owns a window in the GUI session.
+    # A user agent, not a daemon: disks live under the invoking user's home
+    # (homeDir config), and in cocoa mode the guest also owns a GUI window.
     launchd.user.agents = mapAttrs' (
       name: g:
       nameValuePair "qemu-${name}" {
