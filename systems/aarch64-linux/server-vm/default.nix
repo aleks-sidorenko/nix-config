@@ -18,6 +18,15 @@ with lib.${namespace};
       # The plugs, heatpump and climate sensors its automations name stayed
       # with the old house.
       smart-home = disabled;
+
+      # Off until there is somewhere off-box to back up to. Backing a laptop
+      # guest up to its own disk protects against neither disk loss nor the
+      # re-imaging that replaces the root image, so the two roles would buy
+      # only the appearance of coverage. Disabling the server also drops its
+      # nginx vhost, which proxied the unauthenticated REST endpoint onto
+      # whatever LAN the host Mac had joined.
+      backup = disabled;
+      backup-server = disabled;
     };
 
     users.alexander = {
@@ -26,18 +35,6 @@ with lib.${namespace};
     };
 
     disks.impermanence = enabled;
-
-    services.backup =
-      let
-        listen = "127.0.0.1:${toString defaults.network.ports.restic.web}";
-      in
-      {
-        # The `restic.local` alias names the Pi, which is gone. Client and REST
-        # server are the same host here, so the repository is reached over
-        # loopback — which is also the only address the server binds.
-        restic.repository = "rest:http://${listen}";
-        restic-server.listenAddress = listen;
-      };
 
     # Bridged addressing follows whichever LAN the host Mac is on, so the
     # tailnet carries the guest's stable identity.
