@@ -24,7 +24,7 @@ in
     extraUpFlags = mkOption {
       type = listOf str;
       default = [ ];
-      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node).";
+      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node). Note: the activation join only runs when authKeyFile is set, so these flags have no effect unless authKeyFile is configured.";
     };
   };
 
