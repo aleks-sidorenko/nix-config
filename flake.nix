@@ -250,6 +250,12 @@
               "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             ];
           };
+
+          minimal-aarch64 = {
+            modules = with inputs; [
+              "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+            ];
+          };
         };
       };
 

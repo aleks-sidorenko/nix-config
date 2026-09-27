@@ -32,7 +32,7 @@ fi
 
 log_info "Downloading RPi4 UEFI Firmware $version to $target_dir"
 
-cd "$target_dir"
+cd "$target_dir" || exit 1
 wget "https://github.com/pftf/RPi4/releases/download/$version/RPi4_UEFI_Firmware_$version.zip"
 unzip "RPi4_UEFI_Firmware_$version.zip"
 rm "RPi4_UEFI_Firmware_$version.zip"

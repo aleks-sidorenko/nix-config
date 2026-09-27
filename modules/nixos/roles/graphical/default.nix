@@ -18,8 +18,11 @@ in
     ${namespace} = {
       roles = {
         common = enabled;
-        gaming = enabled;
-        backup = enabled;
+        # A graphical host is a gaming host by default, but the suite is
+        # x86-only (hardware.graphics.enable32Bit), so hosts can opt out.
+        gaming.enable = mkDefault true;
+        # Disposable hosts have nothing worth backing up, so they can opt out.
+        backup.enable = mkDefault true;
       };
 
       styles.stylix.enable = true;
@@ -28,7 +31,8 @@ in
         gnome.enable = true;
       };
 
-      system.hibernation.enable = true;
+      # Meaningless on a guest, so let hosts opt out.
+      system.hibernation.enable = mkDefault true;
 
       user = {
         # we need this for a graphical session

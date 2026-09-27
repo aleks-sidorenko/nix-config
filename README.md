@@ -48,7 +48,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
 | `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook — multi-user (adult + child) | NixOS | Scaffold |
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
-| `vm` | x86_64-linux | Vagrant VM | Desktop (test) | NixOS | Active |
+| `server-vm` | aarch64-linux | QEMU guest on the workbook | Home Server | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
 | `minimal` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
 
@@ -56,8 +56,8 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 
 ```
 .
-├── systems/          # System configs: desktop, server, vm, workbook, minimal
-├── homes/            # Home-manager configs: alexander@{desktop,homebook,vm}, dima@homebook (child), oleksandrsy@workbook
+├── systems/          # System configs: desktop, server, server-vm, workbook, minimal
+├── homes/            # Home-manager configs: alexander@{desktop,homebook,server-vm}, dima@homebook (child), oleksandrsy@workbook
 ├── modules/
 │   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
 │   ├── home/         # Home-manager modules (roles, desktops, cli, development, browsers, media)
@@ -108,9 +108,9 @@ just deploy router                         # Deploy MikroTik router config
 ### Build Installer ISO
 
 ```bash
-just iso-build            # Build minimal NixOS installer ISO (-> ./result/iso/)
-just iso-write /dev/sdX   # Write the built ISO to a USB device
-just iso /dev/sdX         # Build + write in one step
+just iso-build minimal            # Build minimal NixOS installer ISO (-> ./result/iso/)
+just iso-write minimal /dev/sdX   # Write the built ISO to a USB device
+just iso minimal /dev/sdX         # Build + write in one step
 ```
 
 For the full build → flash → boot → login walkthrough and fresh installations on

@@ -112,16 +112,21 @@ let
     };
   };
 
-  mkDisk = disk: {
-    inherit (disk) device;
-    type = "disk";
-    inherit (disk) name;
-    content = {
-      type = "gpt";
-      partitions =
-        mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+  mkDisk =
+    disk:
+    {
+      inherit (disk) device;
+      type = "disk";
+      inherit (disk) name;
+    }
+    // optionalAttrs (disk.imageSize != null) { inherit (disk) imageSize; }
+    // {
+      content = {
+        type = "gpt";
+        partitions =
+          mkBootPartition disk // (if disk.encrypted then mkLuksPartition disk else mkBtrfsPartition disk);
+      };
     };
-  };
 
 in
 {
@@ -139,6 +144,12 @@ in
             type = types.bool;
             default = false;
             description = "Whether to use LUKS encryption for the partition";
+          };
+
+          imageSize = mkOption {
+            type = nullOr str;
+            default = null;
+            description = "Size of the built disk image (e.g., '48G'); disko's own default when null";
           };
 
           boot = mkOption {

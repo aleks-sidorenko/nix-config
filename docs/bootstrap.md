@@ -24,7 +24,7 @@ on-machine install run on the target itself.
 ```
 1. Define the host in the flake        (systems/…, homes/…, users)
 2. Prepare your local machine          (tools: pass, nix, ssh, nixos-anywhere)
-3. Boot the target                     (installer ISO — or Vagrant for a VM — verify SSH, capture disks + hardware)
+3. Boot the target                     (installer ISO — verify SSH, capture disks + hardware)
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
 6. Deploy                              (bootstrap / bootstrap-deploy + disko — or on-machine disko + nixos-install)
@@ -33,6 +33,10 @@ on-machine install run on the target itself.
 
 Steps 4–6 can be run as a single `just bootstrap` command (it pauses at the SOPS
 step for you), or split apart for more control. Both paths are covered below.
+
+A **VM guest** follows this same flow — installer ISO plus `nixos-anywhere` —
+with QEMU standing in for hardware; only how you reach Step 3 differs. See
+[VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
 
 ---
 
@@ -115,11 +119,11 @@ Build the custom minimal installer ISO from this flake and write it to a USB sti
 lsblk
 
 # Build the ISO and write it to the USB stick in one step (replace sdX)
-just iso /dev/sdX
+just iso minimal /dev/sdX
 
 # …or run the steps separately:
-just iso-build            # -> ./result/iso/nixos-minimal-*.iso
-just iso-write /dev/sdX   # dd the built image to the device
+just iso-build minimal            # -> ./result/iso/nixos-minimal-*.iso
+just iso-write minimal /dev/sdX   # dd the built image to the device
 ```
 
 Boot the target from the USB stick. The **local console autologins** as
@@ -135,44 +139,10 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
-> **VM (testing):** provision with [Vagrant](https://www.vagrantup.com/) instead
-> of building/booting an ISO. The VirtualBox provider is enabled by the `desktop`
-> role, so run this **on the desktop** (from `systems/x86_64-linux/vm/`).
->
-> The VM is wired like a physical host: `lib/defaults` reserves `vm = 10.0.0.64`,
-> `infra/router/hosts.nix` gives it a static DHCP lease keyed by MAC
-> (`08:00:27:00:00:64`), and the Vagrantfile bridges onto the LAN (`eno1`) with
-> that MAC. **One-time prerequisites:** apply the router config (`just router-*`)
-> so the lease exists, and `nh os switch` on the machines you deploy from so their
-> `/etc/hosts` learns `vm → 10.0.0.64`.
->
-> ```bash
-> vagrant up
-> ```
->
-> **Install phase (over Vagrant's NAT).** Vagrant's passwordless SSH runs on its
-> NAT adapter with the box's `vagrant` key, so bootstrap connects that way — not
-> over the bridge yet. Add a throwaway alias and bootstrap as `vagrant`:
-> ```bash
-> vagrant ssh-config >> ~/.ssh/config.local   # Host vm → 127.0.0.1:<nat-port>, User vagrant
-> just bootstrap vm vagrant
-> ```
-> The VM is **not** exempt from SOPS: with the default `alexander` account its
-> `user-alexander-password` is `neededForUsers`, so the VM must be a SOPS
-> recipient (Steps 4–5) to boot with a working login. The ISO build, FIDO2, and
-> RPi steps do **not** apply.
->
-> **After install, switch firmware to UEFI.** The Vagrant box boots legacy BIOS
-> (fine for the install), but the installed NixOS only has a UEFI bootloader
-> (systemd-boot + ESP), so the post-install reboot lands in BIOS with *"cannot
-> read from boot medium"*. Run **`just vm-uefi`** once — it power-cycles the VM
-> into EFI firmware, and systemd-boot's removable fallback
-> (`\EFI\BOOT\BOOTX64.EFI`) then loads NixOS.
->
-> **Steady state.** Delete the throwaway `~/.ssh/config.local` alias — the
-> installed VM is now a first-class host on the LAN, so `ssh vm` and
-> `just deploy vm` reach it as your user on port 22 via `/etc/hosts` (`10.0.0.64`),
-> exactly like `desktop` or `server`.
+> **Provisioning a VM guest?** `server-vm` runs under QEMU on the `workbook` and
+> boots from the same kind of installer ISO, built for its own architecture
+> (`just iso-build minimal-aarch64`) and booted with `just vm-install` instead
+> of a USB stick. See [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
 
 #### Verify connectivity
 
@@ -350,7 +320,6 @@ Examples (connect as the installer's `nixos` user — see the note in
 just bootstrap myserver nixos                              # no disk encryption
 just bootstrap myserver nixos "" --build-on-remote         # build on the target
 just bootstrap myserver nixos MyPassword123                # with LUKS disk encryption
-just bootstrap vm vagrant                                  # testing VM (Vagrant, connect as vagrant)
 ```
 
 #### Remote — two-step (if you already ran `bootstrap-secrets`)
@@ -471,10 +440,9 @@ Host homebook
 so `.#homebook` still selects the right config while SSH goes to the actual IP
 (a temporary `/etc/hosts` line works too).
 
-The **VM** has a reserved lease (`vm → 10.0.0.64`) just like a physical host, so
-its installed system resolves normally. Only its *install phase* needs the
-throwaway-alias trick, because Vagrant's bootstrap SSH runs over NAT with the
-box's key — see the VM note in [Step 3](#step-3--boot-the-target).
+**`server-vm`** resolves like any other host once the registry has been applied
+— see [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for what to do
+before then.
 
 ### Step 7 — Post-installation
 
@@ -512,6 +480,148 @@ just deploy <hostname>                 # remote deploy via deploy-rs
 just deploy <hostname> --remote-build  # build on target
 nh os switch                           # local rebuild (on the host itself)
 ```
+
+---
+
+## VM guests (QEMU on macOS)
+
+`server-vm` is a headless aarch64-linux guest — a home-server stand-in, not a
+desktop — running under QEMU on the `workbook`.
+
+It installs exactly like a physical host does — installer ISO plus
+`nixos-anywhere` — following the [NixOS flow](#nixos) above with QEMU standing
+in for hardware. Only the endpoints differ:
+
+| Hardware | VM |
+| --- | --- |
+| `just iso minimal /dev/sdX` — write the stick | `just iso-build minimal-aarch64` |
+| boot-menu → USB | `just vm-install server-vm` |
+| `just bootstrap <host>` | identical, unchanged |
+| pull the stick, reboot | quit the installer QEMU with **Ctrl-C** (headless: no window, no monitor), `launchctl kickstart` the agent |
+
+### Step 1 — Install the guest
+
+```bash
+darwin-rebuild switch --flake .        # Linux builder, socket_vmnet, the guest agent
+just iso-build minimal-aarch64         # build the installer ISO
+just vm-install server-vm              # boot the guest from it (blank disks are created)
+# from another terminal, once the guest has an address:
+just bootstrap server-vm nixos "" --build-on-remote
+# then quit the installer QEMU (Ctrl-C in its terminal) and start the guest normally:
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
+```
+
+`just vm-install` runs QEMU in the **foreground** and does not return, so the
+`just bootstrap` line belongs in a second terminal.
+
+> **`server-vm` does not yet resolve to the guest.** `just bootstrap` reuses the
+> hostname as the SSH address (`nixos@server-vm`), and `/etc/hosts` maps
+> `server-vm` to `10.0.0.64` — an address nothing answers on until the home
+> network is rebuilt (see [Reaching the guest](#reaching-the-guest)). Point the
+> name at the guest's **DHCP address** for the install exactly as for any
+> unreserved host — the `~/.ssh/config.local` alias described under
+> [How `<hostname>` reaches the target machine](#how-hostname-reaches-the-target-machine):
+>
+> ```
+> Host server-vm
+>   HostName <dhcp-address>
+>   User nixos
+> ```
+>
+> Find that address in the guest's serial console log
+> (`/tmp/qemu-server-vm.console.log` — the installer's network-configuration
+> messages name the lease), with `arp -an` on the Mac once the guest has talked
+> to the network, or in the router's lease table. Remove the alias once the name
+> resolves for real.
+
+The empty `""` is the `disk_password` positional — the guest has no LUKS, but
+the slot must be filled for `--build-on-remote` to land in `extra_opts` rather
+than being read as the disk password.
+
+`--build-on-remote` matters: the guest runs under `hvf` at native speed, so
+building its closure inside the guest is far faster than building it on the
+emulated Linux builder. Most of an aarch64 closure is substituted from the
+binary cache rather than built at all.
+
+The guest is headless — `/tmp/qemu-server-vm.console.log` is its console, and
+the only place a failed boot is visible.
+
+**SOPS comes first, inside this step.** `just bootstrap` runs
+[Step 4 — Generate host keys & register with SOPS](#step-4--generate-host-keys--register-with-sops)
+before the install, exactly as for a physical host: the host key is generated
+*on your machine*, the age key derived from it is printed, the script **pauses**
+for the `.sops.yaml` edit, and `nixos-anywhere` then ships the key to the guest
+with `--extra-files`. The only VM-specific detail: `.sops.yaml` already carries
+a `&server-vm` anchor, dereferenced by `*server-vm` in two creation rules, so
+**replace its value in place** rather than appending a second entry — then
+`sops updatekeys` both secrets files and press Enter.
+
+#### Redoing an install
+
+`just vm-install` never replaces an existing disk, and the guest's EDK2 varstore
+remembers the boot entries a previous attempt wrote — so a second run over a
+half-installed disk may boot that disk instead of the ISO. To start genuinely
+clean, delete the guest's state first:
+
+```bash
+rm -f ~/.local/share/qemu/server-vm/{root,data}.qcow2 ~/.local/share/qemu/server-vm/vars.img
+```
+
+### Step 2 — Join the tailnet
+
+Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
+open the URL it prints:
+
+```bash
+ssh server-vm -- sudo tailscale up --ssh
+```
+
+The bridged address follows whichever LAN the host Mac is on, so the tailnet is
+the only stable way in from elsewhere.
+
+### Reaching the guest
+
+The guest is `server-vm` everywhere — flake attribute, `networking.hostName`,
+host registry, router entry, `/etc/hosts` and the tailnet.
+
+The registry maps it to `10.0.0.64`, which is an address on the **home** network.
+That network is being rebuilt, so until the rebuild lands:
+
+- `nh os switch` writes `10.0.0.64 server-vm` into `/etc/hosts`, and that entry
+  **shadows the tailnet name** — the name will resolve to an address nothing
+  answers on.
+- Reach the guest by its **DHCP address** instead. Bridged networking gives it a
+  real lease on whatever LAN the Mac has joined, with no router configuration.
+- Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
+  refreshed on the machine you are calling from.
+
+`just deploy` already passes `--hostname server-vm`, and deploy-rs rejects that
+flag twice, so deploying to the DHCP address instead means calling `deploy`
+directly:
+
+```bash
+deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
+```
+
+Once the home network exists again, two steps make the name work end to end:
+
+```bash
+just router-apply   # static lease: MAC 52:54:00:00:00:64 -> 10.0.0.64
+nh os switch        # on each machine you deploy from: /etc/hosts learns server-vm
+```
+
+Do both or neither. Applying the lease without refreshing `/etc/hosts` leaves the
+guest on a random address while callers still resolve `server-vm` to
+`10.0.0.64`.
+
+### Backups
+
+The guest runs **no** backups: both the restic client and the restic REST server
+are disabled on it. Backing a laptop guest up to its own disk would survive
+neither the loss of the host Mac's disk — both qcow2 files live on it — nor a
+reinstall, which rewrites the root disk the system itself sits on, so it would
+buy only the appearance of coverage. Re-enable them once there is somewhere
+off-box to send backups to.
 
 ---
 
@@ -797,7 +907,7 @@ sudo nixos-rebuild switch --flake .#<hostname>
 | `just bootstrap-disk <host> --apply` | Format disks with disko |
 | `just bootstrap-rpi-firmware <host> [user] [dir] [ver]` | Install RPi4 firmware |
 | `just bootstrap-targets` | List available bootstrap targets |
-| `just bootstrap-validate` | Shellcheck bootstrap scripts |
+| `just scripts-validate` | Shellcheck every script under `scripts/` |
 | `just bootstrap-help` | Show detailed bootstrap help |
 
 ### nixos-anywhere options

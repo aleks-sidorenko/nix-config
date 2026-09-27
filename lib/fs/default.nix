@@ -43,6 +43,10 @@ rec {
     path = "/opt/homebrew";
     binPath = "${homebrew.path}/bin";
     getExe = name: "${homebrew.binPath}/${name}";
+
+    # Keg-only formulae are not linked into binPath; they stay under opt/.
+    optPath = "${homebrew.path}/opt";
+    getOptExe = formula: name: "${homebrew.optPath}/${formula}/bin/${name}";
   };
 
 }

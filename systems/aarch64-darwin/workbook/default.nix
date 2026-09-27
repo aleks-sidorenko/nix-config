@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   namespace,
   ...
 }:
@@ -33,9 +34,48 @@ with lib.${namespace};
       ];
     };
 
-    services.networking.openvpn = {
-      enable = true;
-      connections.kpi = { };
+    services = {
+      networking = {
+        openvpn = {
+          enable = true;
+          connections.kpi = { };
+        };
+
+        socket-vmnet = {
+          enable = true;
+          mode = "bridged";
+          interface = "en0";
+        };
+      };
+
+      virtualisation.qemu = {
+        enable = true;
+        guests.server-vm = {
+          cpus = 4;
+          memory = "8G";
+          rootDisk = "${homeDir config}/.local/share/qemu/server-vm/root.qcow2";
+          dataDisk = "${homeDir config}/.local/share/qemu/server-vm/data.qcow2";
+          varsDisk = "${homeDir config}/.local/share/qemu/server-vm/vars.img";
+          mac = "52:54:00:00:00:64";
+          display = "none";
+        };
+      };
+    };
+  };
+
+  # Building the aarch64-linux guest from macOS needs a Linux builder. disko
+  # runs its own VM inside this one with no nested virtualisation, so that
+  # inner build is emulated and wants real cores; the disk has to hold the
+  # guest's images, and is kept across restarts so a rebuild is not a rebuild
+  # of everything. maxJobs follows virtualisation.cores on its own.
+  nix.linux-builder = {
+    enable = true;
+    config.virtualisation = {
+      cores = 8;
+      darwin-builder = {
+        memorySize = 16 * 1024;
+        diskSize = 120 * 1024;
+      };
     };
   };
 

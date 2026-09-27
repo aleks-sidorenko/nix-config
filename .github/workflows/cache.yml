@@ -26,15 +26,9 @@ jobs:
           - type: "nixos"
             name: "desktop"
             attr: "nixosConfigurations.desktop.config.system.build.toplevel"
-          - type: "nixos" 
-            name: "vm"
-            attr: "nixosConfigurations.vm.config.system.build.toplevel"
           - type: "home"
             name: "alexander@desktop"
             attr: 'homeConfigurations."alexander@desktop".activationPackage'
-          - type: "home"
-            name: "alexander@vm"
-            attr: 'homeConfigurations."alexander@vm".activationPackage'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

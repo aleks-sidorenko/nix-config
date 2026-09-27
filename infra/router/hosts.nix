@@ -125,10 +125,10 @@ in
     dns = false;
     aliases = [ ];
   };
-  vm = {
-    ip = ips.vm;
-    mac = "08:00:27:00:00:64";
-    comment = "Test VM";
+  server-vm = {
+    ip = ips.server-vm;
+    mac = "52:54:00:00:00:64";
+    comment = "Home-server stand-in (QEMU guest on the workbook)";
     dns = false;
     aliases = [ ];
   };

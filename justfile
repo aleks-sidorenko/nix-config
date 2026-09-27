@@ -30,7 +30,7 @@ bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts=""
 # Complete bootstrap process (secrets + deploy in one command)
 bootstrap hostname username="$USER" disk_password="" *extra_opts="":
     @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
-    @if [ -n "$KEYSDIR" ]; then \
+    @if [ -n "${KEYSDIR:-}" ]; then \
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
@@ -63,23 +63,32 @@ bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version=
 #   just bootstrap-disk hostname                  # Preview changes (dry-run)
 #   just bootstrap-disk hostname --apply          # Apply and format disks
 bootstrap-disk hostname mode="--dry-run":
-    @echo "💾 Formatting disks for {{hostname}} using disko..."
-    @if [ "{{mode}}" = "--dry-run" ]; then \
-        echo "🔍 Running in dry-run mode (preview only)..."; \
-        echo "⚠️  No changes will be made to disks"; \
-        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}} --dry-run; \
-    elif [ "{{mode}}" = "--apply" ]; then \
-        echo "⚠️  WARNING: This will DESTROY ALL DATA on configured disks!"; \
-        echo "⚠️  Press Ctrl+C within 5 seconds to cancel..."; \
-        sleep 5; \
-        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}}; \
-        echo "✅ Disks formatted successfully!"; \
-        echo "💡 Run 'just deploy {{hostname}}' to apply mount configuration"; \
-    else \
-        echo "❌ Invalid mode: {{mode}}"; \
-        echo "💡 Use '--dry-run' to preview or '--apply' to format"; \
-        exit 1; \
-    fi
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    log_info "Formatting disks for {{hostname}} using disko..."
+    case "{{mode}}" in
+    --dry-run)
+        log_info "Running in dry-run mode (preview only) — no changes will be made"
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}} --dry-run
+        ;;
+    --apply)
+        log_warning "This DESTROYS ALL DATA on the disks configured for {{hostname}}"
+        # Typing the host back is the check: a timed window cancels on
+        # inattention but not on naming the wrong host, which is the mistake
+        # that actually costs a machine.
+        if ! confirm {{hostname}} "Type '{{hostname}}' to confirm: "; then
+            log_error "Aborted"; exit 1
+        fi
+        sudo nix run github:nix-community/disko -- --mode disko --flake .#{{hostname}}
+        log_success "Disks formatted — run 'just deploy {{hostname}}' to apply mount configuration"
+        ;;
+    *)
+        log_error "Invalid mode: {{mode}}"
+        log_error "Use '--dry-run' to preview or '--apply' to format"
+        exit 1
+        ;;
+    esac
 
 # Deploy to a specific host using deploy-rs (or router-import for router)
 # Usage:
@@ -120,35 +129,45 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
-# Build the minimal NixOS installer ISO (output at ./result/iso/)
-iso-build:
-    @echo "💿 Building minimal installer ISO..."
-    nix build .#install-isoConfigurations.minimal
-    @echo "✅ ISO available at ./result/iso/ (nixos-minimal-*.iso)"
+# Build a minimal NixOS installer ISO (usage: just iso-build minimal-aarch64)
+iso-build host:
+    @echo "💿 Building installer ISO for {{host}}..."
+    nix build ".#install-isoConfigurations.{{host}}" --out-link result
+    @echo "✅ ISO available at ./result/iso/"
 
-# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX)
-iso-write device:
+# Write a built installer ISO to a USB device (usage: just iso-write minimal /dev/sdX)
+iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
-    if [ -z "$iso" ]; then
-        log_error "No ISO found — run 'just iso-build' first"; exit 1
+    # The filename is asked of the flake, never guessed: `result` is a single
+    # shared out-link, and one host's ISO name is a prefix of another's, so any
+    # glob can hand this recipe the wrong image to dd over a disk.
+    if ! iso_name=$(nix eval --raw ".#install-isoConfigurations.{{host}}.name" 2>/dev/null); then
+        log_error "Unknown ISO host: {{host}}"
+        log_error "Known ISO hosts: $(nix eval --json .#install-isoConfigurations --apply builtins.attrNames 2>/dev/null | jq -r 'join(", ")')"
+        exit 1
+    fi
+    iso="result/iso/$iso_name"
+    if [ ! -e "$iso" ]; then
+        log_error "No ISO at $iso for {{host}} — run 'just iso-build {{host}}' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
-    log_warning "About to write $iso to {{device}}"
-    log_warning "This DESTROYS ALL DATA on {{device}}. Press Ctrl+C within 5s to cancel..."
-    sleep 5
+    log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
+    # Typing the device back is the check: a timed window cancels on inattention
+    # but not on naming the wrong disk, which is the mistake that actually hurts.
+    if ! confirm {{device}} "Type '{{device}}' to confirm: "; then
+        log_error "Aborted"; exit 1
+    fi
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
-# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
-iso device: iso-build (iso-write device)
+# Build an installer ISO and write it to a USB device (usage: just iso minimal /dev/sdX)
+iso host device: (iso-build host) (iso-write host device)
 
-# Power-cycle the Vagrant test VM into UEFI firmware (run once after `just bootstrap vm ...`).
-# The box boots legacy BIOS for the install; the installed NixOS needs UEFI (systemd-boot).
-vm-uefi:
-    @scripts/vm-uefi.sh
+# Boot a VM guest from the installer ISO to install it (usage: just vm-install server-vm)
+vm-install host:
+    @./scripts/vm-install.sh {{host}}
 
 # Update flake inputs (optionally a single input)
 update *input:
@@ -272,15 +291,18 @@ disk-usage:
     @echo "💾 Nix store disk usage:"
     du -sh /nix/store | head -20
 
-# Validate bootstrap scripts
-bootstrap-validate:
-    @echo "🔍 Validating bootstrap scripts..."
-    shellcheck scripts/common.sh
-    shellcheck scripts/bootstrap/bootstrap-secrets.sh
-    shellcheck scripts/bootstrap/bootstrap-deploy.sh
-    shellcheck scripts/bootstrap/bootstrap-rpi-firmware.sh
-    shellcheck scripts/bootstrap/bootstrap-darwin.sh
-    @echo "✅ Bootstrap scripts validation passed"
+# Shellcheck every script under scripts/
+scripts-validate:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    log_info "Shellchecking scripts..."
+    # Globbed rather than listed: a hand-maintained list silently stops covering
+    # scripts as they are added, which is exactly when checking them matters.
+    mapfile -t sources < <(find scripts -name '*.sh' | sort)
+    # -x follows sourced files, so common.sh helpers resolve in each script.
+    shellcheck -x "${sources[@]}"
+    log_success "Shellcheck passed (${#sources[@]} scripts)"
 
 # Show bootstrap script help
 bootstrap-help:

@@ -23,7 +23,7 @@ just deploy <hostname> --dry-run                 # Preview changes
 
 # Examples
 just deploy server --remote-build
-just deploy vm --remote-build --verbose
+just deploy desktop --remote-build --verbose
 ```
 
 ### Testing & Validation
@@ -42,8 +42,8 @@ just switch                # Build and switch to new generation locally
 just flake-check           # nix flake check
 nix flake check            # Same as above
 
-# Bootstrap validation
-just bootstrap-validate    # Shellcheck on bootstrap scripts
+# Script validation
+just scripts-validate      # Shellcheck every script under scripts/
 ```
 
 ### Bootstrap & Installation
@@ -111,6 +111,8 @@ This config uses **snowfall-lib** conventions for automatic module discovery:
 - **`overlays/`**: Nixpkgs overlays
 - **`lib/`**: Custom library functions
 - **`infra/`**: Infrastructure-as-code (terranix/OpenTofu, not auto-discovered by snowfall-lib)
+
+VM hosts are named `<name>-vm`, where `<name>` is the host they stand in for (e.g. `server-vm`). The suffix applies to the flake attribute, `systems/<arch>/<name>-vm/`, `homes/<arch>/<user>@<name>-vm/`, and the deploy-rs node.
 
 ### Custom Namespace
 
@@ -271,9 +273,9 @@ Supports multiple desktop environments:
 
 ### Multi-Architecture Support
 
-- **x86_64-linux**: Desktop, VM
+- **x86_64-linux**: Desktop
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal`)
-- **aarch64-linux**: Raspberry Pi 4 server
+- **aarch64-linux**: Raspberry Pi 4 server, headless QEMU guest (`server-vm`) standing in for it
 - **aarch64-darwin**: macOS workbook
 
 Darwin-specific modules in `modules/darwin/` with separate role system.
@@ -326,10 +328,22 @@ IaC configurations in `infra/`:
 
 ## Testing Configurations
 
-Use the VM configuration for testing:
+Use the `server-vm` configuration for testing:
 ```bash
-# In systems/x86_64-linux/vm/
-just deploy vm --hostname vm --skip-checks
+darwin-rebuild switch --flake .              # first: Linux builder, socket_vmnet, QEMU agent
+just iso-build minimal-aarch64               # build the installer ISO
+just vm-install server-vm                    # boot the guest from it (runs QEMU in the foreground)
+
+# from another terminal, once the guest has an address:
+just bootstrap server-vm nixos "" --build-on-remote
+
+# then Ctrl-C the installer QEMU and start the guest normally:
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
 
-VM is provisioned via Vagrant with SSH keys from GitHub.
+`server-vm` is a headless aarch64-linux guest running under QEMU on the
+workbook — a home-server stand-in, not a desktop. It installs exactly like a
+physical host — installer ISO plus `nixos-anywhere` — with QEMU standing in
+for hardware. The registry maps `server-vm` to a home-network address, so
+until that network is rebuilt reach the guest by its DHCP address or over the
+tailnet. See `docs/bootstrap.md` for the full first-boot sequence.

@@ -82,22 +82,20 @@ in
       # that we can hopefully still access it remotely.
       enableEmergencyMode = false;
 
-      # For more detail, see:
-      #   https://0pointer.de/blog/projects/watchdog.html
-      watchdog = {
-        # systemd will send a signal to the hardware watchdog at half
-        # the interval defined here, so every 10s.
-        # If the hardware watchdog does not get a signal for 20s,
-        # it will forcefully reboot the system.
-        runtimeTime = "20s";
-      };
-
       settings = {
-        # Forcefully reboot if the final stage of the reboot
-        # hangs without progress for more than 30s.
+        # systemd pings the hardware watchdog at half this interval, so every
+        # 10s. If the hardware sees no ping for 20s it forcefully reboots.
+        # For more detail, see:
+        #   https://0pointer.de/blog/projects/watchdog.html
+        Manager.RuntimeWatchdogSec = "20s";
+
+        # Forcefully reboot if the final stage of the reboot hangs without
+        # progress for more than 30s. This is a separate watchdog from the
+        # runtime one above; both were previously written to RuntimeWatchdogSec,
+        # so the runtime value was overridden and this one never applied.
         # For more info, see:
         #   https://utcc.utoronto.ca/~cks/space/blog/linux/SystemdShutdownWatchdog
-        Manager.RuntimeWatchdogSec = mkForce "30s";
+        Manager.RebootWatchdogSec = "30s";
       };
     };
 
