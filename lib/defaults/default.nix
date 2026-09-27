@@ -59,6 +59,8 @@ _: rec {
       domains = {
         local = "local";
         public = "sidorenko.me";
+        # MagicDNS suffix; account-specific, read from `tailscale status --json`.
+        tailnet = "colobus-bramble.ts.net";
       };
       dns = {
         upstream = [
