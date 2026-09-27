@@ -335,7 +335,7 @@ just iso-build minimal-aarch64               # build the installer ISO
 just vm-install server-vm                    # boot the guest from it (runs QEMU in the foreground)
 
 # from another terminal, once the guest has an address:
-just bootstrap server-vm nixos --build-on-remote
+just bootstrap server-vm nixos "" --build-on-remote
 
 # then Ctrl-C the installer QEMU and start the guest normally:
 launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm

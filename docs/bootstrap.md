@@ -506,7 +506,7 @@ darwin-rebuild switch --flake .        # Linux builder, socket_vmnet, the guest 
 just iso-build minimal-aarch64         # build the installer ISO
 just vm-install server-vm              # boot the guest from it (blank disks are created)
 # from another terminal, once the guest has an address:
-just bootstrap server-vm nixos --build-on-remote
+just bootstrap server-vm nixos "" --build-on-remote
 # then quit the installer QEMU (Ctrl-C in its terminal) and start the guest normally:
 launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
@@ -533,6 +533,10 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 > messages name the lease), with `arp -an` on the Mac once the guest has talked
 > to the network, or in the router's lease table. Remove the alias once the name
 > resolves for real.
+
+The empty `""` is the `disk_password` positional — the guest has no LUKS, but
+the slot must be filled for `--build-on-remote` to land in `extra_opts` rather
+than being read as the disk password.
 
 `--build-on-remote` matters: the guest runs under `hvf` at native speed, so
 building its closure inside the guest is far faster than building it on the
