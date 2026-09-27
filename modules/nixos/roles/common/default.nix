@@ -26,6 +26,11 @@ in
         sops.enable = true;
       };
 
+      # Host identity lives on the tailnet, so membership is part of the base
+      # system rather than a property of any one role. mkDefault so a host can
+      # opt out.
+      services.networking.tailscale.enable = mkDefault true;
+
       cli = {
         # General Nix ergonomics, useful on any managed host.
         tools = {

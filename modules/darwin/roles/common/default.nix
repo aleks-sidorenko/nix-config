@@ -27,6 +27,11 @@ in
         ssh.enable = true;
       };
 
+      # Host identity lives on the tailnet, so membership is part of the base
+      # system rather than a property of any one role. mkDefault so a host can
+      # opt out.
+      services.networking.tailscale.enable = mkDefault true;
+
       system = {
         nix = {
           enable = true;
