@@ -119,11 +119,11 @@ Build the custom minimal installer ISO from this flake and write it to a USB sti
 lsblk
 
 # Build the ISO and write it to the USB stick in one step (replace sdX)
-just iso minimal /dev/sdX
+just iso minimal-x86_64 /dev/sdX
 
 # …or run the steps separately:
-just iso-build minimal            # -> ./result/iso/nixos-minimal-*.iso
-just iso-write minimal /dev/sdX   # dd the built image to the device
+just iso-build minimal-x86_64            # -> ./result/iso/nixos-minimal-x86_64.iso
+just iso-write minimal-x86_64 /dev/sdX   # dd the built image to the device
 ```
 
 Boot the target from the USB stick. The **local console autologins** as
@@ -132,7 +132,7 @@ Boot the target from the USB stick. The **local console autologins** as
 own, so the ssh module authorizes the **owner identity** (`lib` `defaults.user`)
 — i.e. you connect as `nixos@<host>` with your own private key, no password. The
 ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
-`systems/x86_64-install-iso/minimal/`.
+`systems/x86_64-install-iso/minimal-x86_64/`.
 
 > **Raspberry Pi 4:** first
 > [prepare the bootloader](https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md#prepare-bootloader-on-raspberry-pi-5)
@@ -494,7 +494,7 @@ in for hardware. Only the endpoints differ:
 
 | Hardware | VM |
 | --- | --- |
-| `just iso minimal /dev/sdX` — write the stick | `just iso-build minimal-aarch64` |
+| `just iso minimal-x86_64 /dev/sdX` — write the stick | `just iso-build minimal-aarch64` |
 | boot-menu → USB | `just vm-install server-vm` |
 | `just bootstrap <host>` | identical, unchanged |
 | pull the stick, reboot | quit the installer QEMU with **Ctrl-C** (headless: no window, no monitor), `launchctl kickstart` the agent |

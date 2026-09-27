@@ -29,10 +29,13 @@ with lib.${namespace};
   # the users module leaves the account password-less, and the stock
   # installation-device profile provides a passwordless console autologin.
 
-  isoImage = {
-    isoName = "nixos-minimal";
-    forceTextMode = true;
-  };
+  # iso-image.nix derives the real filename from image.baseName; isoImage.isoName
+  # only feeds image.fileName, which this build never reads. Overriding baseName
+  # keeps the name short and stable: the default carries a channel label that
+  # moves on every bump, and both minimal hosts share edition "minimal".
+  image.baseName = mkForce "nixos-minimal-x86_64";
+
+  isoImage.forceTextMode = true;
 
   # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";

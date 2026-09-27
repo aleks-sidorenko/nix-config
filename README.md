@@ -50,13 +50,14 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
 | `server-vm` | aarch64-linux | QEMU guest on the workbook | Home Server | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
-| `minimal` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
+| `minimal-x86_64` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
+| `minimal-aarch64` | aarch64-install-iso | Any | Installer | NixOS ISO | - |
 
 ## Architecture
 
 ```
 .
-├── systems/          # System configs: desktop, server, server-vm, workbook, minimal
+├── systems/          # System configs: desktop, server, server-vm, workbook, installers
 ├── homes/            # Home-manager configs: alexander@{desktop,homebook,server-vm}, dima@homebook (child), oleksandrsy@workbook
 ├── modules/
 │   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
@@ -108,9 +109,9 @@ just deploy router                         # Deploy MikroTik router config
 ### Build Installer ISO
 
 ```bash
-just iso-build minimal            # Build minimal NixOS installer ISO (-> ./result/iso/)
-just iso-write minimal /dev/sdX   # Write the built ISO to a USB device
-just iso minimal /dev/sdX         # Build + write in one step
+just iso-build minimal-x86_64            # Build minimal NixOS installer ISO (-> ./result/iso/)
+just iso-write minimal-x86_64 /dev/sdX   # Write the built ISO to a USB device
+just iso minimal-x86_64 /dev/sdX         # Build + write in one step
 ```
 
 For the full build → flash → boot → login walkthrough and fresh installations on

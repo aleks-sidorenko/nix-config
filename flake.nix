@@ -245,7 +245,7 @@
             ];
           };
 
-          minimal = {
+          minimal-x86_64 = {
             modules = with inputs; [
               "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             ];
