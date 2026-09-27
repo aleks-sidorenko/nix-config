@@ -4,8 +4,15 @@ set -euo pipefail
 
 # Boot a VM guest from the installer ISO so it can be installed with
 # nixos-anywhere, exactly as a physical host is.
-# Usage: ./vm-install.sh <host>
+# Usage: ./vm-install.sh <guest> [darwin-host]
 # Example: ./vm-install.sh server-vm
+#
+# darwin-host is the Mac that declares the guest, defaulting to this machine's
+# short hostname — the same assumption `darwin-rebuild switch --flake .` makes.
+#
+# Environment variables:
+#   ISO_ATTR  Installer ISO attribute to boot, when the guest's platform is
+#             targeted by more than one (advanced)
 #
 # This is the VM equivalent of picking the USB stick from the boot menu: a
 # deliberate, one-off act. The guest's steady-state launchd agent knows nothing
@@ -16,13 +23,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/common.sh
 source "$SCRIPT_DIR/common.sh"
 
-if [ $# -ne 1 ]; then
-    log_error "Usage: $0 <host>"
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    log_error "Usage: $0 <guest> [darwin-host]"
     log_error "Example: $0 server-vm"
     exit 1
 fi
 
 host="$1"
+darwin_host="${2:-}"
 
 # macOS only: the launcher is a launchd agent's program and the firmware comes
 # from an aarch64-darwin package. A NixOS host runs guests under libvirt/KVM,
@@ -32,14 +40,26 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
+# The Mac's own short hostname is what `darwin-rebuild switch --flake .`
+# resolves its configuration by, so it is also the right default for "the host
+# that runs this guest" — no second source of truth, and nothing to type.
+[ -n "$darwin_host" ] || darwin_host="$(hostname -s)"
+
+if [ "$(nix eval --raw .#darwinConfigurations --apply "f: if builtins.hasAttr \"$darwin_host\" f then \"yes\" else \"no\"")" != "yes" ]; then
+    log_error "No such darwin host in this flake: $darwin_host"
+    log_error "Known darwin hosts: $(nix eval --raw .#darwinConfigurations --apply 'f: builtins.concatStringsSep ", " (builtins.attrNames f)')"
+    log_error "Pass one explicitly: $0 $host <darwin-host>"
+    exit 1
+fi
+
 if [ "$(nix eval --raw .#nixosConfigurations --apply "f: if builtins.hasAttr \"$host\" f then \"yes\" else \"no\"")" != "yes" ]; then
     log_error "No such host in this flake: $host"
     exit 1
 fi
 
-guests=".#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.guests"
+guests=".#darwinConfigurations.$darwin_host.config.nix-config.services.virtualisation.qemu.guests"
 if [ "$(nix eval --raw "$guests" --apply "g: if builtins.hasAttr \"$host\" g then \"yes\" else \"no\"")" != "yes" ]; then
-    log_error "$host is not declared as a QEMU guest on the workbook"
+    log_error "$host is not declared as a QEMU guest on $darwin_host"
     log_error "Only VM guests can be installed this way — a physical host boots its own media"
     exit 1
 fi
@@ -50,13 +70,30 @@ fi
 # but not switched, or garbage-collected) fails at `exec` with a bare ENOENT.
 launcher="$(nix build --no-link --print-out-paths "$guests.$host.launcher")/bin/qemu-$host"
 
-# Asked of the flake rather than hardcoded: the filename is derived from
-# image.baseName, and `result` is a single shared out-link, so a guessed name or
-# a glob can miss it — or match another host's image.
-iso_name=$(nix eval --raw '.#install-isoConfigurations.minimal-aarch64.name')
+# Which ISO, and what it is called, are both asked of the flake rather than
+# hardcoded: the right image is whichever installer targets the guest's own
+# platform, and its filename is derived from image.baseName. `result` is a
+# single shared out-link, so a guessed name or a glob can miss it — or match
+# another host's image.
+system=$(nix eval --raw ".#nixosConfigurations.$host.pkgs.stdenv.hostPlatform.system")
+iso_attr="${ISO_ATTR:-$(nix eval --raw .#install-isoConfigurations --apply \
+    "isos: builtins.concatStringsSep \" \" (builtins.filter (n: isos.\${n}.system == \"$system\") (builtins.attrNames isos))")}"
+case "$iso_attr" in
+"")
+    log_error "No installer ISO in this flake targets $system (needed by $host)"
+    exit 1
+    ;;
+*" "*)
+    log_error "Several installer ISOs target $system: $iso_attr"
+    log_error "Pick one with ISO_ATTR=<name> $0 $*"
+    exit 1
+    ;;
+esac
+
+iso_name=$(nix eval --raw ".#install-isoConfigurations.$iso_attr.name")
 iso="result/iso/$iso_name"
 if [ ! -e "$iso" ]; then
-    log_error "No aarch64 installer ISO found — run 'just iso-build minimal-aarch64' first"
+    log_error "No installer ISO at $iso — run 'just iso-build $iso_attr' first"
     exit 1
 fi
 
@@ -100,7 +137,7 @@ mkdir -p "$out"
 # Resolved once and reused for both the firmware template and qemu-img, so the
 # tooling matches the emulator the launcher will run.
 qemu=$(nix build --no-link --print-out-paths \
-    '.#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.package')
+    ".#darwinConfigurations.$darwin_host.config.nix-config.services.virtualisation.qemu.package")
 
 # Firmware varstore, seeded from that same qemu.
 if [ ! -e "$out/vars.img" ]; then

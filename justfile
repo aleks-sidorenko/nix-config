@@ -129,13 +129,13 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
-# Build a minimal NixOS installer ISO (usage: just iso-build minimal-aarch64)
+# Build a minimal NixOS installer ISO (usage: just iso-build minimal-x86_64)
 iso-build host:
     @echo "💿 Building installer ISO for {{host}}..."
     nix build ".#install-isoConfigurations.{{host}}" --out-link result
     @echo "✅ ISO available at ./result/iso/"
 
-# Write a built installer ISO to a USB device (usage: just iso-write minimal /dev/sdX)
+# Write a built installer ISO to a USB device (usage: just iso-write minimal-x86_64 /dev/sdX)
 iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -162,12 +162,13 @@ iso-write host device:
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
-# Build an installer ISO and write it to a USB device (usage: just iso minimal /dev/sdX)
+# Build an installer ISO and write it to a USB device (usage: just iso minimal-x86_64 /dev/sdX)
 iso host device: (iso-build host) (iso-write host device)
 
-# Boot a VM guest from the installer ISO to install it (usage: just vm-install server-vm)
-vm-install host:
-    @./scripts/vm-install.sh {{host}}
+# Boot a VM guest from the installer ISO to install it
+# Usage: just vm-install server-vm [darwin-host]   (darwin-host defaults to this Mac)
+vm-install host darwin_host="":
+    @./scripts/vm-install.sh {{host}} {{darwin_host}}
 
 # Update flake inputs (optionally a single input)
 update *input:

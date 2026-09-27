@@ -40,13 +40,10 @@ with lib.${namespace};
 
   isoImage.forceTextMode = true;
 
-  # iso-image.nix computes the real ISO filename from image.baseName (plain
-  # assignment, "nixos-<edition>-<label>-<system>"); isoImage.isoName only
-  # forwards to image.fileName, which this build never reads, so it is not set
-  # here. Overriding baseName gives the image a short, stable, self-describing
-  # filename — without it both minimal hosts, which share edition "minimal",
-  # would produce near-identical names differing only in a trailing platform
-  # suffix and a channel label that moves on every bump.
+  # iso-image.nix derives the real filename from image.baseName; isoImage.isoName
+  # only feeds image.fileName, which this build never reads. Overriding baseName
+  # keeps the name short and stable: the default carries a channel label that
+  # moves on every bump, and both minimal hosts share edition "minimal".
   image.baseName = mkForce "nixos-minimal-aarch64";
 
   # Do not change this value! This tracks when NixOS was installed on your system.

@@ -11,7 +11,7 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 │   ├── x86_64-linux/
 │   │   └── desktop/                # Primary desktop workstation
 │   ├── x86_64-install-iso/
-│   │   └── minimal/                # Custom NixOS installer ISO
+│   │   └── minimal-x86_64/         # Custom NixOS installer ISO
 │   ├── aarch64-linux/
 │   │   ├── server/                 # Raspberry Pi 4 home server
 │   │   └── server-vm/              # Headless QEMU guest, home-server stand-in (workbook)
@@ -270,7 +270,7 @@ Data structure (not functions) providing shared defaults:
 | `x86_64-linux` | desktop, homebook | Desktop workstation, shared family laptop |
 | `aarch64-linux` | server, server-vm | Raspberry Pi 4 home server, headless QEMU guest standing in for it (workbook) |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
-| `x86_64-install-iso` | minimal | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal`) |
+| `x86_64-install-iso` | minimal-x86_64 | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal-x86_64`) |
 
 ## Key Flake Inputs
 
