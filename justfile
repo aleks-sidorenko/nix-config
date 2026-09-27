@@ -140,16 +140,17 @@ iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    # Matched exactly rather than globbed: with more than one ISO host, a
-    # prefix glob silently writes whichever one sorts first.
-    case "{{host}}" in
-    minimal) name="nixos-minimal" ;;
-    minimal-aarch64) name="nixos-minimal-aarch64" ;;
-    *) log_error "Unknown ISO host: {{host}}"; exit 1 ;;
-    esac
-    iso=$(ls "result/iso/$name"*.iso 2>/dev/null | head -1)
-    if [ -z "$iso" ]; then
-        log_error "No ISO found for {{host}} — run 'just iso-build {{host}}' first"; exit 1
+    # The filename is asked of the flake, never guessed: `result` is a single
+    # shared out-link, and one host's ISO name is a prefix of another's, so any
+    # glob can hand this recipe the wrong image to dd over a disk.
+    if ! iso_name=$(nix eval --raw ".#install-isoConfigurations.{{host}}.name" 2>/dev/null); then
+        log_error "Unknown ISO host: {{host}}"
+        log_error "Known ISO hosts: $(nix eval --json .#install-isoConfigurations --apply builtins.attrNames 2>/dev/null | jq -r 'join(", ")')"
+        exit 1
+    fi
+    iso="result/iso/$iso_name"
+    if [ ! -e "$iso" ]; then
+        log_error "No ISO at $iso for {{host}} — run 'just iso-build {{host}}' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
     log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
