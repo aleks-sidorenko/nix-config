@@ -108,9 +108,9 @@ just deploy router                         # Deploy MikroTik router config
 ### Build Installer ISO
 
 ```bash
-just iso-build            # Build minimal NixOS installer ISO (-> ./result/iso/)
-just iso-write /dev/sdX   # Write the built ISO to a USB device
-just iso /dev/sdX         # Build + write in one step
+just iso-build minimal            # Build minimal NixOS installer ISO (-> ./result/iso/)
+just iso-write minimal /dev/sdX   # Write the built ISO to a USB device
+just iso minimal /dev/sdX         # Build + write in one step
 ```
 
 For the full build → flash → boot → login walkthrough and fresh installations on

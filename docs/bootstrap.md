@@ -119,11 +119,11 @@ Build the custom minimal installer ISO from this flake and write it to a USB sti
 lsblk
 
 # Build the ISO and write it to the USB stick in one step (replace sdX)
-just iso /dev/sdX
+just iso minimal /dev/sdX
 
 # …or run the steps separately:
-just iso-build            # -> ./result/iso/nixos-minimal-*.iso
-just iso-write /dev/sdX   # dd the built image to the device
+just iso-build minimal            # -> ./result/iso/nixos-minimal-*.iso
+just iso-write minimal /dev/sdX   # dd the built image to the device
 ```
 
 Boot the target from the USB stick. The **local console autologins** as
@@ -558,6 +558,14 @@ That network is being rebuilt, so until the rebuild lands:
   real lease on whatever LAN the Mac has joined, with no router configuration.
 - Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
   refreshed on the machine you are calling from.
+
+`just deploy` already passes `--hostname server-vm`, and deploy-rs rejects that
+flag twice, so deploying to the DHCP address instead means calling `deploy`
+directly:
+
+```bash
+deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
+```
 
 Once the home network exists again, two steps make the name work end to end:
 
