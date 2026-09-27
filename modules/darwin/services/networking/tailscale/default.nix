@@ -37,9 +37,14 @@ in
     system.activationScripts.postActivation.text = mkIf (cfg.authKeyFile != null) ''
       if ! ${tailscaleExe} status >/dev/null 2>&1; then
         printf >&2 'joining tailnet...\n'
+        # activationScripts runs under `set -e`; tailscaled starts async via
+        # RunAtLoad and may not be listening yet, so a transient failure here
+        # must not abort the rest of activation. Surface it instead of hiding
+        # it: silently swallowing would look identical to a bad auth key.
         ${tailscaleExe} up \
           --auth-key "file:${cfg.authKeyFile}" \
-          ${escapeShellArgs cfg.extraUpFlags}
+          ${escapeShellArgs cfg.extraUpFlags} \
+          || printf >&2 'tailscale join failed; run `tailscale up` by hand.\n'
       fi
     '';
   };
