@@ -37,20 +37,22 @@ if [ "$(nix eval --raw .#nixosConfigurations --apply "f: if builtins.hasAttr \"$
     exit 1
 fi
 
-# Reading the launcher off the agent rather than rebuilding the command line is
-# what keeps install and steady-state boots identical.
-launcher=$(nix eval --raw \
-    ".#darwinConfigurations.workbook.config.launchd.user.agents.qemu-$host.serviceConfig.ProgramArguments" \
-    --apply 'a: builtins.head a' 2>/dev/null || true)
-if [ -z "$launcher" ]; then
+guests=".#darwinConfigurations.workbook.config.nix-config.services.virtualisation.qemu.guests"
+if [ "$(nix eval --raw "$guests" --apply "g: if builtins.hasAttr \"$host\" g then \"yes\" else \"no\"")" != "yes" ]; then
     log_error "$host is not declared as a QEMU guest on the workbook"
     log_error "Only VM guests can be installed this way — a physical host boots its own media"
     exit 1
 fi
 
-# Asked of the flake rather than hardcoded: isoImage.isoName is a dead option
-# in this nixpkgs, so the real filename comes from image.baseName and a
-# hardcoded prefix can silently fail to match it.
+# Taking the launcher from the guest's own option rather than rebuilding the
+# command line is what keeps install and steady-state boots identical. Built,
+# not just evaluated: an evaluated path that was never realised (config edited
+# but not switched, or garbage-collected) fails at `exec` with a bare ENOENT.
+launcher="$(nix build --no-link --print-out-paths "$guests.$host.launcher")/bin/qemu-$host"
+
+# Asked of the flake rather than hardcoded: the filename is derived from
+# image.baseName, and `result` is a single shared out-link, so a guessed name or
+# a glob can miss it — or match another host's image.
 iso_name=$(nix eval --raw '.#install-isoConfigurations.minimal-aarch64.name')
 iso="result/iso/$iso_name"
 if [ ! -e "$iso" ]; then
@@ -87,6 +89,7 @@ if agent_status=$(launchctl print "$agent" 2>/dev/null); then
             exit 1
         fi
         launchctl bootout "$agent" 2>/dev/null || true
+        booted_out=1
         ;;
     esac
 fi
@@ -128,7 +131,14 @@ log_info "Booting $host from $iso"
 log_info "The guest is headless: watch /tmp/qemu-$host.console.log for its console."
 log_info "Once it has an address, install from another terminal with:"
 log_info "    just bootstrap $host nixos --build-on-remote"
-log_info "Quit this QEMU when the install finishes, then start the guest normally:"
-log_info "    launchctl kickstart -k gui/\$(id -u)/org.nixos.qemu-$host"
+log_info "Quit this QEMU with Ctrl-C when the install finishes (headless: no window,"
+log_info "no monitor), then start the guest normally:"
+# The bootout above unregisters the job until the next login, so `kickstart`
+# would fail on that branch; re-registering the plist is what starts it.
+if [ -n "${booted_out:-}" ]; then
+    log_info "    launchctl bootstrap gui/\$(id -u) ~/Library/LaunchAgents/org.nixos.qemu-$host.plist"
+else
+    log_info "    launchctl kickstart -k gui/\$(id -u)/org.nixos.qemu-$host"
+fi
 
 exec "$launcher" --install "$iso"

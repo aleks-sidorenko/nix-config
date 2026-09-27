@@ -12,26 +12,42 @@ let
 
   vmnet = config.${namespace}.services.networking.socket-vmnet;
 
-  guest = {
-    options = with types; {
-      cpus = mkOpt int 4 "Virtual CPUs assigned to the guest";
-      memory = mkOpt str "8G" "Guest RAM, as a QEMU size string";
-      rootDisk = mkOpt str "" "Path to the guest's root disk image";
-      dataDisk = mkOpt str "" "Path to the guest's bulk data disk image";
-      varsDisk = mkOpt str "" "Path to the guest's writable UEFI variable store";
-      mac = mkOpt str "52:54:00:00:00:64" "Guest MAC address (QEMU OUI 52:54:00)";
-      display = mkOpt (enum [
-        "cocoa"
-        "none"
-      ]) "cocoa" "Where the guest's display goes: a Cocoa window, or headless with a serial console";
-      # llvmpipe at Retina resolution is the weak point of a software-rendered
-      # guest, so the framebuffer is capped instead of matching the host panel.
-      resolution = {
-        width = mkOpt int 1920 "Guest framebuffer width in pixels";
-        height = mkOpt int 1200 "Guest framebuffer height in pixels";
+  guest =
+    { name, config, ... }:
+    {
+      options = with types; {
+        cpus = mkOpt int 4 "Virtual CPUs assigned to the guest";
+        memory = mkOpt str "8G" "Guest RAM, as a QEMU size string";
+        rootDisk = mkOpt str "" "Path to the guest's root disk image";
+        dataDisk = mkOpt str "" "Path to the guest's bulk data disk image";
+        varsDisk = mkOpt str "" "Path to the guest's writable UEFI variable store";
+        mac = mkOpt str "52:54:00:00:00:64" "Guest MAC address (QEMU OUI 52:54:00)";
+        display = mkOpt (enum [
+          "cocoa"
+          "none"
+        ]) "cocoa" "Where the guest's display goes: a Cocoa window, or headless with a serial console";
+        # llvmpipe at Retina resolution is the weak point of a software-rendered
+        # guest, so the framebuffer is capped instead of matching the host panel.
+        resolution = {
+          width = mkOpt int 1920 "Guest framebuffer width in pixels";
+          height = mkOpt int 1200 "Guest framebuffer height in pixels";
+        };
+
+        launcher = mkOption {
+          type = package;
+          readOnly = true;
+          description = ''
+            The guest's QEMU launcher. Derived, not settable: both callers — the
+            launchd agent and `just vm-install` — take the command line from
+            here, so an install boot and a steady-state boot cannot diverge.
+            Exposed so the install script can realise it with `nix build`
+            instead of only reading its path.
+          '';
+        };
       };
+
+      config.launcher = mkLauncher name config;
     };
-  };
 
   # "virt" carries no built-in firmware the way x86 carries SeaBIOS, so EDK2 is
   # mapped in by hand: unit 0 is the read-only code, unit 1 the guest's own
@@ -86,6 +102,10 @@ let
 
         # Install media is transient, exactly like a USB stick: it is never part
         # of the guest's steady-state definition, only of this one invocation.
+        # `-boot order=d` is the legacy BIOS knob and advisory here — EDK2 takes
+        # its order from its own varstore — so what makes a fresh guest boot the
+        # ISO is having nothing else bootable. Redoing an install means deleting
+        # the disks and varstore (see docs/bootstrap.md).
         if [ -n "$install_iso" ]; then
           args+=( -cdrom "$install_iso" -boot order=d )
         fi
@@ -135,7 +155,7 @@ in
       name: g:
       nameValuePair "qemu-${name}" {
         serviceConfig = {
-          ProgramArguments = [ "${mkLauncher name g}/bin/qemu-${name}" ];
+          ProgramArguments = [ "${g.launcher}/bin/qemu-${name}" ];
           RunAtLoad = true;
           KeepAlive = false;
           StandardOutPath = "/tmp/qemu-${name}.log";
