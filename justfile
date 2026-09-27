@@ -164,6 +164,10 @@ iso-write host device:
 # Build an installer ISO and write it to a USB device (usage: just iso minimal /dev/sdX)
 iso host device: (iso-build host) (iso-write host device)
 
+# Boot a VM guest from the installer ISO to install it (usage: just vm-install server-vm)
+vm-install host:
+    @./scripts/vm-install.sh {{host}}
+
 # Update flake inputs (optionally a single input)
 update *input:
     @echo "📦 Updating flake inputs..."
