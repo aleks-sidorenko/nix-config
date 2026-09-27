@@ -58,6 +58,39 @@ if [ ! -e "$iso" ]; then
     exit 1
 fi
 
+# RunAtLoad=true/KeepAlive=false leaves the launchd job registered even after
+# qemu fails to exec (e.g. no disk images yet), so "loaded" alone cannot mean
+# "in use". A job in `not running` or `spawn scheduled` holds no open file
+# handles — booting the guest directly is safe, so it's left alone entirely (a
+# bootout here would only unregister it from the domain until next login,
+# turning the documented `kickstart -k` below into a hard failure). Only
+# `running` is a guest someone may be using, and a second QEMU contending for
+# the same qcow2 files risks corrupting them, so it needs explicit consent; a
+# state this doesn't recognize gets the same consent prompt, since it can't
+# prove the job holds no handles either — fail safe, not open. A missing job
+# (`launchctl print` exits non-zero) never enters this block at all.
+agent="gui/$(id -u)/org.nixos.qemu-$host"
+if agent_status=$(launchctl print "$agent" 2>/dev/null); then
+    state=$(echo "$agent_status" | sed -n 's/^[[:space:]]*state = //p' | head -1)
+    case "$state" in
+    "not running" | "spawn scheduled")
+        : # idle registration; nothing to clear, booting from the ISO starts it
+        ;;
+    *)
+        if [ "$state" = "running" ]; then
+            log_warning "The guest is running — installing now risks corrupting its disks"
+        else
+            log_warning "The guest's launchd job is in an unrecognized state ('$state') — treating it as potentially in use"
+        fi
+        if ! confirm bootout "Type 'bootout' to stop the guest and continue: "; then
+            log_error "Aborted"
+            exit 1
+        fi
+        launchctl bootout "$agent" 2>/dev/null || true
+        ;;
+    esac
+fi
+
 out="$HOME/.local/share/qemu/$host"
 mkdir -p "$out"
 
@@ -83,7 +116,8 @@ create_disk() {
         return
     fi
     size=$(nix eval --raw ".#nixosConfigurations.$host.config.disko.devices.disk.$disk.imageSize")
-    "$qemu/bin/qemu-img" create -f qcow2 "$out/$file" "$size" >/dev/null
+    "$qemu/bin/qemu-img" create -f qcow2 "$out/.$file.tmp" "$size" >/dev/null
+    mv -f "$out/.$file.tmp" "$out/$file"
     log_success "$file created ($size)"
 }
 
