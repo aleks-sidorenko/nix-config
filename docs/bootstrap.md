@@ -34,9 +34,8 @@ on-machine install run on the target itself.
 Steps 4–6 can be run as a single `just bootstrap` command (it pauses at the SOPS
 step for you), or split apart for more control. Both paths are covered below.
 
-This is the flow for a machine you install onto. A **VM guest** is provisioned
-differently — its disk image is built already installed, so Steps 3–6 are
-replaced by a shorter path. See
+A **VM guest** follows this same flow — installer ISO plus `nixos-anywhere` —
+with QEMU standing in for hardware; only how you reach Step 3 differs. See
 [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
 
 ---
@@ -120,11 +119,11 @@ Build the custom minimal installer ISO from this flake and write it to a USB sti
 lsblk
 
 # Build the ISO and write it to the USB stick in one step (replace sdX)
-just iso /dev/sdX
+just iso minimal /dev/sdX
 
 # …or run the steps separately:
-just iso-build            # -> ./result/iso/nixos-minimal-*.iso
-just iso-write /dev/sdX   # dd the built image to the device
+just iso-build minimal            # -> ./result/iso/nixos-minimal-*.iso
+just iso-write minimal /dev/sdX   # dd the built image to the device
 ```
 
 Boot the target from the USB stick. The **local console autologins** as
@@ -140,10 +139,10 @@ ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 > (update firmware, change boot order), then continue here. Firmware is installed
 > post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
-> **Provisioning a VM guest?** `server-vm` runs under QEMU on the `workbook`
-> and does **not** follow these steps — there is no ISO, no nixos-anywhere and
-> no install phase, because its disk image is built already installed. See
-> [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
+> **Provisioning a VM guest?** `server-vm` runs under QEMU on the `workbook` and
+> boots from the same kind of installer ISO, built for its own architecture
+> (`just iso-build minimal-aarch64`) and booted with `just vm-install` instead
+> of a USB stick. See [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos).
 
 #### Verify connectivity
 
@@ -489,90 +488,86 @@ nh os switch                           # local rebuild (on the host itself)
 `server-vm` is a headless aarch64-linux guest — a home-server stand-in, not a
 desktop — running under QEMU on the `workbook`.
 
-It does **not** use the NixOS flow above. There is no installer ISO and no
-`nixos-anywhere` phase: `just vm-image server-vm` builds a disko disk image that is
-already installed, and the guest boots straight into it. The steps below replace
-Steps 3–6 entirely; Steps 1–2 (defining the host, preparing your machine) still
-apply.
+It installs exactly like a physical host does — installer ISO plus
+`nixos-anywhere` — following the [NixOS flow](#nixos) above with QEMU standing
+in for hardware. Only the endpoints differ:
 
-### Step 1 — Install the hypervisor side
+| Hardware | VM |
+| --- | --- |
+| `just iso minimal /dev/sdX` — write the stick | `just iso-build minimal-aarch64` |
+| boot-menu → USB | `just vm-install server-vm` |
+| `just bootstrap <host>` | identical, unchanged |
+| pull the stick, reboot | quit the installer QEMU with **Ctrl-C** (headless: no window, no monitor), `launchctl kickstart` the agent |
 
-```bash
-darwin-rebuild switch --flake .   # on the workbook
-```
-
-This is the one hard prerequisite. It installs the aarch64-linux builder that
-`just vm-image` builds on, the `socket_vmnet` daemon that gives the guest a bridged
-address, and the `org.nixos.qemu-server-vm` launchd agent. Nothing below works
-without it.
-
-### Step 2 — Build the images and start the guest
+### Step 1 — Install the guest
 
 ```bash
-just vm-image server-vm   # build root.qcow2 + data.qcow2 (+ seed the UEFI vars image)
+darwin-rebuild switch --flake .        # Linux builder, socket_vmnet, the guest agent
+just iso-build minimal-aarch64         # build the installer ISO
+just vm-install server-vm              # boot the guest from it (blank disks are created)
+# from another terminal, once the guest has an address:
+just bootstrap server-vm nixos "" --build-on-remote
+# then quit the installer QEMU (Ctrl-C in its terminal) and start the guest normally:
 launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
 
-`just vm-image` takes the host as an argument, so it serves any future `<name>-vm`
-guest. It asks before replacing an existing `root.qcow2` and never overwrites
-`data.qcow2`.
+`just vm-install` runs QEMU in the **foreground** and does not return, so the
+`just bootstrap` line belongs in a second terminal.
 
-**Know which disk holds what before you re-image.** `/persist` lives in the
-**root** image, so replacing it destroys the guest's SSH host key and all
-service state — the \*arr databases, the Jellyfin library, the Minecraft world.
-Only the data disk survives: `/data`, `/backup` and `/home`. To rebuild the data
-disk, delete it by hand.
+> **`server-vm` does not yet resolve to the guest.** `just bootstrap` reuses the
+> hostname as the SSH address (`nixos@server-vm`), and `/etc/hosts` maps
+> `server-vm` to `10.0.0.64` — an address nothing answers on until the home
+> network is rebuilt (see [Reaching the guest](#reaching-the-guest)). Point the
+> name at the guest's **DHCP address** for the install exactly as for any
+> unreserved host — the `~/.ssh/config.local` alias described under
+> [How `<hostname>` reaches the target machine](#how-hostname-reaches-the-target-machine):
+>
+> ```
+> Host server-vm
+>   HostName <dhcp-address>
+>   User nixos
+> ```
+>
+> Find that address in the guest's serial console log
+> (`/tmp/qemu-server-vm.console.log` — the installer's network-configuration
+> messages name the lease), with `arp -an` on the Mac once the guest has talked
+> to the network, or in the router's lease table. Remove the alias once the name
+> resolves for real.
 
-**If `data.qcow2` predates the `/data` + `/backup` layout** (it only carries
-`@home`), delete it before imaging — the create-only rule would otherwise keep
-it, and the missing mounts fail silently on a headless guest.
+The empty `""` is the `disk_password` positional — the guest has no LUKS, but
+the slot must be filled for `--build-on-remote` to land in `extra_opts` rather
+than being read as the disk password.
 
-If the guest's launchd job is merely registered — left over from a
-`darwin-rebuild switch` where qemu never actually started — it is left alone and
-`kickstart -k` starts it directly. If the guest is genuinely running, the recipe
-asks you to type `bootout` before stopping it.
+`--build-on-remote` matters: the guest runs under `hvf` at native speed, so
+building its closure inside the guest is far faster than building it on the
+emulated Linux builder. Most of an aarch64 closure is substituted from the
+binary cache rather than built at all.
 
-The guest is headless, so its console is a serial log rather than a window:
+The guest is headless — `/tmp/qemu-server-vm.console.log` is its console, and
+the only place a failed boot is visible.
+
+**SOPS comes first, inside this step.** `just bootstrap` runs
+[Step 4 — Generate host keys & register with SOPS](#step-4--generate-host-keys--register-with-sops)
+before the install, exactly as for a physical host: the host key is generated
+*on your machine*, the age key derived from it is printed, the script **pauses**
+for the `.sops.yaml` edit, and `nixos-anywhere` then ships the key to the guest
+with `--extra-files`. The only VM-specific detail: `.sops.yaml` already carries
+a `&server-vm` anchor, dereferenced by `*server-vm` in two creation rules, so
+**replace its value in place** rather than appending a second entry — then
+`sops updatekeys` both secrets files and press Enter.
+
+#### Redoing an install
+
+`just vm-install` never replaces an existing disk, and the guest's EDK2 varstore
+remembers the boot entries a previous attempt wrote — so a second run over a
+half-installed disk may boot that disk instead of the ISO. To start genuinely
+clean, delete the guest's state first:
 
 ```bash
-tail -f /tmp/qemu-server-vm.console.log
+rm -f ~/.local/share/qemu/server-vm/{root,data}.qcow2 ~/.local/share/qemu/server-vm/vars.img
 ```
 
-That is the only place a failed boot is visible. Check it first when something
-does not come up.
-
-### Step 3 — Register the host key with SOPS
-
-On first boot the guest generates its SSH host key. **Replace** the `&server-vm`
-age key in `.sops.yaml` with the new one — the anchor is dereferenced by
-`*server-vm` in two creation rules, so edit it in place rather than appending a
-second entry — then:
-
-```bash
-sops updatekeys modules/nixos/secrets.yaml
-sops updatekeys modules/home/secrets.yaml
-```
-
-### Step 4 — Deploy
-
-```bash
-just deploy server-vm --remote-build
-```
-
-If the name does not resolve yet — see **Reaching the guest** below — target the
-address instead. `just deploy` already passes `--hostname`, and deploy-rs rejects
-that flag twice, so override it by calling deploy directly:
-
-```bash
-deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
-```
-
-The guest's wheel group is passwordless — from `modules/nixos/roles/server/default.nix`,
-which `home-server` pulls in — so this works before the account has a usable
-password. That matters: on first boot SOPS cannot decrypt yet, so the account is
-locked until this deploy lands.
-
-### Step 5 — Join the tailnet
+### Step 2 — Join the tailnet
 
 Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
 open the URL it prints:
@@ -600,6 +595,14 @@ That network is being rebuilt, so until the rebuild lands:
 - Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
   refreshed on the machine you are calling from.
 
+`just deploy` already passes `--hostname server-vm`, and deploy-rs rejects that
+flag twice, so deploying to the DHCP address instead means calling `deploy`
+directly:
+
+```bash
+deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
+```
+
 Once the home network exists again, two steps make the name work end to end:
 
 ```bash
@@ -615,7 +618,8 @@ guest on a random address while callers still resolve `server-vm` to
 
 The guest runs **no** backups: both the restic client and the restic REST server
 are disabled on it. Backing a laptop guest up to its own disk would survive
-neither disk loss nor the re-imaging that replaces the root image, so it would
+neither the loss of the host Mac's disk — both qcow2 files live on it — nor a
+reinstall, which rewrites the root disk the system itself sits on, so it would
 buy only the appearance of coverage. Re-enable them once there is somewhere
 off-box to send backups to.
 

@@ -20,9 +20,10 @@ with lib.${namespace};
       smart-home = disabled;
 
       # Off until there is somewhere off-box to back up to. Backing a laptop
-      # guest up to its own disk protects against neither disk loss nor the
-      # re-imaging that replaces the root image, so the two roles would buy
-      # only the appearance of coverage. Disabling the server also drops its
+      # guest up to its own disk protects against neither the loss of the host
+      # Mac's disk, which both qcow2 files live on, nor a reinstall, which
+      # rewrites the root disk the system itself sits on — so the two roles
+      # would buy only the appearance of coverage. Disabling the server drops its
       # nginx vhost, which proxied the unauthenticated REST endpoint onto
       # whatever LAN the host Mac had joined.
       backup = disabled;

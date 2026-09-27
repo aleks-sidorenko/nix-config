@@ -6,18 +6,6 @@
 with lib;
 with lib.${namespace};
 {
-  # Raw images are sparse in the builder, but that sparseness does not survive
-  # the NAR transfer into /nix/store, so a raw 48G+64G build writes ~112G twice
-  # (store + destination). qcow2 is thin-provisioned end to end; imageSize
-  # above stays a virtual cap, not a real allocation.
-  disko.imageBuilder.imageFormat = "qcow2";
-
-  # disko builds the image inside its own VM, and Apple Silicon offers the
-  # Linux builder no nested virtualisation — /dev/kvm is absent there, so that
-  # inner VM runs under TCG emulation. Emulation is unavoidable; starving it of
-  # memory is not. The module default of 1024 MiB is far too little to assemble
-  # a full home-server closure.
-  disko.memSize = 4096;
 
   ${namespace} = {
     disks.disko = {
@@ -65,9 +53,10 @@ with lib.${namespace};
           imageSize = "64G";
           content = [
             # Deliberate divergence from the Pi, which keeps `home` on the root
-            # disk: the Pi is never re-imaged, this guest is. `just image`
-            # overwrites root.qcow2 while data.qcow2 is create-only, so the data
-            # disk is the only one a re-image leaves alone.
+            # disk. A guest is reinstalled far more readily than a machine you
+            # have to carry install media to, and a reinstall runs disko over
+            # /dev/vda only — so everything on this second disk survives it,
+            # while anything on root does not.
             {
               name = "home";
               mountOptions = [

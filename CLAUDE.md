@@ -330,14 +330,20 @@ IaC configurations in `infra/`:
 
 Use the `server-vm` configuration for testing:
 ```bash
-darwin-rebuild switch --flake .  # first, on the workbook: Linux builder + QEMU agent
-just vm-image server-vm          # build the guest disk images
-just deploy server-vm --remote-build
+darwin-rebuild switch --flake .              # first: Linux builder, socket_vmnet, QEMU agent
+just iso-build minimal-aarch64               # build the installer ISO
+just vm-install server-vm                    # boot the guest from it (runs QEMU in the foreground)
+
+# from another terminal, once the guest has an address:
+just bootstrap server-vm nixos "" --build-on-remote
+
+# then Ctrl-C the installer QEMU and start the guest normally:
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
 
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
-workbook — a home-server stand-in, not a desktop. `just vm-image server-vm`
-needs the `nix.linux-builder` that `darwin-rebuild switch` installs, so that
-step comes first. The registry maps `server-vm` to a home-network address, so
+workbook — a home-server stand-in, not a desktop. It installs exactly like a
+physical host — installer ISO plus `nixos-anywhere` — with QEMU standing in
+for hardware. The registry maps `server-vm` to a home-network address, so
 until that network is rebuilt reach the guest by its DHCP address or over the
 tailnet. See `docs/bootstrap.md` for the full first-boot sequence.

@@ -30,7 +30,7 @@ bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts=""
 # Complete bootstrap process (secrets + deploy in one command)
 bootstrap hostname username="$USER" disk_password="" *extra_opts="":
     @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
-    @if [ -n "$KEYSDIR" ]; then \
+    @if [ -n "${KEYSDIR:-}" ]; then \
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
@@ -129,20 +129,28 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
-# Build the minimal NixOS installer ISO (output at ./result/iso/)
-iso-build:
-    @echo "💿 Building minimal installer ISO..."
-    nix build .#install-isoConfigurations.minimal
-    @echo "✅ ISO available at ./result/iso/ (nixos-minimal-*.iso)"
+# Build a minimal NixOS installer ISO (usage: just iso-build minimal-aarch64)
+iso-build host:
+    @echo "💿 Building installer ISO for {{host}}..."
+    nix build ".#install-isoConfigurations.{{host}}" --out-link result
+    @echo "✅ ISO available at ./result/iso/"
 
-# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX)
-iso-write device:
+# Write a built installer ISO to a USB device (usage: just iso-write minimal /dev/sdX)
+iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
-    if [ -z "$iso" ]; then
-        log_error "No ISO found — run 'just iso-build' first"; exit 1
+    # The filename is asked of the flake, never guessed: `result` is a single
+    # shared out-link, and one host's ISO name is a prefix of another's, so any
+    # glob can hand this recipe the wrong image to dd over a disk.
+    if ! iso_name=$(nix eval --raw ".#install-isoConfigurations.{{host}}.name" 2>/dev/null); then
+        log_error "Unknown ISO host: {{host}}"
+        log_error "Known ISO hosts: $(nix eval --json .#install-isoConfigurations --apply builtins.attrNames 2>/dev/null | jq -r 'join(", ")')"
+        exit 1
+    fi
+    iso="result/iso/$iso_name"
+    if [ ! -e "$iso" ]; then
+        log_error "No ISO at $iso for {{host}} — run 'just iso-build {{host}}' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
     log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
@@ -154,12 +162,12 @@ iso-write device:
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
-# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
-iso device: iso-build (iso-write device)
+# Build an installer ISO and write it to a USB device (usage: just iso minimal /dev/sdX)
+iso host device: (iso-build host) (iso-write host device)
 
-# Build a VM guest's disk images (usage: just vm-image server-vm)
-vm-image host:
-    @./scripts/vm-image.sh {{host}}
+# Boot a VM guest from the installer ISO to install it (usage: just vm-install server-vm)
+vm-install host:
+    @./scripts/vm-install.sh {{host}}
 
 # Update flake inputs (optionally a single input)
 update *input:
