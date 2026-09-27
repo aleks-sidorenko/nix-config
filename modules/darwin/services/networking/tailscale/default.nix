@@ -1,0 +1,46 @@
+{
+  config,
+  lib,
+  namespace,
+  ...
+}:
+with lib;
+let
+  cfg = config.${namespace}.services.networking.tailscale;
+
+  # Reference the package nix-darwin actually runs, not a hardcoded path:
+  # /run/current-system/sw/bin only exists via environment.systemPackages,
+  # and tracking cfg.package keeps this correct if that's ever overridden.
+  tailscaleExe = lib.getExe' config.services.tailscale.package "tailscale";
+in
+{
+  options.${namespace}.services.networking.tailscale = with types; {
+    enable = mkEnableOption "Enable tailscale";
+    authKeyFile = mkOption {
+      type = nullOr str;
+      default = null;
+      description = "Path to a file with a Tailscale auth key for non-interactive first-boot join. Null on hosts already joined.";
+    };
+    extraUpFlags = mkOption {
+      type = listOf str;
+      default = [ ];
+      description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node).";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    services.tailscale.enable = true;
+
+    # nix-darwin's module runs tailscaled but never joins; the daemon has no
+    # equivalent of the NixOS autoconnect unit. Join once, at activation, only
+    # when a key is supplied and the node is not already up.
+    system.activationScripts.postActivation.text = mkIf (cfg.authKeyFile != null) ''
+      if ! ${tailscaleExe} status >/dev/null 2>&1; then
+        printf >&2 'joining tailnet...\n'
+        ${tailscaleExe} up \
+          --auth-key "file:${cfg.authKeyFile}" \
+          ${escapeShellArgs cfg.extraUpFlags}
+      fi
+    '';
+  };
+}
