@@ -38,60 +38,63 @@ let
   # variable store, which it writes to (boot.loader.efi.canTouchEfiVariables).
   firmware = "${cfg.package}/share/qemu/edk2-aarch64-code.fd";
 
-  # socket_vmnet_client opens the daemon's socket and hands QEMU fd 3.
-  qemuArgs =
+  # One definition, two callers: the launchd agent runs this with no arguments,
+  # and `just vm-install` runs it with `--install <iso>`. A second, hand-written
+  # command line is how a disk path or MAC silently diverges between the two.
+  mkLauncher =
     name: g:
-    [
-      (homebrew.getOptExe "socket_vmnet" "socket_vmnet_client")
-      vmnet.socket
-      "${cfg.package}/bin/qemu-system-aarch64"
-      "-machine"
-      "virt,accel=hvf"
-      "-cpu"
-      "host"
-      "-smp"
-      (toString g.cpus)
-      "-m"
-      g.memory
-      "-drive"
-      "if=pflash,format=raw,unit=0,readonly=on,file=${firmware}"
-      "-drive"
-      "if=pflash,format=raw,unit=1,file=${g.varsDisk}"
-      "-drive"
-      "if=virtio,format=qcow2,file=${g.rootDisk}"
-      "-drive"
-      "if=virtio,format=qcow2,file=${g.dataDisk}"
-      "-netdev"
-      "socket,id=net0,fd=3"
-      "-device"
-      "virtio-net-pci,netdev=net0,mac=${g.mac}"
-      "-device"
-      "virtio-rng-pci"
-    ]
-    ++ (
-      if g.display == "none" then
-        [
-          "-display"
-          "none"
-          # A headless guest with no console is silent exactly when it fails to
-          # boot. Pairs with console=ttyAMA0 on the guest's kernel cmdline.
-          "-serial"
-          "file:/tmp/qemu-${name}.console.log"
-        ]
-      else
-        [
-          "-device"
-          "virtio-gpu-pci,xres=${toString g.resolution.width},yres=${toString g.resolution.height}"
-          "-device"
-          "qemu-xhci"
-          "-device"
-          "usb-kbd"
-          "-device"
-          "usb-tablet"
-          "-display"
-          "cocoa"
-        ]
-    );
+    pkgs.writeShellApplication {
+      name = "qemu-${name}";
+      text = ''
+        install_iso=""
+        if [ "''${1:-}" = "--install" ]; then
+          install_iso="''${2:?--install requires an ISO path}"
+        elif [ -n "''${1:-}" ]; then
+          echo "usage: $0 [--install <iso>]" >&2
+          exit 2
+        fi
+
+        args=(
+          "${cfg.package}/bin/qemu-system-aarch64"
+          -machine "virt,accel=hvf"
+          -cpu host
+          -smp ${toString g.cpus}
+          -m ${g.memory}
+          -drive "if=pflash,format=raw,unit=0,readonly=on,file=${firmware}"
+          -drive "if=pflash,format=raw,unit=1,file=${g.varsDisk}"
+          -drive "if=virtio,format=qcow2,file=${g.rootDisk}"
+          -drive "if=virtio,format=qcow2,file=${g.dataDisk}"
+          -netdev "socket,id=net0,fd=3"
+          -device "virtio-net-pci,netdev=net0,mac=${g.mac}"
+          -device virtio-rng-pci
+        )
+
+        ${
+          if g.display == "none" then
+            ''
+              # A headless guest with no console is silent exactly when it fails to
+              # boot. Pairs with console=ttyAMA0 on the guest's kernel cmdline.
+              args+=( -display none -serial "file:/tmp/qemu-${name}.console.log" )''
+          else
+            ''
+              args+=(
+                -device "virtio-gpu-pci,xres=${toString g.resolution.width},yres=${toString g.resolution.height}"
+                -device qemu-xhci -device usb-kbd -device usb-tablet
+                -display cocoa
+              )''
+        }
+
+        # Install media is transient, exactly like a USB stick: it is never part
+        # of the guest's steady-state definition, only of this one invocation.
+        if [ -n "$install_iso" ]; then
+          args+=( -cdrom "$install_iso" -boot order=d )
+        fi
+
+        # socket_vmnet_client opens the daemon's socket and hands QEMU fd 3.
+        exec ${homebrew.getOptExe "socket_vmnet" "socket_vmnet_client"} \
+          ${vmnet.socket} "''${args[@]}"
+      '';
+    };
 
   # An unset path yields `-drive file=`, which fails only at exec — into a log
   # file, with no retry. Catch it at eval instead.
@@ -106,22 +109,7 @@ let
         "rootDisk"
         "dataDisk"
         "varsDisk"
-      ]
-    # qemuArgs hardcodes format=qcow2 for these two drives; disko's
-    # imageBuilder and the justfile's `install_image` calls agree on that
-    # extension by convention only, and a drift between them fails silently
-    # into /tmp/qemu-*.error.log rather than here. Skip an already-empty path
-    # so it fails with the message above instead of a second, redundant one.
-    ++
-      map
-        (disk: {
-          assertion = g.${disk} == "" || hasSuffix ".qcow2" g.${disk};
-          message = "${namespace}.services.virtualisation.qemu.guests.${name}.${disk} must end in .qcow2 to match the format=qcow2 qemuArgs uses for this drive.";
-        })
-        [
-          "rootDisk"
-          "dataDisk"
-        ];
+      ];
 in
 {
   options.${namespace}.services.virtualisation.qemu = with types; {
@@ -147,7 +135,7 @@ in
       name: g:
       nameValuePair "qemu-${name}" {
         serviceConfig = {
-          ProgramArguments = qemuArgs name g;
+          ProgramArguments = [ "${mkLauncher name g}/bin/qemu-${name}" ];
           RunAtLoad = true;
           KeepAlive = false;
           StandardOutPath = "/tmp/qemu-${name}.log";
