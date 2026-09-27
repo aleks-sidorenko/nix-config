@@ -157,7 +157,12 @@ in
         serviceConfig = {
           ProgramArguments = [ "${g.launcher}/bin/qemu-${name}" ];
           RunAtLoad = true;
-          KeepAlive = false;
+          # Restart a guest that died, leave one that was shut down on purpose.
+          # Plain `KeepAlive = true` cannot tell the two apart and would fight
+          # a deliberate `poweroff`; `false` leaves a crashed stand-in silently
+          # down until the next login, which is the worse failure for something
+          # standing in for an always-on server.
+          KeepAlive.SuccessfulExit = false;
           StandardOutPath = "/tmp/qemu-${name}.log";
           StandardErrorPath = "/tmp/qemu-${name}.error.log";
         };
