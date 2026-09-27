@@ -30,7 +30,7 @@ bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts=""
 # Complete bootstrap process (secrets + deploy in one command)
 bootstrap hostname username="$USER" disk_password="" *extra_opts="":
     @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
-    @if [ -n "$KEYSDIR" ]; then \
+    @if [ -n "${KEYSDIR:-}" ]; then \
         echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
         echo "🔐 Generating secrets with disk password..."; \
