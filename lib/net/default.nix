@@ -12,6 +12,9 @@ rec {
 
     # Returns the public host name
     public = host: "${host}.${lib.${namespace}.defaults.network.domains.public}";
+
+    # Returns the tailnet (MagicDNS) host name
+    tailnet = host: "${host}.${lib.${namespace}.defaults.network.domains.tailnet}";
   };
 
   # Derive network address from gateway IP (assumes /24)
