@@ -6,18 +6,6 @@
 with lib;
 with lib.${namespace};
 {
-  # Raw images are sparse in the builder, but that sparseness does not survive
-  # the NAR transfer into /nix/store, so a raw 48G+64G build writes ~112G twice
-  # (store + destination). qcow2 is thin-provisioned end to end; imageSize
-  # above stays a virtual cap, not a real allocation.
-  disko.imageBuilder.imageFormat = "qcow2";
-
-  # disko builds the image inside its own VM, and Apple Silicon offers the
-  # Linux builder no nested virtualisation — /dev/kvm is absent there, so that
-  # inner VM runs under TCG emulation. Emulation is unavoidable; starving it of
-  # memory is not. The module default of 1024 MiB is far too little to assemble
-  # a full home-server closure.
-  disko.memSize = 4096;
 
   ${namespace} = {
     disks.disko = {
