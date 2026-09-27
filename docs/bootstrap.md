@@ -497,9 +497,9 @@ in for hardware. Only the endpoints differ:
 | `just iso minimal /dev/sdX` — write the stick | `just iso-build minimal-aarch64` |
 | boot-menu → USB | `just vm-install server-vm` |
 | `just bootstrap <host>` | identical, unchanged |
-| pull the stick, reboot | quit the installer QEMU, `launchctl kickstart` the agent |
+| pull the stick, reboot | quit the installer QEMU with **Ctrl-C** (headless: no window, no monitor), `launchctl kickstart` the agent |
 
-### Step 1 — Provision the guest
+### Step 1 — Install the guest
 
 ```bash
 darwin-rebuild switch --flake .        # Linux builder, socket_vmnet, the guest agent
@@ -507,9 +507,32 @@ just iso-build minimal-aarch64         # build the installer ISO
 just vm-install server-vm              # boot the guest from it (blank disks are created)
 # from another terminal, once the guest has an address:
 just bootstrap server-vm nixos --build-on-remote
-# then quit the installer QEMU and start the guest normally:
+# then quit the installer QEMU (Ctrl-C in its terminal) and start the guest normally:
 launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
+
+`just vm-install` runs QEMU in the **foreground** and does not return, so the
+`just bootstrap` line belongs in a second terminal.
+
+> **`server-vm` does not yet resolve to the guest.** `just bootstrap` reuses the
+> hostname as the SSH address (`nixos@server-vm`), and `/etc/hosts` maps
+> `server-vm` to `10.0.0.64` — an address nothing answers on until the home
+> network is rebuilt (see [Reaching the guest](#reaching-the-guest)). Point the
+> name at the guest's **DHCP address** for the install exactly as for any
+> unreserved host — the `~/.ssh/config.local` alias described under
+> [How `<hostname>` reaches the target machine](#how-hostname-reaches-the-target-machine):
+>
+> ```
+> Host server-vm
+>   HostName <dhcp-address>
+>   User nixos
+> ```
+>
+> Find that address in the guest's serial console log
+> (`/tmp/qemu-server-vm.console.log` — the installer's network-configuration
+> messages name the lease), with `arp -an` on the Mac once the guest has talked
+> to the network, or in the router's lease table. Remove the alias once the name
+> resolves for real.
 
 `--build-on-remote` matters: the guest runs under `hvf` at native speed, so
 building its closure inside the guest is far faster than building it on the
@@ -519,19 +542,28 @@ binary cache rather than built at all.
 The guest is headless — `/tmp/qemu-server-vm.console.log` is its console, and
 the only place a failed boot is visible.
 
-### Step 2 — Register the host key with SOPS
+**SOPS comes first, inside this step.** `just bootstrap` runs
+[Step 4 — Generate host keys & register with SOPS](#step-4--generate-host-keys--register-with-sops)
+before the install, exactly as for a physical host: the host key is generated
+*on your machine*, the age key derived from it is printed, the script **pauses**
+for the `.sops.yaml` edit, and `nixos-anywhere` then ships the key to the guest
+with `--extra-files`. The only VM-specific detail: `.sops.yaml` already carries
+a `&server-vm` anchor, dereferenced by `*server-vm` in two creation rules, so
+**replace its value in place** rather than appending a second entry — then
+`sops updatekeys` both secrets files and press Enter.
 
-On first boot the guest generates its SSH host key. **Replace** the `&server-vm`
-age key in `.sops.yaml` with the new one — the anchor is dereferenced by
-`*server-vm` in two creation rules, so edit it in place rather than appending a
-second entry — then:
+#### Redoing an install
+
+`just vm-install` never replaces an existing disk, and the guest's EDK2 varstore
+remembers the boot entries a previous attempt wrote — so a second run over a
+half-installed disk may boot that disk instead of the ISO. To start genuinely
+clean, delete the guest's state first:
 
 ```bash
-sops updatekeys modules/nixos/secrets.yaml
-sops updatekeys modules/home/secrets.yaml
+rm -f ~/.local/share/qemu/server-vm/{root,data}.qcow2 ~/.local/share/qemu/server-vm/vars.img
 ```
 
-### Step 3 — Join the tailnet
+### Step 2 — Join the tailnet
 
 Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
 open the URL it prints:
@@ -582,7 +614,8 @@ guest on a random address while callers still resolve `server-vm` to
 
 The guest runs **no** backups: both the restic client and the restic REST server
 are disabled on it. Backing a laptop guest up to its own disk would survive
-neither disk loss nor the re-imaging that replaces the root image, so it would
+neither the loss of the host Mac's disk — both qcow2 files live on it — nor a
+reinstall, which rewrites the root disk the system itself sits on, so it would
 buy only the appearance of coverage. Re-enable them once there is somewhere
 off-box to send backups to.
 
