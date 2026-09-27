@@ -53,9 +53,10 @@ with lib.${namespace};
           imageSize = "64G";
           content = [
             # Deliberate divergence from the Pi, which keeps `home` on the root
-            # disk: the Pi is never re-imaged, this guest is. `just image`
-            # overwrites root.qcow2 while data.qcow2 is create-only, so the data
-            # disk is the only one a re-image leaves alone.
+            # disk. A guest is reinstalled far more readily than a machine you
+            # have to carry install media to, and a reinstall runs disko over
+            # /dev/vda only — so everything on this second disk survives it,
+            # while anything on root does not.
             {
               name = "home";
               mountOptions = [
