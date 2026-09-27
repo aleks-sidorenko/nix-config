@@ -129,20 +129,27 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
-# Build the minimal NixOS installer ISO (output at ./result/iso/)
-iso-build:
-    @echo "💿 Building minimal installer ISO..."
-    nix build .#install-isoConfigurations.minimal
-    @echo "✅ ISO available at ./result/iso/ (nixos-minimal-*.iso)"
+# Build a minimal NixOS installer ISO (usage: just iso-build minimal-aarch64)
+iso-build host:
+    @echo "💿 Building installer ISO for {{host}}..."
+    nix build ".#install-isoConfigurations.{{host}}" --out-link result
+    @echo "✅ ISO available at ./result/iso/"
 
-# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX)
-iso-write device:
+# Write a built installer ISO to a USB device (usage: just iso-write minimal /dev/sdX)
+iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    iso=$(ls result/iso/nixos-minimal-*.iso 2>/dev/null | head -1)
+    # Matched exactly rather than globbed: with more than one ISO host, a
+    # prefix glob silently writes whichever one sorts first.
+    case "{{host}}" in
+    minimal) name="nixos-minimal" ;;
+    minimal-aarch64) name="nixos-minimal-aarch64" ;;
+    *) log_error "Unknown ISO host: {{host}}"; exit 1 ;;
+    esac
+    iso=$(ls "result/iso/$name"*.iso 2>/dev/null | head -1)
     if [ -z "$iso" ]; then
-        log_error "No ISO found — run 'just iso-build' first"; exit 1
+        log_error "No ISO found for {{host}} — run 'just iso-build {{host}}' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
     log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
@@ -154,8 +161,8 @@ iso-write device:
     sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
-# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
-iso device: iso-build (iso-write device)
+# Build an installer ISO and write it to a USB device (usage: just iso minimal /dev/sdX)
+iso host device: (iso-build host) (iso-write host device)
 
 # Build a VM guest's disk images (usage: just vm-image server-vm)
 vm-image host:
