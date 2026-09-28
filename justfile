@@ -452,3 +452,27 @@ router-help:
     @echo "  1. Run 'just router-plan' to preview changes"
     @echo "  2. Run 'just router-apply' to apply changes"
     @echo "  3. Commit updated state: git add infra/router/terraform.tfstate && git commit"
+
+# ============================================
+# Tailnet Management (Tailscale ACL via OpenTofu)
+# ============================================
+
+# Show generated terraform JSON for the tailnet
+tailnet-show:
+    nix run .#tailnet
+
+# Validate tailnet configuration against the provider schema
+tailnet-validate:
+    nix run .#tailnet.validate
+
+# Plan tailnet policy changes (dry-run)
+tailnet-plan:
+    nix run .#tailnet.plan
+
+# Apply tailnet policy changes
+tailnet-apply:
+    nix run .#tailnet.apply
+
+# Edit tailnet SOPS secrets
+tailnet-secrets:
+    sops infra/tailnet/secrets.yaml
