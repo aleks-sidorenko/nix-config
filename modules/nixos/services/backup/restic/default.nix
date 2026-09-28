@@ -81,7 +81,7 @@ in
 
     dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic backup service";
 
-    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://restic.local)";
+    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://restic.lan)";
 
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
