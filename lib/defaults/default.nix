@@ -174,7 +174,7 @@ _: rec {
         };
       };
       domains = {
-        local = "local";
+        lan = "lan";
         public = "sidorenko.me";
         # MagicDNS suffix; account-specific.
         tailnet = "colobus-bramble.ts.net";

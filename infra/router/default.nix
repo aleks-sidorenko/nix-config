@@ -55,7 +55,7 @@ let
 
           dns = {
             inherit (defaults.network.dns) upstream;
-            localDomain = defaults.network.domains.local;
+            localDomain = defaults.network.domains.lan;
           };
 
           wifi = {
