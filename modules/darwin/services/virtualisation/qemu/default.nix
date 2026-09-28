@@ -110,6 +110,21 @@ let
           args+=( -cdrom "$install_iso" -boot order=d )
         fi
 
+        # socket-vmnet is a system daemon and this is a user agent, so this
+        # can start before it — attaching to a socket that is not yet serving
+        # leaves the guest NIC wedged with no self-recovery. A socket existing
+        # is necessary but not sufficient proof the daemon behind it is
+        # serving; this narrows the window, it does not close it.
+        waited=0
+        while [ ! -S "${vmnet.socket}" ]; do
+          if [ "$waited" -ge 60 ]; then
+            echo "${vmnet.socket} did not appear after 60s" >&2
+            exit 1
+          fi
+          sleep 1
+          waited=$((waited + 1))
+        done
+
         # socket_vmnet_client opens the daemon's socket and hands QEMU fd 3.
         exec ${homebrew.getOptExe "socket_vmnet" "socket_vmnet_client"} \
           ${vmnet.socket} "''${args[@]}"

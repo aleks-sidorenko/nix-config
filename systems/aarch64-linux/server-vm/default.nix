@@ -36,16 +36,13 @@ with lib.${namespace};
     };
 
     disks.impermanence = enabled;
-
-    # Bridged addressing follows whichever LAN the host Mac is on, so the
-    # tailnet carries the guest's stable identity.
-    services.networking.tailscale = enabled;
   };
 
-  # Bridged onto whichever network the host Mac joins, including untrusted
-  # ones, so this guest does not inherit the repo-wide off-by-default firewall
-  # (see the TODO in modules/nixos/system/networking) that assumes a LAN behind
-  # our own router. mkForce because that default is set at normal priority.
+  # NAT'd behind the host Mac rather than bridged onto whatever network it
+  # joins, but still not behind our own router, so this guest does not
+  # inherit the repo-wide off-by-default firewall (see the TODO in
+  # modules/nixos/system/networking) that assumes one. mkForce because that
+  # default is set at normal priority.
   networking.firewall.enable = mkForce true;
 
   # Without it tailscaled still connects, but only via a DERP relay.
