@@ -7,6 +7,7 @@
 with lib;
 let
   cfg = config.${namespace}.services.networking.tailscale;
+  sopsEnabled = config.${namespace}.security.sops.enable;
 in
 {
   options.${namespace}.services.networking.tailscale = with types; {
@@ -16,6 +17,11 @@ in
       type = nullOr str;
       default = null;
       description = "Path to a file with a Tailscale auth key for non-interactive first-boot join (e.g. a SOPS secret path). Null on hosts already joined.";
+    };
+    authKeyFromSecret = mkOption {
+      type = bool;
+      default = false;
+      description = "Point authKeyFile at the SOPS secret `tailscale-auth-key` (modules/nixos/secrets.yaml). Opt-in because the secret is not provisioned on every host; enabling it before the secret exists breaks activation.";
     };
     extraUpFlags = mkOption {
       type = listOf str;
@@ -30,17 +36,42 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Opt-in: sops-nix fails activation if the secret is absent from
+    # modules/nixos/secrets.yaml, so this must not be unconditional.
+    ${namespace}.services.networking.tailscale.authKeyFile = mkIf cfg.authKeyFromSecret (
+      mkDefault config.sops.secrets."tailscale-auth-key".path
+    );
+
+    sops.secrets."tailscale-auth-key" = mkIf (cfg.authKeyFromSecret && sopsEnabled) {
+      sopsFile = ../../../secrets.yaml;
+    };
+
     services.tailscale = {
       enable = true;
-      inherit (cfg) authKeyFile extraUpFlags;
-      # `--ssh` and `--advertise-tags` MUST go through extraSetFlags (drives
-      # tailscaled-set): upstream applies extraUpFlags only via
-      # tailscaled-autoconnect, which is gated on authKeyFile != null. Our
-      # always-on hosts join interactively (no auth key), so routing either
-      # flag through extraUpFlags would silently no-op.
+      inherit (cfg) authKeyFile;
+      # `--ssh` MUST go through extraSetFlags (drives tailscaled-set):
+      # upstream applies extraUpFlags only via tailscaled-autoconnect, which
+      # is gated on authKeyFile != null. Our always-on hosts join
+      # interactively (no auth key), so routing it through extraUpFlags
+      # would silently no-op. `--advertise-tags` needs BOTH: extraSetFlags
+      # keeps already-joined hosts tagged, and extraUpFlags is what actually
+      # reaches an OAuth-secret registration, which Tailscale rejects unless
+      # tags are supplied at `up` time.
+      extraUpFlags =
+        cfg.extraUpFlags
+        ++ optional (
+          cfg.authKeyFile != null && cfg.tags != [ ]
+        ) "--advertise-tags=${concatStringsSep "," cfg.tags}";
       extraSetFlags =
         optional cfg.ssh "--ssh"
         ++ optional (cfg.tags != [ ]) "--advertise-tags=${concatStringsSep "," cfg.tags}";
+      # OAuth client secrets used as auth keys require preauthorized=true
+      # (https://tailscale.com/kb/1215/oauth-clients#registering-new-nodes-using-oauth-credentials);
+      # a plain, already-approved auth key ignores the flag, so only setting
+      # it when a key is present costs nothing.
+      authKeyParameters = mkIf (cfg.authKeyFile != null) {
+        preauthorized = true;
+      };
     };
   };
 }
