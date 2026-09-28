@@ -46,8 +46,12 @@ in
           lib.concatStringsSep "\n" (
             lib.mapAttrsToList (
               envVar: sopsKey:
-              ''export ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")''
-            ) secrets
+              # Bare assignment honors `set -e`; `export VAR=$(...)` would not,
+              # letting a failed decrypt export an empty secret silently.
+              ''
+                ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")
+                export ${envVar}
+              '') secrets
           )
         else
           "";
@@ -65,7 +69,7 @@ in
           ${loadSecrets}
           ${setup}
           ${tofu} init -input=false
-          ${body}
+          ${body} "$@"
         '';
     in
     (pkgs.writeShellScriptBin "${name}-show" ''

@@ -9,6 +9,7 @@ result*
 .terraform
 .terraform.*
 *.tfstate.backup
+errored.tfstate
 config.tf.json
 
 # vagrant
