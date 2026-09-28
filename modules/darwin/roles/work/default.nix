@@ -38,6 +38,8 @@ in
         macbook = enabled;
       };
 
+      services.networking.tailscale.tags = [ "tag:work" ];
+
       communication = {
         zoom = enabled;
         slack = enabled;

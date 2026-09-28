@@ -26,6 +26,11 @@ in
       default = [ ];
       description = "Extra flags for `tailscale up` (escape hatch, e.g. --advertise-exit-node). Note: the activation join only runs when authKeyFile is set, so these flags have no effect unless authKeyFile is configured.";
     };
+    tags = mkOption {
+      type = listOf str;
+      default = [ ];
+      description = "ACL tags this host advertises, contributed by the roles it enables.";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -43,6 +48,7 @@ in
         # it: silently swallowing would look identical to a bad auth key.
         ${tailscaleExe} up \
           --auth-key "file:${cfg.authKeyFile}" \
+          ${optionalString (cfg.tags != [ ]) "--advertise-tags=${concatStringsSep "," cfg.tags}"} \
           ${escapeShellArgs cfg.extraUpFlags} \
           || printf >&2 'tailscale join failed; run `tailscale up` by hand.\n'
       fi

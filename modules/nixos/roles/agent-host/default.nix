@@ -37,7 +37,10 @@ in
 
       # Membership comes from roles.common; this role adds only the ACL-gated
       # SSH server.
-      services.networking.tailscale.ssh = true;
+      services.networking.tailscale = {
+        ssh = true;
+        tags = [ "tag:agent-host" ];
+      };
 
       # Dedicated, isolated account: admin = false → no wheel → cannot sudo.
       # (profile defaults to "adult"; non-primary by default.)

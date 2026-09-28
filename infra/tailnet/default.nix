@@ -1,11 +1,27 @@
 {
   lib,
   pkgs,
+  inputs,
   system,
   namespace,
   ...
 }:
+with lib;
 with lib.${namespace};
+let
+  # Tags come from the roles a host enables (see the tailscale modules and
+  # their role wiring), not a hand-maintained list, so tagOwners can never
+  # drift from what hosts actually advertise.
+  hostTags = host: host.config.${namespace}.services.networking.tailscale.tags or [ ];
+
+  allHosts =
+    (attrValues (inputs.self.nixosConfigurations or { }))
+    ++ (attrValues (inputs.self.darwinConfigurations or { }));
+
+  tags = unique (concatMap hostTags allHosts);
+
+  tagOwners = listToAttrs (map (tag: nameValuePair tag [ "autogroup:admin" ]) tags);
+in
 mkTerraformDerivation {
   inherit pkgs system;
   name = "tailnet";
@@ -49,10 +65,7 @@ mkTerraformDerivation {
       # allow-all so adopting terraform does not change who can reach what.
       # Tightening it is separate work.
       resource.tailscale_acl.this.acl = builtins.toJSON {
-        tagOwners = {
-          "tag:server" = [ "autogroup:admin" ];
-          "tag:workstation" = [ "autogroup:admin" ];
-        };
+        inherit tagOwners;
         acls = [
           {
             action = "accept";

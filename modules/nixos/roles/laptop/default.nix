@@ -20,5 +20,7 @@ in
 
     # Battery/lid awareness for the desktop session.
     services.upower.enable = true;
+
+    ${namespace}.services.networking.tailscale.tags = [ "tag:laptop" ];
   };
 }
