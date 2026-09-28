@@ -259,7 +259,7 @@ lint-fix:
     @echo "✅ Lint fixes applied!"
 
 # Read-only quality umbrella: format-check + lint (CI-safe)
-check: format-check lint
+check: format-check lint router-validate tailnet-validate
     @echo "✅ All quality checks passed!"
 
 # Show secrets managed by SOPS
@@ -408,6 +408,10 @@ bootstrap-targets:
 router-show:
     nix run .#router
 
+# Validate router configuration against the provider schema (no device needed)
+router-validate:
+    nix run .#router.validate
+
 # Plan router configuration changes (dry-run)
 router-plan:
     nix run .#router.plan
@@ -433,6 +437,7 @@ router-help:
     @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
     @echo "  just router-show             Show generated terraform JSON"
+    @echo "  just router-validate         Validate config against provider schema (offline)"
     @echo "  just router-plan             Plan changes (dry-run)"
     @echo "  just router-apply            Apply changes to router"
     @echo "  just router-backup           Create SSH backup of router"
