@@ -42,8 +42,8 @@ in
 
       hosts = mkForce (
         lib.mapAttrs' (
-          host: ip:
-          lib.nameValuePair ip [
+          host: h:
+          lib.nameValuePair h.ip [
             host
             "${host}.${cfg.domains.local}"
           ]

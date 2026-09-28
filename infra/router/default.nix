@@ -9,7 +9,7 @@
 with lib;
 with lib.${namespace};
 let
-  hosts = import ./hosts.nix { inherit defaults; };
+  hosts = defaults.network.hosts;
 
   # Strip non-hostType attrs (bridge.mac, ovpn.mac) from router entry
   routerosHosts = hosts // {

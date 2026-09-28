@@ -12,7 +12,7 @@ let
 
   # name→IP resolution baked from the single source of truth (lib/defaults).
   hostCases = concatStringsSep "\n    " (
-    mapAttrsToList (name: ip: "${name}) echo ${ip} ;;") defaults.network.hosts
+    mapAttrsToList (name: h: "${name}) echo ${h.ip} ;;") defaults.network.hosts
   );
   knownNames = concatStringsSep " " (attrNames defaults.network.hosts);
 
