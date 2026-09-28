@@ -21,7 +21,7 @@ in
     authKeyFromSecret = mkOption {
       type = bool;
       default = false;
-      description = "Point authKeyFile at the SOPS secret `tailscale-auth-key` (modules/nixos/secrets.yaml). Opt-in because the secret is not provisioned on every host; enabling it before the secret exists breaks activation.";
+      description = "Point authKeyFile at the SOPS secret `system-tailscale-auth-key` (modules/nixos/secrets.yaml). Opt-in because the secret is not provisioned on every host; enabling it before the secret exists breaks activation.";
     };
     extraUpFlags = mkOption {
       type = listOf str;
@@ -39,10 +39,10 @@ in
     # Opt-in: sops-nix fails activation if the secret is absent from
     # modules/nixos/secrets.yaml, so this must not be unconditional.
     ${namespace}.services.networking.tailscale.authKeyFile = mkIf cfg.authKeyFromSecret (
-      mkDefault config.sops.secrets."tailscale-auth-key".path
+      mkDefault config.sops.secrets."system-tailscale-auth-key".path
     );
 
-    sops.secrets."tailscale-auth-key" = mkIf (cfg.authKeyFromSecret && sopsEnabled) {
+    sops.secrets."system-tailscale-auth-key" = mkIf (cfg.authKeyFromSecret && sopsEnabled) {
       sopsFile = ../../../secrets.yaml;
     };
 
