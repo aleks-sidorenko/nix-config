@@ -80,5 +80,9 @@ in
       80
       443
     ];
+
+    # Every declared vhost is a name this host answers to; deriving them here
+    # means a disabled service cannot leave a dangling record behind.
+    ${namespace}.system.networking.names = mapAttrsToList (_: v: v.serverName) cfg.virtualHosts;
   };
 }
