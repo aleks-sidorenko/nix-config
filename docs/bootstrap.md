@@ -623,6 +623,20 @@ reinstall, which rewrites the root disk the system itself sits on, so it would
 buy only the appearance of coverage. Re-enable them once there is somewhere
 off-box to send backups to.
 
+### Recovering a wedged guest NIC
+
+Symptom: the guest's console log (`/tmp/qemu-server-vm.console.log`) repeats
+`NETDEV WATCHDOG: transmit queue 0 timed out`, the guest is missing from
+`arp -a` on the host, and `tailscale status` shows `rx 0`. This happens when
+the vmnet daemon's socket was not yet serving when the guest attached — the
+guest's virtio NIC does not recover on its own, so restarting the guest alone
+re-wedges it. Restart the daemon first, then the guest:
+
+```bash
+sudo launchctl kickstart -k system/org.nixos.socket-vmnet
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
+```
+
 ---
 
 ## macOS (nix-darwin)
