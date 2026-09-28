@@ -120,7 +120,7 @@ in
 
     ${namespace}.services.networking.nginx = {
       virtualHosts.restic-server = {
-        serverName = hosts.lan "restic";
+        serverName = hosts.service "restic";
         port = cfg.webPort;
         clientMaxBodySize = "0"; # Unlimited - required for large backup uploads
       };
