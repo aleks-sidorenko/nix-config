@@ -344,6 +344,7 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
 workbook — a home-server stand-in, not a desktop. It installs exactly like a
 physical host — installer ISO plus `nixos-anywhere` — with QEMU standing in
-for hardware. The registry maps `server-vm` to a home-network address, so
-until that network is rebuilt reach the guest by its DHCP address or over the
-tailnet. See `docs/bootstrap.md` for the full first-boot sequence.
+for hardware. It has no LAN presence: reach it over the tailnet, or from the
+host Mac on the vmnet subnet (`arp -a | grep 52:54` finds its address, which
+moves across restarts). See `docs/bootstrap.md` for the full first-boot
+sequence.

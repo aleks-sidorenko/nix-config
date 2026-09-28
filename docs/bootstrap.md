@@ -408,25 +408,27 @@ to the config this is wired up automatically — which is why `ssh nixos@homeboo
 works from your workstation even though the fresh installer only knows itself as
 `nixos` and grabbed its address over DHCP:
 
-- **Name → IP:** your nix-config workstation's `/etc/hosts` is populated from
-  `defaults.network.hosts` (`lib/defaults`) by the networking module —
-  e.g. `homebook → 10.0.0.63`. (This is local resolution, independent of router
-  DNS: `homebook` has `dns = false` in `infra/router/hosts.nix`, so it is *not*
-  served by the router, but `/etc/hosts` still maps it.)
+- **Name → IP:** the router's `lan` DNS zone answers for `dns = true` hosts —
+  e.g. `homebook` resolves via `homebook.lan`, and the deploying machine's
+  search list (`[<tailnet>, lan]`) makes the bare name work too. There is no
+  `/etc/hosts` rendering to fall back on; both this record and the DHCP lease
+  below come from the single registry entry in `lib/defaults.network.hosts`.
 - **Machine holds that IP:** the router hands it out as a **static DHCP lease
-  keyed by MAC** (`infra/router/hosts.nix`, e.g. homebook's `68:EC:…` →
+  keyed by MAC** (same registry entry, e.g. homebook's `68:EC:…` →
   `10.0.0.63`). Because the lease is by MAC, the box gets its reserved address
-  even while running the installer — it is not a random IP.
+  even while running the installer — it is not a random IP. Both the DNS
+  record and the lease reach the router only via `just router-apply`, not a
+  rebuild.
 
 > **Use `nixos` as `<username>` during bootstrap.** That is the only account on
 > the installer (it authorizes your owner SSH key — see
 > [Step 3](#step-3--boot-the-target)). It is the SSH login for the install only,
 > unrelated to the host's eventual accounts, which come from the flake.
 
-**If the host isn't reserved** (not yet in `infra/router/hosts.nix` /
-`defaults.network.hosts`), or you deploy from a machine without those static
-hosts, `<hostname>` won't resolve. Since the script reuses `<hostname>` for both
-the flake attr *and* the SSH address, point the name at the real IP just for the
+**If the host isn't reserved** (not yet in `lib/defaults.network.hosts`), has
+`dns = false`, or `just router-apply` hasn't run since it was added,
+`<hostname>` won't resolve. Since the script reuses `<hostname>` for both the
+flake attr *and* the SSH address, point the name at the real IP just for the
 deploy — a throwaway alias is cleanest. The managed `~/.ssh/config` is a
 read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
 `Include`s (see `modules/home/security/ssh`):
@@ -437,12 +439,12 @@ Host homebook
   User nixos
 ```
 
-so `.#homebook` still selects the right config while SSH goes to the actual IP
-(a temporary `/etc/hosts` line works too).
+so `.#homebook` still selects the right config while SSH goes to the actual IP.
 
-**`server-vm`** resolves like any other host once the registry has been applied
-— see [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for what to do
-before then.
+**`server-vm`** never gets a registry-driven address — it carries
+`dns = false, dhcp = false` permanently. See
+[VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for how to reach it
+instead.
 
 ### Step 7 — Post-installation
 
@@ -514,25 +516,26 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 `just vm-install` runs QEMU in the **foreground** and does not return, so the
 `just bootstrap` line belongs in a second terminal.
 
-> **`server-vm` does not yet resolve to the guest.** `just bootstrap` reuses the
-> hostname as the SSH address (`nixos@server-vm`), and `/etc/hosts` maps
-> `server-vm` to `10.0.0.64` — an address nothing answers on until the home
-> network is rebuilt (see [Reaching the guest](#reaching-the-guest)). Point the
-> name at the guest's **DHCP address** for the install exactly as for any
-> unreserved host — the `~/.ssh/config.local` alias described under
+> **`server-vm` never resolves on its own.** It lives behind the host Mac's NAT
+> (vmnet `shared` mode), so its registry entry is `dns = false, dhcp = false`
+> permanently — see [Reaching the guest](#reaching-the-guest). `just bootstrap`
+> reuses the hostname as the SSH address (`nixos@server-vm`); point it at the
+> guest's vmnet address instead, the same `~/.ssh/config.local` alias described
+> under
 > [How `<hostname>` reaches the target machine](#how-hostname-reaches-the-target-machine):
 >
 > ```
 > Host server-vm
->   HostName <dhcp-address>
+>   HostName <vmnet-address>
 >   User nixos
 > ```
 >
-> Find that address in the guest's serial console log
-> (`/tmp/qemu-server-vm.console.log` — the installer's network-configuration
-> messages name the lease), with `arp -an` on the Mac once the guest has talked
-> to the network, or in the router's lease table. Remove the alias once the name
-> resolves for real.
+> The vmnet subnet is chosen by macOS and isn't pinned, so the address moves
+> across restarts — find it with `arp -a | grep 52:54` on the workbook once the
+> guest has talked to the network, or in its serial console log
+> (`/tmp/qemu-server-vm.console.log`). Once the guest joins the tailnet
+> ([Step 2](#step-2--join-the-tailnet)) reach it by name from there instead and
+> drop the alias.
 
 The empty `""` is the `disk_password` positional — the guest has no LUKS, but
 the slot must be filled for `--build-on-remote` to land in `extra_opts` rather
@@ -576,43 +579,34 @@ open the URL it prints:
 ssh server-vm -- sudo tailscale up --ssh
 ```
 
-The bridged address follows whichever LAN the host Mac is on, so the tailnet is
-the only stable way in from elsewhere.
+The vmnet address moves with the host Mac's network and across restarts, so the
+tailnet is the only stable way in from elsewhere.
 
 ### Reaching the guest
 
 The guest is `server-vm` everywhere — flake attribute, `networking.hostName`,
-host registry, router entry, `/etc/hosts` and the tailnet.
+and the tailnet. It has no LAN identity: its registry entry
+(`lib/defaults.network.hosts.server-vm`) is `dns = false, dhcp = false`
+permanently, since it lives behind the host Mac's NAT and there is no LAN
+address to publish for it.
 
-The registry maps it to `10.0.0.64`, which is an address on the **home** network.
-That network is being rebuilt, so until the rebuild lands:
+Two ways in:
 
-- `nh os switch` writes `10.0.0.64 server-vm` into `/etc/hosts`, and that entry
-  **shadows the tailnet name** — the name will resolve to an address nothing
-  answers on.
-- Reach the guest by its **DHCP address** instead. Bridged networking gives it a
-  real lease on whatever LAN the Mac has joined, with no router configuration.
-- Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
-  refreshed on the machine you are calling from.
+- **The tailnet**, once the guest has joined
+  ([Step 2](#step-2--join-the-tailnet)) — `ssh server-vm` resolves through
+  MagicDNS from anywhere, and is the only stable option.
+- **From the workbook only**, over the vmnet subnet — find the guest's current
+  address with `arp -a | grep 52:54` (macOS chooses the subnet; it is not
+  pinned and moves across restarts).
 
-`just deploy` already passes `--hostname server-vm`, and deploy-rs rejects that
-flag twice, so deploying to the DHCP address instead means calling `deploy`
-directly:
-
-```bash
-deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
-```
-
-Once the home network exists again, two steps make the name work end to end:
+`just deploy` already passes `--hostname server-vm`, which the tailnet name
+satisfies, so `just deploy server-vm` works once the guest is enrolled. Before
+that, or from the workbook directly, deploy to the vmnet address instead —
+deploy-rs rejects `--hostname` twice, so call `deploy` directly:
 
 ```bash
-just router-apply   # static lease: MAC 52:54:00:00:00:64 -> 10.0.0.64
-nh os switch        # on each machine you deploy from: /etc/hosts learns server-vm
+deploy .#server-vm --hostname <vmnet-address> --skip-checks --remote-build
 ```
-
-Do both or neither. Applying the lease without refreshing `/etc/hosts` leaves the
-guest on a random address while callers still resolve `server-vm` to
-`10.0.0.64`.
 
 ### Backups
 
@@ -848,6 +842,50 @@ private GPG key is imported out-of-band on the machine, exactly as for the
 primary user.
 
 Then deploy the host to apply ([Step 6](#step-6--deploy) / `just deploy`).
+
+---
+
+## Tailnet membership
+
+Every host with `roles.common` runs Tailscale; membership is not tied to any
+other role. Linux hosts join non-interactively when an auth key is supplied,
+macOS hosts join once with `sudo tailscale up --hostname <host>`.
+
+Tags come from the roles a host enables (`server`, `desktop`, `laptop`,
+`agent-host`, `work`) and are advertised by the host itself — do not tag
+devices by hand in the admin console. Tagged devices do not expire, which is
+why an always-on host must carry one. Confirm after joining:
+
+    tailscale status --json | jq -r '.Self.Tags'
+
+The managed Mac runs `tailscaled` from nixpkgs under launchd, where endpoint
+security terminates processes by executable name. After any change to the
+daemon, confirm it survives a reboot and an idle period:
+
+    pgrep -l tailscaled && tailscale status
+
+If it does not survive, that host has no tailnet identity: set
+`services.networking.tailscale.enable = false` on it and reach the homelab
+guest through the vmnet subnet from the host Mac instead.
+
+## How hosts are addressed
+
+Three namespaces, each with one owner:
+
+| namespace | example | owner | scope |
+| --- | --- | --- | --- |
+| machine | `server-vm` | Tailscale MagicDNS | anywhere |
+| LAN | `server.lan` | MikroTik DNS, from the registry | LAN only |
+| service | `jellyfin.lan` today | MikroTik DNS | LAN only |
+
+`/etc/hosts` carries no host entries on any platform. Bare names resolve
+through MagicDNS; the search list falls back to the router's `lan` zone, which
+answers only on the LAN. Off the LAN a `.lan` name fails immediately rather
+than resolving to an address with no route — that honest failure is the point.
+
+The registry in `lib/defaults.network.hosts` is the single source of DHCP
+reservations and `lan` records. It reaches hosts only through the router, so
+changing it takes effect on `just router-apply`, not on a rebuild.
 
 ---
 
