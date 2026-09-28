@@ -15,6 +15,9 @@ rec {
 
     # Returns the tailnet (MagicDNS) host name
     tailnet = host: "${host}.${lib.${namespace}.defaults.network.domains.tailnet}";
+
+    # Returns the service host name
+    service = host: "${host}.${lib.${namespace}.defaults.network.domains.services}";
   };
 
   # Derive network address from gateway IP (assumes /24)

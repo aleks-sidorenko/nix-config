@@ -176,6 +176,9 @@ _: rec {
       domains = {
         lan = "lan";
         public = "sidorenko.me";
+        # Services get a real zone rather than a LAN-only name: it resolves the
+        # same on and off the LAN, and can hold a certificate.
+        services = "home.sidorenko.me";
         # MagicDNS suffix; account-specific.
         tailnet = "colobus-bramble.ts.net";
       };
