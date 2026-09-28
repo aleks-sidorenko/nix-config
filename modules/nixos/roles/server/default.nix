@@ -32,6 +32,8 @@ in
 
       services.networking.nginx = enabled;
 
+      services.networking.tailscale.tags = [ "tag:server" ];
+
     };
 
     environment = {
