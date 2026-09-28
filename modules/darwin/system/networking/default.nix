@@ -12,7 +12,7 @@ let
   # Render /etc/hosts from the shared host registry (lib/defaults). Each host
   # gets both its short name and its <name>.<local-domain> alias.
   hostLines = lib.mapAttrsToList (
-    host: ip: "${ip} ${host} ${host}.${cfg.domains.local}"
+    host: h: "${h.ip} ${host} ${host}.${cfg.domains.local}"
   ) defaults.network.hosts;
 
   hostsText = ''

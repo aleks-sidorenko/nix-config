@@ -10,6 +10,8 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.roles.parent;
 
+  knownIps = map (h: h.ip) (attrValues defaults.network.hosts);
+
   # `childDevices` are IPs sourced from the single source of truth
   # (defaults.network.hosts.*); router-net accepts raw IPs, so no name→IP
   # resolution is needed here. Dots are escaped for the grep -E status filter.
@@ -56,23 +58,23 @@ in
   options.${namespace}.roles.parent = {
     enable = mkEnableOption "Enable the parent role (control the child's devices' internet)";
     childDevices = mkOpt (types.listOf types.str) [
-      defaults.network.hosts.tv
-      defaults.network.hosts.tv-wifi
-      defaults.network.hosts.ps5
-      defaults.network.hosts.homebook
-      defaults.network.hosts.ipad
+      defaults.network.hosts.tv.ip
+      defaults.network.hosts.tv-wifi.ip
+      defaults.network.hosts.ps5.ip
+      defaults.network.hosts.homebook.ip
+      defaults.network.hosts.ipad.ip
     ] "Child's device IPs (from defaults.network.hosts) the parent can cut off";
   };
 
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = all (ip: elem ip (attrValues defaults.network.hosts)) cfg.childDevices;
+        assertion = all (ip: elem ip knownIps) cfg.childDevices;
         message =
           "roles.parent.childDevices contains unknown IP(s): "
-          + concatStringsSep ", " (filter (ip: !elem ip (attrValues defaults.network.hosts)) cfg.childDevices)
+          + concatStringsSep ", " (filter (ip: !elem ip knownIps) cfg.childDevices)
           + ". Valid host IPs: "
-          + concatStringsSep ", " (attrValues defaults.network.hosts);
+          + concatStringsSep ", " knownIps;
       }
     ];
 
