@@ -876,7 +876,7 @@ Three namespaces, each with one owner:
 | --- | --- | --- | --- |
 | machine | `server-vm` | Tailscale MagicDNS | anywhere |
 | LAN | `server.lan` | MikroTik DNS, from the registry | LAN only |
-| service | `jellyfin.lan` today | MikroTik DNS | LAN only |
+| service | `jellyfin.lan` today | MikroTik DNS, unmanaged leftover (`server.aliases` was emptied) | LAN only |
 
 `/etc/hosts` carries no host entries on any platform. Bare names resolve
 through MagicDNS; the search list falls back to the router's `lan` zone, which

@@ -111,8 +111,20 @@ let
         fi
 
         # socket-vmnet is a system daemon and this is a user agent, so this
-        # can start before it; launchd's PathState KeepAlive (below) holds the
-        # agent until the socket exists rather than retrying in-script.
+        # can start before it — attaching to a socket that is not yet serving
+        # leaves the guest NIC wedged with no self-recovery. A socket existing
+        # is necessary but not sufficient proof the daemon behind it is
+        # serving; this narrows the window, it does not close it.
+        waited=0
+        while [ ! -S "${vmnet.socket}" ]; do
+          if [ "$waited" -ge 60 ]; then
+            echo "${vmnet.socket} did not appear after 60s" >&2
+            exit 1
+          fi
+          sleep 1
+          waited=$((waited + 1))
+        done
+
         # socket_vmnet_client opens the daemon's socket and hands QEMU fd 3.
         exec ${homebrew.getOptExe "socket_vmnet" "socket_vmnet_client"} \
           ${vmnet.socket} "''${args[@]}"
@@ -165,14 +177,7 @@ in
           # a deliberate `poweroff`; `false` leaves a crashed stand-in silently
           # down until the next login, which is the worse failure for something
           # standing in for an always-on server.
-          # PathState also gates launch on socket-vmnet's socket existing, so
-          # this agent isn't spun up racing the daemon on boot. Existence is
-          # necessary but not sufficient proof the daemon is serving, so a
-          # wedged NIC is still possible — this only narrows the window.
-          KeepAlive = {
-            SuccessfulExit = false;
-            PathState."${vmnet.socket}" = true;
-          };
+          KeepAlive.SuccessfulExit = false;
           StandardOutPath = "/tmp/qemu-${name}.log";
           StandardErrorPath = "/tmp/qemu-${name}.error.log";
         };

@@ -224,7 +224,7 @@ _: {
 
     # /ip dns static print show-ids
     # *1=FWD *.local, *2=ajax, *3=cap1, *4=cap2, *5=heatpump
-    # *6=inverter, *7=monitor, *8=server, *9=tv, *14=1c-key
+    # *6=inverter, *7=monitor, *8=server, *9=tv (1c-key has dns=false: no record)
     #
     # server.aliases (*A..*13: radarr, jellyfin, qbittorrent, prowlarr,
     # minidlna, sonarr, home-assistant, zigbee2mqtt, minecraft, restic) was

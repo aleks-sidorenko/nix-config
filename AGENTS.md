@@ -294,8 +294,8 @@ Services in `modules/nixos/services/`:
 
 IaC configurations in `infra/`:
 - `router/` - MikroTik RouterOS managed via terranix/OpenTofu
-  - `default.nix` - terranix derivation and backup script
-  - `modules/` - terraform modules (bridge, capsman, dhcp, dns, firewall, interfaces, etc.)
+  - `default.nix` - terranix derivation (via `lib/terraform`'s `mkTerraformDerivation`) and backup script
+  - `imports.nix` - RouterOS resource ID mappings (for `terraform import` of existing config)
   - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just router-*` commands
