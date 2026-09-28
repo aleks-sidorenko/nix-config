@@ -572,15 +572,18 @@ rm -f ~/.local/share/qemu/server-vm/{root,data}.qcow2 ~/.local/share/qemu/server
 
 ### Step 2 — Join the tailnet
 
-Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
-open the URL it prints:
+If `nix-config.services.networking.tailscale.authKeyFromSecret` is on for this
+host (see [Tailnet membership](#tailnet-membership)), it joins on its own at
+first boot — nothing to do here. Otherwise join by hand, passing
+`--advertise-tags` so the node is tagged from the start and never needs a
+later re-auth to pick tags up:
 
 ```bash
-ssh server-vm -- sudo tailscale up --ssh
+ssh server-vm -- sudo tailscale up --ssh --advertise-tags=tag:server
 ```
 
-The vmnet address moves with the host Mac's network and across restarts, so the
-tailnet is the only stable way in from elsewhere.
+Open the URL it prints. The vmnet address moves with the host Mac's network
+and across restarts, so the tailnet is the only stable way in from elsewhere.
 
 ### Reaching the guest
 
@@ -848,8 +851,38 @@ Then deploy the host to apply ([Step 6](#step-6--deploy) / `just deploy`).
 ## Tailnet membership
 
 Every host with `roles.common` runs Tailscale; membership is not tied to any
-other role. Linux hosts join non-interactively when an auth key is supplied,
-macOS hosts join once with `sudo tailscale up --hostname <host>`.
+other role. Joining is opt-in per host via
+`nix-config.services.networking.tailscale.authKeyFromSecret` — off by default,
+because the key it wires in doesn't exist until you create it (below). With it
+off, both platforms join the way they always have: interactively, once, by
+hand.
+
+### One-time setup
+
+Create a Tailscale OAuth client (admin console → Settings → OAuth clients)
+scoped to `auth_keys` write access only — not a plain auth key, which caps out
+at 90 days and would silently stop working on every host that reads it. Put
+the client secret in **both** secrets files under the same name:
+
+```bash
+just secrets-edit nixos    # add: tailscale-auth-key
+just secrets-edit darwin   # add: tailscale-auth-key
+```
+
+Nothing decrypts this secret until a host flips the opt-in below, so adding it
+here is safe even before any host uses it.
+
+### Per host
+
+```nix
+nix-config.services.networking.tailscale.authKeyFromSecret = true;
+```
+
+A NixOS host then joins non-interactively at first boot: the module registers
+with `--advertise-tags` and `preauthorized = true` (both required for an
+OAuth-issued key to register at all — see
+[`authKeyParameters`](https://tailscale.com/kb/1215/oauth-clients#registering-new-nodes-using-oauth-credentials)).
+A macOS host joins once, at the next activation, the same way.
 
 Tags come from the roles a host enables (`server`, `desktop`, `laptop`,
 `agent-host`, `work`) and are advertised by the host itself — do not tag
@@ -857,6 +890,19 @@ devices by hand in the admin console. Tagged devices do not expire, which is
 why an always-on host must carry one. Confirm after joining:
 
     tailscale status --json | jq -r '.Self.Tags'
+
+### Manual fallback
+
+Without the opt-in — or before the secret exists — join by hand. Pass
+`--advertise-tags` in the same `up` call that joins the node (this is how both
+existing hosts joined): adding tags later via a second `tailscale up
+--advertise-tags=...` forces a live session to re-authenticate, which
+supplying them at join time avoids entirely.
+
+```bash
+sudo tailscale up --ssh --advertise-tags=tag:server    # e.g. server-vm
+sudo tailscale up --advertise-tags=tag:work,tag:agent-host  # e.g. workbook
+```
 
 The managed Mac runs `tailscaled` from nixpkgs under launchd, where endpoint
 security terminates processes by executable name. After any change to the
