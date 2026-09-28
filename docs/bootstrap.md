@@ -857,17 +857,42 @@ because the key it wires in doesn't exist until you create it (below). With it
 off, both platforms join the way they always have: interactively, once, by
 hand.
 
+No host opts in today, and the two joined hosts were joined by hand — so the
+manual flow below is the live one, and the automated flow is there for the
+next host bootstrapped from scratch.
+
 ### One-time setup
 
-Create a Tailscale OAuth client (admin console → Settings → OAuth clients)
-scoped to `auth_keys` write access only — not a plain auth key, which caps out
-at 90 days and would silently stop working on every host that reads it. Put
-the client secret in **both** secrets files under the same name:
+Create a **separate** Tailscale OAuth client (admin console → Settings → OAuth
+clients) scoped to `auth_keys` write access only. Do not widen the existing
+client that `infra/tailnet` uses for `policy_file`: this secret is readable on
+every host that opts in, so anything able to read `/run/secrets` there could
+mint tagged nodes. A distinct client keeps that blast radius to node
+registration.
+
+An OAuth secret rather than a plain auth key because auth keys cap out at 90
+days and would silently stop working on every host that reads one. Put the
+client secret in **both** secrets files under the same name:
+
+At <https://login.tailscale.com/admin/settings/oauth> → *Generate OAuth
+client*: tick `auth_keys` → **Write**, leave every other scope unticked, and
+select the tags the client may register nodes with — it can only issue keys
+for tags it is associated with, and those must already exist in `tagOwners`
+(`infra/tailnet` declares `tag:server`, `tag:desktop`, `tag:laptop`,
+`tag:agent-host`, `tag:work`).
+
+The secret is shown **once**, on creation, in the form `tskey-client-…`. Copy
+it before closing the dialog; it cannot be retrieved later, only replaced.
 
 ```bash
-just secrets-edit nixos    # add: tailscale-auth-key
-just secrets-edit darwin   # add: tailscale-auth-key
+just secrets-edit nixos    # add: tailscale-auth-key: tskey-client-…
+just secrets-edit darwin   # add: tailscale-auth-key: tskey-client-…
 ```
+
+Paste the secret **verbatim** — no `?preauthorized=true` suffix and no
+quoting. The modules append that parameter themselves via upstream's
+`authKeyParameters`, so a secret carrying it too would register with a
+malformed key.
 
 Nothing decrypts this secret until a host flips the opt-in below, so adding it
 here is safe even before any host uses it.
@@ -900,9 +925,15 @@ existing hosts joined): adding tags later via a second `tailscale up
 supplying them at join time avoids entirely.
 
 ```bash
-sudo tailscale up --ssh --advertise-tags=tag:server    # e.g. server-vm
+sudo tailscale up --advertise-tags=tag:server               # e.g. server-vm
 sudo tailscale up --advertise-tags=tag:work,tag:agent-host  # e.g. workbook
 ```
+
+Pass only the tags that host's roles derive, and no other flags. In particular
+do not add `--ssh` unless that host's config sets
+`services.networking.tailscale.ssh` (today only hosts enabling `agent-host`
+do): the module adds `--ssh` from config but never removes it, so a flag
+supplied by hand here persists on the node and silently diverges from nix.
 
 The managed Mac runs `tailscaled` from nixpkgs under launchd, where endpoint
 security terminates processes by executable name. After any change to the
