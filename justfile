@@ -259,7 +259,7 @@ lint-fix:
     @echo "✅ Lint fixes applied!"
 
 # Read-only quality umbrella: format-check + lint (CI-safe)
-check: format-check lint router-validate tailnet-validate
+check: format-check lint
     @echo "✅ All quality checks passed!"
 
 # Show secrets managed by SOPS
@@ -481,3 +481,7 @@ tailnet-apply:
 # Edit tailnet SOPS secrets
 tailnet-secrets:
     sops infra/tailnet/secrets.yaml
+
+# Validate dormant infra configs against provider schemas.
+# Not part of `check`: needs network for `tofu init` and an age key for SOPS.
+check-infra: router-validate tailnet-validate
