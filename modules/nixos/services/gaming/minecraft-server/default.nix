@@ -203,6 +203,9 @@ in
 
     users.groups.${cfg.group} = mkDefault { };
 
+    # Not HTTP, so no vhost to derive a name from; declare it directly.
+    ${namespace}.system.networking.names = [ (hosts.service "minecraft") ];
+
     # Write ops.json if operators are defined
     environment.etc."minecraft/ops.json" = mkIf (cfg.ops != [ ]) {
       text = opsJson;

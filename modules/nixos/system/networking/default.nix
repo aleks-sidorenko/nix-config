@@ -17,6 +17,10 @@ in
       public = mkOpt str defaults.network.domains.public "Public domain to search for";
     };
 
+    names =
+      mkOpt (listOf str) [ ]
+        "DNS names this host answers to, contributed by the services that own them.";
+
   };
 
   config = mkIf cfg.enable {
