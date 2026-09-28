@@ -77,8 +77,9 @@ in
       ${lib.getExe pkgs.jq} . ${terraformConfiguration}
     '')
     // {
-      # `validate` checks the generated JSON against the provider schema
-      # without contacting the managed device.
+      # `validate` checks syntax and provider schema only — it never resolves
+      # `import` blocks, so a dangling import target still passes this and
+      # only fails at `plan`.
       validate = script "validate" "${tofu} validate";
       plan = script "plan" "${tofu} plan";
       apply = script "apply" "${tofu} apply";

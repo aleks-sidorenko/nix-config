@@ -116,7 +116,7 @@ calibre-import library_path hostname="server" username="alexander":
     rsync -a --info=progress2 --rsync-path="sudo rsync" "{{library_path}}/" "{{username}}@{{hostname}}:/data/media/Books/"
     ssh {{username}}@{{hostname}} 'sudo chown -R calibre-web:media /data/media/Books'
     ssh {{username}}@{{hostname}} 'sudo systemctl restart calibre-web'
-    @echo "✅ Import complete. Open http://calibre.local and verify your library."
+    @echo "✅ Import complete. Open http://calibre.lan and verify your library."
 
 
 # Build configuration without switching (read-only artifact)
@@ -408,7 +408,7 @@ bootstrap-targets:
 router-show:
     nix run .#router
 
-# Validate router configuration against the provider schema (no device needed)
+# Checks syntax and provider schema only (no device, no import resolution)
 router-validate:
     nix run .#router.validate
 
@@ -437,7 +437,7 @@ router-help:
     @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
     @echo "  just router-show             Show generated terraform JSON"
-    @echo "  just router-validate         Validate config against provider schema (offline)"
+    @echo "  just router-validate         Check syntax and provider schema (offline, no import resolution)"
     @echo "  just router-plan             Plan changes (dry-run)"
     @echo "  just router-apply            Apply changes to router"
     @echo "  just router-backup           Create SSH backup of router"
