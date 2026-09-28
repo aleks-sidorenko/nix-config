@@ -293,18 +293,14 @@
 
       deploy = lib.mkDeploy { inherit (inputs) self; };
 
-      checks = builtins.mapAttrs (
-        _system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
-      ) inputs.deploy-rs.lib;
-
-      # snowfall-lib's `checks` (like `packages`) is a per-channel convention —
-      # a flat `{ name = derivation; }` for the CURRENT system — so this must
-      # live in outputs-builder, not be merged into the multi-system `checks`
-      # above (that shape mismatch silently drops entries, see check-infra
-      # commit history).
+      # snowfall-lib's create-checks runs per system and expects `overrides` as
+      # a flat `{ name = derivation; }` for THAT system — a system-keyed attrset
+      # (as a naive top-level `checks` would be) just gets filtered away. So all
+      # checks, deploy-rs included, are built per-system in outputs-builder.
       outputs-builder =
         channels:
         let
+          system = channels.nixpkgs.stdenv.hostPlatform.system;
           packages = lib.snowfall.package.create-packages {
             inherit channels;
             src = ./infra;
@@ -318,7 +314,10 @@
           # pure/offline slice of it (mkImportCheck) that can live here.
           checks =
             lib.optionalAttrs (packages ? router) { router-imports = packages.router.check; }
-            // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; };
+            // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; }
+            // lib.optionalAttrs (inputs.deploy-rs.lib ? ${system}) (
+              inputs.deploy-rs.lib.${system}.deployChecks inputs.self.deploy
+            );
         };
     };
 }
