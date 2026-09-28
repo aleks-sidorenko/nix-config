@@ -36,19 +36,12 @@ in
       # Set the domain to the LAN domain
       domain = mkForce cfg.domains.lan;
 
+      # MagicDNS owns bare names; the router's lan zone is the on-LAN fallback
+      # when the tailnet is unavailable.
       search = mkForce [
+        defaults.network.domains.tailnet
         cfg.domains.lan
       ];
-
-      hosts = mkForce (
-        lib.mapAttrs' (
-          host: h:
-          lib.nameValuePair h.ip [
-            host
-            "${host}.${cfg.domains.lan}"
-          ]
-        ) defaults.network.hosts
-      );
 
       firewall = {
         enable = false; # TODO: enable firewall
