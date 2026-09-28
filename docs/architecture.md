@@ -248,7 +248,7 @@ Data structure (not functions) providing shared defaults:
 
 | Function | Description |
 |----------|-------------|
-| `hosts.local name` | Generate local hostname (`name.local`) |
+| `hosts.lan name` | Generate LAN hostname (`name.lan`) |
 | `hosts.public name` | Generate public hostname (`name.sidorenko.me`) |
 | `networkAddress cidr` | Derive network address from CIDR |
 | `prefixLength cidr` | Extract prefix length from CIDR |
@@ -261,7 +261,7 @@ Data structure (not functions) providing shared defaults:
 | `mkId parts` | Join `parts` with `_` (underscore-separated identifier) |
 | `mkFriendlyName parts` | Join `parts` with `/` (slash-separated friendly name) |
 
-> **Note:** Router/terranix derivation helpers previously lived in `lib/terraform`. That logic now lives in the standalone [`nix-routeros`](https://github.com/aleks-sidorenko/nix-routeros) flake (`mkRouterDerivation`) — see [docs/router.md](router.md).
+> **Note:** Terraform/OpenTofu derivation helpers (`mkTerraformDerivation`) live in `lib/terraform`, shared by `infra/router` and `infra/tailnet`. The RouterOS resource schema comes from the standalone [`nix-routeros`](https://github.com/aleks-sidorenko/nix-routeros) flake — see [docs/router.md](router.md).
 
 ## Multi-Architecture Support
 
@@ -290,7 +290,7 @@ Data structure (not functions) providing shared defaults:
 | nixvim | nixos-25.11 | Neovim in Nix |
 | nix-nvim | latest | First-party Neovim config flake (extracted; sourced by `modules/home/cli/editors/nvim`) |
 | terranix | latest | Terraform/OpenTofu in Nix |
-| nix-routeros | latest | First-party MikroTik RouterOS flake (extracted; `mkRouterDerivation`) |
+| nix-routeros | latest | First-party MikroTik RouterOS flake (extracted; resource schema via `presets.router`) |
 | Hyprland ecosystem | latest | hypr-contrib, hyprcursor, pyprland, hyprpanel |
 | nix-homebrew | latest | Homebrew integration for macOS |
 | catppuccin | latest | Catppuccin color scheme |

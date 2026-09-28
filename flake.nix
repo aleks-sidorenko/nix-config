@@ -297,12 +297,28 @@
         _system: deploy-lib: deploy-lib.deployChecks inputs.self.deploy
       ) inputs.deploy-rs.lib;
 
-      outputs-builder = channels: {
-        formatter = channels.nixpkgs.nixfmt-tree;
-        packages = lib.snowfall.package.create-packages {
-          inherit channels;
-          src = ./infra;
+      # snowfall-lib's `checks` (like `packages`) is a per-channel convention —
+      # a flat `{ name = derivation; }` for the CURRENT system — so this must
+      # live in outputs-builder, not be merged into the multi-system `checks`
+      # above (that shape mismatch silently drops entries, see check-infra
+      # commit history).
+      outputs-builder =
+        channels:
+        let
+          packages = lib.snowfall.package.create-packages {
+            inherit channels;
+            src = ./infra;
+          };
+        in
+        {
+          formatter = channels.nixpkgs.nixfmt-tree;
+          inherit packages;
+          # `nix flake check` is the only thing that runs infra/{router,tailnet}
+          # validation routinely (see check-infra in justfile); this is the
+          # pure/offline slice of it (mkImportCheck) that can live here.
+          checks =
+            lib.optionalAttrs (packages ? router) { router-imports = packages.router.check; }
+            // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; };
         };
-      };
     };
 }

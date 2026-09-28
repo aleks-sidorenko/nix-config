@@ -41,7 +41,7 @@ in
         defaults.enable = true;
         # Raise kernel file descriptor limits (default ~49152 triggers ENFILE)
         fs.enable = true;
-        # /etc/hosts with local network entries
+        # DNS search domains (tailnet + lan); MagicDNS resolves hosts, not /etc/hosts
         networking.enable = true;
 
         # Homebrew for CLI tools and GUI apps

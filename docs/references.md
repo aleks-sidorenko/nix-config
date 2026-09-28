@@ -63,4 +63,4 @@ Reusable pieces extracted from this config into standalone flakes:
 | Flake | Description |
 | ----- | ----------- |
 | [nix-nvim](https://github.com/aleks-sidorenko/nix-nvim) | Neovim configuration (nixvim-based), sourced by `modules/home/cli/editors/nvim` |
-| [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) | MikroTik RouterOS management (`mkRouterDerivation`), used by `infra/router` |
+| [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) | MikroTik RouterOS resource schema (`presets.router`), used by `infra/router` via `lib/terraform`'s `mkTerraformDerivation` |

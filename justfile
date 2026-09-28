@@ -466,7 +466,7 @@ router-help:
 tailnet-show:
     nix run .#tailnet
 
-# Validate tailnet configuration against the provider schema
+# Checks syntax and provider schema only (no device, no import resolution)
 tailnet-validate:
     nix run .#tailnet.validate
 
@@ -482,6 +482,6 @@ tailnet-apply:
 tailnet-secrets:
     sops infra/tailnet/secrets.yaml
 
-# Validate dormant infra configs against provider schemas.
 # Not part of `check`: needs network for `tofu init` and an age key for SOPS.
+# Validate dormant infra configs against provider schemas.
 check-infra: router-validate tailnet-validate
