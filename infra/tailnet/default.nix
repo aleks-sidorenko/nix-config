@@ -65,9 +65,11 @@ mkTerraformDerivation {
       # devices do not expire — infrastructure stops dropping off the tailnet
       # on the node-key schedule.
       #
-      # The policy is deliberately permissive: it reproduces the default
+      # The policy is deliberately permissive: acls reproduce the default
       # allow-all so adopting terraform does not change who can reach what.
-      # Tightening it is separate work.
+      # ssh is extended beyond the default: tagged devices belong to neither
+      # autogroup, so a rule targeting the tag is needed to keep --ssh working
+      # once a host advertises tags. Tightening either is separate work.
       resource.tailscale_acl.this.acl = builtins.toJSON {
         inherit tagOwners;
         acls = [
@@ -82,6 +84,15 @@ mkTerraformDerivation {
             action = "accept";
             src = [ "autogroup:member" ];
             dst = [ "autogroup:self" ];
+            users = [
+              "autogroup:nonroot"
+              "root"
+            ];
+          }
+          {
+            action = "accept";
+            src = [ "autogroup:member" ];
+            dst = [ "tag:agent-host" ];
             users = [
               "autogroup:nonroot"
               "root"
