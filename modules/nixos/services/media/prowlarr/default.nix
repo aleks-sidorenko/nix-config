@@ -60,7 +60,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           prowlarr = {
-            serverName = hosts.local "prowlarr";
+            serverName = hosts.lan "prowlarr";
             port = cfg.webPort;
           };
         };

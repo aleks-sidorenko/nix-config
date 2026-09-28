@@ -104,7 +104,7 @@ in
     ${namespace}.services = {
       networking.nginx = {
         virtualHosts.home-assistant = {
-          serverName = hosts.local "home-assistant";
+          serverName = hosts.lan "home-assistant";
           port = cfg.webPort;
         };
       };
@@ -159,7 +159,7 @@ in
           time_zone = cfg.config.timeZone;
           unit_system = cfg.config.unitSystem;
           temperature_unit = "C";
-          external_url = "http://${hosts.local "home-assistant"}";
+          external_url = "http://${hosts.lan "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
           packages = "!include_dir_named packages";
         };
@@ -186,7 +186,7 @@ in
           use_x_forwarded_for = true;
           ip_ban_enabled = false;
           cors_allowed_origins = [
-            "http://${hosts.local "home-assistant"}"
+            "http://${hosts.lan "home-assistant"}"
           ];
         };
 

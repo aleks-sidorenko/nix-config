@@ -13,7 +13,7 @@ in
   options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networking";
     domains = {
-      local = mkOpt str defaults.network.domains.local "Local domain for intranet resolution";
+      lan = mkOpt str defaults.network.domains.lan "LAN domain for intranet resolution";
       public = mkOpt str defaults.network.domains.public "Public domain to search for";
     };
 
@@ -33,11 +33,11 @@ in
       # 26.05+), so don't set wireless.enable here.
       networkmanager.enable = true;
 
-      # Set the domain to the local domain
-      domain = mkForce cfg.domains.local;
+      # Set the domain to the LAN domain
+      domain = mkForce cfg.domains.lan;
 
       search = mkForce [
-        cfg.domains.local
+        cfg.domains.lan
       ];
 
       hosts = mkForce (
@@ -45,7 +45,7 @@ in
           host: h:
           lib.nameValuePair h.ip [
             host
-            "${host}.${cfg.domains.local}"
+            "${host}.${cfg.domains.lan}"
           ]
         ) defaults.network.hosts
       );

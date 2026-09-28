@@ -96,7 +96,7 @@ in
       # Configure nginx virtual host
       networking.nginx = {
         virtualHosts.zigbee2mqtt = {
-          serverName = hosts.local "zigbee2mqtt";
+          serverName = hosts.lan "zigbee2mqtt";
           port = cfg.webPort;
         };
       };

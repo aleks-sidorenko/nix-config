@@ -7,8 +7,8 @@ with lib;
 rec {
 
   hosts = {
-    # Returns the local host name
-    local = host: "${host}.${lib.${namespace}.defaults.network.domains.local}";
+    # Returns the LAN host name
+    lan = host: "${host}.${lib.${namespace}.defaults.network.domains.lan}";
 
     # Returns the public host name
     public = host: "${host}.${lib.${namespace}.defaults.network.domains.public}";

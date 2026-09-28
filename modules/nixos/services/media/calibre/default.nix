@@ -33,7 +33,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           calibre = {
-            serverName = hosts.local "calibre";
+            serverName = hosts.lan "calibre";
             port = cfg.webPort;
             # Books/comics can be large; allow big uploads through the proxy.
             clientMaxBodySize = "512m";

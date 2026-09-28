@@ -181,7 +181,7 @@ in
         networking.nginx = {
           virtualHosts = {
             qbittorrent = {
-              serverName = hosts.local "qbittorrent";
+              serverName = hosts.lan "qbittorrent";
               port = cfg.webPort;
             };
           };

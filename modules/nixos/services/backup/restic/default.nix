@@ -10,7 +10,7 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic;
 
-  repository = "rest:http://${hosts.local "restic"}";
+  repository = "rest:http://${hosts.lan "restic"}";
   paths = [
     "/home"
     "/root"

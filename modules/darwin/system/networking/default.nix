@@ -12,7 +12,7 @@ let
   # Render /etc/hosts from the shared host registry (lib/defaults). Each host
   # gets both its short name and its <name>.<local-domain> alias.
   hostLines = lib.mapAttrsToList (
-    host: h: "${h.ip} ${host} ${host}.${cfg.domains.local}"
+    host: h: "${h.ip} ${host} ${host}.${cfg.domains.lan}"
   ) defaults.network.hosts;
 
   hostsText = ''
@@ -33,7 +33,7 @@ in
     enable = mkBoolOpt false "Enable networking";
     knownNetworkServices = mkOpt (listOf str) [ "Wi-Fi" ] "List of macOS network services to configure";
     domains = {
-      local = mkOpt str defaults.network.domains.local "Local domain for intranet resolution";
+      lan = mkOpt str defaults.network.domains.lan "LAN domain for intranet resolution";
       public = mkOpt str defaults.network.domains.public "Public domain to search for";
     };
   };
@@ -48,7 +48,7 @@ in
       ];
 
       search = [
-        cfg.domains.local
+        cfg.domains.lan
       ];
     };
 
