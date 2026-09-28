@@ -14,6 +14,10 @@ let
   # drift from what hosts actually advertise.
   hostTags = host: host.config.${namespace}.services.networking.tailscale.tags or [ ];
 
+  # Forces every host's config to evaluate on every `tailnet` run: deriving
+  # tags instead of hand-maintaining them means one host failing to evaluate
+  # now breaks planning for all of them. Accepted trade for a single source
+  # of truth.
   allHosts =
     (attrValues (inputs.self.nixosConfigurations or { }))
     ++ (attrValues (inputs.self.darwinConfigurations or { }));
