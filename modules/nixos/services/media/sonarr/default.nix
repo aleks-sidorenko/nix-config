@@ -63,7 +63,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           sonarr = {
-            serverName = hosts.lan "sonarr";
+            serverName = hosts.service "sonarr";
             port = cfg.webPort;
           };
         };

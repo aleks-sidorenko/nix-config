@@ -52,7 +52,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           minidlna = {
-            serverName = hosts.lan "minidlna";
+            serverName = hosts.service "minidlna";
             port = cfg.webPort;
           };
         };

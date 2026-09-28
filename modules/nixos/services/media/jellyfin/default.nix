@@ -43,7 +43,7 @@ in
       services.networking.nginx = {
         virtualHosts = {
           jellyfin = {
-            serverName = hosts.lan "jellyfin";
+            serverName = hosts.service "jellyfin";
             port = cfg.webPort;
           };
         };
