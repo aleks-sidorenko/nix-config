@@ -108,20 +108,15 @@ mkTerraformDerivation {
             dst = map (tag: "${tag}:*") deviceTags;
           }
         ];
+        # Same reason the acls above name tags: every host here is tagged, so
+        # `autogroup:member` matches no device and `autogroup:self` matches no
+        # destination. One rule over all tags rather than two, since the set
+        # is derived and a new tag would otherwise need remembering here.
         ssh = [
           {
             action = "accept";
-            src = [ "autogroup:member" ];
-            dst = [ "autogroup:self" ];
-            users = [
-              "autogroup:nonroot"
-              "root"
-            ];
-          }
-          {
-            action = "accept";
-            src = [ "autogroup:member" ];
-            dst = [ "tag:agent-host" ];
+            src = workstations;
+            dst = tags;
             users = [
               "autogroup:nonroot"
               "root"
