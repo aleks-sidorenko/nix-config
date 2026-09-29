@@ -67,6 +67,9 @@ in
           sonarr = {
             serverName = hosts.service "sonarr";
             port = cfg.webPort;
+            # AuthenticationMethod below is External: this app authenticates
+            # nobody and serves its API key to whoever asks.
+            requiresProxyAuth = true;
           };
         };
       };
