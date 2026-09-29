@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   namespace,
   ...
 }:
@@ -44,7 +45,14 @@ in
       if [ -r /etc/hosts ] && grep -q '^# Local network hosts (managed by nix-config' /etc/hosts; then
         printf >&2 'removing stale nix-config /etc/hosts entries...\n'
         tmp="$(mktemp /etc/hosts.XXXXXX)"
-        sed '/^# Local network hosts (managed by nix-config/,$d' /etc/hosts > "$tmp"
+        # Drop the marker and the contiguous run of registry entries under it,
+        # then stop. Deleting through end-of-file would take whatever another
+        # writer appended after the block, which is where appends land.
+        ${pkgs.gawk}/bin/awk '
+          /^# Local network hosts \(managed by nix-config/ { skip = 1; next }
+          skip && /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+[ \t]/ { next }
+          { skip = 0; print }
+        ' /etc/hosts > "$tmp"
         chmod 0644 "$tmp"
         mv "$tmp" /etc/hosts
       fi
