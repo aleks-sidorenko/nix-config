@@ -45,7 +45,9 @@ in
     config = {
       bindAddress = mkOption {
         type = types.str;
-        default = "0.0.0.0";
+        # nginx is the only intended path in; binding all interfaces would make
+        # the port reachable directly regardless of what the firewall allows.
+        default = "127.0.0.1";
         description = "Bind address for Home Assistant web interface";
       };
 
@@ -178,10 +180,11 @@ in
         http = {
           server_host = cfg.config.bindAddress;
           server_port = cfg.webPort;
+          # Only the proxy: every other entry would let a client that reaches
+          # the port directly choose the address these headers report.
           trusted_proxies = [
             "127.0.0.1"
             "::1"
-            "10.0.0.0/24"
           ];
           use_x_forwarded_for = true;
           ip_ban_enabled = false;
