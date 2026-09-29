@@ -124,8 +124,10 @@ in
 
     systemd.services.prowlarr = {
       preStart = ''
-        echo "Copying Prowlarr configuration XML with secrets..."        
-        cp ${config.sops.templates."prowlarr-config.xml".path} ${cfg.dataDir}/config.xml        
+        echo "Copying Prowlarr configuration XML with secrets..."
+        # cp keeps the source's mode; the SOPS template is read-only, so an explicit
+        # mode is required or Prowlarr can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."prowlarr-config.xml".path} ${cfg.dataDir}/config.xml
         echo "Prowlarr configuration XML with secrets copied successfully"
       '';
     };

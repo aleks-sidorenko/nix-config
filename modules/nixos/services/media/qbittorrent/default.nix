@@ -330,9 +330,10 @@ in
       };
 
       preStart = ''
-        # Copy configuration files with proper ownership
-        cp ${config.sops.templates."qbittorrent.conf".path} ${configDir}/qBittorrent.conf
-        cp ${categoriesJson} ${configDir}/categories.json
+        # cp keeps the source's mode; both sources are read-only, so an explicit
+        # mode is required or qBittorrent can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."qbittorrent.conf".path} ${configDir}/qBittorrent.conf
+        install -m 0644 ${categoriesJson} ${configDir}/categories.json
       '';
 
     };
