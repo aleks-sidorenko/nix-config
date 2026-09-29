@@ -910,9 +910,10 @@ OAuth-issued key to register at all — see
 A macOS host joins once, at the next activation, the same way.
 
 Tags come from the roles a host enables (`server`, `desktop`, `laptop`,
-`agent-host`, `work`) and are advertised by the host itself — do not tag
-devices by hand in the admin console. Tagged devices do not expire, which is
-why an always-on host must carry one. Confirm after joining:
+`agent-host`, `work`) and are set only at this registration — tags are a
+property of *joining*, not of the running config, so no later rebuild can add,
+change, or remove them. Tagged devices do not expire, which is why an
+always-on host must carry one. Confirm after joining:
 
     tailscale status --json | jq -r '.Self.Tags'
 
