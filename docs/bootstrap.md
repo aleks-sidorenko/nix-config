@@ -1008,10 +1008,23 @@ the only thing keeping them off the network — not the app itself:
 - `home-assistant`'s `bindAddress` also feeds the `internal_url` it hands to
   clients, so moving it to loopback needs those two split apart first.
 
+`80`/`443` are opened on the Tailscale interface only, not globally, so the
+web ingress is reachable over the tailnet and from nowhere else. A LAN client
+already needs Tailscale to use these services — their names resolve to tailnet
+addresses — so scoping the ports costs nothing and stops a device on the
+host's own LAN from skipping the tailnet.
+
+Note that this is belt and braces rather than the enforcing layer: `tailscaled`
+inserts `-A ts-input -i tailscale0 -j ACCEPT` ahead of `nixos-fw`, so traffic
+arriving over the tailnet is accepted before the firewall sees it. Anything
+bound to all interfaces — `jellyfin`, `minidlna` — is therefore reachable from
+any tailnet node whatever the port list says. Access *between* tailnet nodes is
+controlled by the Tailscale ACL in `infra/tailnet`, not by the firewall.
+
 A `roles.server` host's firewall is otherwise closed: `system.networking`
 leaves `networking.firewall.enable` at `mkDefault false` (so desktops stay
-open by default), and `roles.server` sets it plainly to `true`. Past
-`22`/`80`/`443`, what stays open is traffic that isn't HTTP or can't go
+open by default), and `roles.server` sets it plainly to `true`. Past `22`,
+what stays open on every interface is traffic that isn't HTTP or can't go
 through a proxy:
 
 | Port(s)     | Proto   | Why                                                                                                   |
