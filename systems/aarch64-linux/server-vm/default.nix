@@ -38,11 +38,6 @@ with lib.${namespace};
     disks.impermanence = enabled;
   };
 
-  # Behind shared vmnet NAT there's no inbound path this enables today; kept
-  # for when the guest runs unNAT'd (e.g. bridged), where it allows direct
-  # (non-DERP-relayed) peer connections in.
-  services.tailscale.openFirewall = true;
-
   # Do not change this value! This tracks when NixOS was installed on your system.
   system.stateVersion = "25.05";
 }
