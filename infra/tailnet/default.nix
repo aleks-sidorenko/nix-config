@@ -46,7 +46,9 @@ let
   # Every host here advertises a tag, and a tagged device is not a member of
   # any autogroup — it has no user to belong to one. So sources have to name
   # the tags; `autogroup:member` alone matches nothing and denies the tailnet
-  # to itself. It stays in the list only for a future untagged device.
+  # to itself. It stays in the list only for a future untagged device, which
+  # is also why the destinations name tags rather than `autogroup:self`:
+  # that one is rejected outright once a tag appears in `src`.
   workstations = deviceTags ++ [ "autogroup:member" ];
 in
 mkTerraformDerivation {
@@ -102,7 +104,7 @@ mkTerraformDerivation {
           {
             action = "accept";
             src = workstations;
-            dst = [ "autogroup:self:*" ] ++ map (tag: "${tag}:*") deviceTags;
+            dst = map (tag: "${tag}:*") deviceTags;
           }
         ];
         ssh = [
