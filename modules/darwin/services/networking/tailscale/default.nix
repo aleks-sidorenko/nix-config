@@ -57,8 +57,12 @@ in
     # `--advertise-tags` (INVALIDARGUMENT) — so there is no activation-time
     # mechanism to apply them to an already-joined node; that needs a manual
     # `tailscale up --advertise-tags=...` re-auth by the operator.
-    system.activationScripts.postActivation.text = concatStrings [
-      (optionalString (cfg.authKeyFile != null) ''
+    # sops-nix installs secrets from this same script, itself at `mkAfter`, so
+    # the join has to order past that: otherwise a first activation — the one
+    # case unattended join exists for — reads a key file that does not exist
+    # yet and fails indistinguishably from a bad key.
+    system.activationScripts.postActivation.text = mkOrder 1600 (
+      optionalString (cfg.authKeyFile != null) ''
         if ! ${tailscaleExe} status >/dev/null 2>&1; then
           printf >&2 'joining tailnet...\n'
           # activationScripts runs under `set -e`; tailscaled starts async via
@@ -80,7 +84,7 @@ in
             }${escapeShellArgs cfg.extraUpFlags} \
             || printf >&2 'tailscale join failed; run `tailscale up` by hand.\n'
         fi
-      '')
-    ];
+      ''
+    );
   };
 }
