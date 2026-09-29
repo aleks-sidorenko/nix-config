@@ -43,8 +43,9 @@ in
     # mkDefault there.
     networking.firewall.enable = true;
 
-    # Direct peer connections instead of DERP-relayed ones. Set here rather
-    # than per host so a server keeps it wherever its hardware lives.
+    # Direct peer connections instead of DERP-relayed ones. A NAT'd guest
+    # gains nothing from it today, but a server that later runs unNAT'd does,
+    # so it is set here rather than per host and follows the role.
     services.tailscale.openFirewall = true;
 
     environment = {
