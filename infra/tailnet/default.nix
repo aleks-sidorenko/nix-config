@@ -25,6 +25,23 @@ let
   tags = unique (concatMap hostTags allHosts);
 
   tagOwners = listToAttrs (map (tag: nameValuePair tag [ "autogroup:admin" ]) tags);
+
+  # A server is reached on the ports it serves and nothing else. This is the
+  # layer that actually constrains tailnet peers: `tailscaled` accepts traffic
+  # on its own interface before the host firewall sees it, so a service bound
+  # to all interfaces is otherwise reachable from any node whatever the
+  # firewall says.
+  serverPorts = [
+    "22" # deploys and administration
+    "80" # nginx, the only web ingress
+    "443" # nginx once TLS lands
+    "25565" # minecraft, which is not HTTP and has its own accounts
+  ];
+
+  # Everything that is not a server is a personal workstation, reachable as
+  # before — the tightening is aimed at the homelab, not at the owner's own
+  # machines.
+  deviceTags = filter (tag: tag != "tag:server") tags;
 in
 mkTerraformDerivation {
   inherit pkgs system;
@@ -65,18 +82,21 @@ mkTerraformDerivation {
       # devices do not expire — infrastructure stops dropping off the tailnet
       # on the node-key schedule.
       #
-      # The policy is deliberately permissive: acls reproduce the default
-      # allow-all so adopting terraform does not change who can reach what.
       # ssh is extended beyond the default: tagged devices belong to neither
       # autogroup, so a rule targeting the tag is needed to keep --ssh working
-      # once a host advertises tags. Tightening either is separate work.
+      # once a host advertises tags.
       resource.tailscale_acl.this.acl = builtins.toJSON {
         inherit tagOwners;
         acls = [
           {
             action = "accept";
-            src = [ "*" ];
-            dst = [ "*:*" ];
+            src = [ "autogroup:member" ];
+            dst = map (port: "tag:server:${port}") serverPorts;
+          }
+          {
+            action = "accept";
+            src = [ "autogroup:member" ];
+            dst = [ "autogroup:self:*" ] ++ map (tag: "${tag}:*") deviceTags;
           }
         ];
         ssh = [
