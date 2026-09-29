@@ -12,7 +12,6 @@ let
   configDir = "${cfg.dataDir}/.config/qBittorrent";
   logsDir = "${cfg.dataDir}/.local/share/qBittorrent/logs";
   userName = lib.${namespace}.userName config;
-  inherit (defaults.network) subnet;
 
   # Default categories for qBittorrent with subcategories
   defaultCategories = [
@@ -158,12 +157,6 @@ in
       description = "Username for qBittorrent web interface authentication";
     };
 
-    password = mkOption {
-      type = types.str;
-      readOnly = true;
-      description = "Password for qBittorrent web interface authentication";
-    };
-
     queueingEnabled = mkOpt types.bool false "Enable queueing system";
   };
 
@@ -183,12 +176,12 @@ in
             qbittorrent = {
               serverName = hosts.service "qbittorrent";
               port = cfg.webPort;
+              requiresProxyAuth = true;
             };
           };
         };
         media.qbittorrent = {
           inherit userName;
-          password = ""; # we allow local clients to connect without a password
         };
 
       };
@@ -244,10 +237,12 @@ in
         General\Locale=en
         MailNotification\req_auth=true
         WebUI\Address=127.0.0.1
-        WebUI\AuthSubnetWhitelist=@Invalid()
-        WebUI\AuthSubnetWhitelist=${subnet}
-        WebUI\AuthSubnetWhitelistEnabled=true
+        # Authentication belongs to the proxy (see requiresProxyAuth on the
+        # vhost), so loopback — where every proxied request comes from — is
+        # exempt, and so are the on-host clients that drive the API. The cost
+        # is that this app's own logs and bans see the proxy, not the peer.
         WebUI\LocalHostAuth=false
+        WebUI\AuthSubnetWhitelistEnabled=false
         WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
         WebUI\Username=${userName}
         Connection\PortRangeMin=${toString cfg.torrentPort}
