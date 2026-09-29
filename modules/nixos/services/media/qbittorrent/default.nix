@@ -243,6 +243,7 @@ in
         [Preferences]
         General\Locale=en
         MailNotification\req_auth=true
+        WebUI\Address=127.0.0.1
         WebUI\AuthSubnetWhitelist=@Invalid()
         WebUI\AuthSubnetWhitelist=${subnet}
         WebUI\AuthSubnetWhitelistEnabled=true
