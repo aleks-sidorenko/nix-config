@@ -54,6 +54,13 @@ in
           minidlna = {
             serverName = hosts.service "minidlna";
             port = cfg.webPort;
+            # No login of its own, and the DLNA clients that need it
+            # unauthenticated reach this port directly rather than through the
+            # vhost, so guarding the vhost costs them nothing.
+            requiresProxyAuth = true;
+            # Its embedded HTTP server answers 400 to the Upgrade/Connection
+            # headers the proxy adds by default.
+            proxyWebsockets = false;
           };
         };
       };
