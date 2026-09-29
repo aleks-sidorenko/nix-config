@@ -993,16 +993,25 @@ instead of falling through to whichever vhost nginx happened to sort first.
 Apps bind loopback wherever their module exposes the option, so the proxy is
 the only path in even from the LAN: `sonarr`, `radarr`, `prowlarr`
 (`bindAddress`, default `127.0.0.1`), qBittorrent's WebUI
-(`WebUI\Address=127.0.0.1`), and `calibre` (`services.calibre-web.listen.ip`).
-`jellyfin` and `minidlna` have no bind-address option upstream — only
-`openFirewall` — so they keep listening on every interface; the firewall is
-the only thing keeping them off the network, not the app itself.
+(`WebUI\Address=127.0.0.1`), `calibre` (`services.calibre-web.listen.ip`), and
+`restic-server` (`listenAddress`, which matters more than most since it runs
+with `--no-auth`).
+
+Three services still listen on every interface, and for them the firewall is
+the only thing keeping them off the network — not the app itself:
+
+- `jellyfin` has no bind-address option upstream at all, only `openFirewall`.
+- `minidlna` could be bound (`settings` is freeform and minidlna.conf takes
+  `listening_ip`), but deliberately isn't: DLNA clients fetch from the host's
+  own address, so binding loopback would break them.
+- `home-assistant`'s `bindAddress` also feeds the `internal_url` it hands to
+  clients, so moving it to loopback needs those two split apart first.
 
 A `roles.server` host's firewall is otherwise closed: `system.networking`
 leaves `networking.firewall.enable` at `mkDefault false` (so desktops stay
 open by default), and `roles.server` sets it plainly to `true`. Past
 `22`/`80`/`443`, what stays open is traffic that isn't HTTP or can't go
-through a proxy, each opened by its own service module:
+through a proxy:
 
 | Port(s)     | Proto   | Why                                                                                                   |
 | ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
@@ -1010,7 +1019,7 @@ through a proxy, each opened by its own service module:
 | 1900        | UDP     | minidlna: SSDP discovery — minidlna never listens for it on TCP                                       |
 | 17348       | TCP+UDP | qbittorrent: inbound peer connections don't go through a proxy; closing it would silently degrade torrenting to passive-only |
 | 25565       | TCP+UDP | minecraft-server: not HTTP                                                                            |
-| 41641       | UDP     | tailscale: direct (non-DERP) peer connections                                                        |
+| 41641       | UDP     | tailscale: direct (non-DERP) peer connections — opened by `roles.server`, not by a service module     |
 
 These are the deliberate exceptions to "nginx is the only ingress," not
 oversights — everything else a server used to open per-service is gone.

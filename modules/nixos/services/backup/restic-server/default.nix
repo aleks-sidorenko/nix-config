@@ -28,8 +28,10 @@ in
 
     webPort = mkOpt types.port defaults.network.ports.restic.web "Port to listen on";
 
+    # Runs with --no-auth, so the only thing gating write access to the
+    # repository is where it listens: loopback, reached through nginx.
     listenAddress =
-      mkOpt types.str "0.0.0.0:${toString cfg.webPort}"
+      mkOpt types.str "127.0.0.1:${toString cfg.webPort}"
         "Address and port to listen on for the web interface";
 
     appendOnly = mkBoolOpt false "Enable append-only mode (prevents deletion of data)";

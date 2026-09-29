@@ -43,6 +43,10 @@ in
     # mkDefault there.
     networking.firewall.enable = true;
 
+    # Direct peer connections instead of DERP-relayed ones. Set here rather
+    # than per host so a server keeps it wherever its hardware lives.
+    services.tailscale.openFirewall = true;
+
     environment = {
       systemPackages = [
         pkgs.nfs-utils
