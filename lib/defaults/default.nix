@@ -138,7 +138,7 @@ _: rec {
           ip = "10.0.0.61";
           mac = "F4:6D:04:25:80:5F";
           comment = "Desktop";
-          dns = true;
+          dns = false;
           aliases = [ ];
         };
         workbook = {
@@ -152,7 +152,7 @@ _: rec {
           ip = "10.0.0.63";
           mac = "68:EC:C5:C2:36:1B";
           comment = "Ruslana, Dima, Windows";
-          dns = true;
+          dns = false;
           aliases = [ ];
         };
         server-vm = {
