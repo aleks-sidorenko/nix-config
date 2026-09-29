@@ -299,6 +299,16 @@ IaC configurations in `infra/`:
   - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just router-*` commands
+- `dns/` - The `sidorenko.me` Cloudflare zone, managed via terranix/OpenTofu
+  - `default.nix` - a handful of pre-existing records adopted via `terraform import` (mail, GitHub Pages, `www`), plus one A record per name in `${namespace}.system.networking.names` across all hosts, pointed at that host's tailnet address; a build-time assertion fails the derivation if two hosts claim the same name
+  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token, Tailscale OAuth client, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just dns-*` commands
+- `tailnet/` - Tailscale ACL/tag policy managed via terranix/OpenTofu
+  - `default.nix` - `tagOwners` derived from every host's advertised tags, so the policy can't drift from what hosts actually enable
+  - `secrets.yaml` - SOPS-encrypted secrets (Tailscale OAuth client, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just tailnet-*` commands
 
 ## Development Workflow
 

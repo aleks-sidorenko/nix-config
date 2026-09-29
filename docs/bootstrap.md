@@ -953,7 +953,7 @@ Three namespaces, each with one owner:
 | --- | --- | --- | --- |
 | machine | `server-vm` | Tailscale MagicDNS | anywhere |
 | LAN | `server.lan` | MikroTik DNS, from the registry | LAN only |
-| service | `jellyfin.lan` today | MikroTik DNS, unmanaged leftover (`server.aliases` was emptied) | LAN only |
+| service | `jellyfin.home.sidorenko.me` | Cloudflare, from `infra/dns` | anywhere |
 
 `/etc/hosts` carries no host entries on any platform. Bare names resolve
 through MagicDNS; the search list falls back to the router's `lan` zone, which
@@ -963,6 +963,22 @@ than resolving to an address with no route — that honest failure is the point.
 The registry in `lib/defaults.network.hosts` is the single source of DHCP
 reservations and `lan` records. It reaches hosts only through the router, so
 changing it takes effect on `just router-apply`, not on a rebuild.
+
+Service names are not registered anywhere — they're derived from
+`${namespace}.system.networking.names`, a list option each service module
+contributes to inside its own `mkIf cfg.enable` (nginx contributes every
+vhost's `serverName`; a non-HTTP service like `minecraft-server` declares its
+own). `infra/dns` reads that list across every host and writes one A record
+per name, pointed at that host's tailnet address, so enabling a service needs
+no DNS edit — only `just dns-apply`. Disabling one is the mirror image with a
+lag: rebuilding takes the service offline immediately, but its record only
+disappears on the next `dns-apply`. A record that still resolves for a
+service that's already down is that lag, not a bug in the derivation.
+
+The one exception is `home-assistant/inverter`, which names a physical
+device rather than a service and stays on `hosts.lan`. The rule for any
+future call site: if the name would appear in `system.networking.names`, use
+`hosts.service`; otherwise `hosts.lan`.
 
 ---
 
