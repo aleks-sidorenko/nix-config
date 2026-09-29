@@ -51,16 +51,12 @@ in
     services.tailscale.enable = true;
 
     # nix-darwin's module runs tailscaled but never joins; the daemon has no
-    # equivalent of the NixOS autoconnect unit. Two independent contributions
-    # (concatenated, since `text` is `types.lines`):
-    #  - join once, at activation, only when a key is supplied and the node
-    #    is not already up.
-    #  - advertise tags on every activation, regardless of how the host
-    #    joined: the join block above only fires when authKeyFile is set, so
-    #    hosts that joined interactively (the normal case here) would never
-    #    render it, and changing tags via `tailscale up` forces re-auth on a
-    #    live session anyway. `tailscale set` mutates an already-running node
-    #    without either problem.
+    # equivalent of the NixOS autoconnect unit, so activation joins once,
+    # at activation, only when a key is supplied and the node is not already
+    # up. Tags are a registration-time property — `tailscale set` has no
+    # `--advertise-tags` (INVALIDARGUMENT) — so there is no activation-time
+    # mechanism to apply them to an already-joined node; that needs a manual
+    # `tailscale up --advertise-tags=...` re-auth by the operator.
     system.activationScripts.postActivation.text = concatStrings [
       (optionalString (cfg.authKeyFile != null) ''
         if ! ${tailscaleExe} status >/dev/null 2>&1; then
@@ -75,21 +71,14 @@ in
           # `?preauthorized=true` appended to the VALUE instead. An
           # OAuth-issued key requires it to register at all; a plain,
           # already-approved key ignores it. Tags must also ride along here:
-          # OAuth registration needs them at `up` time, not via a later `set`.
+          # OAuth registration needs them at `up` time, and this is the only
+          # point they can ever be applied.
           ${tailscaleExe} up \
             --auth-key "$(cat ${cfg.authKeyFile})?preauthorized=true" \
             ${
               optionalString (cfg.tags != [ ]) "--advertise-tags=${concatStringsSep "," cfg.tags} "
             }${escapeShellArgs cfg.extraUpFlags} \
             || printf >&2 'tailscale join failed; run `tailscale up` by hand.\n'
-        fi
-      '')
-      (optionalString (cfg.tags != [ ]) ''
-        # Only act on an already-up node: before the first join (or while
-        # tailscaled is still starting) this is a silent no-op, not an error.
-        if ${tailscaleExe} status >/dev/null 2>&1; then
-          ${tailscaleExe} set --advertise-tags=${concatStringsSep "," cfg.tags} \
-            || printf >&2 'tailscale set --advertise-tags failed; run by hand.\n'
         fi
       '')
     ];
