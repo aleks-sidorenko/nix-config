@@ -27,14 +27,15 @@ let
   tagOwners = listToAttrs (map (tag: nameValuePair tag [ "autogroup:admin" ]) tags);
 
   # A server is reached on the ports it serves and nothing else. This is the
-  # layer that actually constrains tailnet peers: `tailscaled` accepts traffic
-  # on its own interface before the host firewall sees it, so a service bound
-  # to all interfaces is otherwise reachable from any node whatever the
-  # firewall says.
+  # layer that actually constrains tailnet peers: `tailscaled` inserts
+  # `-A ts-input -i tailscale0 -j ACCEPT` into INPUT ahead of the host
+  # firewall's own chain, so a service bound to all interfaces is reachable
+  # from any node whatever the firewall says.
   serverPorts = [
     "22" # deploys and administration
     "80" # nginx, the only web ingress
-    "443" # nginx once TLS lands
+    # 443 is withheld until a vhost terminates TLS: granted but unserved, it
+    # hangs a client that upgraded the scheme where a denied port fails at once.
     "25565" # minecraft, which is not HTTP and has its own accounts
   ];
 
