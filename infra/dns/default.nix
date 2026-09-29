@@ -70,10 +70,9 @@ let
   # Checked against every declared (host, name) pair, before the tailnet
   # filter below drops hosts that haven't joined yet: two hosts declaring the
   # same name doesn't error at the DNS layer, it round-robins — each request
-  # lands on a different host with different state, silently. `server` and
-  # `server-vm` declare the same eight names right now; only one is joined,
-  # so the collision is latent, not hypothetical, and must fail here rather
-  # than wait for both to be reachable at once.
+  # lands on a different host with different state, silently. The stand-in
+  # arrangement makes that one role toggle away, so it has to fail here
+  # rather than wait for both hosts to be reachable at once.
   duplicateClaims = filterAttrs (_: hosts: length (unique hosts) > 1) (
     mapAttrs (_: rs: map (r: r.hostname) rs) (groupBy (r: r.name) serviceRecords)
   );
@@ -154,11 +153,10 @@ else
           tailnet = defaults.network.domains.tailnet;
         };
 
-        # One call listing every device, not one lookup per host: a host that
-        # contributes names but hasn't joined the tailnet yet (real hardware
-        # declared in config, not yet deployed) would make a per-host lookup
-        # fail the whole plan. Listing lets service_records_by_device below
-        # just drop what isn't there.
+        # One call listing every device, not one lookup per host: per-host
+        # lookups would fail the plan on the provider's terms, with no say in
+        # which absences are tolerable. Listing puts that decision in the
+        # preconditions below.
         data.tailscale_devices.all = { };
 
         locals = {
@@ -173,23 +171,45 @@ else
           # vm-install server-vm`) leaves two devices sharing one hostname,
           # which a plain `for` map would fail on ("Duplicate object key").
           # The trailing `...` groups same-key entries into a list instead of
-          # erroring; tailnet_addresses below then picks a stable member.
+          # erroring, so the guard below can name the offending hostname.
           #
           # d.addresses lists both an IPv4 (100.x) and IPv6 (fd7a:...)
           # address; addresses[0] happening to be IPv4 is not guaranteed, so
           # filter for it explicitly rather than relying on ordering.
           tailnet_device_addresses = "\${ { for d in data.tailscale_devices.all.devices : d.hostname => [for a in d.addresses : a if length(regexall(\"^[0-9.]+$\", a)) > 0][0]... } }";
 
-          # First entry of the group is an arbitrary pick, but a fixed rule
-          # rather than e.g. `element(addrs, length(addrs) - 1)` or anything
-          # keyed on device id — so records land on the same address every
-          # plan instead of flapping while a stale node lingers undeleted.
+          # Safe only because the guard below refuses to plan while any group
+          # holds more than one device: picking a winner among them is picking
+          # between a live node and a corpse, and the API orders neither.
           tailnet_addresses = "\${ { for hostname, addrs in local.tailnet_device_addresses : hostname => addrs[0] } }";
 
+          ambiguous_hostnames = "\${ [for hostname, addrs in local.tailnet_device_addresses : hostname if length(addrs) > 1] }";
+
+          # A declared name whose host is absent from the tailnet yields no
+          # resource instance, which reads as "destroy the record" rather than
+          # "could not determine it".
+          unresolved_hosts = "\${ distinct([for r in local.service_records : r.hostname if !contains(keys(local.tailnet_addresses), r.hostname)]) }";
+
           # Content below indexes this rather than a literal, so a rejoin that
-          # changes the tailnet IP can't rot; hosts absent from it are dropped.
+          # changes the tailnet IP can't rot. The filter is retained only so a
+          # missing host yields no instance rather than an index error; the
+          # precondition is what stops the plan from getting that far.
           service_records_by_device = "\${ { for r in local.service_records : \"\${r.hostname}:\${r.name}\" => r if contains(keys(local.tailnet_addresses), r.hostname) } }";
         };
+
+        # Preconditions ride a resource of their own: on `svc` they would go
+        # unevaluated in exactly the case that needs catching, when for_each
+        # resolves to nothing and every record is queued for destruction.
+        resource.terraform_data.guard.lifecycle.precondition = [
+          {
+            condition = "\${length(local.ambiguous_hostnames) == 0}";
+            error_message = "tailnet hostname claimed by more than one device (delete the stale node): \${join(\", \", local.ambiguous_hostnames)}";
+          }
+          {
+            condition = "\${length(local.unresolved_hosts) == 0}";
+            error_message = "host declares service names but is not on the tailnet (join it, or disable the services): \${join(\", \", local.unresolved_hosts)}";
+          }
+        ];
 
         # GitHub Pages apex: only 185.199.109.153 is live today; the other three
         # of GitHub's four are declared now so the zone matches GitHub's docs,
