@@ -122,7 +122,8 @@ in
       inherit (cfg) user;
       inherit (cfg) group;
       settings.server.port = cfg.webPort;
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
       inherit (cfg) dataDir;
     };
 

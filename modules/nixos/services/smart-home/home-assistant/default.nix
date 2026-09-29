@@ -206,7 +206,8 @@ in
           gtts
         ];
 
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
     };
 
     # Ensure data directory exists with correct permissions

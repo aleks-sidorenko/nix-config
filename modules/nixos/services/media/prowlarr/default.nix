@@ -119,7 +119,8 @@ in
       inherit (cfg) enable;
       inherit (cfg) package;
       settings.server.port = cfg.webPort;
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
       # TODO: enable once https://github.com/NixOS/nixpkgs/issues/445983 is fixed
       # dataDir = cfg.dataDir;
     };

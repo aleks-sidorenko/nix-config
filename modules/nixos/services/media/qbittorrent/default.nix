@@ -341,8 +341,9 @@ in
 
     # Open firewall ports
     networking.firewall = {
+      # Web UI is reached through nginx (loopback); the peer port stays open
+      # since inbound torrent connections don't go through the proxy.
       allowedTCPPorts = [
-        cfg.webPort # Web UI
         cfg.torrentPort # BitTorrent protocol
       ];
       allowedUDPPorts = [
