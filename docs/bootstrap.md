@@ -993,11 +993,11 @@ instead of falling through to whichever vhost nginx happened to sort first.
 Apps bind loopback wherever their module exposes the option, so the proxy is
 the only path in even from the LAN: `sonarr`, `radarr`, `prowlarr`
 (`bindAddress`, default `127.0.0.1`), qBittorrent's WebUI
-(`WebUI\Address=127.0.0.1`), `calibre` (`services.calibre-web.listen.ip`), and
-`restic-server` (`listenAddress`, which matters more than most since it runs
-with `--no-auth`).
+(`WebUI\Address=127.0.0.1`), `calibre` (`services.calibre-web.listen.ip`),
+`home-assistant` and `zigbee2mqtt` (`bindAddress` / `frontend.host`), and
+`restic-server` (`listenAddress`).
 
-Three services still listen on every interface, and for them the firewall is
+Two services still listen on every interface, and for them the firewall is
 the only thing keeping them off the network — not the app itself:
 
 - `jellyfin` has no bind-address option upstream at all, only `openFirewall`.
@@ -1005,21 +1005,56 @@ the only thing keeping them off the network — not the app itself:
   address, so loopback would break them. minidlna can be pinned to one
   interface (`network_interface`) but not to an address, so there is no
   binding that keeps DLNA working and also hides it.
-- `home-assistant`'s `bindAddress` also feeds the `internal_url` it hands to
-  clients, so moving it to loopback needs those two split apart first.
 
-`80`/`443` are opened on the Tailscale interface only, not globally, so the
-web ingress is reachable over the tailnet and from nowhere else. A LAN client
-already needs Tailscale to use these services — their names resolve to tailnet
-addresses — so scoping the ports costs nothing and stops a device on the
-host's own LAN from skipping the tailnet.
+### Authentication at the edge
 
-Note that this is belt and braces rather than the enforcing layer: `tailscaled`
-inserts `-A ts-input -i tailscale0 -j ACCEPT` ahead of `nixos-fw`, so traffic
-arriving over the tailnet is accepted before the firewall sees it. Anything
-bound to all interfaces — `jellyfin`, `minidlna` — is therefore reachable from
-any tailnet node whatever the port list says. Access *between* tailnet nodes is
-controlled by the Tailscale ACL in `infra/tailnet`, not by the firewall.
+Loopback binding decides *who can reach* a service, not *who may use it*, and
+the two came apart when the proxy became the only client: an app that exempts
+local addresses from authentication exempts everyone once every request
+arrives from `127.0.0.1`. So a vhost whose backend delegates authentication to
+the proxy sets `requiresProxyAuth`, and nginx withholds it entirely until
+`authFile` names an htpasswd file — publishing it unauthenticated is not one
+of the options. A withheld vhost contributes no name to
+`system.networking.names`, so no DNS record outlives the service it pointed
+at.
+
+One gate, at the edge, for everything whose own login is vestigial or absent:
+
+- `sonarr`, `radarr`, `prowlarr` — `AuthenticationMethod=External` means they
+  authenticate nobody, and they serve their API key at `/initialize.json`.
+- `zigbee2mqtt` — its frontend has no login unless an auth token is set.
+- `qbittorrent` — one shared account, and `LocalHostAuth=false` deliberately
+  exempts loopback so the on-host clients that drive its API need no
+  credentials. The cost is that its own logs and bans see the proxy.
+- `minidlna` — no login at all. DLNA clients want it that way but reach port
+  8200 directly, so guarding the vhost costs them nothing.
+
+`jellyfin`, `calibre` and `home-assistant` keep their own authentication
+instead: they have real user accounts, and their TV and phone clients cannot
+answer a basic-auth challenge. Stacking a second prompt in front of them would
+break the clients without adding a boundary the app doesn't already draw.
+
+Set the file with `services.networking.nginx.authFromSecret = true`, which
+points `authFile` at the SOPS secret `service-ingress-htpasswd`. It is opt-in
+for the same reason the tailnet auth key is: sops-nix fails activation on a
+secret that isn't in `modules/nixos/secrets.yaml` yet.
+
+`restic-server` is the same shape and handles it itself: it runs with
+`--no-auth` until `htpasswdFile` is set, and its vhost is withheld until then,
+because a proxied `--no-auth` REST server is write and delete access to the
+whole backup repository for every tailnet peer.
+
+`80` is opened on the Tailscale interface only, not globally. 443 stays closed
+and ungranted until a vhost terminates TLS — an open port with nothing behind
+it hangs a client that upgraded the scheme, where a closed one fails at once.
+
+Note that the firewall is belt and braces rather than the enforcing layer:
+`tailscaled` inserts `-A ts-input -i tailscale0 -j ACCEPT` ahead of `nixos-fw`,
+so traffic arriving over the tailnet is accepted before the firewall sees it.
+Anything bound to all interfaces — `jellyfin`, `minidlna` — is therefore
+reachable from any tailnet node whatever the port list says. Access *between*
+tailnet nodes is controlled by the Tailscale ACL in `infra/tailnet`, not by the
+firewall, which is also why a port is withheld there and not only here.
 
 A `roles.server` host's firewall is otherwise closed: `system.networking`
 leaves `networking.firewall.enable` at `mkDefault false` (so desktops stay
