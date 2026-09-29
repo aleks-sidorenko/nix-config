@@ -57,22 +57,32 @@ in
         proxy_headers_hash_bucket_size 128;
       '';
 
-      virtualHosts = mapAttrs (_name: vhost: {
-        inherit (vhost) serverName;
-        extraConfig = ''
-          client_max_body_size ${vhost.clientMaxBodySize};
-        '';
-        locations = vhost.locations // {
-          "/" = {
-            proxyPass = "http://127.0.0.1:${toString vhost.port}";
-            recommendedProxySettings = true;
-            proxyWebsockets = true;
-            extraConfig = ''
-              proxy_buffering off;
-            '';
+      virtualHosts =
+        mapAttrs (_name: vhost: {
+          inherit (vhost) serverName;
+          extraConfig = ''
+            client_max_body_size ${vhost.clientMaxBodySize};
+          '';
+          locations = vhost.locations // {
+            "/" = {
+              proxyPass = "http://127.0.0.1:${toString vhost.port}";
+              recommendedProxySettings = true;
+              proxyWebsockets = true;
+              extraConfig = ''
+                proxy_buffering off;
+              '';
+            };
+          };
+        }) cfg.virtualHosts
+        // {
+          # An unmatched Host would otherwise fall through to whichever vhost
+          # nginx defines first, silently serving the wrong service. 444 closes
+          # the connection without a response, so a stale name fails visibly.
+          "_" = {
+            default = true;
+            extraConfig = "return 444;";
           };
         };
-      }) cfg.virtualHosts;
     };
 
     # Open HTTP/HTTPS ports
