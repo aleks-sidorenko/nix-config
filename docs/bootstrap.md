@@ -1001,9 +1001,10 @@ Three services still listen on every interface, and for them the firewall is
 the only thing keeping them off the network — not the app itself:
 
 - `jellyfin` has no bind-address option upstream at all, only `openFirewall`.
-- `minidlna` could be bound (`settings` is freeform and minidlna.conf takes
-  `listening_ip`), but deliberately isn't: DLNA clients fetch from the host's
-  own address, so binding loopback would break them.
+- `minidlna` deliberately isn't bound: DLNA clients fetch from the host's own
+  address, so loopback would break them. minidlna can be pinned to one
+  interface (`network_interface`) but not to an address, so there is no
+  binding that keeps DLNA working and also hides it.
 - `home-assistant`'s `bindAddress` also feeds the `internal_url` it hands to
   clients, so moving it to loopback needs those two split apart first.
 
