@@ -34,6 +34,12 @@ with lib.${namespace};
 
     hardware.raspberry-pi-4 = enabled;
 
+    # `home-server` used to carry `tag:server` via `roles.server`; dropping
+    # the role also dropped the tag, and an OAuth-secret registration is
+    # rejected with no tags. Set it directly so this host keeps joining the
+    # tailnet unattended and still matches `tag:server` ACL rules, without
+    # claiming the service names `home-server` would.
+    services.networking.tailscale.tags = [ "tag:server" ];
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.

@@ -36,6 +36,12 @@ let
     }
     // optionalAttrs (priority != null) { inherit priority; };
 
+  # These records were adopted from a live zone (see the `import` block
+  # below): a Nix-side rename or a merge slip destroying them has no undo,
+  # unlike a plan that merely fails. Removing one of these for real means
+  # deleting this wrapper first — that friction is the point.
+  protected = r: r // { lifecycle.prevent_destroy = true; };
+
   # Same traversal as infra/tailnet: every host's config must evaluate to plan
   # this zone, so one host failing to evaluate breaks planning for all of it.
   # Accepted trade for names that come from what's enabled, not a maintained list.
@@ -71,11 +77,30 @@ let
   duplicateClaims = filterAttrs (_: hosts: length (unique hosts) > 1) (
     mapAttrs (_: rs: map (r: r.hostname) rs) (groupBy (r: r.name) serviceRecords)
   );
+
+  # Same shape of bug, one host over: a name declared twice on ONE host slips
+  # past duplicateClaims (only one hostname per group, so `unique` collapses
+  # it) and reaches Terraform as two identical service_records entries, which
+  # fails at plan time with the same "duplicate key" error but no clue which
+  # host caused it. Catch it here, at the source.
+  duplicateName = name: names: length (filter (n: n == name) names) > 1;
+  intraHostDuplicates = filter (h: h.duplicates != [ ]) (
+    map (h: {
+      inherit (h) hostname;
+      duplicates = unique (filter (n: duplicateName n h.names) h.names);
+    }) contributingHosts
+  );
 in
 if duplicateClaims != { } then
   throw "infra/dns: service name(s) claimed by more than one host: ${
     concatStringsSep ", " (
       mapAttrsToList (name: hosts: "${name} (${concatStringsSep ", " (unique hosts)})") duplicateClaims
+    )
+  }"
+else if intraHostDuplicates != [ ] then
+  throw "infra/dns: host declares the same service name twice: ${
+    concatStringsSep ", " (
+      map (h: "${h.hostname} (${concatStringsSep ", " h.duplicates})") intraHostDuplicates
     )
   }"
 else
@@ -143,7 +168,23 @@ else
             inherit (r) hostname name;
           }) serviceRecords;
 
-          tailnet_addresses = "\${ { for d in data.tailscale_devices.all.devices : d.hostname => d.addresses[0] } }";
+          # Tailscale hostnames are machine-reported, not unique: a guest
+          # reinstalled without deregistering the old node (e.g. `just
+          # vm-install server-vm`) leaves two devices sharing one hostname,
+          # which a plain `for` map would fail on ("Duplicate object key").
+          # The trailing `...` groups same-key entries into a list instead of
+          # erroring; tailnet_addresses below then picks a stable member.
+          #
+          # d.addresses lists both an IPv4 (100.x) and IPv6 (fd7a:...)
+          # address; addresses[0] happening to be IPv4 is not guaranteed, so
+          # filter for it explicitly rather than relying on ordering.
+          tailnet_device_addresses = "\${ { for d in data.tailscale_devices.all.devices : d.hostname => [for a in d.addresses : a if length(regexall(\"^[0-9.]+$\", a)) > 0][0]... } }";
+
+          # First entry of the group is an arbitrary pick, but a fixed rule
+          # rather than e.g. `element(addrs, length(addrs) - 1)` or anything
+          # keyed on device id — so records land on the same address every
+          # plan instead of flapping while a stale node lingers undeleted.
+          tailnet_addresses = "\${ { for hostname, addrs in local.tailnet_device_addresses : hostname => addrs[0] } }";
 
           # Content below indexes this rather than a literal, so a rejoin that
           # changes the tailnet IP can't rot; hosts absent from it are dropped.
@@ -178,30 +219,30 @@ else
             content = "185.199.111.153";
             proxied = true;
           };
-          www = record {
+          www = protected (record {
             name = "www.sidorenko.me";
             type = "CNAME";
             content = "aleks-sidorenko.github.io";
             proxied = true;
-          };
+          });
           # Same name and priority; only content tells the two mailservers apart.
-          mx_1 = record {
+          mx_1 = protected (record {
             name = "sidorenko.me";
             type = "MX";
             content = "mx1.forwardemail.net";
             priority = 10;
-          };
-          mx_2 = record {
+          });
+          mx_2 = protected (record {
             name = "sidorenko.me";
             type = "MX";
             content = "mx2.forwardemail.net";
             priority = 10;
-          };
-          txt_forward_email = record {
+          });
+          txt_forward_email = protected (record {
             name = "sidorenko.me";
             type = "TXT";
             content = ''"forward-email=aleks.sidorenko@gmail.com"'';
-          };
+          });
         }
         // {
           # A single for_each resource, not one per (host, name): each.key
