@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  inputs,
   system,
   namespace,
   ...
@@ -34,6 +35,31 @@ let
         ;
     }
     // optionalAttrs (priority != null) { inherit priority; };
+
+  # Same traversal as infra/tailnet: every host's config must evaluate to plan
+  # this zone, so one host failing to evaluate breaks planning for all of it.
+  # Accepted trade for names that come from what's enabled, not a maintained list.
+  hostNames = host: host.config.${namespace}.system.networking.names or [ ];
+
+  contributingHosts = filter (h: h.names != [ ]) (
+    mapAttrsToList (_: host: {
+      hostname = host.config.networking.hostName;
+      names = hostNames host;
+    }) (inputs.self.nixosConfigurations or { })
+  );
+
+  # One record per (host, name) pair. Config declares more hosts than are
+  # currently on the tailnet (e.g. `server` is real hardware not yet
+  # deployed, standing behind its `server-vm` stand-in) — pairing host with
+  # name, rather than name alone, is what keeps two such hosts from
+  # colliding if they ever advertise the same service name.
+  serviceRecords = concatMap (
+    h:
+    map (name: {
+      inherit (h) hostname;
+      inherit name;
+    }) h.names
+  ) contributingHosts;
 in
 mkTerraformDerivation {
   inherit pkgs system;
@@ -43,16 +69,20 @@ mkTerraformDerivation {
   secrets = {
     TF_VAR_cloudflare_api_token = "cloudflare-api-token";
     TF_VAR_state_passphrase = "state-passphrase";
-    # Unused here — mapped now so the later task adding derived records
-    # needs no secrets-plumbing change.
     TF_VAR_tailscale_oauth_client_id = "tailscale-oauth-client-id";
     TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
   };
   modules = [
     {
-      terraform.required_providers.cloudflare = {
-        source = "cloudflare/cloudflare";
-        version = "~> 5.20";
+      terraform.required_providers = {
+        cloudflare = {
+          source = "cloudflare/cloudflare";
+          version = "~> 5.20";
+        };
+        tailscale = {
+          source = "tailscale/tailscale";
+          version = "~> 0.17";
+        };
       };
 
       variable = {
@@ -64,10 +94,42 @@ mkTerraformDerivation {
           type = "string";
           sensitive = true;
         };
+        tailscale_oauth_client_id.type = "string";
+        tailscale_oauth_client_secret = {
+          type = "string";
+          sensitive = true;
+        };
       };
 
       provider.cloudflare = {
         api_token = "\${var.cloudflare_api_token}";
+      };
+
+      provider.tailscale = {
+        oauth_client_id = "\${var.tailscale_oauth_client_id}";
+        oauth_client_secret = "\${var.tailscale_oauth_client_secret}";
+        tailnet = defaults.network.domains.tailnet;
+      };
+
+      # One call listing every device, not one lookup per host: a host that
+      # contributes names but hasn't joined the tailnet yet (real hardware
+      # declared in config, not yet deployed) would make a per-host lookup
+      # fail the whole plan. Listing lets service_records_by_device below
+      # just drop what isn't there.
+      data.tailscale_devices.all = { };
+
+      locals = {
+        # Nix already knows every (host, name) pair the config wants; only
+        # which hosts are actually reachable is unknown until plan time.
+        service_records = map (r: {
+          inherit (r) hostname name;
+        }) serviceRecords;
+
+        tailnet_addresses = "\${ { for d in data.tailscale_devices.all.devices : d.hostname => d.addresses[0] } }";
+
+        # Content below indexes this rather than a literal, so a rejoin that
+        # changes the tailnet IP can't rot; hosts absent from it are dropped.
+        service_records_by_device = "\${ { for r in local.service_records : \"\${r.hostname}:\${r.name}\" => r if contains(keys(local.tailnet_addresses), r.hostname) } }";
       };
 
       # GitHub Pages apex: only 185.199.109.153 is live today; the other three
@@ -122,6 +184,24 @@ mkTerraformDerivation {
           type = "TXT";
           content = ''"forward-email=aleks.sidorenko@gmail.com"'';
         };
+      }
+      // {
+        # A single for_each resource, not one per (host, name): each.key
+        # already carries host and name, so instances can't collide, and a
+        # host dropped by service_records_by_device just yields no instance
+        # instead of failing the plan.
+        svc =
+          record {
+            name = "\${each.value.name}";
+            type = "A";
+            content = "\${local.tailnet_addresses[each.value.hostname]}";
+            # Cloudflare's edge can't route to tailnet (CGNAT) space; every
+            # other record in this zone is proxied, but these can't be.
+            proxied = false;
+          }
+          // {
+            for_each = "\${local.service_records_by_device}";
+          };
       };
 
       # cloudflare_dns_record's import id is "<zone_id>/<record_id>", not the
