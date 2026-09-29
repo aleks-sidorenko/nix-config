@@ -75,16 +75,13 @@ in
       };
     };
 
-    # Open firewall ports
-    networking.firewall = {
-      allowedTCPPorts = [
-        cfg.webPort # Web interface
-        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
-      ];
-      allowedUDPPorts = [
-        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
-      ];
-    };
+    # Web UI is reached through nginx (loopback); minidlna has no bind-address
+    # option, so the firewall is what keeps it off the network directly.
+    # SSDP discovery is UDP-only (minidlna never listens for it on TCP), so
+    # only the UDP port stays open.
+    networking.firewall.allowedUDPPorts = [
+      cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
+    ];
 
     users.users.${cfg.user} = {
       group = mkForce cfg.group;

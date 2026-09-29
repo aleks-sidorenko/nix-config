@@ -115,8 +115,7 @@ in
       };
     };
 
-    # Open firewall port if needed
-    networking.firewall.allowedTCPPorts = [ cfg.webPort ];
+    # nginx is the ingress; opening the port here would let clients bypass it.
 
     ${namespace}.services.networking.nginx = {
       virtualHosts.restic-server = {
