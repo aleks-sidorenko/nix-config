@@ -42,6 +42,12 @@ let
   # before — the tightening is aimed at the homelab, not at the owner's own
   # machines.
   deviceTags = filter (tag: tag != "tag:server") tags;
+
+  # Every host here advertises a tag, and a tagged device is not a member of
+  # any autogroup — it has no user to belong to one. So sources have to name
+  # the tags; `autogroup:member` alone matches nothing and denies the tailnet
+  # to itself. It stays in the list only for a future untagged device.
+  workstations = deviceTags ++ [ "autogroup:member" ];
 in
 mkTerraformDerivation {
   inherit pkgs system;
@@ -90,12 +96,12 @@ mkTerraformDerivation {
         acls = [
           {
             action = "accept";
-            src = [ "autogroup:member" ];
+            src = workstations;
             dst = map (port: "tag:server:${port}") serverPorts;
           }
           {
             action = "accept";
-            src = [ "autogroup:member" ];
+            src = workstations;
             dst = [ "autogroup:self:*" ] ++ map (tag: "${tag}:*") deviceTags;
           }
         ];
