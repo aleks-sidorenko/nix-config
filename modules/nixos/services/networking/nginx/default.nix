@@ -150,11 +150,14 @@ in
     # Tailscale, which would otherwise have no ingress at all.
     networking.firewall =
       let
-        # 443 stays shut while no vhost terminates TLS. Cosmetic for tailnet
-        # traffic, which `tailscaled` accepts ahead of this chain — the tailnet
-        # ACL is where that port is really withheld — but it is what a host
-        # without Tailscale falls back to below.
-        ports = [ 80 ];
+        # 443 before anything terminates TLS, so a client that upgraded the
+        # scheme is refused rather than left waiting — see the note in
+        # infra/tailnet, which is the layer that actually decides this for
+        # tailnet traffic.
+        ports = [
+          80
+          443
+        ];
       in
       if config.services.tailscale.enable then
         { interfaces.${config.services.tailscale.interfaceName}.allowedTCPPorts = ports; }

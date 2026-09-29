@@ -34,8 +34,11 @@ let
   serverPorts = [
     "22" # deploys and administration
     "80" # nginx, the only web ingress
-    # 443 is withheld until a vhost terminates TLS: granted but unserved, it
-    # hangs a client that upgraded the scheme where a denied port fails at once.
+    # 443 before anything terminates TLS, deliberately: a denied port is
+    # dropped here, so a browser that upgraded the scheme waits out its
+    # timeout, where reaching an unserved port gets an immediate reset.
+    # Measured on this tailnet at 20s against 9ms.
+    "443"
     "25565" # minecraft, which is not HTTP and has its own accounts
   ];
 
