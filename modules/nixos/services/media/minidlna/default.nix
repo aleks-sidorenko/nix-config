@@ -75,13 +75,13 @@ in
       };
     };
 
-    # Web UI is reached through nginx (loopback); minidlna has no bind-address
-    # option, so the firewall is what keeps it off the network directly.
-    # SSDP discovery is UDP-only (minidlna never listens for it on TCP), so
-    # only the UDP port stays open.
-    networking.firewall.allowedUDPPorts = [
-      cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
-    ];
+    # DLNA clients discover the server over SSDP and then fetch media straight
+    # from this port, not through the nginx vhost, so it stays open -- closing
+    # it would leave the server announcing itself but unable to serve.
+    networking.firewall.allowedTCPPorts = [ cfg.webPort ];
+
+    # SSDP is UDP-only; minidlna never listens for discovery on TCP.
+    networking.firewall.allowedUDPPorts = [ cfg.discoveryPort ];
 
     users.users.${cfg.user} = {
       group = mkForce cfg.group;
