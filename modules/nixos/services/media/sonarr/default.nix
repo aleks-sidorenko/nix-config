@@ -126,8 +126,10 @@ in
     # Add preStart script to copy SOPS-generated configuration
     systemd.services.sonarr = {
       preStart = ''
-        echo "Copying Sonarr configuration XML with secrets..."        
-        cp ${config.sops.templates."sonarr-config.xml".path} ${cfg.dataDir}/config.xml        
+        echo "Copying Sonarr configuration XML with secrets..."
+        # cp keeps the source's mode; the SOPS template is read-only, so an explicit
+        # mode is required or Sonarr can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."sonarr-config.xml".path} ${cfg.dataDir}/config.xml
         echo "Sonarr configuration XML with secrets copied successfully"
       '';
     };
