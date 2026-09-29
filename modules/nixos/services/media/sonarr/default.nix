@@ -45,7 +45,9 @@ in
 
       bindAddress = mkOption {
         type = types.str;
-        default = "*";
+        # nginx is the only intended path in; binding all interfaces would make
+        # the port reachable directly regardless of what the firewall allows.
+        default = "127.0.0.1";
         description = "Bind address for Sonarr web interface";
       };
 
