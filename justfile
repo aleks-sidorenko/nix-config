@@ -482,6 +482,30 @@ tailnet-apply:
 tailnet-secrets:
     sops infra/tailnet/secrets.yaml
 
+# ============================================
+# DNS Management (sidorenko.me zone via OpenTofu)
+# ============================================
+
+# Show generated terraform JSON for the zone
+dns-show:
+    nix run .#dns
+
+# Checks syntax and provider schema only (no device, no import resolution)
+dns-validate:
+    nix run .#dns.validate
+
+# Plan zone changes (dry-run)
+dns-plan:
+    nix run .#dns.plan
+
+# Apply zone changes
+dns-apply:
+    nix run .#dns.apply
+
+# Edit DNS SOPS secrets
+dns-secrets:
+    sops infra/dns/secrets.yaml
+
 # Not part of `check`: needs network for `tofu init` and an age key for SOPS.
 # Validate dormant infra configs against provider schemas.
-check-infra: router-validate tailnet-validate
+check-infra: router-validate tailnet-validate dns-validate

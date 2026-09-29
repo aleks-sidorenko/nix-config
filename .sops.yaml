@@ -71,3 +71,11 @@ creation_rules:
         age:
           - *desktop
           - *workbook
+
+  - path_regex: infra/dns/secrets.ya?ml$
+    key_groups:
+      - pgp:
+          - *alexander
+        age:
+          - *desktop
+          - *workbook
