@@ -64,6 +64,9 @@ in
           prowlarr = {
             serverName = hosts.service "prowlarr";
             port = cfg.webPort;
+            # AuthenticationMethod below is External: this app authenticates
+            # nobody and serves its API key to whoever asks.
+            requiresProxyAuth = true;
           };
         };
       };
