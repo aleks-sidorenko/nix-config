@@ -1,6 +1,6 @@
 # Homelab Services
 
-All homelab services run on the `server` host (Raspberry Pi 4, aarch64-linux) using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup-server` + `backup`.
+Homelab services run on `server-vm`, a headless aarch64 QEMU guest standing in for `server` — a Raspberry Pi 4 whose hardware is at a house the owner moved out of — using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup-server` + `backup`. `server-vm` switches `smart-home`, `backup`, and `backup-server` back off, since the physical automations and backup target they need stayed with the Pi. `server` itself currently declares only `roles.common` — no services, no firewall — until the Pi comes back online, at which point `home-server` moves there and off `server-vm`.
 
 ## Smart Home
 
@@ -96,7 +96,7 @@ Restic-based backup system with client-server architecture:
 
 ## Available Modules (Not Currently Enabled)
 
-These service modules exist in the repo but are **not** enabled by the `home-server` role, so they do not run on `server` in the current configuration. Enable them explicitly if needed.
+These service modules exist in the repo but are **not** enabled by the `home-server` role, so they do not run in the current configuration. Enable them explicitly if needed.
 
 | Module | Purpose | Configuration |
 | ------ | ------- | ------------- |
@@ -110,7 +110,7 @@ These service modules exist in the repo but are **not** enabled by the `home-ser
 Services are typically enabled through the role system:
 
 ```nix
-# In systems/aarch64-linux/server/default.nix
+# In systems/aarch64-linux/server-vm/default.nix
 nix-config.roles.home-server.enable = true;  # Enables ALL server services
 ```
 

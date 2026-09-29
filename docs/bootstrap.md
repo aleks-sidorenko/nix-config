@@ -983,6 +983,40 @@ future call site: if the name would appear in `system.networking.names`, use
 
 ---
 
+## Web ingress
+
+nginx is the only way into a server's web services — one virtual host per
+service, each proxying to `127.0.0.1:<port>`. An unmatched `Host` header now
+hits a catch-all vhost that returns `444` (connection closed, no response),
+instead of falling through to whichever vhost nginx happened to sort first.
+
+Apps bind loopback wherever their module exposes the option, so the proxy is
+the only path in even from the LAN: `sonarr`, `radarr`, `prowlarr`
+(`bindAddress`, default `127.0.0.1`), qBittorrent's WebUI
+(`WebUI\Address=127.0.0.1`), and `calibre` (`services.calibre-web.listen.ip`).
+`jellyfin` and `minidlna` have no bind-address option upstream — only
+`openFirewall` — so they keep listening on every interface; the firewall is
+the only thing keeping them off the network, not the app itself.
+
+A `roles.server` host's firewall is otherwise closed: `system.networking`
+leaves `networking.firewall.enable` at `mkDefault false` (so desktops stay
+open by default), and `roles.server` sets it plainly to `true`. Past
+`22`/`80`/`443`, what stays open is traffic that isn't HTTP or can't go
+through a proxy, each opened by its own service module:
+
+| Port(s)     | Proto   | Why                                                                                                   |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| 8200        | TCP     | minidlna: DLNA clients discover the server over SSDP, then fetch media straight from this port, never through a vhost |
+| 1900        | UDP     | minidlna: SSDP discovery — minidlna never listens for it on TCP                                       |
+| 17348       | TCP+UDP | qbittorrent: inbound peer connections don't go through a proxy; closing it would silently degrade torrenting to passive-only |
+| 25565       | TCP+UDP | minecraft-server: not HTTP                                                                            |
+| 41641       | UDP     | tailscale: direct (non-DERP) peer connections                                                        |
+
+These are the deliberate exceptions to "nginx is the only ingress," not
+oversights — everything else a server used to open per-service is gone.
+
+---
+
 ## Reference
 
 ### Disk layout with disko
