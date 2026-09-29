@@ -30,9 +30,17 @@ in
         };
       };
 
-      services.networking.nginx = enabled;
+      services.networking = {
+        nginx = {
+          enable = true;
+          # A backend that delegates authentication to the proxy is withheld
+          # until this names an htpasswd file. Every server has that problem,
+          # so it follows the role rather than each host.
+          authFromSecret = true;
+        };
 
-      services.networking.tailscale.tags = [ "tag:server" ];
+        tailscale.tags = [ "tag:server" ];
+      };
 
     };
 
