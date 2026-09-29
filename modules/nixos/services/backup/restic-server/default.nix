@@ -115,8 +115,8 @@ in
       };
     };
 
-    # nginx is the ingress; opening the port here would let clients bypass it.
-
+    # Deliberately no firewall opening: nginx is the ingress, and opening the
+    # port here would let clients bypass it.
     ${namespace}.services.networking.nginx = {
       virtualHosts.restic-server = {
         serverName = hosts.service "restic";
