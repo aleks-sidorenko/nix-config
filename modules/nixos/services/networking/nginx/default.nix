@@ -85,11 +85,22 @@ in
         };
     };
 
-    # Open HTTP/HTTPS ports
-    networking.firewall.allowedTCPPorts = [
-      80
-      443
-    ];
+    # Reachable over the tailnet only. Service names resolve to tailnet
+    # addresses, so a LAN client already needs Tailscale to use them, and
+    # scoping the ingress here means a device on the same LAN as the host
+    # cannot skip that. Falls back to opening globally on a host without
+    # Tailscale, which would otherwise have no ingress at all.
+    networking.firewall =
+      let
+        ports = [
+          80
+          443
+        ];
+      in
+      if config.services.tailscale.enable then
+        { interfaces.${config.services.tailscale.interfaceName}.allowedTCPPorts = ports; }
+      else
+        { allowedTCPPorts = ports; };
 
     # Every declared vhost is a name this host answers to; deriving them here
     # means a disabled service cannot leave a dangling record behind.
