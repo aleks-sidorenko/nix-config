@@ -38,13 +38,6 @@ with lib.${namespace};
     disks.impermanence = enabled;
   };
 
-  # NAT'd behind the host Mac rather than bridged onto whatever network it
-  # joins, but still not behind our own router, so this guest does not
-  # inherit the repo-wide off-by-default firewall (see the TODO in
-  # modules/nixos/system/networking) that assumes one. mkForce because that
-  # default is set at normal priority.
-  networking.firewall.enable = mkForce true;
-
   # Behind shared vmnet NAT there's no inbound path this enables today; kept
   # for when the guest runs unNAT'd (e.g. bridged), where it allows direct
   # (non-DERP-relayed) peer connections in.

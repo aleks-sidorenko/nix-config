@@ -48,7 +48,10 @@ in
       ];
 
       firewall = {
-        enable = false; # TODO: enable firewall
+        # Narrowed, not decided here: desktops and laptops stay open by
+        # default, but roles.server overrides this on for anything running
+        # the server role.
+        enable = mkDefault false;
       };
     };
 

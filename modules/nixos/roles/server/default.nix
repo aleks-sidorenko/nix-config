@@ -36,6 +36,13 @@ in
 
     };
 
+    # A server's ingress is nginx and SSH; everything else is closed by
+    # default. Set here rather than per host so a new server inherits it.
+    # Plain assignment (not mkDefault) because system/networking's own
+    # `enable = false` needs to be the one left overridable — see the
+    # mkDefault there.
+    networking.firewall.enable = true;
+
     environment = {
       systemPackages = [
         pkgs.nfs-utils
