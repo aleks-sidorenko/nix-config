@@ -1,10 +1,13 @@
 {
   lib,
   inputs,
+  namespace,
   ...
 }:
 let
   inherit (inputs) terranix;
+
+  inherit (lib.${namespace}) defaults;
 
   ## Fails the build if any `import[].to` in the rendered terraform JSON names
   ## a resource address absent from `resource`. Neither `tofu validate` nor
@@ -28,8 +31,58 @@ let
       ' ${json} > /dev/null
       touch $out
     '';
+  ## The state-encryption block, as HCL rather than part of the terranix
+  ## config: OpenTofu's JSON syntax has no equivalent for the two-label
+  ## `key_provider "pbkdf2" "state"` form, so this stays a sibling `.tf`
+  ## file — generated into the state dir next to `config.tf.json` so the
+  ## three consumers share one copy instead of each tracking their own.
+  ##
+  #@ Pkgs -> Derivation
+  stateEncryptionFile =
+    pkgs:
+    pkgs.writeText "encryption.tf" ''
+      terraform {
+        encryption {
+          key_provider "pbkdf2" "state" {
+            passphrase = var.state_passphrase
+          }
+          method "aes_gcm" "state" {
+            keys = key_provider.pbkdf2.state
+          }
+          state {
+            method = method.aes_gcm.state
+          }
+        }
+      }
+    '';
 in
 {
+  ## Provider, version and credential variables for the Tailscale API, for
+  ## every config that reads the tailnet. Import it rather than restating the
+  ## block; the variable names are what `secrets` must map onto.
+  ##
+  #@ Module
+  tailscaleProvider = {
+    terraform.required_providers.tailscale = {
+      source = "tailscale/tailscale";
+      version = "~> 0.17";
+    };
+
+    variable = {
+      tailscale_oauth_client_id.type = "string";
+      tailscale_oauth_client_secret = {
+        type = "string";
+        sensitive = true;
+      };
+    };
+
+    provider.tailscale = {
+      oauth_client_id = "\${var.tailscale_oauth_client_id}";
+      oauth_client_secret = "\${var.tailscale_oauth_client_secret}";
+      tailnet = defaults.network.domains.tailnet;
+    };
+  };
+
   ## Wrap a terranix configuration in show/validate/plan/apply/destroy scripts.
   ##
   ## State lives in the repo under `stateDir`; secrets are decrypted from
@@ -48,8 +101,18 @@ in
       secrets ? { },
     }:
     let
+      # Declared here rather than by each caller: the encryption file below
+      # references it, and the two travel together.
+      stateEncryptionVar = lib.optional (secrets ? TF_VAR_state_passphrase) {
+        variable.state_passphrase = {
+          type = "string";
+          sensitive = true;
+        };
+      };
+
       terraformConfiguration = terranix.lib.terranixConfiguration {
-        inherit system modules;
+        inherit system;
+        modules = stateEncryptionVar ++ modules;
         extraArgs = { inherit lib pkgs; };
       };
 
@@ -82,6 +145,9 @@ in
       setup = ''
         cd "$REPO_ROOT/${stateDir}"
         cp -f ${terraformConfiguration} config.tf.json
+      ''
+      + lib.optionalString (secrets ? TF_VAR_state_passphrase) ''
+        cp -f ${stateEncryptionFile pkgs} encryption.tf
       '';
 
       script =

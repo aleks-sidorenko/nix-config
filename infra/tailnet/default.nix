@@ -61,35 +61,13 @@ mkTerraformDerivation {
   stateDir = "infra/tailnet";
   secretsFile = "infra/tailnet/secrets.yaml";
   secrets = {
-    TF_VAR_oauth_client_id = "tailscale-oauth-client-id";
-    TF_VAR_oauth_client_secret = "tailscale-oauth-client-secret";
+    TF_VAR_tailscale_oauth_client_id = "tailscale-oauth-client-id";
+    TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
     TF_VAR_state_passphrase = "state-passphrase";
   };
   modules = [
+    tailscaleProvider
     {
-      terraform.required_providers.tailscale = {
-        source = "tailscale/tailscale";
-        version = "~> 0.17";
-      };
-
-      variable = {
-        oauth_client_id.type = "string";
-        oauth_client_secret = {
-          type = "string";
-          sensitive = true;
-        };
-        state_passphrase = {
-          type = "string";
-          sensitive = true;
-        };
-      };
-
-      provider.tailscale = {
-        oauth_client_id = "\${var.oauth_client_id}";
-        oauth_client_secret = "\${var.oauth_client_secret}";
-        tailnet = defaults.network.domains.tailnet;
-      };
-
       # Tags let ACLs name roles instead of machines, and tag-authenticated
       # devices do not expire — infrastructure stops dropping off the tailnet
       # on the node-key schedule.

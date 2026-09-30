@@ -13,6 +13,10 @@ let
   # on every plan for information already in hand.
   zoneId = "27e396c48515c243d8545764038b72e2";
 
+  # The zone these records live in, from the same registry the service names
+  # are built from, so the two cannot drift apart.
+  zone = defaults.network.domains.public;
+
   # Cloudflare's API reports ttl=1 as "automatic" — not a literal one-second TTL.
   automatic = 1;
 
@@ -115,42 +119,20 @@ else
       TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
     };
     modules = [
+      tailscaleProvider
       {
-        terraform.required_providers = {
-          cloudflare = {
-            source = "cloudflare/cloudflare";
-            version = "~> 5.20";
-          };
-          tailscale = {
-            source = "tailscale/tailscale";
-            version = "~> 0.17";
-          };
+        terraform.required_providers.cloudflare = {
+          source = "cloudflare/cloudflare";
+          version = "~> 5.20";
         };
 
-        variable = {
-          cloudflare_api_token = {
-            type = "string";
-            sensitive = true;
-          };
-          state_passphrase = {
-            type = "string";
-            sensitive = true;
-          };
-          tailscale_oauth_client_id.type = "string";
-          tailscale_oauth_client_secret = {
-            type = "string";
-            sensitive = true;
-          };
+        variable.cloudflare_api_token = {
+          type = "string";
+          sensitive = true;
         };
 
         provider.cloudflare = {
           api_token = "\${var.cloudflare_api_token}";
-        };
-
-        provider.tailscale = {
-          oauth_client_id = "\${var.tailscale_oauth_client_id}";
-          oauth_client_secret = "\${var.tailscale_oauth_client_secret}";
-          tailnet = defaults.network.domains.tailnet;
         };
 
         # One call listing every device, not one lookup per host: per-host
@@ -216,50 +198,50 @@ else
         # not because they were already present.
         resource.cloudflare_dns_record = {
           apex_a_108 = record {
-            name = "sidorenko.me";
+            name = zone;
             type = "A";
             content = "185.199.108.153";
             proxied = true;
           };
           apex_a_109 = record {
-            name = "sidorenko.me";
+            name = zone;
             type = "A";
             content = "185.199.109.153";
             proxied = true;
           };
           apex_a_110 = record {
-            name = "sidorenko.me";
+            name = zone;
             type = "A";
             content = "185.199.110.153";
             proxied = true;
           };
           apex_a_111 = record {
-            name = "sidorenko.me";
+            name = zone;
             type = "A";
             content = "185.199.111.153";
             proxied = true;
           };
           www = protected (record {
-            name = "www.sidorenko.me";
+            name = hosts.public "www";
             type = "CNAME";
             content = "aleks-sidorenko.github.io";
             proxied = true;
           });
           # Same name and priority; only content tells the two mailservers apart.
           mx_1 = protected (record {
-            name = "sidorenko.me";
+            name = zone;
             type = "MX";
             content = "mx1.forwardemail.net";
             priority = 10;
           });
           mx_2 = protected (record {
-            name = "sidorenko.me";
+            name = zone;
             type = "MX";
             content = "mx2.forwardemail.net";
             priority = 10;
           });
           txt_forward_email = protected (record {
-            name = "sidorenko.me";
+            name = zone;
             type = "TXT";
             content = ''"forward-email=aleks.sidorenko@gmail.com"'';
           });

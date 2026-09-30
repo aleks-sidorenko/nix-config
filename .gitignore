@@ -11,6 +11,8 @@ result*
 *.tfstate.backup
 errored.tfstate
 config.tf.json
+# Generated into each state dir by lib/terraform, like config.tf.json above.
+encryption.tf
 
 # vagrant
 .vagrant
