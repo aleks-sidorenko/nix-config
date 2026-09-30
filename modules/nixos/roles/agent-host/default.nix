@@ -35,9 +35,11 @@ in
 
       system.power.mode = cfg.powerMode;
 
+      # Membership comes from roles.common; this role adds only the ACL-gated
+      # SSH server.
       services.networking.tailscale = {
-        enable = true;
         ssh = true;
+        tags = [ "tag:agent-host" ];
       };
 
       # Dedicated, isolated account: admin = false → no wheel → cannot sudo.

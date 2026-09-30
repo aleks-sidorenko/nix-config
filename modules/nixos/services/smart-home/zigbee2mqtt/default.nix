@@ -96,8 +96,10 @@ in
       # Configure nginx virtual host
       networking.nginx = {
         virtualHosts.zigbee2mqtt = {
-          serverName = hosts.local "zigbee2mqtt";
+          serverName = hosts.service "zigbee2mqtt";
           port = cfg.webPort;
+          # Its frontend has no login of its own unless an auth token is set.
+          requiresProxyAuth = true;
         };
       };
     };
@@ -133,7 +135,9 @@ in
         # Frontend settings
         frontend = {
           port = cfg.webPort;
-          host = "0.0.0.0";
+          # nginx is the ingress; binding all interfaces would make the port
+          # reachable directly regardless of what the firewall allows.
+          host = "127.0.0.1";
         };
 
         # Home Assistant integration

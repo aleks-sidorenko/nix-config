@@ -42,7 +42,9 @@ in
 
       bindAddress = mkOption {
         type = types.str;
-        default = "*";
+        # nginx is the only intended path in; binding all interfaces would make
+        # the port reachable directly regardless of what the firewall allows.
+        default = "127.0.0.1";
         description = "Bind address for Prowlarr web interface";
       };
 
@@ -60,8 +62,11 @@ in
       services.networking.nginx = {
         virtualHosts = {
           prowlarr = {
-            serverName = hosts.local "prowlarr";
+            serverName = hosts.service "prowlarr";
             port = cfg.webPort;
+            # AuthenticationMethod below is External: this app authenticates
+            # nobody and serves its API key to whoever asks.
+            requiresProxyAuth = true;
           };
         };
       };
@@ -117,15 +122,18 @@ in
       inherit (cfg) enable;
       inherit (cfg) package;
       settings.server.port = cfg.webPort;
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
       # TODO: enable once https://github.com/NixOS/nixpkgs/issues/445983 is fixed
       # dataDir = cfg.dataDir;
     };
 
     systemd.services.prowlarr = {
       preStart = ''
-        echo "Copying Prowlarr configuration XML with secrets..."        
-        cp ${config.sops.templates."prowlarr-config.xml".path} ${cfg.dataDir}/config.xml        
+        echo "Copying Prowlarr configuration XML with secrets..."
+        # cp keeps the source's mode; the SOPS template is read-only, so an explicit
+        # mode is required or Prowlarr can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."prowlarr-config.xml".path} ${cfg.dataDir}/config.xml
         echo "Prowlarr configuration XML with secrets copied successfully"
       '';
     };

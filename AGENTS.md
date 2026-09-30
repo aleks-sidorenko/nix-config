@@ -294,11 +294,21 @@ Services in `modules/nixos/services/`:
 
 IaC configurations in `infra/`:
 - `router/` - MikroTik RouterOS managed via terranix/OpenTofu
-  - `default.nix` - terranix derivation and backup script
-  - `modules/` - terraform modules (bridge, capsman, dhcp, dns, firewall, interfaces, etc.)
+  - `default.nix` - terranix derivation (via `lib/terraform`'s `mkTerraformDerivation`) and backup script
+  - `imports.nix` - RouterOS resource ID mappings (for `terraform import` of existing config)
   - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just router-*` commands
+- `dns/` - The `sidorenko.me` Cloudflare zone, managed via terranix/OpenTofu
+  - `default.nix` - a handful of pre-existing records adopted via `terraform import` (mail, GitHub Pages, `www`), plus one A record per name in `${namespace}.system.networking.names` across all hosts, pointed at that host's tailnet address; a build-time assertion fails the derivation if two hosts claim the same name
+  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token, Tailscale OAuth client, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just dns-*` commands
+- `tailnet/` - Tailscale ACL/tag policy managed via terranix/OpenTofu
+  - `default.nix` - `tagOwners` derived from every host's advertised tags, so the policy can't drift from what hosts actually enable
+  - `secrets.yaml` - SOPS-encrypted secrets (Tailscale OAuth client, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just tailnet-*` commands
 
 ## Development Workflow
 
@@ -344,6 +354,7 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
 workbook — a home-server stand-in, not a desktop. It installs exactly like a
 physical host — installer ISO plus `nixos-anywhere` — with QEMU standing in
-for hardware. The registry maps `server-vm` to a home-network address, so
-until that network is rebuilt reach the guest by its DHCP address or over the
-tailnet. See `docs/bootstrap.md` for the full first-boot sequence.
+for hardware. It has no LAN presence: reach it over the tailnet, or from the
+host Mac on the vmnet subnet (`arp -a | grep 52:54` finds its address, which
+moves across restarts). See `docs/bootstrap.md` for the full first-boot
+sequence.

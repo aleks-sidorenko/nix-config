@@ -52,8 +52,15 @@ in
       services.networking.nginx = {
         virtualHosts = {
           minidlna = {
-            serverName = hosts.local "minidlna";
+            serverName = hosts.service "minidlna";
             port = cfg.webPort;
+            # No login of its own, and the DLNA clients that need it
+            # unauthenticated reach this port directly rather than through the
+            # vhost, so guarding the vhost costs them nothing.
+            requiresProxyAuth = true;
+            # Its embedded HTTP server answers 400 to the Upgrade/Connection
+            # headers the proxy adds by default.
+            proxyWebsockets = false;
           };
         };
       };
@@ -75,16 +82,13 @@ in
       };
     };
 
-    # Open firewall ports
-    networking.firewall = {
-      allowedTCPPorts = [
-        cfg.webPort # Web interface
-        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
-      ];
-      allowedUDPPorts = [
-        cfg.discoveryPort # DLNA/UPnP discovery (SSDP)
-      ];
-    };
+    # DLNA clients discover the server over SSDP and then fetch media straight
+    # from this port, not through the nginx vhost, so it stays open -- closing
+    # it would leave the server announcing itself but unable to serve.
+    networking.firewall.allowedTCPPorts = [ cfg.webPort ];
+
+    # SSDP is UDP-only; minidlna never listens for discovery on TCP.
+    networking.firewall.allowedUDPPorts = [ cfg.discoveryPort ];
 
     users.users.${cfg.user} = {
       group = mkForce cfg.group;

@@ -22,6 +22,8 @@ in
         graphical = enabled;
       };
 
+      services.networking.tailscale.tags = [ "tag:desktop" ];
+
       hardware.phone = enabled;
 
       # Virtualisation is desktop-specific (not wanted on the family laptop).

@@ -7,11 +7,17 @@ with lib;
 rec {
 
   hosts = {
-    # Returns the local host name
-    local = host: "${host}.${lib.${namespace}.defaults.network.domains.local}";
+    # Returns the LAN host name
+    lan = host: "${host}.${lib.${namespace}.defaults.network.domains.lan}";
 
     # Returns the public host name
     public = host: "${host}.${lib.${namespace}.defaults.network.domains.public}";
+
+    # Returns the tailnet (MagicDNS) host name
+    tailnet = host: "${host}.${lib.${namespace}.defaults.network.domains.tailnet}";
+
+    # Returns the service host name
+    service = host: "${host}.${lib.${namespace}.defaults.network.domains.services}";
   };
 
   # Derive network address from gateway IP (assumes /24)

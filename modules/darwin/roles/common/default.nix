@@ -27,6 +27,17 @@ in
         ssh.enable = true;
       };
 
+      # Host identity lives on the tailnet, so membership is part of the base
+      # system rather than a property of any one role. mkDefault so a host can
+      # opt out.
+      services.networking.tailscale = {
+        enable = mkDefault true;
+        # Joining is unattended everywhere: a host that cannot decrypt the key
+        # fails activation, which is why this is safe only while every host
+        # with this role is a recipient of its platform's secrets file.
+        authKeyFromSecret = mkDefault true;
+      };
+
       system = {
         nix = {
           enable = true;
@@ -36,7 +47,7 @@ in
         defaults.enable = true;
         # Raise kernel file descriptor limits (default ~49152 triggers ENFILE)
         fs.enable = true;
-        # /etc/hosts with local network entries
+        # DNS search domains (tailnet + lan); MagicDNS resolves hosts, not /etc/hosts
         networking.enable = true;
 
         # Homebrew for CLI tools and GUI apps

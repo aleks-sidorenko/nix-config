@@ -116,7 +116,7 @@ calibre-import library_path hostname="server" username="alexander":
     rsync -a --info=progress2 --rsync-path="sudo rsync" "{{library_path}}/" "{{username}}@{{hostname}}:/data/media/Books/"
     ssh {{username}}@{{hostname}} 'sudo chown -R calibre-web:media /data/media/Books'
     ssh {{username}}@{{hostname}} 'sudo systemctl restart calibre-web'
-    @echo "✅ Import complete. Open http://calibre.local and verify your library."
+    @echo "✅ Import complete. Open http://calibre.lan and verify your library."
 
 
 # Build configuration without switching (read-only artifact)
@@ -408,6 +408,10 @@ bootstrap-targets:
 router-show:
     nix run .#router
 
+# Checks syntax and provider schema only (no device, no import resolution)
+router-validate:
+    nix run .#router.validate
+
 # Plan router configuration changes (dry-run)
 router-plan:
     nix run .#router.plan
@@ -433,6 +437,7 @@ router-help:
     @echo "Router Management Commands (OpenTofu-based):"
     @echo ""
     @echo "  just router-show             Show generated terraform JSON"
+    @echo "  just router-validate         Check syntax and provider schema (offline, no import resolution)"
     @echo "  just router-plan             Plan changes (dry-run)"
     @echo "  just router-apply            Apply changes to router"
     @echo "  just router-backup           Create SSH backup of router"
@@ -452,3 +457,55 @@ router-help:
     @echo "  1. Run 'just router-plan' to preview changes"
     @echo "  2. Run 'just router-apply' to apply changes"
     @echo "  3. Commit updated state: git add infra/router/terraform.tfstate && git commit"
+
+# ============================================
+# Tailnet Management (Tailscale ACL via OpenTofu)
+# ============================================
+
+# Show generated terraform JSON for the tailnet
+tailnet-show:
+    nix run .#tailnet
+
+# Checks syntax and provider schema only (no device, no import resolution)
+tailnet-validate:
+    nix run .#tailnet.validate
+
+# Plan tailnet policy changes (dry-run)
+tailnet-plan:
+    nix run .#tailnet.plan
+
+# Apply tailnet policy changes
+tailnet-apply:
+    nix run .#tailnet.apply
+
+# Edit tailnet SOPS secrets
+tailnet-secrets:
+    sops infra/tailnet/secrets.yaml
+
+# ============================================
+# DNS Management (sidorenko.me zone via OpenTofu)
+# ============================================
+
+# Show generated terraform JSON for the zone
+dns-show:
+    nix run .#dns
+
+# Checks syntax and provider schema only (no device, no import resolution)
+dns-validate:
+    nix run .#dns.validate
+
+# Plan zone changes (dry-run)
+dns-plan:
+    nix run .#dns.plan
+
+# Apply zone changes
+dns-apply:
+    nix run .#dns.apply
+
+# Edit DNS SOPS secrets
+dns-secrets:
+    sops infra/dns/secrets.yaml
+
+# Not part of `check`: needs network for `tofu init` and an age key for SOPS.
+# Validate dormant infra configs against provider schemas.
+check-infra: router-validate tailnet-validate dns-validate

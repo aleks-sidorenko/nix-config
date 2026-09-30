@@ -41,10 +41,12 @@ with lib.${namespace};
           connections.kpi = { };
         };
 
+        # The guest's identity is its tailnet name, so it no longer needs a LAN
+        # address — and bridged mode fails on networks that lease to a single
+        # MAC per client.
         socket-vmnet = {
           enable = true;
-          mode = "bridged";
-          interface = "en0";
+          mode = "shared";
         };
       };
 

@@ -30,9 +30,31 @@ in
         };
       };
 
-      services.networking.nginx = enabled;
+      services.networking = {
+        nginx = {
+          enable = true;
+          # A backend that delegates authentication to the proxy is withheld
+          # until this names an htpasswd file. Every server has that problem,
+          # so it follows the role rather than each host.
+          authFromSecret = true;
+        };
+
+        tailscale.tags = [ "tag:server" ];
+      };
 
     };
+
+    # A server's ingress is nginx and SSH; everything else is closed by
+    # default. Set here rather than per host so a new server inherits it.
+    # Plain assignment (not mkDefault) because system/networking's own
+    # `enable = false` needs to be the one left overridable — see the
+    # mkDefault there.
+    networking.firewall.enable = true;
+
+    # Direct peer connections instead of DERP-relayed ones. A NAT'd guest
+    # gains nothing from it today, but a server that later runs unNAT'd does,
+    # so it is set here rather than per host and follows the role.
+    services.tailscale.openFirewall = true;
 
     environment = {
       systemPackages = [

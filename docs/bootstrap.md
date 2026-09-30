@@ -408,25 +408,27 @@ to the config this is wired up automatically — which is why `ssh nixos@homeboo
 works from your workstation even though the fresh installer only knows itself as
 `nixos` and grabbed its address over DHCP:
 
-- **Name → IP:** your nix-config workstation's `/etc/hosts` is populated from
-  `defaults.network.hosts` (`lib/defaults`) by the networking module —
-  e.g. `homebook → 10.0.0.63`. (This is local resolution, independent of router
-  DNS: `homebook` has `dns = false` in `infra/router/hosts.nix`, so it is *not*
-  served by the router, but `/etc/hosts` still maps it.)
+- **Name → IP:** the router's `lan` DNS zone answers for `dns = true` hosts —
+  e.g. `homebook` resolves via `homebook.lan`, and the deploying machine's
+  search list (`[<tailnet>, lan]`) makes the bare name work too. There is no
+  `/etc/hosts` rendering to fall back on; both this record and the DHCP lease
+  below come from the single registry entry in `lib/defaults.network.hosts`.
 - **Machine holds that IP:** the router hands it out as a **static DHCP lease
-  keyed by MAC** (`infra/router/hosts.nix`, e.g. homebook's `68:EC:…` →
+  keyed by MAC** (same registry entry, e.g. homebook's `68:EC:…` →
   `10.0.0.63`). Because the lease is by MAC, the box gets its reserved address
-  even while running the installer — it is not a random IP.
+  even while running the installer — it is not a random IP. Both the DNS
+  record and the lease reach the router only via `just router-apply`, not a
+  rebuild.
 
 > **Use `nixos` as `<username>` during bootstrap.** That is the only account on
 > the installer (it authorizes your owner SSH key — see
 > [Step 3](#step-3--boot-the-target)). It is the SSH login for the install only,
 > unrelated to the host's eventual accounts, which come from the flake.
 
-**If the host isn't reserved** (not yet in `infra/router/hosts.nix` /
-`defaults.network.hosts`), or you deploy from a machine without those static
-hosts, `<hostname>` won't resolve. Since the script reuses `<hostname>` for both
-the flake attr *and* the SSH address, point the name at the real IP just for the
+**If the host isn't reserved** (not yet in `lib/defaults.network.hosts`), has
+`dns = false`, or `just router-apply` hasn't run since it was added,
+`<hostname>` won't resolve. Since the script reuses `<hostname>` for both the
+flake attr *and* the SSH address, point the name at the real IP just for the
 deploy — a throwaway alias is cleanest. The managed `~/.ssh/config` is a
 read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
 `Include`s (see `modules/home/security/ssh`):
@@ -437,12 +439,12 @@ Host homebook
   User nixos
 ```
 
-so `.#homebook` still selects the right config while SSH goes to the actual IP
-(a temporary `/etc/hosts` line works too).
+so `.#homebook` still selects the right config while SSH goes to the actual IP.
 
-**`server-vm`** resolves like any other host once the registry has been applied
-— see [VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for what to do
-before then.
+**`server-vm`** never gets a registry-driven address — it carries
+`dns = false, dhcp = false` permanently. See
+[VM guests (QEMU on macOS)](#vm-guests-qemu-on-macos) for how to reach it
+instead.
 
 ### Step 7 — Post-installation
 
@@ -514,25 +516,26 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 `just vm-install` runs QEMU in the **foreground** and does not return, so the
 `just bootstrap` line belongs in a second terminal.
 
-> **`server-vm` does not yet resolve to the guest.** `just bootstrap` reuses the
-> hostname as the SSH address (`nixos@server-vm`), and `/etc/hosts` maps
-> `server-vm` to `10.0.0.64` — an address nothing answers on until the home
-> network is rebuilt (see [Reaching the guest](#reaching-the-guest)). Point the
-> name at the guest's **DHCP address** for the install exactly as for any
-> unreserved host — the `~/.ssh/config.local` alias described under
+> **`server-vm` never resolves on its own.** It lives behind the host Mac's NAT
+> (vmnet `shared` mode), so its registry entry is `dns = false, dhcp = false`
+> permanently — see [Reaching the guest](#reaching-the-guest). `just bootstrap`
+> reuses the hostname as the SSH address (`nixos@server-vm`); point it at the
+> guest's vmnet address instead, the same `~/.ssh/config.local` alias described
+> under
 > [How `<hostname>` reaches the target machine](#how-hostname-reaches-the-target-machine):
 >
 > ```
 > Host server-vm
->   HostName <dhcp-address>
+>   HostName <vmnet-address>
 >   User nixos
 > ```
 >
-> Find that address in the guest's serial console log
-> (`/tmp/qemu-server-vm.console.log` — the installer's network-configuration
-> messages name the lease), with `arp -an` on the Mac once the guest has talked
-> to the network, or in the router's lease table. Remove the alias once the name
-> resolves for real.
+> The vmnet subnet is chosen by macOS and isn't pinned, so the address moves
+> across restarts — find it with `arp -a | grep 52:54` on the workbook once the
+> guest has talked to the network, or in its serial console log
+> (`/tmp/qemu-server-vm.console.log`). Once the guest joins the tailnet
+> ([Step 2](#step-2--join-the-tailnet)) reach it by name from there instead and
+> drop the alias.
 
 The empty `""` is the `disk_password` positional — the guest has no LUKS, but
 the slot must be filled for `--build-on-remote` to land in `extra_opts` rather
@@ -569,50 +572,44 @@ rm -f ~/.local/share/qemu/server-vm/{root,data}.qcow2 ~/.local/share/qemu/server
 
 ### Step 2 — Join the tailnet
 
-Nothing enrols the guest for you; there is no auth key in SOPS. Run it once and
-open the URL it prints:
+If `nix-config.services.networking.tailscale.authKeyFromSecret` is on for this
+host (see [Tailnet membership](#tailnet-membership)), it joins on its own at
+first boot — nothing to do here. Otherwise join by hand, passing
+`--advertise-tags` so the node is tagged from the start and never needs a
+later re-auth to pick tags up:
 
 ```bash
-ssh server-vm -- sudo tailscale up --ssh
+ssh server-vm -- sudo tailscale up --ssh --advertise-tags=tag:server
 ```
 
-The bridged address follows whichever LAN the host Mac is on, so the tailnet is
-the only stable way in from elsewhere.
+Open the URL it prints. The vmnet address moves with the host Mac's network
+and across restarts, so the tailnet is the only stable way in from elsewhere.
 
 ### Reaching the guest
 
 The guest is `server-vm` everywhere — flake attribute, `networking.hostName`,
-host registry, router entry, `/etc/hosts` and the tailnet.
+and the tailnet. It has no LAN identity: its registry entry
+(`lib/defaults.network.hosts.server-vm`) is `dns = false, dhcp = false`
+permanently, since it lives behind the host Mac's NAT and there is no LAN
+address to publish for it.
 
-The registry maps it to `10.0.0.64`, which is an address on the **home** network.
-That network is being rebuilt, so until the rebuild lands:
+Two ways in:
 
-- `nh os switch` writes `10.0.0.64 server-vm` into `/etc/hosts`, and that entry
-  **shadows the tailnet name** — the name will resolve to an address nothing
-  answers on.
-- Reach the guest by its **DHCP address** instead. Bridged networking gives it a
-  real lease on whatever LAN the Mac has joined, with no router configuration.
-- Or use the tailnet, which is unaffected as long as `/etc/hosts` has not been
-  refreshed on the machine you are calling from.
+- **The tailnet**, once the guest has joined
+  ([Step 2](#step-2--join-the-tailnet)) — `ssh server-vm` resolves through
+  MagicDNS from anywhere, and is the only stable option.
+- **From the workbook only**, over the vmnet subnet — find the guest's current
+  address with `arp -a | grep 52:54` (macOS chooses the subnet; it is not
+  pinned and moves across restarts).
 
-`just deploy` already passes `--hostname server-vm`, and deploy-rs rejects that
-flag twice, so deploying to the DHCP address instead means calling `deploy`
-directly:
-
-```bash
-deploy .#server-vm --hostname <dhcp-address> --skip-checks --remote-build
-```
-
-Once the home network exists again, two steps make the name work end to end:
+`just deploy` already passes `--hostname server-vm`, which the tailnet name
+satisfies, so `just deploy server-vm` works once the guest is enrolled. Before
+that, or from the workbook directly, deploy to the vmnet address instead —
+deploy-rs rejects `--hostname` twice, so call `deploy` directly:
 
 ```bash
-just router-apply   # static lease: MAC 52:54:00:00:00:64 -> 10.0.0.64
-nh os switch        # on each machine you deploy from: /etc/hosts learns server-vm
+deploy .#server-vm --hostname <vmnet-address> --skip-checks --remote-build
 ```
-
-Do both or neither. Applying the lease without refreshing `/etc/hosts` leaves the
-guest on a random address while callers still resolve `server-vm` to
-`10.0.0.64`.
 
 ### Backups
 
@@ -622,6 +619,20 @@ neither the loss of the host Mac's disk — both qcow2 files live on it — nor 
 reinstall, which rewrites the root disk the system itself sits on, so it would
 buy only the appearance of coverage. Re-enable them once there is somewhere
 off-box to send backups to.
+
+### Recovering a wedged guest NIC
+
+Symptom: the guest's console log (`/tmp/qemu-server-vm.console.log`) repeats
+`NETDEV WATCHDOG: transmit queue 0 timed out`, the guest is missing from
+`arp -a` on the host, and `tailscale status` shows `rx 0`. This happens when
+the vmnet daemon's socket was not yet serving when the guest attached — the
+guest's virtio NIC does not recover on its own, so restarting the guest alone
+re-wedges it. Restart the daemon first, then the guest:
+
+```bash
+sudo launchctl kickstart -k system/org.nixos.socket-vmnet
+launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
+```
 
 ---
 
@@ -834,6 +845,233 @@ private GPG key is imported out-of-band on the machine, exactly as for the
 primary user.
 
 Then deploy the host to apply ([Step 6](#step-6--deploy) / `just deploy`).
+
+---
+
+## Tailnet membership
+
+Every host with `roles.common` runs Tailscale; membership is not tied to any
+other role. Joining is opt-in per host via
+`nix-config.services.networking.tailscale.authKeyFromSecret` — off by default,
+because the key it wires in doesn't exist until you create it (below). With it
+off, both platforms join the way they always have: interactively, once, by
+hand.
+
+No host opts in today, and the two joined hosts were joined by hand — so the
+manual flow below is the live one, and the automated flow is there for the
+next host bootstrapped from scratch.
+
+### One-time setup
+
+Create a **separate** Tailscale OAuth client (admin console → Settings → OAuth
+clients) scoped to `auth_keys` write access only. Do not widen the existing
+client that `infra/tailnet` uses for `policy_file`: this secret is readable on
+every host that opts in, so anything able to read `/run/secrets` there could
+mint tagged nodes. A distinct client keeps that blast radius to node
+registration.
+
+An OAuth secret rather than a plain auth key because auth keys cap out at 90
+days and would silently stop working on every host that reads one. Put the
+client secret in **both** secrets files under the same name:
+
+At <https://login.tailscale.com/admin/settings/oauth> → *Generate OAuth
+client*: tick `auth_keys` → **Write**, leave every other scope unticked, and
+select the tags the client may register nodes with — it can only issue keys
+for tags it is associated with, and those must already exist in `tagOwners`
+(`infra/tailnet` declares `tag:server`, `tag:desktop`, `tag:laptop`,
+`tag:agent-host`, `tag:work`).
+
+The secret is shown **once**, on creation, in the form `tskey-client-…`. Copy
+it before closing the dialog; it cannot be retrieved later, only replaced.
+
+```bash
+just secrets-edit nixos    # add: system-tailscale-auth-key: tskey-client-…
+just secrets-edit darwin   # add: system-tailscale-auth-key: tskey-client-…
+```
+
+Paste the secret **verbatim** — no `?preauthorized=true` suffix and no
+quoting. The modules append that parameter themselves via upstream's
+`authKeyParameters`, so a secret carrying it too would register with a
+malformed key.
+
+Nothing decrypts this secret until a host flips the opt-in below, so adding it
+here is safe even before any host uses it.
+
+### Per host
+
+```nix
+nix-config.services.networking.tailscale.authKeyFromSecret = true;
+```
+
+A NixOS host then joins non-interactively at first boot: the module registers
+with `--advertise-tags` and `preauthorized = true` (both required for an
+OAuth-issued key to register at all — see
+[`authKeyParameters`](https://tailscale.com/kb/1215/oauth-clients#registering-new-nodes-using-oauth-credentials)).
+A macOS host joins once, at the next activation, the same way.
+
+Tags come from the roles a host enables (`server`, `desktop`, `laptop`,
+`agent-host`, `work`) and are set only at this registration — tags are a
+property of *joining*, not of the running config, so no later rebuild can add,
+change, or remove them. Tagged devices do not expire, which is why an
+always-on host must carry one. Confirm after joining:
+
+    tailscale status --json | jq -r '.Self.Tags'
+
+### Manual fallback
+
+Without the opt-in — or before the secret exists — join by hand. Pass
+`--advertise-tags` in the same `up` call that joins the node (this is how both
+existing hosts joined): adding tags later via a second `tailscale up
+--advertise-tags=...` forces a live session to re-authenticate, which
+supplying them at join time avoids entirely.
+
+```bash
+sudo tailscale up --advertise-tags=tag:server               # e.g. server-vm
+sudo tailscale up --advertise-tags=tag:work,tag:agent-host  # e.g. workbook
+```
+
+Pass only the tags that host's roles derive, and no other flags. In particular
+do not add `--ssh` unless that host's config sets
+`services.networking.tailscale.ssh` (today only hosts enabling `agent-host`
+do): the module adds `--ssh` from config but never removes it, so a flag
+supplied by hand here persists on the node and silently diverges from nix.
+
+The managed Mac runs `tailscaled` from nixpkgs under launchd, where endpoint
+security terminates processes by executable name. After any change to the
+daemon, confirm it survives a reboot and an idle period:
+
+    pgrep -l tailscaled && tailscale status
+
+If it does not survive, that host has no tailnet identity: set
+`services.networking.tailscale.enable = false` on it and reach the homelab
+guest through the vmnet subnet from the host Mac instead.
+
+## How hosts are addressed
+
+Three namespaces, each with one owner:
+
+| namespace | example | owner | scope |
+| --- | --- | --- | --- |
+| machine | `server-vm` | Tailscale MagicDNS | anywhere |
+| LAN | `server.lan` | MikroTik DNS, from the registry | LAN only |
+| service | `jellyfin.home.sidorenko.me` | Cloudflare, from `infra/dns` | anywhere |
+
+`/etc/hosts` carries no host entries on any platform. Bare names resolve
+through MagicDNS; the search list falls back to the router's `lan` zone, which
+answers only on the LAN. Off the LAN a `.lan` name fails immediately rather
+than resolving to an address with no route — that honest failure is the point.
+
+The registry in `lib/defaults.network.hosts` is the single source of DHCP
+reservations and `lan` records. It reaches hosts only through the router, so
+changing it takes effect on `just router-apply`, not on a rebuild.
+
+Service names are not registered anywhere — they're derived from
+`${namespace}.system.networking.names`, a list option each service module
+contributes to inside its own `mkIf cfg.enable` (nginx contributes every
+vhost's `serverName`; a non-HTTP service like `minecraft-server` declares its
+own). `infra/dns` reads that list across every host and writes one A record
+per name, pointed at that host's tailnet address, so enabling a service needs
+no DNS edit — only `just dns-apply`. Disabling one is the mirror image with a
+lag: rebuilding takes the service offline immediately, but its record only
+disappears on the next `dns-apply`. A record that still resolves for a
+service that's already down is that lag, not a bug in the derivation.
+
+The one exception is `home-assistant/inverter`, which names a physical
+device rather than a service and stays on `hosts.lan`. The rule for any
+future call site: if the name would appear in `system.networking.names`, use
+`hosts.service`; otherwise `hosts.lan`.
+
+---
+
+## Web ingress
+
+nginx is the only way into a server's web services — one virtual host per
+service, each proxying to `127.0.0.1:<port>`. An unmatched `Host` header now
+hits a catch-all vhost that returns `444` (connection closed, no response),
+instead of falling through to whichever vhost nginx happened to sort first.
+
+Apps bind loopback wherever their module exposes the option, so the proxy is
+the only path in even from the LAN: `sonarr`, `radarr`, `prowlarr`
+(`bindAddress`, default `127.0.0.1`), qBittorrent's WebUI
+(`WebUI\Address=127.0.0.1`), `calibre` (`services.calibre-web.listen.ip`),
+`home-assistant` and `zigbee2mqtt` (`bindAddress` / `frontend.host`), and
+`restic-server` (`listenAddress`).
+
+Two services still listen on every interface, and for them the firewall is
+the only thing keeping them off the network — not the app itself:
+
+- `jellyfin` has no bind-address option upstream at all, only `openFirewall`.
+- `minidlna` deliberately isn't bound: DLNA clients fetch from the host's own
+  address, so loopback would break them. minidlna can be pinned to one
+  interface (`network_interface`) but not to an address, so there is no
+  binding that keeps DLNA working and also hides it.
+
+### Authentication at the edge
+
+Loopback binding decides *who can reach* a service, not *who may use it*, and
+the two came apart when the proxy became the only client: an app that exempts
+local addresses from authentication exempts everyone once every request
+arrives from `127.0.0.1`. So a vhost whose backend delegates authentication to
+the proxy sets `requiresProxyAuth`, and nginx withholds it entirely until
+`authFile` names an htpasswd file — publishing it unauthenticated is not one
+of the options. A withheld vhost contributes no name to
+`system.networking.names`, so no DNS record outlives the service it pointed
+at.
+
+One gate, at the edge, for everything whose own login is vestigial or absent:
+
+- `sonarr`, `radarr`, `prowlarr` — `AuthenticationMethod=External` means they
+  authenticate nobody, and they serve their API key at `/initialize.json`.
+- `zigbee2mqtt` — its frontend has no login unless an auth token is set.
+- `qbittorrent` — one shared account, and `LocalHostAuth=false` deliberately
+  exempts loopback so the on-host clients that drive its API need no
+  credentials. The cost is that its own logs and bans see the proxy.
+- `minidlna` — no login at all. DLNA clients want it that way but reach port
+  8200 directly, so guarding the vhost costs them nothing.
+
+`jellyfin`, `calibre` and `home-assistant` keep their own authentication
+instead: they have real user accounts, and their TV and phone clients cannot
+answer a basic-auth challenge. Stacking a second prompt in front of them would
+break the clients without adding a boundary the app doesn't already draw.
+
+Set the file with `services.networking.nginx.authFromSecret = true`, which
+points `authFile` at the SOPS secret `service-ingress-htpasswd`. It is opt-in
+for the same reason the tailnet auth key is: sops-nix fails activation on a
+secret that isn't in `modules/nixos/secrets.yaml` yet.
+
+`restic-server` is the same shape and handles it itself: it runs with
+`--no-auth` until `htpasswdFile` is set, and its vhost is withheld until then,
+because a proxied `--no-auth` REST server is write and delete access to the
+whole backup repository for every tailnet peer.
+
+`80` is opened on the Tailscale interface only, not globally. 443 stays closed
+and ungranted until a vhost terminates TLS — an open port with nothing behind
+it hangs a client that upgraded the scheme, where a closed one fails at once.
+
+Note that the firewall is belt and braces rather than the enforcing layer:
+`tailscaled` inserts `-A ts-input -i tailscale0 -j ACCEPT` ahead of `nixos-fw`,
+so traffic arriving over the tailnet is accepted before the firewall sees it.
+Anything bound to all interfaces — `jellyfin`, `minidlna` — is therefore
+reachable from any tailnet node whatever the port list says. Access *between*
+tailnet nodes is controlled by the Tailscale ACL in `infra/tailnet`, not by the
+firewall, which is also why a port is withheld there and not only here.
+
+A `roles.server` host's firewall is otherwise closed: `system.networking`
+leaves `networking.firewall.enable` at `mkDefault false` (so desktops stay
+open by default), and `roles.server` sets it plainly to `true`. Past `22`,
+what stays open on every interface is traffic that isn't HTTP or can't go
+through a proxy:
+
+| Port(s)     | Proto   | Why                                                                                                   |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| 8200        | TCP     | minidlna: DLNA clients discover the server over SSDP, then fetch media straight from this port, never through a vhost |
+| 1900        | UDP     | minidlna: SSDP discovery — minidlna never listens for it on TCP                                       |
+| 17348       | TCP+UDP | qbittorrent: inbound peer connections don't go through a proxy; closing it would silently degrade torrenting to passive-only |
+| 25565       | TCP+UDP | minecraft-server: not HTTP                                                                            |
+| 41641       | UDP     | tailscale: direct (non-DERP) peer connections — opened by `roles.server`, not by a service module     |
+
+These are the deliberate exceptions to "nginx is the only ingress," not
+oversights — everything else a server used to open per-service is gone.
 
 ---
 

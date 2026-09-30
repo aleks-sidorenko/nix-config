@@ -28,9 +28,15 @@ in
 
     webPort = mkOpt types.port defaults.network.ports.restic.web "Port to listen on";
 
+    # Loopback because nginx is the ingress; without htpasswdFile that is
+    # also the only thing gating write access to the repository.
     listenAddress =
-      mkOpt types.str "0.0.0.0:${toString cfg.webPort}"
+      mkOpt types.str "127.0.0.1:${toString cfg.webPort}"
         "Address and port to listen on for the web interface";
+
+    htpasswdFile =
+      mkOpt (types.nullOr types.path) null
+        "Path to an htpasswd file (e.g. a SOPS secret). Required before the repository is published: nginx adds no authentication of its own, so a proxied --no-auth server is open to every tailnet peer.";
 
     appendOnly = mkBoolOpt false "Enable append-only mode (prevents deletion of data)";
 
@@ -82,7 +88,7 @@ in
             ++ optional cfg.appendOnly "--append-only"
             ++ optional cfg.privateRepos "--private-repos"
             ++ optional cfg.prometheus "--prometheus"
-            ++ [ "--no-auth" ]
+            ++ (if cfg.htpasswdFile != null then [ "--htpasswd-file ${cfg.htpasswdFile}" ] else [ "--no-auth" ])
             ++ cfg.extraFlags;
           in
           "${cfg.package}/bin/rest-server ${concatStringsSep " " flags}";
@@ -115,12 +121,18 @@ in
       };
     };
 
-    # Open firewall port if needed
-    networking.firewall.allowedTCPPorts = [ cfg.webPort ];
+    warnings = optional (cfg.htpasswdFile == null) ''
+      services.backup.restic-server has no htpasswdFile: the repository stays
+      on loopback and is not published, so remote clients cannot reach it.
+    '';
 
-    ${namespace}.services.networking.nginx = {
+    # Deliberately no firewall opening: nginx is the ingress, and opening the
+    # port here would let clients bypass it. Published only once the server
+    # authenticates — nginx does not, so proxying --no-auth would hand every
+    # tailnet peer write and delete on the whole repository.
+    ${namespace}.services.networking.nginx = mkIf (cfg.htpasswdFile != null) {
       virtualHosts.restic-server = {
-        serverName = hosts.local "restic";
+        serverName = hosts.service "restic";
         port = cfg.webPort;
         clientMaxBodySize = "0"; # Unlimited - required for large backup uploads
       };

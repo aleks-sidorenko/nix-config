@@ -8,7 +8,7 @@ The MikroTik RouterOS configuration is managed declaratively. The RouterOS modul
 infra/router/default.nix (host config)
     │
     ▼
-nix-routeros flake ── mkRouterDerivation
+lib/terraform ── mkTerraformDerivation
     │
     ▼
 terranix ── generates ──▶ Terraform JSON
@@ -17,14 +17,13 @@ terranix ── generates ──▶ Terraform JSON
 OpenTofu ── applies via REST API ──▶ MikroTik RouterOS
 ```
 
-`infra/router/default.nix` calls `inputs.nix-routeros.lib.mkRouterDerivation`, passing the declarative router config (bridge ports, DNS, WiFi/CAPsMAN, LTE, firewall, hosts) plus SOPS secrets and the state directory. The RouterOS resource schema and terranix/OpenTofu wiring are provided by the flake.
+`infra/router/default.nix` calls `mkTerraformDerivation` (from `lib/terraform`), passing the declarative router config (bridge ports, DNS, WiFi/CAPsMAN, LTE, firewall, hosts) as terranix modules — including `inputs.nix-routeros.presets.router`, which supplies the RouterOS resource schema — plus SOPS secrets and the state directory. `lib/terraform` wraps terranix/OpenTofu into the show/plan/apply/destroy scripts.
 
 ## Configuration Structure
 
 ```
 infra/router/
-├── default.nix           # Router config passed to mkRouterDerivation + SSH backup script
-├── hosts.nix             # Static host/device definitions (IPs, MACs)
+├── default.nix           # Router config passed to mkTerraformDerivation + SSH backup script
 ├── imports.nix           # RouterOS resource ID mappings (for `terraform import` of existing config)
 ├── encryption.tf         # OpenTofu state encryption configuration
 ├── secrets.yaml          # SOPS-encrypted secrets
@@ -71,7 +70,7 @@ nix run .#router.backup   # Backup
 ## Typical Workflow
 
 ```bash
-# 1. Make changes to modules in infra/router/modules/
+# 1. Make changes to infra/router/default.nix or infra/router/imports.nix
 
 # 2. Preview changes
 just router-plan
@@ -126,6 +125,6 @@ This SSHs into the router, creates a backup file (`nix-<timestamp>`), and downlo
 
 ## Managed Devices
 
-Static DHCP leases and DNS entries are defined in `infra/router/hosts.nix`. See [docs/homelab.md](homelab.md) for the network layout table.
+Static DHCP leases and DNS entries are defined in the shared host registry, `lib/defaults` (`defaults.network.hosts`). See [docs/homelab.md](homelab.md) for the network layout table.
 
 Day-to-day operational notes — inspecting DHCP leases and managing the `banned` address list (hosts blocked from WAN traffic) — live in [`infra/router/README.md`](../infra/router/README.md).
