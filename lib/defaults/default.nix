@@ -138,7 +138,9 @@ _: rec {
           ip = "10.0.0.61";
           mac = "F4:6D:04:25:80:5F";
           comment = "Desktop";
-          dns = false;
+          # Resolved only through /etc/hosts before; with that rendering gone
+          # the .lan name has to come from the router's zone instead.
+          dns = true;
           aliases = [ ];
         };
         workbook = {
@@ -152,7 +154,9 @@ _: rec {
           ip = "10.0.0.63";
           mac = "68:EC:C5:C2:36:1B";
           comment = "Ruslana, Dima, Windows";
-          dns = false;
+          # Resolved only through /etc/hosts before; with that rendering gone
+          # the .lan name has to come from the router's zone instead.
+          dns = true;
           aliases = [ ];
         };
         server-vm = {
