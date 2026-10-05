@@ -45,7 +45,9 @@ in
     config = {
       bindAddress = mkOption {
         type = types.str;
-        default = "0.0.0.0";
+        # nginx is the only intended path in; binding all interfaces would make
+        # the port reachable directly regardless of what the firewall allows.
+        default = "127.0.0.1";
         description = "Bind address for Home Assistant web interface";
       };
 
@@ -104,7 +106,7 @@ in
     ${namespace}.services = {
       networking.nginx = {
         virtualHosts.home-assistant = {
-          serverName = hosts.local "home-assistant";
+          serverName = hosts.service "home-assistant";
           port = cfg.webPort;
         };
       };
@@ -159,7 +161,7 @@ in
           time_zone = cfg.config.timeZone;
           unit_system = cfg.config.unitSystem;
           temperature_unit = "C";
-          external_url = "http://${hosts.local "home-assistant"}";
+          external_url = "http://${hosts.service "home-assistant"}";
           internal_url = "http://${cfg.config.bindAddress}:${toString cfg.webPort}";
           packages = "!include_dir_named packages";
         };
@@ -178,15 +180,16 @@ in
         http = {
           server_host = cfg.config.bindAddress;
           server_port = cfg.webPort;
+          # Only the proxy: every other entry would let a client that reaches
+          # the port directly choose the address these headers report.
           trusted_proxies = [
             "127.0.0.1"
             "::1"
-            "10.0.0.0/24"
           ];
           use_x_forwarded_for = true;
           ip_ban_enabled = false;
           cors_allowed_origins = [
-            "http://${hosts.local "home-assistant"}"
+            "http://${hosts.service "home-assistant"}"
           ];
         };
 
@@ -206,7 +209,8 @@ in
           gtts
         ];
 
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
     };
 
     # Ensure data directory exists with correct permissions

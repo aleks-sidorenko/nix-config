@@ -13,9 +13,13 @@ in
   options.${namespace}.system.networking = with types; {
     enable = mkBoolOpt false "Enable networking";
     domains = {
-      local = mkOpt str defaults.network.domains.local "Local domain for intranet resolution";
+      lan = mkOpt str defaults.network.domains.lan "LAN domain for intranet resolution";
       public = mkOpt str defaults.network.domains.public "Public domain to search for";
     };
+
+    names =
+      mkOpt (listOf str) [ ]
+        "DNS names this host answers to, contributed by the services that own them.";
 
   };
 
@@ -33,25 +37,21 @@ in
       # 26.05+), so don't set wireless.enable here.
       networkmanager.enable = true;
 
-      # Set the domain to the local domain
-      domain = mkForce cfg.domains.local;
+      # Set the domain to the LAN domain
+      domain = mkForce cfg.domains.lan;
 
+      # MagicDNS owns bare names; the router's lan zone is the on-LAN fallback
+      # when the tailnet is unavailable.
       search = mkForce [
-        cfg.domains.local
+        defaults.network.domains.tailnet
+        cfg.domains.lan
       ];
 
-      hosts = mkForce (
-        lib.mapAttrs' (
-          host: ip:
-          lib.nameValuePair ip [
-            host
-            "${host}.${cfg.domains.local}"
-          ]
-        ) defaults.network.hosts
-      );
-
       firewall = {
-        enable = false; # TODO: enable firewall
+        # Narrowed, not decided here: desktops and laptops stay open by
+        # default, but roles.server overrides this on for anything running
+        # the server role.
+        enable = mkDefault false;
       };
     };
 

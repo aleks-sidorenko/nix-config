@@ -56,7 +56,7 @@ in
       type = types.str;
       description = "Host name or IP address of the Solarman logger device";
       example = "10.0.0.100";
-      default = hosts.local "inverter";
+      default = hosts.lan "inverter";
     };
 
     serialNumber = mkOption {

@@ -224,10 +224,13 @@ _: {
 
     # /ip dns static print show-ids
     # *1=FWD *.local, *2=ajax, *3=cap1, *4=cap2, *5=heatpump
-    # *6=inverter, *7=monitor, *8=server, *9=tv
-    # *A=radarr, *B=jellyfin, *C=qbittorrent, *D=prowlarr
-    # *E=minidlna, *F=sonarr, *10=home-assistant, *11=zigbee2mqtt
-    # *12=minecraft, *13=restic, *14=1c-key
+    # *6=inverter, *7=monitor, *8=server, *9=tv (1c-key has dns=false: no record)
+    #
+    # server.aliases (*A..*13: radarr, jellyfin, qbittorrent, prowlarr,
+    # minidlna, sonarr, home-assistant, zigbee2mqtt, minecraft, restic) was
+    # emptied in the registry merge — those records are now unmanaged
+    # leftovers on the router; remove by hand or re-adopt when service
+    # records land in a later phase.
     {
       to = "routeros_ip_dns_record.local_fwd";
       id = "*1";
@@ -264,47 +267,6 @@ _: {
     {
       to = "routeros_ip_dns_record.tv";
       id = "*9";
-    }
-
-    {
-      to = "routeros_ip_dns_record.alias_radarr";
-      id = "*A";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_jellyfin";
-      id = "*B";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_qbittorrent";
-      id = "*C";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_prowlarr";
-      id = "*D";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_minidlna";
-      id = "*E";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_sonarr";
-      id = "*F";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_home_assistant";
-      id = "*10";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_zigbee2mqtt";
-      id = "*11";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_minecraft";
-      id = "*12";
-    }
-    {
-      to = "routeros_ip_dns_record.alias_restic";
-      id = "*13";
     }
 
     # ── Firewall ────────────────────────────────────────────────────

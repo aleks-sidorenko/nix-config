@@ -1,6 +1,6 @@
 # Homelab Services
 
-All homelab services run on the `server` host (Raspberry Pi 4, aarch64-linux) using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup-server` + `backup`.
+Homelab services run on `server-vm`, a headless aarch64 QEMU guest standing in for `server` — a Raspberry Pi 4 whose hardware is at a house the owner moved out of — using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup-server` + `backup`. `server-vm` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house, and `backup`/`backup-server` too, since backing the guest up to its own disk would protect against neither the loss of the host Mac's disk nor a reinstall. `server` itself currently declares only `roles.common` — no services, no firewall — until the Pi comes back online, at which point `home-server` moves there and off `server-vm`.
 
 ## Smart Home
 
@@ -96,21 +96,21 @@ Restic-based backup system with client-server architecture:
 
 ## Available Modules (Not Currently Enabled)
 
-These service modules exist in the repo but are **not** enabled by the `home-server` role, so they do not run on `server` in the current configuration. Enable them explicitly if needed.
+These service modules exist in the repo but no host enables them. Enable them explicitly if needed.
 
 | Module | Purpose | Configuration |
 | ------ | ------- | ------------- |
-| **Tailscale** | VPN mesh network for secure remote access | `modules/nixos/services/networking/tailscale/` |
-| **Podman** | Rootless, Docker-compatible container runtime | `modules/nixos/services/virtualisation/podman/` |
 | **k3s** | Lightweight Kubernetes (server/agent, token auth) | `modules/nixos/services/k3s/` |
 | **CUPS** | Print server with network sharing | `modules/nixos/services/printing/` |
+
+Two service modules run outside the `home-server` role: **Tailscale** (`modules/nixos/services/networking/tailscale/`), which `common` enables on every host, and **Podman** (`modules/nixos/services/virtualisation/podman/`), enabled on `desktop`.
 
 ## Enabling Services
 
 Services are typically enabled through the role system:
 
 ```nix
-# In systems/aarch64-linux/server/default.nix
+# In systems/aarch64-linux/server-vm/default.nix
 nix-config.roles.home-server.enable = true;  # Enables ALL server services
 ```
 

@@ -27,6 +27,8 @@ in
       roles.common = enabled;
 
       system.power.mode = cfg.powerMode;
+
+      services.networking.tailscale.tags = [ "tag:agent-host" ];
     };
   };
 }

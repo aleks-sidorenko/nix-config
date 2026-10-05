@@ -9,7 +9,7 @@
 with lib;
 with lib.${namespace};
 let
-  hosts = import ./hosts.nix { inherit defaults; };
+  hosts = defaults.network.hosts;
 
   # Strip non-hostType attrs (bridge.mac, ovpn.mac) from router entry
   routerosHosts = hosts // {
@@ -19,9 +19,20 @@ let
     ];
   };
 
-  base = inputs.nix-routeros.lib.mkRouterDerivation {
+  base = mkTerraformDerivation {
     inherit pkgs system;
+    name = "router";
+    stateDir = "infra/router";
+    secretsFile = "infra/router/secrets.yaml";
+    secrets = {
+      TF_VAR_routeros_password = "router-api-password";
+      TF_VAR_wifi_password = "wifi-password";
+      TF_VAR_state_passphrase = "state-passphrase";
+    };
     modules = [
+      # mkRouterDerivation prepended this internally; mkTerraformDerivation
+      # doesn't, so the preset is now explicit.
+      inputs.nix-routeros.presets.router
       ./imports.nix
       {
         routeros = {
@@ -55,7 +66,7 @@ let
 
           dns = {
             inherit (defaults.network.dns) upstream;
-            localDomain = defaults.network.domains.local;
+            localDomain = defaults.network.domains.lan;
           };
 
           wifi = {
@@ -93,13 +104,6 @@ let
         };
       }
     ];
-    stateDir = "infra/router";
-    secretsFile = "infra/router/secrets.yaml";
-    secrets = {
-      TF_VAR_routeros_password = "router-api-password";
-      TF_VAR_wifi_password = "wifi-password";
-      TF_VAR_state_passphrase = "state-passphrase";
-    };
   };
 
   # SSH-based backup script

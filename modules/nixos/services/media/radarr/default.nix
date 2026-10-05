@@ -45,7 +45,9 @@ in
 
       bindAddress = mkOption {
         type = types.str;
-        default = "*";
+        # nginx is the only intended path in; binding all interfaces would make
+        # the port reachable directly regardless of what the firewall allows.
+        default = "127.0.0.1";
         description = "Bind address for Radarr web interface";
       };
 
@@ -63,8 +65,11 @@ in
       services.networking.nginx = {
         virtualHosts = {
           radarr = {
-            serverName = hosts.local "radarr";
+            serverName = hosts.service "radarr";
             port = cfg.webPort;
+            # AuthenticationMethod below is External: this app authenticates
+            # nobody and serves its API key to whoever asks.
+            requiresProxyAuth = true;
           };
         };
       };
@@ -120,15 +125,18 @@ in
       inherit (cfg) user;
       inherit (cfg) group;
       settings.server.port = cfg.webPort;
-      openFirewall = true;
+      # nginx is the ingress; opening the port here would let clients bypass it.
+      openFirewall = false;
       inherit (cfg) dataDir;
     };
 
     # Add preStart script to copy SOPS-generated configuration
     systemd.services.radarr = {
       preStart = ''
-        echo "Copying Radarr configuration XML with secrets..."        
-        cp ${config.sops.templates."radarr-config.xml".path} ${cfg.dataDir}/config.xml        
+        echo "Copying Radarr configuration XML with secrets..."
+        # cp keeps the source's mode; the SOPS template is read-only, so an explicit
+        # mode is required or Radarr can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."radarr-config.xml".path} ${cfg.dataDir}/config.xml
         echo "Radarr configuration XML with secrets copied successfully"
       '';
     };

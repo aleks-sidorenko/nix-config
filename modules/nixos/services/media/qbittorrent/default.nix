@@ -12,7 +12,6 @@ let
   configDir = "${cfg.dataDir}/.config/qBittorrent";
   logsDir = "${cfg.dataDir}/.local/share/qBittorrent/logs";
   userName = lib.${namespace}.userName config;
-  inherit (defaults.network) subnet;
 
   # Default categories for qBittorrent with subcategories
   defaultCategories = [
@@ -158,12 +157,6 @@ in
       description = "Username for qBittorrent web interface authentication";
     };
 
-    password = mkOption {
-      type = types.str;
-      readOnly = true;
-      description = "Password for qBittorrent web interface authentication";
-    };
-
     queueingEnabled = mkOpt types.bool false "Enable queueing system";
   };
 
@@ -181,14 +174,14 @@ in
         networking.nginx = {
           virtualHosts = {
             qbittorrent = {
-              serverName = hosts.local "qbittorrent";
+              serverName = hosts.service "qbittorrent";
               port = cfg.webPort;
+              requiresProxyAuth = true;
             };
           };
         };
         media.qbittorrent = {
           inherit userName;
-          password = ""; # we allow local clients to connect without a password
         };
 
       };
@@ -243,10 +236,13 @@ in
         [Preferences]
         General\Locale=en
         MailNotification\req_auth=true
-        WebUI\AuthSubnetWhitelist=@Invalid()
-        WebUI\AuthSubnetWhitelist=${subnet}
-        WebUI\AuthSubnetWhitelistEnabled=true
+        WebUI\Address=127.0.0.1
+        # Authentication belongs to the proxy (see requiresProxyAuth on the
+        # vhost), so loopback — where every proxied request comes from — is
+        # exempt, and so are the on-host clients that drive the API. The cost
+        # is that this app's own logs and bans see the proxy, not the peer.
         WebUI\LocalHostAuth=false
+        WebUI\AuthSubnetWhitelistEnabled=false
         WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
         WebUI\Username=${userName}
         Connection\PortRangeMin=${toString cfg.torrentPort}
@@ -330,17 +326,18 @@ in
       };
 
       preStart = ''
-        # Copy configuration files with proper ownership
-        cp ${config.sops.templates."qbittorrent.conf".path} ${configDir}/qBittorrent.conf
-        cp ${categoriesJson} ${configDir}/categories.json
+        # cp keeps the source's mode; both sources are read-only, so an explicit
+        # mode is required or qBittorrent can't rewrite its own config next start
+        install -m 0600 ${config.sops.templates."qbittorrent.conf".path} ${configDir}/qBittorrent.conf
+        install -m 0644 ${categoriesJson} ${configDir}/categories.json
       '';
 
     };
 
-    # Open firewall ports
     networking.firewall = {
+      # Web UI is reached through nginx (loopback); the peer port stays open
+      # since inbound torrent connections don't go through the proxy.
       allowedTCPPorts = [
-        cfg.webPort # Web UI
         cfg.torrentPort # BitTorrent protocol
       ];
       allowedUDPPorts = [
