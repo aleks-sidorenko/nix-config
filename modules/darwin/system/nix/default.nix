@@ -27,6 +27,11 @@ in
     # Nix
     nix = {
       settings = {
+        # macOS admins are in "admin"; "wheel" holds only root
+        trusted-users = [
+          "root"
+          "@admin"
+        ];
         experimental-features = [
           "nix-command"
           "flakes"
