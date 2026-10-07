@@ -310,6 +310,7 @@
             lib.optionalAttrs (packages ? router) { router-imports = packages.router.check; }
             // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; }
             // lib.optionalAttrs (packages ? dns) { dns-imports = packages.dns.check; }
+            // lib.optionalAttrs (packages ? backup) { backup-imports = packages.backup.check; }
             // lib.optionalAttrs (inputs.deploy-rs.lib ? ${system}) (
               let
                 inherit (inputs.deploy-rs.lib.${system}) deployChecks;

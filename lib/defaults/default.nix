@@ -32,6 +32,14 @@ _: rec {
       root = "root";
     };
 
+    # Offsite backups: one restic repository per host under this bucket.
+    # Shared by infra/backup (creates the bucket) and the restic module
+    # (builds the repository URL), so the two can't drift.
+    backup = {
+      bucket = "backups";
+      accountId = "4e18ae7a3707f53f8d7cd82fb8e6abad";
+    };
+
     network = {
       subnet = "10.0.0.0/24";
       gateway = "10.0.0.1";

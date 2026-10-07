@@ -505,6 +505,30 @@ dns-apply:
 dns-secrets-edit:
     sops infra/dns/secrets.yaml
 
+# ============================================
+# Backup storage (R2 bucket via OpenTofu)
+# ============================================
+
+# Show generated terraform JSON for the backup bucket
+backup-show:
+    nix run .#backup
+
+# Checks syntax and provider schema only
+backup-validate:
+    nix run .#backup.validate
+
+# Plan backup storage changes (dry-run)
+backup-plan:
+    nix run .#backup.plan
+
+# Apply backup storage changes
+backup-apply:
+    nix run .#backup.apply
+
+# Edit backup storage SOPS secrets
+backup-secrets-edit:
+    sops infra/backup/secrets.yaml
+
 # Not part of `check`: needs network for `tofu init` and an age key for SOPS.
 # Validate dormant infra configs against provider schemas.
-infra-check: router-validate tailnet-validate dns-validate
+infra-check: router-validate tailnet-validate dns-validate backup-validate
