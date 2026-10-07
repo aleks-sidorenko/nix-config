@@ -96,22 +96,38 @@ if ! confirm "$host" "Type '$host' to revoke it: "; then
 fi
 
 if $anchor; then
+    # Use a temp file in the same directory as $sops_config to preserve path_regex
+    # resolution. Register a trap to clean up if anything fails.
+    tmp="$(dirname "$sops_config")/.sops.yaml.revoke.$$"
+    cleanup() { rm -f "$tmp" "$tmp.bak"; }
+    trap cleanup EXIT
+
+    cp "$sops_config" "$tmp"
+
     # Aliases first: deleting the anchor while an alias remains leaves YAML no
     # parser accepts.
-    sed -i.bak -E "/^[[:space:]]*- \*${host}[[:space:]]*$/d" "$sops_config"
-    sed -i.bak -E "/^[[:space:]]*- &${host}[[:space:]]+age1[a-z0-9]+[[:space:]]*$/d" "$sops_config"
-    rm -f "$sops_config.bak"
-    if has_anchor || [ "$(yq "[.. | select(alias == \"$host\")] | length" "$sops_config")" -gt 0 ]; then
-        log_error "$sops_config still references $host — its layout is not one anchor/alias per line; fix by hand"
+    sed -i.bak -E "/^[[:space:]]*- \*${host}[[:space:]]*$/d" "$tmp"
+    sed -i.bak -E "/^[[:space:]]*- &${host}[[:space:]]+age1[a-z0-9]+[[:space:]]*$/d" "$tmp"
+    rm -f "$tmp.bak"
+    if yq "[.. | select(anchor == \"$host\" or alias == \"$host\")] | length" "$tmp" | grep -q "^0$"; then
+        : # post-check passed
+    else
+        log_error "$tmp still references $host — its layout is not one anchor/alias per line; .sops.yaml left untouched"
         exit 1
     fi
 
     # One file at a time: a cold GPG agent failing midway leaves earlier files
-    # rekeyed and later ones untouched, never one half-written.
+    # rekeyed and later ones untouched. A re-run redoes every file (re-rekeying
+    # an already-done file is harmless), and .sops.yaml is left untouched until
+    # all files rekey successfully.
     for f in "${files[@]}"; do
         log_info "Rekeying $f"
-        sops --config "$sops_config" updatekeys -y "$f"
+        sops --config "$tmp" updatekeys -y "$f"
     done
+
+    # All files rekeyed successfully; now update the config.
+    mv "$tmp" "$sops_config"
+    trap - EXIT
     log_success "Recipient &$host removed; ${#files[@]} files rekeyed"
 fi
 
