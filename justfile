@@ -49,15 +49,6 @@ bootstrap-darwin hostname:
     @echo "🍎 Bootstrapping macOS host {{hostname}}..."
     ./scripts/bootstrap/bootstrap-darwin.sh "{{hostname}}"
 
-# Bootstrap Raspberry Pi firmware via SSH
-bootstrap-rpi-firmware hostname username="$USER" target_dir="/mnt/boot" version="v1.42":
-    @echo "🥧 Bootstrapping Raspberry Pi firmware on {{username}}@{{hostname}}..."
-    @echo "📡 Target directory: {{target_dir}}"
-    @echo "📦 Firmware version: {{version}}"
-    @echo "🔗 Connecting via SSH and executing firmware installation script..."
-    cat scripts/common.sh scripts/bootstrap/bootstrap-rpi-firmware.sh | ssh {{username}}@{{hostname}} 'bash -s -- {{target_dir}} {{version}}'
-    @echo "✅ Raspberry Pi firmware bootstrap completed!"
-
 # Format disks with disko configuration
 # Usage:
 #   just bootstrap-disk hostname                  # Preview changes (dry-run)
@@ -322,8 +313,7 @@ bootstrap-help:
     @echo "  2. Two-step process for advanced control:"
     @echo "     Step 1: just bootstrap-secrets <hostname> [disk_password]"
     @echo "     Step 2: set -x KEYSDIR <path_from_step1> && just bootstrap-deploy <hostname> [username] [options...]"
-    @echo "  3. Raspberry Pi firmware only: just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]"
-    @echo "  4. macOS host (run ON the Mac): just bootstrap-darwin <hostname>"
+    @echo "  3. macOS host (run ON the Mac): just bootstrap-darwin <hostname>"
     @echo ""
     @echo "Usage:"
     @echo "  Complete: just bootstrap <hostname> [username] [disk_password] [extra_opts...]"
@@ -351,11 +341,6 @@ bootstrap-help:
     @echo "  just bootstrap myserver alexander                          # Complete bootstrap with specific user"
     @echo "  just bootstrap myserver alexander MyPassword123            # Complete bootstrap with disk encryption"
     @echo "  set -x KEYSDIR /tmp/keysXXX && just bootstrap myserver     # Use existing keys directory"
-    @echo ""
-    @echo "Raspberry Pi firmware examples:"
-    @echo "  just bootstrap-rpi-firmware myrpi                          # Install firmware with defaults"
-    @echo "  just bootstrap-rpi-firmware myrpi pi /boot v1.50           # Custom user, target dir, and version"
-    @echo "  just bootstrap-rpi-firmware 192.168.1.100 root             # Custom user, default dir and version"
     @echo ""
     @echo "Two-step examples:"
     @echo "  just bootstrap-secrets myserver                            # Step 1: Prepare secrets"
@@ -399,7 +384,6 @@ bootstrap-help:
     @echo "  scripts/common.sh                          - Shared utilities and logging functions"
     @echo "  scripts/bootstrap/bootstrap-secrets.sh     - SSH keys and secrets preparation (supports --disk-password)"
     @echo "  scripts/bootstrap/bootstrap-deploy.sh      - NixOS deployment with nixos-anywhere"
-    @echo "  scripts/bootstrap/bootstrap-rpi-firmware.sh - Raspberry Pi firmware installation"
 
 
 # Show all hosts that can be bootstrapped
