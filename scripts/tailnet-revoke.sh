@@ -36,11 +36,15 @@ secret() {
     sops --decrypt --extract "[\"$1\"]" "$secrets"
 }
 
-token=$(curl -fsS "$api/oauth/token" \
-    -d "client_id=$(secret tailscale-oauth-client-id)" \
-    -d "client_secret=$(secret tailscale-oauth-client-secret)" | jq -r .access_token)
+# Pass credentials via stdin and headers to keep them out of argv/ps
+token=$(printf 'client_id=%s&client_secret=%s' "$(secret tailscale-oauth-client-id)" "$(secret tailscale-oauth-client-secret)" |
+    curl -fsS "$api/oauth/token" --data @- | jq -er .access_token)
 
-devices=$(curl -fsS -H "Authorization: Bearer $token" "$api/tailnet/-/devices" |
+auth_header() {
+    printf 'Authorization: Bearer %s\n' "$token"
+}
+
+devices=$(curl -fsS -H @<(auth_header) "$api/tailnet/-/devices" |
     jq -c --arg host "$host" '[.devices[] | select(.hostname == $host) | {id, name, lastSeen}]')
 
 if [ "$(jq length <<<"$devices")" -eq 0 ]; then
@@ -63,7 +67,7 @@ fi
 
 for id in $(jq -r '.[].id' <<<"$devices"); do
     status=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
-        -H "Authorization: Bearer $token" "$api/device/$id")
+        -H @<(auth_header) "$api/device/$id")
     case "$status" in
     200) log_success "Deleted device $id" ;;
     403)
