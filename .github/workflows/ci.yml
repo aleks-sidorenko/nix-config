@@ -25,8 +25,15 @@ jobs:
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v15
 
+      # --all-systems also builds every system's checks, which this runner
+      # can't do for darwin or aarch64; build only ours, then evaluate the rest.
+      # Order matters: --no-build never copies the flake source into the store,
+      # so on a fresh runner it fails with "path ... is not valid".
       - name: Check flake
-        run: nix flake check --all-systems --show-trace
+        run: nix flake check --show-trace
+
+      - name: Evaluate flake (all systems)
+        run: nix flake check --all-systems --no-build --show-trace
 
   formatting:
     name: "Check Formatting"
