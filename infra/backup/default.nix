@@ -27,6 +27,9 @@ mkTerraformDerivation {
       resource.cloudflare_r2_bucket.backups = {
         account_id = backup.accountId;
         name = backup.bucket;
+        # Renaming the bucket plans a destroy-and-recreate of the backups' home;
+        # removing this guard should be a deliberate edit.
+        lifecycle.prevent_destroy = true;
       };
     }
   ];
