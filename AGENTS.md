@@ -312,7 +312,7 @@ IaC configurations in `infra/`:
   - Managed via `just router-*` commands
 - `backup/` - The Cloudflare R2 bucket offsite backups go to, managed via terranix/OpenTofu
   - `default.nix` - the bucket only; the S3 credential restic uses is created by hand and kept in SOPS
-  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token with R2 Edit only, state passphrase)
+  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token with Workers R2 Storage: Edit only, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just backup-*` commands
 - `dns/` - The `sidorenko.me` Cloudflare zone, managed via terranix/OpenTofu

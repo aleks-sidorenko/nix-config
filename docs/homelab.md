@@ -101,16 +101,21 @@ repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
 - **Where it's declared**: the bucket in `infra/backup`; bucket name and
   account ID in `lib/defaults.backup`; the client in
   `modules/nixos/services/backup/restic/`.
+- **Other roles**: the `graphical` role also enables `backup`, so a future
+  desktop host would back up its `/home` to the same bucket unless it turns
+  `backup` off.
 - **Failures are silent**: check `systemctl status restic-backups-default`.
 
 ### Bootstrap (once)
 
-1. Cloudflare dashboard → API token with **R2: Edit** → `just backup-secrets-edit`
+1. Cloudflare dashboard → API token with **Workers R2 Storage: Edit** (account permission) → `just backup-secrets-edit`
    (`cloudflare-api-token`, plus a new random `state-passphrase`).
 2. `just backup-apply` — creates the bucket.
 3. Dashboard → R2 → API token, **Object Read & Write**, bucket `backups` only →
    `just secrets-edit nixos`: `service-restic-r2-access-key-id` (Access Key ID)
-   and `service-restic-r2-secret-access-key` (Secret Access Key).
+   and `service-restic-r2-secret-access-key` (Secret Access Key). The host
+   won't build (sops-nix's manifest check fails on a missing key) until both
+   are in `modules/nixos/secrets.yaml`, so add them before building or deploying.
 4. Deploy the host, then `sudo systemctl start restic-backups-default` and
    `journalctl -u restic-backups-default` for the first snapshot.
 
@@ -119,12 +124,14 @@ repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
 On the host (or a fresh one with the same identity):
 
 ```bash
-sudo restic-default snapshots
-sudo restic-default restore <snapshot-id> --target /tmp/restore --include /persist/var/lib/<service>
+sudo -u restic restic-default snapshots
+sudo restic-default restore --no-cache <snapshot-id> --target /tmp/restore --include /persist/var/lib/<service>
 ```
 
 `restic-default` is the NixOS wrapper that carries the repository, password
-and R2 environment.
+and R2 environment. Read-only commands run as the `restic` user, which owns
+the shared cache directory; `restore` runs as root, so it skips the cache to
+avoid leaving root-owned files there.
 
 **If every device is lost**, a restore needs only this repo and the PGP private
 key: the key decrypts the restic password and the R2 credential from SOPS. The
