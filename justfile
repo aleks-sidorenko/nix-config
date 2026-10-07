@@ -282,6 +282,14 @@ secrets-edit type:
 secrets-fix:
     sops-fix
 
+# Retire a host's secrets identity: its SOPS recipient (rekeying the files it
+# could read) and its SSH host key in pass. Lists what it could decrypt.
+# Usage:
+#   just secrets-revoke host            # Preview (dry-run)
+#   just secrets-revoke host --apply    # Revoke
+secrets-revoke host mode="--dry-run":
+    @./scripts/secrets-revoke.sh {{host}} {{mode}}
+
 # Show flake outputs
 outputs:
     @echo "📤 Flake outputs:"
