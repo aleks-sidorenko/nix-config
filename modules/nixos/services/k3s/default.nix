@@ -20,7 +20,7 @@ in
     ${namespace}.security.sops.enable = true;
 
     sops.secrets.k3s_token = {
-      sopsFile = ../../roles/kubernetes/secrets.yaml;
+      sopsFile = ../../secrets.yaml;
     };
 
     services = {

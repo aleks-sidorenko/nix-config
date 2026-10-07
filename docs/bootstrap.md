@@ -28,7 +28,7 @@ on-machine install run on the target itself.
 4. Generate host keys → register SOPS   (bootstrap-secrets, .sops.yaml, updatekeys)
 5. Add the secrets the host needs      (user-<name>-password)
 6. Deploy                              (bootstrap / bootstrap-deploy + disko — or on-machine disko + nixos-install)
-7. Post-install                        (FIDO2, RPi firmware, …)
+7. Post-install                        (FIDO2, …)
 ```
 
 Steps 4–6 can be run as a single `just bootstrap` command (it pauses at the SOPS
@@ -54,32 +54,56 @@ systems/<arch>/<hostname>/
 
 > **`hardware.nix` and `disks.nix` hold machine-specific values you can't know
 > yet** — the disk's stable `/dev/disk/by-id/…` path and the target's kernel
-> modules / microcode vendor. Start them from a similar host (or the `homebook`
-> placeholders, which are marked `# TODO` / `REPLACE-ME`) and **finalize them
-> after booting the target** in
+> modules / microcode vendor. Start them from a similar host (or the `server-vm`
+> files) and **finalize them after booting the target** in
 > [Step 3 → Capture the target's disks & hardware](#capture-the-targets-disks--hardware).
 > Leaving `REPLACE-ME` in `disks.nix` makes disko fail during deploy.
 
-Example `default.nix` (from the shared family laptop `homebook`):
+Example `default.nix` (from `server-vm`):
 
 ```nix
-{ lib, namespace, ... }:
+{
+  lib,
+  namespace,
+  ...
+}:
 with lib;
 with lib.${namespace};
 {
-  imports = [ ./hardware.nix ./disks.nix ];
+  imports = [
+    ./hardware.nix
+    ./disks.nix
+  ];
 
   ${namespace} = {
-    roles.homebook = enabled;
+    roles = {
+      home-server = enabled;
 
-    # All accounts are declared here, including the primary.
-    users = {
-      alexander = { primary = true; admin = true; };  # profile defaults to "adult"
-      dima       = { profile = "child"; };            # no wheel; restricted home
+      # The plugs, heatpump and climate sensors its automations name stayed
+      # with the old house.
+      smart-home = disabled;
+
+      # Off until there is somewhere off-box to back up to. Backing a laptop
+      # guest up to its own disk protects against neither the loss of the host
+      # Mac's disk, which both qcow2 files live on, nor a reinstall, which
+      # rewrites the root disk the system itself sits on — so the two roles
+      # would buy only the appearance of coverage. Disabling the server drops its
+      # nginx vhost, which proxied the unauthenticated REST endpoint onto
+      # whatever LAN the host Mac had joined.
+      backup = disabled;
+      backup-server = disabled;
     };
+
+    users.alexander = {
+      primary = true;
+      admin = true;
+    };
+
+    disks.impermanence = enabled;
   };
 
-  system.stateVersion = "25.05";  # do not change after install
+  # Do not change this value! This tracks when NixOS was installed on your system.
+  system.stateVersion = "25.05";
 }
 ```
 
@@ -133,11 +157,6 @@ own, so the ssh module authorizes the **owner identity** (`lib` `defaults.user`)
 — i.e. you connect as `nixos@<host>` with your own private key, no password. The
 ISO is defined by the `minimal` role (SSH, networking, locale, fish) in
 `systems/x86_64-install-iso/minimal-x86_64/`.
-
-> **Raspberry Pi 4:** first
-> [prepare the bootloader](https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md#prepare-bootloader-on-raspberry-pi-5)
-> (update firmware, change boot order), then continue here. Firmware is installed
-> post-deploy — see [Raspberry Pi 4](#raspberry-pi-4-firmware).
 
 > **Provisioning a VM guest?** `server-vm` runs under QEMU on the `workbook` and
 > boots from the same kind of installer ISO, built for its own architecture
@@ -254,8 +273,7 @@ Then add it to `.sops.yaml`:
    ```yaml
    keys:
      - &hosts:
-       - &desktop age1kjlpt0mu072vqk8txgkfs7yvehkvk0kysawyqvy96zcqmf49wgkq3hlsag
-       - &myhost  age1xxxx...xxxx        # <- add your new host
+       - &<hostname> age1xxxx...xxxx     # <- add your new host
    ```
 
 2. Add the host to every creation rule whose secrets it must read (at minimum the
@@ -267,8 +285,7 @@ Then add it to `.sops.yaml`:
          - pgp:
              - *alexander
            age:
-             - *desktop
-             - *myhost                    # <- add your new host
+             - *<hostname>                # <- add your new host
    ```
 
 3. Re-encrypt existing secrets so the new host can decrypt them:
@@ -404,18 +421,18 @@ Once it comes up, [subsequent deploys](#subsequent-deploys) deploy normally.
 - **SSH address** — it connects to `<username>@<hostname>` to run the install.
 
 So `<hostname>` must *also resolve to the target's IP*. For a host already known
-to the config this is wired up automatically — which is why `ssh nixos@homebook`
+to the config this is wired up automatically — which is why `ssh nixos@<hostname>`
 works from your workstation even though the fresh installer only knows itself as
 `nixos` and grabbed its address over DHCP:
 
 - **Name → IP:** the router's `lan` DNS zone answers for `dns = true` hosts —
-  e.g. `homebook` resolves via `homebook.lan`, and the deploying machine's
+  e.g. `<hostname>` resolves via `<hostname>.lan`, and the deploying machine's
   search list (`[<tailnet>, lan]`) makes the bare name work too. There is no
   `/etc/hosts` rendering to fall back on; both this record and the DHCP lease
   below come from the single registry entry in `lib/defaults.network.hosts`.
 - **Machine holds that IP:** the router hands it out as a **static DHCP lease
-  keyed by MAC** (same registry entry, e.g. homebook's `68:EC:…` →
-  `10.0.0.63`). Because the lease is by MAC, the box gets its reserved address
+  keyed by MAC** (same registry entry, e.g. `<mac>` →
+  `<ip>`). Because the lease is by MAC, the box gets its reserved address
   even while running the installer — it is not a random IP. Both the DNS
   record and the lease reach the router only via `just router-apply`, not a
   rebuild.
@@ -434,12 +451,12 @@ read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
 `Include`s (see `modules/home/security/ssh`):
 
 ```
-Host homebook
-  HostName 10.0.0.63
+Host <hostname>
+  HostName <ip>
   User nixos
 ```
 
-so `.#homebook` still selects the right config while SSH goes to the actual IP.
+so `.#<hostname>` still selects the right config while SSH goes to the actual IP.
 
 **`server-vm`** never gets a registry-driven address — it carries
 `dns = false, dhcp = false` permanently. See
@@ -457,22 +474,6 @@ ssh <username>@<hostname>
 systemd-cryptenroll --fido2-device=auto /dev/disk/by-label/<device_name>
 ```
 
-#### Raspberry Pi 4 firmware
-
-```bash
-just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]
-```
-
-Examples:
-```bash
-just bootstrap-rpi-firmware myrpi                          # defaults: current user, /mnt/boot, v1.42
-just bootstrap-rpi-firmware myrpi pi /boot v1.50           # custom settings
-just bootstrap-rpi-firmware 192.168.1.100 root             # by IP
-```
-
-This downloads [RPi4 UEFI firmware](https://github.com/pftf/RPi4) and extracts it
-to the target directory.
-
 ### Subsequent deploys
 
 After the initial bootstrap, deploy changes normally:
@@ -482,6 +483,33 @@ just deploy <hostname>                 # remote deploy via deploy-rs
 just deploy <hostname> --remote-build  # build on target
 nh os switch                           # local rebuild (on the host itself)
 ```
+
+### Retiring a host
+
+Run both recipes without `--apply` first to see what they would touch, then
+repeat with `--apply`:
+
+```bash
+just secrets-revoke <hostname>             # dry-run: secrets it can decrypt, its pass entries
+just tailnet-revoke <hostname>             # dry-run: its tailnet devices
+just secrets-revoke <hostname> --apply     # drop its &<hostname> recipient, rekey, remove infra/host/<hostname> from pass
+just tailnet-revoke <hostname> --apply     # delete its tailnet devices
+```
+
+`tailnet-revoke` exits 0 with "nothing to revoke" when no device matches;
+`secrets-revoke` exits 1 when the host has neither a recipient nor pass entries.
+
+Then:
+
+- delete its `systems/<arch>/<hostname>/` and `homes/<arch>/*@<hostname>/`
+  directories;
+- remove its `hosts.<hostname>` entry in `flake.nix`, if it has one;
+- remove it from the CI matrices in `.github/workflows/*`;
+- remove its `lib/defaults.network.hosts` registry entry, if present.
+
+`bootstrap-secrets` reuses keys it finds in `pass`, so revoke a
+name before reusing it for new hardware; otherwise the new machine inherits the
+old host's key.
 
 ---
 
@@ -639,7 +667,7 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ## macOS (nix-darwin)
 
 **Local only** — there is no remote install path: macOS has no kexec/netboot
-install phase, so macOS hosts (`workbook`, `tempbook`) are **not** installed
+install phase, so macOS hosts (`workbook`) are **not** installed
 with nixos-anywhere. You start from a stock macOS install and run the bootstrap
 **on the Mac itself**. The
 [`bootstrap-darwin`](../scripts/bootstrap/bootstrap-darwin.sh) script automates
@@ -799,7 +827,7 @@ darwin-rebuild switch --flake .#<hostname>   # equivalent, explicit
 
 ## Adding a user to an existing host
 
-Hosts can carry several accounts (e.g. `homebook` has `alexander` and `dima`).
+Hosts can carry several accounts (e.g. a host with `alexander` and `dima`).
 Adding one is three small steps:
 
 ### 1. Declare the account
@@ -1143,8 +1171,9 @@ sudo nixos-rebuild switch --flake .#<hostname>
 | `just bootstrap-deploy <host> [user] [keysdir] [opts]` | Deploy using existing keys |
 | `just bootstrap-disk <host>` | Preview disk formatting (dry-run) |
 | `just bootstrap-disk <host> --apply` | Format disks with disko |
-| `just bootstrap-rpi-firmware <host> [user] [dir] [ver]` | Install RPi4 firmware |
 | `just bootstrap-targets` | List available bootstrap targets |
+| `just secrets-revoke <host> [--apply]` | Retire a host's SOPS recipient and pass keys |
+| `just tailnet-revoke <host> [--apply]` | Delete a host's tailnet devices |
 | `just scripts-validate` | Shellcheck every script under `scripts/` |
 | `just bootstrap-help` | Show detailed bootstrap help |
 
@@ -1165,11 +1194,3 @@ Common options passed via `extra_opts`:
 |----------|-------------|
 | `KEYSDIR` | Keys directory (set by `bootstrap-secrets`, used by `bootstrap-deploy`) |
 | `AUTO_APPROVE` | Skip the interactive SOPS update confirmation |
-
-### Raspberry Pi 4 reference links
-
-- [kotatsuyaki/rpi4-usb-uefi-nixos-config](https://codeberg.org/kotatsuyaki/rpi4-usb-uefi-nixos-config)
-- [pftf/RPi4](https://github.com/pftf/RPi4)
-- [Stunkymonkey/nixos](https://github.com/Stunkymonkey/nixos/tree/master/machines/serverle)
-- [fredrikaverpil/dotfiles](https://github.com/fredrikaverpil/dotfiles/blob/main/nix/hosts/rpi5-homelab/README.md)
-- [NixOS on RPi4 with UEFI and ZFS](https://carlosvaz.com/posts/nixos-on-raspberry-pi-4-with-uefi-and-zfs/)

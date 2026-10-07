@@ -52,9 +52,8 @@ with lib.${namespace};
           encrypted = false;
           imageSize = "64G";
           content = [
-            # Deliberate divergence from the Pi, which keeps `home` on the root
-            # disk. A guest is reinstalled far more readily than a machine you
-            # have to carry install media to, and a reinstall runs disko over
+            # A guest is reinstalled far more readily than a machine you have
+            # to carry install media to, and a reinstall runs disko over
             # /dev/vda only — so everything on this second disk survives it,
             # while anything on root does not.
             {

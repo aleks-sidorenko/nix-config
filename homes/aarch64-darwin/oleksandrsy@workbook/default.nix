@@ -10,7 +10,6 @@ with lib.${namespace};
   nix-config = {
     roles = {
       work = enabled;
-      parent = enabled;
     };
 
     desktops.monitors = {

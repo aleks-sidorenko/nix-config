@@ -28,7 +28,6 @@
 
 ### Misc
 
-- [Stunkymonkey/nixos](https://github.com/Stunkymonkey/nixos) - Raspberry Pi 4 NixOS
 - [azuwis/nix-config](https://github.com/azuwis/nix-config/tree/master/nixos/hass) - Home Assistant on NixOS
 - [nathan-gs/nix-conf](https://github.com/nathan-gs/nix-conf/tree/main/smarthome) - Smart home on NixOS
 

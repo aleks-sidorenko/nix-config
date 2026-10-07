@@ -239,12 +239,6 @@
         ];
         hosts = {
           # hosts specific modules
-          desktop = {
-            modules = with inputs.nixos-hardware.nixosModules; [
-              common-cpu-intel
-            ];
-          };
-
           minimal-x86_64 = {
             modules = with inputs; [
               "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"

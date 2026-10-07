@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Overview
 
-This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (desktop, server, macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
+This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (a home server (upcoming, #235), its VM stand-in, a macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
 
 ## Common Commands
 
@@ -22,8 +22,7 @@ just deploy <hostname> --remote-build            # Build on target
 just deploy <hostname> --dry-run                 # Preview changes
 
 # Examples
-just deploy server --remote-build
-just deploy desktop --remote-build --verbose
+just deploy server-vm --remote-build --verbose
 ```
 
 ### Testing & Validation
@@ -60,9 +59,6 @@ just bootstrap-deploy <hostname> [username] [extra_opts...]  # Step 2: Deploy
 # Disk formatting with disko
 just bootstrap-disk <hostname>            # Preview (dry-run)
 just bootstrap-disk <hostname> --apply    # Apply and format disks
-
-# Raspberry Pi firmware
-just bootstrap-rpi-firmware <hostname> [username] [target_dir] [version]
 ```
 
 ### Information & Discovery
@@ -218,13 +214,12 @@ git-signing, and `authorizedKeys` modules resolve it via `lib/identity`
 
 ### Secrets with SOPS
 
-### Secrets with SOPS
-
 - **NixOS secrets**: `modules/nixos/secrets.yaml`
 - **Home-manager secrets**: `modules/home/secrets.yaml`
 - Age keys configuration: `.sops.yaml` at repo root
 - Bootstrap scripts handle SSH host keys and age key generation
 - Use `sops updatekeys` after adding new hosts to `.sops.yaml`
+- Retire a host with `just secrets-revoke <host>` and `just tailnet-revoke <host>` (dry-run by default; `--apply` to act).
 
 ### Disk Management
 
@@ -268,14 +263,13 @@ Supports multiple desktop environments:
 ### Hardware Configurations
 
 - Per-host hardware configs in `systems/<arch>/<hostname>/hardware.nix`
-- Hardware modules in `modules/nixos/hardware/`: audio, bluetooth, video (nvidia/nouveau), zsa keyboards, raspberry-pi-4
+- Hardware modules in `modules/nixos/hardware/`: audio, bluetooth, video (nvidia/nouveau), zsa keyboards
 - Uses nixos-hardware flake for common hardware profiles
 
 ### Multi-Architecture Support
 
-- **x86_64-linux**: Desktop
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal-x86_64`)
-- **aarch64-linux**: Raspberry Pi 4 server, headless QEMU guest (`server-vm`) standing in for it
+- **aarch64-linux**: headless QEMU guest (`server-vm`) on the workbook, standing in for the home server
 - **aarch64-darwin**: macOS workbook
 
 Darwin-specific modules in `modules/darwin/` with separate role system.
@@ -327,7 +321,6 @@ IaC configurations in `infra/`:
 - `scripts/common.sh` - Shared script utilities
 - `scripts/bootstrap/bootstrap-secrets.sh` - Secret and SSH key preparation
 - `scripts/bootstrap/bootstrap-deploy.sh` - nixos-anywhere deployment wrapper
-- `scripts/bootstrap/bootstrap-rpi-firmware.sh` - Raspberry Pi firmware installation
 
 ## Bootstrap Prerequisites
 

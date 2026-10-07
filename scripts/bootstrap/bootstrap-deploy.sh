@@ -102,7 +102,7 @@ verify_host_key_matches_sops() {
         return 0
     fi
 
-    # Anchor lines look like:  '    - &homebook age1xxxx...'
+    # Anchor lines look like:  '    - &<hostname> age1xxxx...'
     local registered_age
     registered_age=$(grep -oE "&${hostname}[[:space:]]+age1[a-z0-9]+" "$sops_file" | grep -oE 'age1[a-z0-9]+' | head -1)
 
