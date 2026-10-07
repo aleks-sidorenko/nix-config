@@ -119,21 +119,8 @@ else
     };
     modules = [
       tailscaleProvider
+      cloudflareProvider
       {
-        terraform.required_providers.cloudflare = {
-          source = "cloudflare/cloudflare";
-          version = "~> 5.20";
-        };
-
-        variable.cloudflare_api_token = {
-          type = "string";
-          sensitive = true;
-        };
-
-        provider.cloudflare = {
-          api_token = "\${var.cloudflare_api_token}";
-        };
-
         # One call listing every device, not one lookup per host: per-host
         # lookups would fail the plan on the provider's terms, with no say in
         # which absences are tolerable. Listing puts that decision in the

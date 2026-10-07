@@ -83,6 +83,27 @@ in
     };
   };
 
+  ## Provider, version and credential variable for the Cloudflare API, for
+  ## every config that manages the account. Import it rather than restating
+  ## the block; `secrets` must map `TF_VAR_cloudflare_api_token`.
+  ##
+  #@ Module
+  cloudflareProvider = {
+    terraform.required_providers.cloudflare = {
+      source = "cloudflare/cloudflare";
+      version = "~> 5.20";
+    };
+
+    variable.cloudflare_api_token = {
+      type = "string";
+      sensitive = true;
+    };
+
+    provider.cloudflare = {
+      api_token = "\${var.cloudflare_api_token}";
+    };
+  };
+
   ## Wrap a terranix configuration in show/validate/plan/apply/destroy scripts.
   ##
   ## State lives in the repo under `stateDir`; secrets are decrypted from
