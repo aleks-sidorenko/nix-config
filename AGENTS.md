@@ -103,6 +103,9 @@ Recipes are `<group>-<suffix>`, and within a group every suffix is the same kind
 - **Workflow groups** (`bootstrap`) take **steps**: `bootstrap-secrets`,
   `bootstrap-deploy`, `bootstrap-disk`.
 
+Existing exceptions are deliberate: `bootstrap-darwin`, `bootstrap-help`,
+`bootstrap-targets`, `disk-usage`, `github-fetch-hash`.
+
 Rename old recipes instead of aliasing them.
 
 ## Architecture
