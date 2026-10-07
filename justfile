@@ -490,6 +490,13 @@ tailnet-apply:
 tailnet-secrets:
     sops infra/tailnet/secrets.yaml
 
+# Delete a host's devices from the tailnet
+# Usage:
+#   just tailnet-revoke host            # Preview (dry-run)
+#   just tailnet-revoke host --apply    # Delete
+tailnet-revoke host mode="--dry-run":
+    @./scripts/tailnet-revoke.sh {{host}} {{mode}}
+
 # ============================================
 # DNS Management (sidorenko.me zone via OpenTofu)
 # ============================================
