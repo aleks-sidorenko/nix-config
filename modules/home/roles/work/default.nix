@@ -46,8 +46,6 @@ in
             mysql = true;
           };
         };
-
-        router = enabled;
       };
 
       services = {

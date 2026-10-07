@@ -21,7 +21,6 @@ in
         communication = enabled;
         phone = enabled;
         gaming = enabled;
-        router = enabled;
         development = {
           enable = true;
           ai = {
