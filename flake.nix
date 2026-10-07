@@ -317,7 +317,16 @@
             // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; }
             // lib.optionalAttrs (packages ? dns) { dns-imports = packages.dns.check; }
             // lib.optionalAttrs (inputs.deploy-rs.lib ? ${system}) (
-              inputs.deploy-rs.lib.${system}.deployChecks inputs.self.deploy
+              let
+                inherit (inputs.deploy-rs.lib.${system}) deployChecks;
+                inherit (inputs.self) deploy;
+                # Both checks build the profiles of the nodes they're given, so
+                # each system checks only its own nodes, the ones it can build.
+                localNodes = lib.filterAttrs (
+                  _: node: lib.all (profile: profile.path.system == system) (lib.attrValues node.profiles)
+                ) deploy.nodes;
+              in
+              lib.optionalAttrs (localNodes != { }) (deployChecks (deploy // { nodes = localNodes; }))
             );
         };
     };
