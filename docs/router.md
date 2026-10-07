@@ -53,7 +53,7 @@ infra/router/
 | `just router-plan` | Preview changes (dry-run) |
 | `just router-apply` | Apply changes to router |
 | `just router-backup` | Create SSH backup of router config |
-| `just router-secrets` | Edit router SOPS secrets |
+| `just router-secrets-edit` | Edit router SOPS secrets |
 | `just router-destroy` | Destroy Terraform state (dangerous!) |
 | `just router-help` | Show help with examples |
 
@@ -105,7 +105,7 @@ Secrets are managed via SOPS and automatically injected as environment variables
 
 Edit secrets:
 ```bash
-just router-secrets
+just router-secrets-edit
 ```
 
 ## State Management

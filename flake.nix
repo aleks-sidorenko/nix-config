@@ -304,7 +304,7 @@
           formatter = channels.nixpkgs.nixfmt-tree;
           inherit packages;
           # `nix flake check` is the only thing that runs infra/{router,tailnet,dns}
-          # validation routinely (see check-infra in justfile); this is the
+          # validation routinely (see infra-check in justfile); this is the
           # pure/offline slice of it (mkImportCheck) that can live here.
           checks =
             lib.optionalAttrs (packages ? router) { router-imports = packages.router.check; }
