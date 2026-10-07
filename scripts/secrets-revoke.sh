@@ -36,10 +36,6 @@ esac
 
 check_dependencies yq sops pass git
 
-has_anchor() {
-    [ "$(yq "[.. | select(anchor == \"$host\")] | length" "$sops_config")" -gt 0 ]
-}
-
 has_pass_entries() {
     pass ls "$pass_root" >/dev/null 2>&1
 }
@@ -55,9 +51,12 @@ affected_files() {
         done | sort -u
 }
 
+# Plain assignments, so set -e aborts on a yq failure instead of reading it as
+# "no anchor".
+anchors=$(yq "[.. | select(anchor == \"$host\")] | length" "$sops_config")
 anchor=false
 pass_entries=false
-has_anchor && anchor=true
+[ "$anchors" -gt 0 ] && anchor=true
 has_pass_entries && pass_entries=true
 
 if ! $anchor && ! $pass_entries; then
@@ -65,11 +64,19 @@ if ! $anchor && ! $pass_entries; then
     exit 1
 fi
 
-mapfile -t files < <(if $anchor; then affected_files; fi)
+files=()
+if $anchor; then
+    files_out=$(affected_files)
+    mapfile -t files < <(printf '%s\n' "$files_out" | grep -v '^$' || true)
+    if [ ${#files[@]} -eq 0 ]; then
+        log_error "&$host anchor exists but no tracked secrets file matches its rules in $sops_config"
+        exit 1
+    fi
+fi
 
 log_info "Revoking secrets identity of '$host'"
 if $anchor; then
-    log_info "Recipient &$host is removed from $sops_config and these files are rekeyed."
+    log_info "Recipient &$host would be removed from $sops_config and these files are rekeyed."
     log_info "Secrets it could decrypt — rotate any that may be exposed:"
     for f in "${files[@]}"; do
         echo "  $f"
@@ -79,7 +86,7 @@ else
     log_warning "No &$host anchor in $sops_config; skipping recipients"
 fi
 if $pass_entries; then
-    log_info "Pass entries removed:"
+    log_info "Pass entries to remove:"
     pass ls "$pass_root" | sed 's/^/  /'
 else
     log_warning "No $pass_root in pass; skipping pass"
@@ -109,9 +116,8 @@ if $anchor; then
     sed -i.bak -E "/^[[:space:]]*- \*${host}[[:space:]]*$/d" "$tmp"
     sed -i.bak -E "/^[[:space:]]*- &${host}[[:space:]]+age1[a-z0-9]+[[:space:]]*$/d" "$tmp"
     rm -f "$tmp.bak"
-    if yq "[.. | select(anchor == \"$host\" or alias == \"$host\")] | length" "$tmp" | grep -q "^0$"; then
-        : # post-check passed
-    else
+    remaining=$(yq "[.. | select(anchor == \"$host\" or alias == \"$host\")] | length" "$tmp")
+    if [ "$remaining" -ne 0 ]; then
         log_error "$tmp still references $host — its layout is not one anchor/alias per line; .sops.yaml left untouched"
         exit 1
     fi
