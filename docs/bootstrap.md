@@ -431,8 +431,8 @@ works from your workstation even though the fresh installer only knows itself as
   `/etc/hosts` rendering to fall back on; both this record and the DHCP lease
   below come from the single registry entry in `lib/defaults.network.hosts`.
 - **Machine holds that IP:** the router hands it out as a **static DHCP lease
-  keyed by MAC** (same registry entry, e.g. `68:EC:…` →
-  `10.0.0.63`). Because the lease is by MAC, the box gets its reserved address
+  keyed by MAC** (same registry entry, e.g. `<mac>` →
+  `<ip>`). Because the lease is by MAC, the box gets its reserved address
   even while running the installer — it is not a random IP. Both the DNS
   record and the lease reach the router only via `just router-apply`, not a
   rebuild.
@@ -452,7 +452,7 @@ read-only nix symlink, so add it to the writable **`~/.ssh/config.local`** it
 
 ```
 Host <hostname>
-  HostName 10.0.0.63
+  HostName <ip>
   User nixos
 ```
 

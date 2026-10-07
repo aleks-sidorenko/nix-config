@@ -22,7 +22,6 @@ just deploy <hostname> --remote-build            # Build on target
 just deploy <hostname> --dry-run                 # Preview changes
 
 # Examples
-just deploy server --remote-build
 just deploy server-vm --remote-build --verbose
 ```
 
@@ -269,7 +268,6 @@ Supports multiple desktop environments:
 
 ### Multi-Architecture Support
 
-- **x86_64-linux**: Desktop
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal-x86_64`)
 - **aarch64-linux**: headless QEMU guest (`server-vm`) on the workbook, standing in for the home server
 - **aarch64-darwin**: macOS workbook
