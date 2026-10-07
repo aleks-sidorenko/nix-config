@@ -310,6 +310,11 @@ IaC configurations in `infra/`:
   - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just router-*` commands
+- `backup/` - The Cloudflare R2 bucket offsite backups go to, managed via terranix/OpenTofu
+  - `default.nix` - the bucket only; the S3 credential restic uses is created by hand and kept in SOPS
+  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token with R2 Edit only, state passphrase)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just backup-*` commands
 - `dns/` - The `sidorenko.me` Cloudflare zone, managed via terranix/OpenTofu
   - `default.nix` - a handful of pre-existing records adopted via `terraform import` (mail, GitHub Pages, `www`), plus one A record per name in `${namespace}.system.networking.names` across all hosts, pointed at that host's tailnet address; a build-time assertion fails the derivation if two hosts claim the same name
   - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token, Tailscale OAuth client, state passphrase)

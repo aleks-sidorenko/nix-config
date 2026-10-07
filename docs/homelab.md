@@ -1,6 +1,6 @@
 # Homelab Services
 
-Homelab services run on `server-vm`, a headless aarch64 QEMU guest standing in for `server`, whose hardware is being replaced (#235), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup-server` + `backup`. `server-vm` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house, and `backup`/`backup-server` too, since backing the guest up to its own disk would protect against neither the loss of the host Mac's disk nor a reinstall. Once `server` exists again, `home-server` moves there and off `server-vm`.
+Homelab services run on `server-vm`, a headless aarch64 QEMU guest standing in for `server`, whose hardware is being replaced (#235), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server-vm` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. Once `server` exists again, `home-server` moves there and off `server-vm`.
 
 ## Smart Home
 
@@ -89,10 +89,51 @@ Configuration: `modules/nixos/services/gaming/minecraft-server/`
 
 ## Backup
 
-Restic-based backup system with client-server architecture:
+Each `home-server` host backs its state up daily (03:00, `Persistent = false`
+— a run missed while the host is off is skipped) with restic to its own
+repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
 
-- **Restic client** (`modules/nixos/services/backup/restic/`) - Scheduled backups with retention policies
-- **Restic server** (`modules/nixos/services/backup/restic-server/`) - REST API server for receiving backups
+- **What**: `/home`, `/root`, the whole persist root, plus `extraPaths` modules
+  contribute (Calibre's library). Media on `/data` is not backed up — it can be
+  re-fetched. Modules exclude what they can regenerate via `extraExclude`
+  (Jellyfin's cache). The host's SSH key is included, so a restore brings its
+  SOPS identity back.
+- **Where it's declared**: the bucket in `infra/backup`; bucket name and
+  account ID in `lib/defaults.backup`; the client in
+  `modules/nixos/services/backup/restic/`.
+- **Failures are silent**: check `systemctl status restic-backups-default`.
+
+### Bootstrap (once)
+
+1. Cloudflare dashboard → API token with **R2: Edit** → `just backup-secrets-edit`
+   (`cloudflare-api-token`, plus a new random `state-passphrase`).
+2. `just backup-apply` — creates the bucket.
+3. Dashboard → R2 → API token, **Object Read & Write**, bucket `backups` only →
+   `just secrets-edit nixos`: `service-restic-r2-access-key-id` (Access Key ID)
+   and `service-restic-r2-secret-access-key` (Secret Access Key).
+4. Deploy the host, then `sudo systemctl start restic-backups-default` and
+   `journalctl -u restic-backups-default` for the first snapshot.
+
+### Restore
+
+On the host (or a fresh one with the same identity):
+
+```bash
+sudo restic-default snapshots
+sudo restic-default restore <snapshot-id> --target /tmp/restore --include /persist/var/lib/<service>
+```
+
+`restic-default` is the NixOS wrapper that carries the repository, password
+and R2 environment.
+
+**If every device is lost**, a restore needs only this repo and the PGP private
+key: the key decrypts the restic password and the R2 credential from SOPS. The
+PGP key's own backup is the root of disaster recovery.
+
+### Rotating the R2 credential
+
+Create a new bucket-scoped token, `just secrets-edit nixos`, deploy, then revoke
+the old token in the dashboard.
 
 ## Available Modules (Not Currently Enabled)
 
@@ -102,6 +143,7 @@ These service modules exist in the repo but no host enables them. Enable them ex
 | ------ | ------- | ------------- |
 | **k3s** | Lightweight Kubernetes (server/agent, token auth) | `modules/nixos/services/k3s/` |
 | **CUPS** | Print server with network sharing | `modules/nixos/services/printing/` |
+| **restic-server** | Self-hosted restic REST target (`roles.backup-server`) | `modules/nixos/services/backup/restic-server/` |
 
 Two service modules run outside the `home-server` role: **Tailscale** (`modules/nixos/services/networking/tailscale/`), which `common` enables on every host, and **Podman** (`modules/nixos/services/virtualisation/podman/`), enabled by the `desktop` role.
 

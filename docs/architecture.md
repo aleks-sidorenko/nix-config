@@ -73,12 +73,12 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **homebook** | graphical, laptop | Root role for laptops (graphical + laptop power management) |
 | **laptop** | - | Laptop power management (power-profiles-daemon, upower) |
 | **server** | common | nginx, NFS utils, NetworkManager hardening, TCP BBR, systemd watchdog |
-| **home-server** | common, server, media-server, smart-home, gaming-server, backup-server, backup | _(aggregates all server roles)_ |
+| **home-server** | common, server, media-server, smart-home, gaming-server, backup | _(aggregates all server roles)_ |
 | **media-server** | - | qBittorrent, Jellyfin, Radarr, Sonarr, Prowlarr, MiniDLNA |
 | **smart-home** | - | Home Assistant (climate, heatpump, inverter, telegram, weather, plugs), Mosquitto, Zigbee2MQTT |
 | **gaming-server** | - | Minecraft server |
-| **backup-server** | - | Restic REST server |
-| **backup** | - | Restic backup client |
+| **backup-server** | - | Restic REST server (not enabled by default; for a self-hosted target) |
+| **backup** | - | Restic client, offsite to R2 |
 | **gaming** | - | Xbox controller support, 32-bit graphics, Mesa |
 
 ### Home-Manager Roles (`modules/home/roles/`)
