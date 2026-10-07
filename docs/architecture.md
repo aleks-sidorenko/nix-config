@@ -8,18 +8,13 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 .
 ├── flake.nix                       # Flake definition and inputs
 ├── systems/                        # System configurations (auto-discovered)
-│   ├── x86_64-linux/
-│   │   └── desktop/                # Primary desktop workstation
 │   ├── x86_64-install-iso/
 │   │   └── minimal-x86_64/         # Custom NixOS installer ISO
 │   ├── aarch64-linux/
-│   │   ├── server/                 # Raspberry Pi 4 home server
 │   │   └── server-vm/              # Headless QEMU guest, home-server stand-in (workbook)
 │   └── aarch64-darwin/
 │       └── workbook/               # macOS work laptop
 ├── homes/                          # Home-manager configurations (auto-discovered)
-│   ├── x86_64-linux/
-│   │   └── alexander@desktop/
 │   ├── aarch64-linux/
 │   │   └── alexander@server-vm/
 │   └── aarch64-darwin/
@@ -43,8 +38,8 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 ### VM host naming
 
 Hosts that are virtual machines are named `<name>-vm`, where `<name>` is the
-host they stand in for — `server-vm` is the QEMU guest that replaces the
-Raspberry Pi `server`. The suffix applies everywhere the host name appears: the
+host they stand in for — `server-vm` is the QEMU guest that stands in for
+`server`. The suffix applies everywhere the host name appears: the
 flake attribute, `systems/<arch>/<name>-vm/`, `homes/<arch>/<user>@<name>-vm/`,
 and the deploy-rs node.
 
@@ -74,8 +69,8 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | **minimal** | - | Bare base: SSH, Nix, locale, networking, fish shell |
 | **common** | minimal | SOPS, boot, filesystems, impermanence, GitHub-authed Nix, nh, nix-ld |
 | **graphical** | common, gaming, backup | Shared graphical suite: stylix, GNOME, hibernation |
-| **desktop** | graphical | Root role for the desktop host (adds KVM, Podman) |
-| **homebook** | graphical, laptop | Root role for the shared family laptop |
+| **desktop** | graphical | Root role for desktops (adds KVM, Podman) |
+| **homebook** | graphical, laptop | Root role for laptops (graphical + laptop power management) |
 | **laptop** | - | Laptop power management (power-profiles-daemon, upower) |
 | **server** | common | nginx, NFS utils, NetworkManager hardening, TCP BBR, systemd watchdog |
 | **home-server** | common, server, media-server, smart-home, gaming-server, backup-server, backup | _(aggregates all server roles)_ |
@@ -91,17 +86,16 @@ Roles are composable configuration bundles. Enabling a role pulls in all its sub
 | Role | Composes | Configures |
 |------|----------|------------|
 | **common** | - | Nix, locale, GPG, SSH, SOPS, pass, fish, ghostty, neovim, archivers, modern-unix, network-tools, stylix |
-| **graphical** | common, media, mobile, gaming, communication, router | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
-| **desktop** | graphical, development | Root role for the desktop host (graphical + development) |
-| **homebook** | graphical | Root role for the shared family laptop (graphical, no development) |
+| **graphical** | common, media, mobile, gaming, communication | Shared graphical suite: Teamviewer, GNOME, Chrome, Firefox, Wayland tools |
+| **desktop** | graphical, development | Root role for desktops (graphical + development) |
+| **homebook** | graphical | Root role for laptops (graphical, no development) |
 | **child** | common | Restricted account: locked-down GNOME (`profile = "child"`), Minecraft only, no browser, no sudo |
-| **work** | common, development, router | Chrome, Teamviewer (macOS-oriented) |
+| **work** | common, development | Chrome, Teamviewer (macOS-oriented) |
 | **development** | - | VS Code, Cursor, IDEA, languages (haskell, rust, python, go, typescript, scala, java), Bazel, MySQL, Testcontainers, AI (copilot, claude-code), Podman, k8s |
 | **media** | - | VLC, Shotwell |
 | **phone** | - | Mount Android/iPhone as FUSE drives, back up camera roll (phone-tools) |
 | **gaming** | - | Minecraft |
 | **communication** | - | Telegram, Viber |
-| **router** | - | Winbox (MikroTik management) |
 
 ### Darwin Roles (`modules/darwin/roles/`)
 
@@ -267,8 +261,7 @@ Data structure (not functions) providing shared defaults:
 
 | Architecture | Systems | Description |
 |-------------|---------|-------------|
-| `x86_64-linux` | desktop, homebook | Desktop workstation, shared family laptop |
-| `aarch64-linux` | server, server-vm | Raspberry Pi 4 home server, headless QEMU guest standing in for it (workbook) |
+| `aarch64-linux` | server-vm | Headless QEMU guest on the workbook, standing in for the home server |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
 | `x86_64-install-iso` | minimal-x86_64 | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal-x86_64`) |
 

@@ -45,9 +45,6 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 
 | Hostname | Architecture | Hardware | Role | OS | State |
 |:--------:|:----------:|:---------|:----:|:--:|:-----:|
-| `desktop` | x86_64-linux | Intel i7-2600K, GTX 560 Ti, 32GB | Desktop | NixOS | Active |
-| `homebook` | x86_64-linux | Shared family laptop (TBD) | Homebook — multi-user (adult + child) | NixOS | Scaffold |
-| `server` | aarch64-linux | Raspberry Pi 4 Model B, 8GB | Home Server | NixOS | Active |
 | `server-vm` | aarch64-linux | QEMU guest on the workbook | Home Server | NixOS | Active |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
 | `minimal-x86_64` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
@@ -57,8 +54,8 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 
 ```
 .
-├── systems/          # System configs: desktop, server, server-vm, workbook, installers
-├── homes/            # Home-manager configs: alexander@{desktop,homebook,server-vm}, dima@homebook (child), oleksandrsy@workbook
+├── systems/          # System configs: server-vm, workbook, installers
+├── homes/            # Home-manager configs: alexander@server-vm, oleksandrsy@workbook
 ├── modules/
 │   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
 │   ├── home/         # Home-manager modules (roles, desktops, cli, development, browsers, media)
@@ -173,7 +170,7 @@ Reusable components are maintained as standalone flakes and consumed as inputs h
 | Document | Description |
 |----------|-------------|
 | [docs/architecture.md](docs/architecture.md) | Repository structure, role hierarchy, library functions, flake inputs |
-| [docs/bootstrap.md](docs/bootstrap.md) | Fresh installation, bootstrap process, disk formatting, RPi4 setup |
+| [docs/bootstrap.md](docs/bootstrap.md) | Fresh installation, bootstrap process, disk formatting |
 | [docs/homelab.md](docs/homelab.md) | Homelab services overview, network layout |
 | [docs/router.md](docs/router.md) | MikroTik router management with terranix/OpenTofu |
 | [docs/references.md](docs/references.md) | Inspirations, NixOS resources, credits |
