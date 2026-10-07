@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Overview
 
-This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (a home server, its VM stand-in, a macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
+This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (a home server (upcoming, #235), its VM stand-in, a macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
 
 ## Common Commands
 

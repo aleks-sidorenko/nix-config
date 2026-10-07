@@ -39,7 +39,7 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 
 Hosts that are virtual machines are named `<name>-vm`, where `<name>` is the
 host they stand in for — `server-vm` is the QEMU guest that stands in for
-`server`. The suffix applies everywhere the host name appears: the
+`server` (upcoming home server, #235). The suffix applies everywhere the host name appears: the
 flake attribute, `systems/<arch>/<name>-vm/`, `homes/<arch>/<user>@<name>-vm/`,
 and the deploy-rs node.
 

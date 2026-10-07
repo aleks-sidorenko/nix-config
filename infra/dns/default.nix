@@ -59,9 +59,8 @@ let
   );
 
   # One record per (host, name) pair. Config declares more hosts than are
-  # currently on the tailnet (e.g. `server` is real hardware not yet
-  # deployed, standing behind its `server-vm` stand-in) — pairing host with
-  # name, rather than name alone, is what keeps two such hosts from
+  # currently on the tailnet (declared, but not yet deployed) — pairing host
+  # with name, rather than name alone, is what keeps two such hosts from
   # colliding if they ever advertise the same service name.
   serviceRecords = concatMap (
     h:

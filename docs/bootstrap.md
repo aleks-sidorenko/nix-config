@@ -496,8 +496,18 @@ just secrets-revoke <hostname> --apply     # drop its &<hostname> recipient, rek
 just tailnet-revoke <hostname> --apply     # delete its tailnet devices
 ```
 
-Then delete its `systems/<arch>/<hostname>/` and `homes/<arch>/*@<hostname>/`
-directories. `bootstrap-secrets` reuses keys it finds in `pass`, so revoke a
+`tailnet-revoke` exits 0 with "nothing to revoke" when no device matches;
+`secrets-revoke` exits 1 when the host has neither a recipient nor pass entries.
+
+Then:
+
+- delete its `systems/<arch>/<hostname>/` and `homes/<arch>/*@<hostname>/`
+  directories;
+- remove its `hosts.<hostname>` entry in `flake.nix`, if it has one;
+- remove it from the CI matrices in `.github/workflows/*`;
+- remove its `lib/defaults.network.hosts` registry entry, if present.
+
+`bootstrap-secrets` reuses keys it finds in `pass`, so revoke a
 name before reusing it for new hardware; otherwise the new machine inherits the
 old host's key.
 
