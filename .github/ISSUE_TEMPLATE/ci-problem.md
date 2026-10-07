@@ -29,9 +29,9 @@ assignees: []
 
 ### Configuration
 <!-- If relevant -->
-- System: <!-- desktop/vm/server/etc -->
+- System: <!-- server-vm/etc -->
 - Architecture: <!-- x86_64-linux/aarch64-linux -->
-- Home Manager config: <!-- alexander@desktop/etc -->
+- Home Manager config: <!-- alexander@server-vm/etc -->
 
 ### Reproduction
 <!-- Steps to reproduce the issue -->

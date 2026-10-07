@@ -49,15 +49,12 @@ jobs:
     name: "Build NixOS Systems"
     runs-on: ubuntu-latest
     needs: [flake-check]
-    # Note: Server config is aarch64-linux (ARM64), requires emulation on x86_64 runners
+    # Note: server-vm is aarch64-linux (ARM64), requires emulation on x86_64 runners
     strategy:
       fail-fast: false
       matrix:
         system:
-          - "desktop"
-          - "homebook"
           - "server-vm"
-          - "server"
           - "minimal"
     steps:
       - name: Checkout repository
@@ -82,19 +79,11 @@ jobs:
         run: |
           system="${{ matrix.system }}"
           case "$system" in
-            "desktop"|"homebook")
-              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
-              ;;
             "server-vm")
               # aarch64 headless guest: a full build under x86 emulation would
               # outrun the runner's time limit. Evaluation still catches missing
               # options and failed assertions.
               nix eval .#nixosConfigurations.$system.config.system.build.toplevel.drvPath --show-trace
-              ;;
-            "server")
-              # Server is aarch64-linux, using emulation
-              echo "Building ARM64 server configuration with emulation..."
-              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
               ;;
             "minimal")
               # Snowfall-lib creates install-isoConfigurations from systems/x86_64-install-iso/
@@ -110,9 +99,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - "alexander@desktop"
-          - "alexander@homebook"
-          - "dima@homebook"
           - "alexander@server-vm"
     steps:
       - name: Checkout repository

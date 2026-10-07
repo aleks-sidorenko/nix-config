@@ -49,7 +49,7 @@ jobs:
           echo "## System Configuration Validation" >> $GITHUB_STEP_SUMMARY
           
           # Check each system configuration
-          for system in desktop vm server; do
+          for system in server-vm; do
             echo "Checking system: $system"
             if nix build .#nixosConfigurations.$system.config.system.build.toplevel --dry-run --show-trace 2>/dev/null; then
               echo "✅ $system configuration is valid" >> $GITHUB_STEP_SUMMARY

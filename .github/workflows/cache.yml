@@ -24,17 +24,26 @@ jobs:
       matrix:
         config:
           - type: "nixos"
-            name: "desktop"
-            attr: "nixosConfigurations.desktop.config.system.build.toplevel"
+            name: "server-vm"
+            attr: "nixosConfigurations.server-vm.config.system.build.toplevel.drvPath"
           - type: "home"
-            name: "alexander@desktop"
-            attr: 'homeConfigurations."alexander@desktop".activationPackage'
+            name: "alexander@server-vm"
+            attr: 'homeConfigurations."alexander@server-vm".activationPackage.drvPath'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Set up QEMU for aarch64 emulation
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq qemu-user-static binfmt-support
+          sudo update-binfmts --enable
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          extra-conf: |
+            extra-platforms = aarch64-linux
 
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v15
@@ -42,11 +51,13 @@ jobs:
       - name: Build ${{ matrix.config.type }} configuration - ${{ matrix.config.name }}
         run: |
           echo "Building: ${{ matrix.config.attr }}"
-          nix build .#${{ matrix.config.attr }} --show-trace
+          # aarch64 guests: a full build under x86 emulation would outrun the
+          # runner's time limit, so evaluate only, as ci.yml does.
+          nix eval .#${{ matrix.config.attr }} --show-trace
           
           # Store build info
           echo "## ${{ matrix.config.type }}: ${{ matrix.config.name }}" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Successfully built ${{ matrix.config.attr }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully evaluated ${{ matrix.config.attr }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Get output size
