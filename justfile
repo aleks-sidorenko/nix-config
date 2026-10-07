@@ -194,7 +194,7 @@ info:
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
 
 # List available configurations (type: all | nixos | darwin | home)
-list-configs type="all":
+configs-list type="all":
     #!/usr/bin/env bash
     set -euo pipefail
     show() {
@@ -421,7 +421,7 @@ router-backup *opts="":
     nix run .#router.backup -- {{opts}}
 
 # Edit router SOPS secrets
-router-secrets:
+router-secrets-edit:
     sops infra/router/secrets.yaml
 
 # Show router management help
@@ -433,7 +433,7 @@ router-help:
     @echo "  just router-plan             Plan changes (dry-run)"
     @echo "  just router-apply            Apply changes to router"
     @echo "  just router-backup           Create SSH backup of router"
-    @echo "  just router-secrets          Edit router SOPS secrets"
+    @echo "  just router-secrets-edit     Edit router SOPS secrets"
     @echo "  just router-destroy          Destroy terraform state (dangerous!)"
     @echo ""
     @echo "Prerequisites:"
@@ -471,7 +471,7 @@ tailnet-apply:
     nix run .#tailnet.apply
 
 # Edit tailnet SOPS secrets
-tailnet-secrets:
+tailnet-secrets-edit:
     sops infra/tailnet/secrets.yaml
 
 # Delete a host's devices from the tailnet
@@ -502,9 +502,9 @@ dns-apply:
     nix run .#dns.apply
 
 # Edit DNS SOPS secrets
-dns-secrets:
+dns-secrets-edit:
     sops infra/dns/secrets.yaml
 
 # Not part of `check`: needs network for `tofu init` and an age key for SOPS.
 # Validate dormant infra configs against provider schemas.
-check-infra: router-validate tailnet-validate dns-validate
+infra-check: router-validate tailnet-validate dns-validate

@@ -117,7 +117,7 @@ Confirm the host is discoverable before continuing:
 
 ```bash
 just bootstrap-targets    # should list your new hostname
-just list-configs nixos   # sanity-check the config evaluates
+just configs-list nixos   # sanity-check the config evaluates
 ```
 
 ### Step 2 — Prepare your local machine
@@ -211,7 +211,7 @@ into `hardware.nix`:
 **3. Sanity-check the config still evaluates** from your local machine:
 
 ```bash
-just list-configs nixos          # <hostname> should appear and evaluate
+just configs-list nixos          # <hostname> should appear and evaluate
 nix eval .#nixosConfigurations.<hostname>.config.system.build.toplevel.drvPath
 ```
 
@@ -719,7 +719,7 @@ with lib.${namespace};
 Add a home under `homes/<arch>-darwin/<login>@<hostname>/`. Confirm it evaluates:
 
 ```bash
-just list-configs darwin       # <hostname> should appear
+just configs-list darwin       # <hostname> should appear
 ```
 
 ### Step 2 — Prepare the Mac

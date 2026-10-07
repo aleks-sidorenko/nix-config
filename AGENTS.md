@@ -34,6 +34,7 @@ just lint-fix              # Auto-fix lint issues (statix + deadnix)
 just format [path]         # Format nix files with nixfmt-tree (writes)
 just format-check          # Verify formatting (read-only)
 just check                 # CI-safe umbrella: format-check + lint
+just infra-check           # Validate infra/ configs (needs network + age key)
 
 # Build validation
 just build                 # Build configuration without switching (read-only)
@@ -65,8 +66,8 @@ just bootstrap-disk <hostname> --apply    # Apply and format disks
 
 ```bash
 just info                  # Show system info
-just list-configs          # List all configurations (nixos + darwin + home)
-just list-configs nixos    # List a single type: nixos | darwin | home
+just configs-list          # List all configurations (nixos + darwin + home)
+just configs-list nixos    # List a single type: nixos | darwin | home
 just bootstrap-targets     # List hosts available for bootstrap
 just outputs               # Show flake outputs
 ```
@@ -90,6 +91,19 @@ just update                # Update flake inputs
 just cleanup               # Garbage collect and remove old generations
 just disk-usage            # Show nix store disk usage
 ```
+
+### Recipe Naming
+
+Recipes are `<group>-<suffix>`, and within a group every suffix is the same kind:
+
+- **Resource groups** (`secrets`, `router`, `tailnet`, `dns`, `iso`, `vm`,
+  `format`, `lint`, `flake`, `scripts`, `infra`, `configs`, …) take **verbs**:
+  `router-plan`, `secrets-edit`, `format-check`. A noun sub-resource takes a
+  verb too: `router-secrets-edit`, not `router-secrets`.
+- **Workflow groups** (`bootstrap`) take **steps**: `bootstrap-secrets`,
+  `bootstrap-deploy`, `bootstrap-disk`.
+
+Rename old recipes instead of aliasing them.
 
 ## Architecture
 
