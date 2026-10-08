@@ -5,7 +5,7 @@ set -euo pipefail
 # Delete a host's devices from the tailnet.
 # Usage: ./tailnet-revoke.sh <host> [--dry-run|--apply]
 #
-# Authenticates with the OAuth client infra/tailnet already uses. Deleting
+# Authenticates with the OAuth client the infra stacks share (infra/secrets.yaml). Deleting
 # needs its devices:core write scope; a 403 means the client lacks it.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,7 +19,7 @@ fi
 
 host="$1"
 mode="${2:---dry-run}"
-secrets="infra/tailnet/secrets.yaml"
+secrets="infra/secrets.yaml"
 api="https://api.tailscale.com/api/v2"
 
 case "$mode" in

@@ -111,12 +111,8 @@ else
     name = "dns";
     stateDir = "infra/dns";
     secretsFile = "infra/dns/secrets.yaml";
-    secrets = {
-      TF_VAR_cloudflare_api_token = "cloudflare-api-token";
-      TF_VAR_state_passphrase = "state-passphrase";
-      TF_VAR_tailscale_oauth_client_id = "tailscale-oauth-client-id";
-      TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
-    };
+    secrets.TF_VAR_state_passphrase = "state-passphrase";
+    sharedSecrets = cloudflareSecrets // tailscaleSecrets;
     modules = [
       tailscaleProvider
       cloudflareProvider

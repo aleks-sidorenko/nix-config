@@ -9,6 +9,10 @@ let
 
   inherit (lib.${namespace}) defaults;
 
+  ## Provider credentials needed by several stacks live in one file, so each
+  ## is stored once rather than copied into every stack's own `secretsFile`.
+  sharedSecretsFile = "infra/secrets.yaml";
+
   ## Fails the build if any `import[].to` in the rendered terraform JSON names
   ## a resource address absent from `resource`. Neither `tofu validate` nor
   ## `nix flake check` on their own catch this class of bug.
@@ -59,7 +63,7 @@ in
 {
   ## Provider, version and credential variables for the Tailscale API, for
   ## every config that reads the tailnet. Import it rather than restating the
-  ## block; the variable names are what `secrets` must map onto.
+  ## block, and pass `tailscaleSecrets` as `sharedSecrets`.
   ##
   #@ Module
   tailscaleProvider = {
@@ -83,9 +87,18 @@ in
     };
   };
 
+  ## The shared credentials `tailscaleProvider` reads, as env var -> SOPS key.
+  ## Pass as `sharedSecrets` with `tailscaleProvider`.
+  ##
+  #@ Attrs
+  tailscaleSecrets = {
+    TF_VAR_tailscale_oauth_client_id = "tailscale-oauth-client-id";
+    TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
+  };
+
   ## Provider, version and credential variable for the Cloudflare API, for
   ## every config that manages the account. Import it rather than restating
-  ## the block; `secrets` must map `TF_VAR_cloudflare_api_token`.
+  ## the block, and pass `cloudflareSecrets` as `sharedSecrets`.
   ##
   #@ Module
   cloudflareProvider = {
@@ -104,13 +117,23 @@ in
     };
   };
 
+  ## The shared credential `cloudflareProvider` reads, as env var -> SOPS key.
+  ## Pass as `sharedSecrets` with `cloudflareProvider`.
+  ##
+  #@ Attrs
+  cloudflareSecrets = {
+    TF_VAR_cloudflare_api_token = "cloudflare-api-token";
+  };
+
   ## Wrap a terranix configuration in show/validate/plan/apply/destroy scripts.
   ##
   ## State lives in the repo under `stateDir`; secrets are decrypted from
-  ## `secretsFile` into the environment variables named by `secrets`.
+  ## `secretsFile` into the environment variables named by `secrets`; those
+  ## shared between stacks come from `infra/secrets.yaml` via `sharedSecrets`.
   ##
   #@ { pkgs: Pkgs, system: String, name: String, modules: [Module],
-  #@   stateDir: String, secretsFile: String ? null, secrets: Attrs ? {} } -> Derivation
+  #@   stateDir: String, secretsFile: String ? null, secrets: Attrs ? {},
+  #@   sharedSecrets: Attrs ? {} } -> Derivation
   mkTerraformDerivation =
     {
       pkgs,
@@ -120,6 +143,7 @@ in
       stateDir,
       secretsFile ? null,
       secrets ? { },
+      sharedSecrets ? { },
     }:
     let
       # Declared here rather than by each caller: the encryption file below
@@ -148,20 +172,21 @@ in
         REPO_ROOT="$FLAKE_DIR"
       '';
 
-      loadSecrets =
-        if secretsFile != null && secrets != { } then
-          lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (
-              envVar: sopsKey:
-              # Bare assignment honors `set -e`; `export VAR=$(...)` would not,
-              # letting a failed decrypt export an empty secret silently.
-              ''
-                ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${secretsFile}")
-                export ${envVar}
-              '') secrets
-          )
-        else
-          "";
+      decryptFrom =
+        file: vars:
+        lib.mapAttrsToList (
+          envVar: sopsKey:
+          # Bare assignment honors `set -e`; `export VAR=$(...)` would not,
+          # letting a failed decrypt export an empty secret silently.
+          ''
+            ${envVar}=$(${sops} -d --extract '["${sopsKey}"]' "$REPO_ROOT/${file}")
+            export ${envVar}
+          '') vars;
+
+      loadSecrets = lib.concatStringsSep "\n" (
+        lib.optionals (secretsFile != null) (decryptFrom secretsFile secrets)
+        ++ decryptFrom sharedSecretsFile sharedSecrets
+      );
 
       setup = ''
         cd "$REPO_ROOT/${stateDir}"

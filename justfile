@@ -470,7 +470,7 @@ tailnet-plan:
 tailnet-apply:
     nix run .#tailnet.apply
 
-# Edit tailnet SOPS secrets
+# Edit tailnet SOPS secrets (state passphrase)
 tailnet-secrets-edit:
     sops infra/tailnet/secrets.yaml
 
@@ -501,7 +501,7 @@ dns-plan:
 dns-apply:
     nix run .#dns.apply
 
-# Edit DNS SOPS secrets
+# Edit DNS SOPS secrets (state passphrase)
 dns-secrets-edit:
     sops infra/dns/secrets.yaml
 
@@ -525,9 +525,13 @@ storage-plan:
 storage-apply:
     nix run .#storage.apply
 
-# Edit storage SOPS secrets
+# Edit storage SOPS secrets (state passphrase)
 storage-secrets-edit:
     sops infra/storage/secrets.yaml
+
+# Edit provider credentials shared by every infra stack (Cloudflare token, Tailscale OAuth client)
+infra-secrets-edit:
+    sops infra/secrets.yaml
 
 # Not part of `check`: needs network for `tofu init` and an age key for SOPS.
 # Validate dormant infra configs against provider schemas.

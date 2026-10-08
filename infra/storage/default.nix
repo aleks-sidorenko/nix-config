@@ -14,10 +14,8 @@ mkTerraformDerivation {
   name = "storage";
   stateDir = "infra/storage";
   secretsFile = "infra/storage/secrets.yaml";
-  secrets = {
-    TF_VAR_cloudflare_api_token = "cloudflare-api-token";
-    TF_VAR_state_passphrase = "state-passphrase";
-  };
+  secrets.TF_VAR_state_passphrase = "state-passphrase";
+  sharedSecrets = cloudflareSecrets;
   modules = [
     cloudflareProvider
     {

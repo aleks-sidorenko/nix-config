@@ -60,11 +60,8 @@ mkTerraformDerivation {
   name = "tailnet";
   stateDir = "infra/tailnet";
   secretsFile = "infra/tailnet/secrets.yaml";
-  secrets = {
-    TF_VAR_tailscale_oauth_client_id = "tailscale-oauth-client-id";
-    TF_VAR_tailscale_oauth_client_secret = "tailscale-oauth-client-secret";
-    TF_VAR_state_passphrase = "state-passphrase";
-  };
+  secrets.TF_VAR_state_passphrase = "state-passphrase";
+  sharedSecrets = tailscaleSecrets;
   modules = [
     tailscaleProvider
     {
