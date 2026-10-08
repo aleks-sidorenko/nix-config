@@ -84,7 +84,7 @@ jobs:
 
       - name: Build ISO
         run: |
-          nix build .#nixosConfigurations.minimal.config.system.build.isoImage --show-trace
+          nix build .#install-isoConfigurations.minimal-x86_64 --show-trace
           
           echo "## Install ISO" >> $GITHUB_STEP_SUMMARY
           echo "✅ Successfully built minimal install ISO" >> $GITHUB_STEP_SUMMARY
