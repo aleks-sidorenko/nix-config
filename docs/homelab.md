@@ -108,8 +108,9 @@ repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
 
 ### Bootstrap (once)
 
-1. Cloudflare dashboard → API token with **Workers R2 Storage: Edit** (account permission) → `just storage-secrets-edit`
-   (`cloudflare-api-token`, plus a new random `state-passphrase`).
+1. Cloudflare dashboard → add **Workers R2 Storage: Edit** (account permission) to the existing Cloudflare token (the
+   one in `infra/secrets.yaml`, also used by `infra/dns`) — no new token. `just storage-secrets-edit` holds only a new
+   random `state-passphrase`.
 2. `just storage-apply` — creates the bucket.
 3. Dashboard → R2 → API token, **Object Read & Write**, bucket `backups` only →
    `just secrets-edit nixos`: `service-restic-r2-access-key-id` (Access Key ID)

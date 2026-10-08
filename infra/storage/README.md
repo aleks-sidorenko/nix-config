@@ -12,4 +12,4 @@ Bootstrap order and restore: see `docs/homelab.md` → *Backup*.
 | `just storage-show` | Rendered terraform JSON |
 | `just storage-validate` | Syntax and provider schema |
 | `just storage-plan` / `storage-apply` | Plan / apply |
-| `just storage-secrets-edit` | Edit `secrets.yaml` (`cloudflare-api-token`: Workers R2 Storage: Edit only; `state-passphrase`) |
+| `just storage-secrets-edit` | Edit `secrets.yaml` (`state-passphrase` only; the Cloudflare token is in `infra/secrets.yaml`, `just infra-secrets-edit`) |
