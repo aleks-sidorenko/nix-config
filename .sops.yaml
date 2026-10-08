@@ -67,7 +67,7 @@ creation_rules:
         age:
           - *workbook
 
-  - path_regex: infra/backup/secrets.ya?ml$
+  - path_regex: infra/storage/secrets.ya?ml$
     key_groups:
       - pgp:
           - *alexander

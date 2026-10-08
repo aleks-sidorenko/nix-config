@@ -303,14 +303,14 @@
         {
           formatter = channels.nixpkgs.nixfmt-tree;
           inherit packages;
-          # `nix flake check` is the only thing that runs infra/{router,tailnet,dns,backup}
+          # `nix flake check` is the only thing that runs infra/{router,tailnet,dns,storage}
           # validation routinely (see infra-check in justfile); this is the
           # pure/offline slice of it (mkImportCheck) that can live here.
           checks =
             lib.optionalAttrs (packages ? router) { router-imports = packages.router.check; }
             // lib.optionalAttrs (packages ? tailnet) { tailnet-imports = packages.tailnet.check; }
             // lib.optionalAttrs (packages ? dns) { dns-imports = packages.dns.check; }
-            // lib.optionalAttrs (packages ? backup) { backup-imports = packages.backup.check; }
+            // lib.optionalAttrs (packages ? storage) { storage-imports = packages.storage.check; }
             // lib.optionalAttrs (inputs.deploy-rs.lib ? ${system}) (
               let
                 inherit (inputs.deploy-rs.lib.${system}) deployChecks;

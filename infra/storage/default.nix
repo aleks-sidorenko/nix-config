@@ -11,9 +11,9 @@ let
 in
 mkTerraformDerivation {
   inherit pkgs system;
-  name = "backup";
-  stateDir = "infra/backup";
-  secretsFile = "infra/backup/secrets.yaml";
+  name = "storage";
+  stateDir = "infra/storage";
+  secretsFile = "infra/storage/secrets.yaml";
   secrets = {
     TF_VAR_cloudflare_api_token = "cloudflare-api-token";
     TF_VAR_state_passphrase = "state-passphrase";
@@ -21,7 +21,7 @@ mkTerraformDerivation {
   modules = [
     cloudflareProvider
     {
-      # Bucket only. The S3 credential restic uses is made by hand and kept
+      # The R2 buckets this account uses; today `backups`. The S3 credential restic uses is made by hand and kept
       # in SOPS: minting it here would need a token able to create tokens,
       # and would put its secret in state.
       resource.cloudflare_r2_bucket.backups = {

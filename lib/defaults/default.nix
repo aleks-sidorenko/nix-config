@@ -33,7 +33,7 @@ _: rec {
     };
 
     # Offsite backups: one restic repository per host under this bucket.
-    # Shared by infra/backup (creates the bucket) and the restic module
+    # Shared by infra/storage (creates the bucket) and the restic module
     # (builds the repository URL), so the two can't drift.
     backup = {
       bucket = "backups";
