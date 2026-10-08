@@ -56,6 +56,19 @@ in
     # so it is set here rather than per host and follows the role.
     services.tailscale.openFirewall = true;
 
+    # S3-style storage rejects requests signed more than 15 minutes off, so a
+    # host that runs the clock check runs it right before backing up.
+    systemd.services.restic-backups-default =
+      mkIf
+        (
+          config.${namespace}.services.networking.clock-check.enable
+          && config.services.restic.backups ? default
+        )
+        {
+          wants = [ "clock-check.service" ];
+          after = [ "clock-check.service" ];
+        };
+
     environment = {
       systemPackages = [
         pkgs.nfs-utils

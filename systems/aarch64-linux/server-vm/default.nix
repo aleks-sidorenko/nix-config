@@ -36,6 +36,10 @@ with lib.${namespace};
     };
 
     disks.impermanence = enabled;
+
+    # Its clock stops while the host Mac sleeps, and some networks the Mac
+    # joins block NTP, so timesyncd alone can leave it minutes behind.
+    services.networking.clock-check = enabled;
   };
 
   # Do not change this value! This tracks when NixOS was installed on your system.
