@@ -98,8 +98,9 @@ repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
   re-fetched. Modules exclude what they can regenerate via `extraExclude`
   (Jellyfin's cache). The host's SSH key is included, so a restore brings its
   SOPS identity back.
-- **Where it's declared**: the bucket in `infra/storage`; bucket name and
-  account ID in `lib/defaults.backup`; the client in
+- **Where it's declared**: the bucket in `infra/storage`; its name in
+  `lib/defaults.backup.bucket` and the account in
+  `lib/defaults.providers.cloudflare.accountId`; the client in
   `modules/nixos/services/backup/restic/`.
 - **Other roles**: the `graphical` role also enables `backup`, so a future
   desktop host would back up its `/home` to the same bucket unless it turns

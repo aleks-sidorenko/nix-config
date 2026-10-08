@@ -11,7 +11,7 @@ let
   cfg = config.${namespace}.services.backup.restic;
 
   # One repository per host, so hosts never share one or its lock.
-  repository = "s3:https://${defaults.backup.accountId}.r2.cloudflarestorage.com/${defaults.backup.bucket}/${config.networking.hostName}";
+  repository = "s3:https://${defaults.providers.cloudflare.accountId}.r2.cloudflarestorage.com/${defaults.backup.bucket}/${config.networking.hostName}";
   paths = [
     "/home"
     "/root"

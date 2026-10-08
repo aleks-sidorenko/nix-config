@@ -23,7 +23,7 @@ mkTerraformDerivation {
       # in SOPS: minting it here would need a token able to create tokens,
       # and would put its secret in state.
       resource.cloudflare_r2_bucket.backups = {
-        account_id = backup.accountId;
+        account_id = defaults.providers.cloudflare.accountId;
         name = backup.bucket;
         # Renaming the bucket plans a destroy-and-recreate of the backups' home;
         # removing this guard should be a deliberate edit.
