@@ -82,16 +82,6 @@ with lib.${namespace};
       # The plugs, heatpump and climate sensors its automations name stayed
       # with the old house.
       smart-home = disabled;
-
-      # Off until there is somewhere off-box to back up to. Backing a laptop
-      # guest up to its own disk protects against neither the loss of the host
-      # Mac's disk, which both qcow2 files live on, nor a reinstall, which
-      # rewrites the root disk the system itself sits on — so the two roles
-      # would buy only the appearance of coverage. Disabling the server drops its
-      # nginx vhost, which proxied the unauthenticated REST endpoint onto
-      # whatever LAN the host Mac had joined.
-      backup = disabled;
-      backup-server = disabled;
     };
 
     users.alexander = {
@@ -641,12 +631,7 @@ deploy .#server-vm --hostname <vmnet-address> --skip-checks --remote-build
 
 ### Backups
 
-The guest runs **no** backups: both the restic client and the restic REST server
-are disabled on it. Backing a laptop guest up to its own disk would survive
-neither the loss of the host Mac's disk — both qcow2 files live on it — nor a
-reinstall, which rewrites the root disk the system itself sits on, so it would
-buy only the appearance of coverage. Re-enable them once there is somewhere
-off-box to send backups to.
+The guest backs up like any `home-server` host; see [docs/homelab.md](homelab.md) → *Backup*.
 
 ### Recovering a wedged guest NIC
 

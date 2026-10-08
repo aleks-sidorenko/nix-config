@@ -10,7 +10,8 @@ with lib.${namespace};
 let
   cfg = config.${namespace}.services.backup.restic;
 
-  repository = "rest:http://${hosts.service "restic"}";
+  # One repository per host, so hosts never share one or its lock.
+  repository = "s3:https://${defaults.providers.cloudflare.accountId}.r2.cloudflarestorage.com/${defaults.backup.bucket}/${config.networking.hostName}";
   paths = [
     "/home"
     "/root"
@@ -66,7 +67,8 @@ let
     "/var/cache"
     "/var/tmp"
     "/var/log"
-  ]);
+  ])
+  ++ cfg.extraExclude;
 
 in
 {
@@ -81,7 +83,7 @@ in
 
     dataDir = mkOpt types.str "/var/lib/restic" "Data directory for Restic backup service";
 
-    repository = mkOpt types.str repository "Restic repository URL (e.g., rest:http://restic.lan)";
+    repository = mkOpt types.str repository "Restic repository URL";
 
     repositoryFile = mkOpt (types.nullOr types.path) null "Path to file containing repository URL";
 
@@ -91,13 +93,16 @@ in
 
     paths = mkOpt (types.listOf types.str) paths "List of paths to backup";
 
-    # Generic extension point: any module or host can append the paths it wants
-    # included in backups (e.g. selected media dirs), without overriding the
-    # computed defaults. Note: the repo currently lives on the same external disk
-    # as /data, so this protects against deletion/corruption, not disk failure.
+    # Extension points: any module can append what it wants included or
+    # excluded without overriding the computed defaults — e.g. a media
+    # library that can't be re-fetched, or a service's regenerable cache.
     extraPaths =
       mkOpt (types.listOf types.str) [ ]
         "Extra paths to include in backups, appended to the computed defaults";
+
+    extraExclude =
+      mkOpt (types.listOf types.str) [ ]
+        "Extra patterns to exclude from backups, appended to the computed defaults";
 
     exclude = mkOpt (types.listOf types.str) exclude "List of patterns to exclude from backup";
 
@@ -136,6 +141,10 @@ in
   };
 
   config = mkIf cfg.enable {
+    ${namespace}.services.backup.restic.environmentFile =
+      mkDefault
+        config.sops.templates."restic-r2.env".path;
+
     # Add Restic package to system packages
     environment.systemPackages = [ cfg.package ];
 
@@ -151,11 +160,34 @@ in
     };
 
     # SOPS secret for restic password
-    sops.secrets."service-restic-password" = {
-      sopsFile = ../../../secrets.yaml;
+    sops.secrets = {
+      "service-restic-password" = {
+        sopsFile = ../../../secrets.yaml;
+        owner = cfg.user;
+        inherit (cfg) group;
+        mode = "0400";
+      };
+    }
+    //
+      genAttrs
+        [
+          "service-restic-r2-access-key-id"
+          "service-restic-r2-secret-access-key"
+        ]
+        (_: {
+          sopsFile = ../../../secrets.yaml;
+        });
+
+    # R2 speaks S3 and takes `auto` as its region.
+    sops.templates."restic-r2.env" = {
       owner = cfg.user;
       inherit (cfg) group;
       mode = "0400";
+      content = ''
+        AWS_ACCESS_KEY_ID=${config.sops.placeholder."service-restic-r2-access-key-id"}
+        AWS_SECRET_ACCESS_KEY=${config.sops.placeholder."service-restic-r2-secret-access-key"}
+        AWS_DEFAULT_REGION=auto
+      '';
     };
 
     # Configure Restic backup service

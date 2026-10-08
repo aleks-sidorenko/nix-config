@@ -25,10 +25,8 @@ in
         # (a VM stand-in) has to be able to opt out.
         smart-home.enable = mkDefault true;
         gaming-server = enabled;
-        # A host with nowhere off-box to send backups, and nothing else dialling
-        # its repository, gains nothing from either half — so both can be
-        # switched off without unpicking the role.
-        backup-server.enable = mkDefault true;
+        # Backups go offsite. `backup-server` stays off unless a host is meant
+        # to receive them — nothing dials a restic server of ours today.
         backup.enable = mkDefault true;
       };
     };

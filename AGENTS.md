@@ -304,20 +304,26 @@ Services in `modules/nixos/services/`:
 ### Infrastructure-as-Code
 
 IaC configurations in `infra/`:
+- `secrets.yaml` - SOPS-encrypted provider credentials shared by the stacks below (Cloudflare API token with Zone DNS Edit on the zone + Workers R2 Storage Edit; Tailscale OAuth client). Edit with `just infra-secrets-edit`
 - `router/` - MikroTik RouterOS managed via terranix/OpenTofu
   - `default.nix` - terranix derivation (via `lib/terraform`'s `mkTerraformDerivation`) and backup script
   - `imports.nix` - RouterOS resource ID mappings (for `terraform import` of existing config)
   - `secrets.yaml` - SOPS-encrypted secrets (router API password, WiFi, state passphrase)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just router-*` commands
+- `storage/` - The Cloudflare R2 buckets (currently `backups`, for offsite backups), managed via terranix/OpenTofu
+  - `default.nix` - the buckets only; the S3 credential restic uses is created by hand and kept in SOPS
+  - `secrets.yaml` - SOPS-encrypted secrets (state passphrase; the Cloudflare token comes from `infra/secrets.yaml`)
+  - `terraform.tfstate` - encrypted OpenTofu state
+  - Managed via `just storage-*` commands
 - `dns/` - The `sidorenko.me` Cloudflare zone, managed via terranix/OpenTofu
   - `default.nix` - a handful of pre-existing records adopted via `terraform import` (mail, GitHub Pages, `www`), plus one A record per name in `${namespace}.system.networking.names` across all hosts, pointed at that host's tailnet address; a build-time assertion fails the derivation if two hosts claim the same name
-  - `secrets.yaml` - SOPS-encrypted secrets (Cloudflare API token, Tailscale OAuth client, state passphrase)
+  - `secrets.yaml` - SOPS-encrypted secrets (state passphrase; the Cloudflare token and Tailscale OAuth client come from `infra/secrets.yaml`)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just dns-*` commands
 - `tailnet/` - Tailscale ACL/tag policy managed via terranix/OpenTofu
   - `default.nix` - `tagOwners` derived from every host's advertised tags, so the policy can't drift from what hosts actually enable
-  - `secrets.yaml` - SOPS-encrypted secrets (Tailscale OAuth client, state passphrase)
+  - `secrets.yaml` - SOPS-encrypted secrets (state passphrase; the Tailscale OAuth client comes from `infra/secrets.yaml`)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just tailnet-*` commands
 

@@ -30,7 +30,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 - **Home Assistant** with 9 sub-modules (climate, heatpump, inverter, zigbee2mqtt, telegram, weather, plugs, night-schedule, zones)
 - Media stack: **Jellyfin**, Sonarr, Radarr, Prowlarr, qBittorrent, MiniDLNA
 - **k3s** (Kubernetes), **Podman**, **Tailscale** VPN, nginx, Minecraft server
-- **Restic** backup with client-server architecture
+- **Restic** backups offsite to Cloudflare R2 (a self-hosted REST server module is available, off by default)
 
 **macOS**
 - **nix-darwin** with Homebrew integration

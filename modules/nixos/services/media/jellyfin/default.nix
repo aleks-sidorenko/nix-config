@@ -48,6 +48,10 @@ in
           };
         };
       };
+
+      # Regenerable, and most of a backup by size; resolved to where
+      # impermanence actually keeps it, since that is the path restic walks.
+      services.backup.restic.extraExclude = [ (persistence.resolve config cacheDir) ];
     };
 
     services.jellyfin = {
