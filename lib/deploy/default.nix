@@ -32,7 +32,7 @@ rec {
         let
           host = hosts.${name};
           user = host.config.${namespace}.user.name or null;
-          inherit (host.pkgs) system;
+          inherit (host.pkgs.stdenv.hostPlatform) system;
         in
         result
         // {

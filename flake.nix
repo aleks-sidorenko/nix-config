@@ -279,7 +279,7 @@
         # Make unstable packages available as pkgs.unstable
         (final: _prev: {
           unstable = import nixpkgs-unstable {
-            inherit (final) system;
+            inherit (final.stdenv.hostPlatform) system;
             config.allowUnfree = true;
           };
         })
