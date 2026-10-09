@@ -46,6 +46,14 @@ in
         };
       };
 
+      # Finishes what masApps' Xcode install leaves to the first-run UI, so
+      # mobile dev builds (xcodebuild/simctl) work straight after a switch.
+      system.xcode = {
+        enable = true;
+        acceptLicense = true;
+        simulatorPlatforms = [ "iOS" ];
+      };
+
       desktops.aerospace = enabled;
 
       communication = {
