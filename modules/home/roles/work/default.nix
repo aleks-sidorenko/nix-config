@@ -48,6 +48,9 @@ in
         };
       };
 
+      # Work machines install npm packages through the org mirror.
+      development.platforms.node.registry = "https://npm.dev.wixpress.com/api/npm/npm-repos/";
+
       services = {
         teamviewer = enabled;
       };

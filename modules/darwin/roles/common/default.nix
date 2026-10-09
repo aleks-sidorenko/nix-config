@@ -16,6 +16,7 @@ in
       taps = mkOpt (listOf str) [ ] "Additional Homebrew taps";
       brews = mkOpt (listOf str) [ ] "Additional Homebrew formulae";
       casks = mkOpt (listOf str) [ ] "Additional Homebrew casks";
+      masApps = mkOpt (attrsOf int) { } "Additional Mac App Store apps (name = app id)";
     };
   };
 
@@ -56,6 +57,7 @@ in
           inherit (cfg.homebrew) taps;
           inherit (cfg.homebrew) brews;
           inherit (cfg.homebrew) casks;
+          inherit (cfg.homebrew) masApps;
         };
       };
 

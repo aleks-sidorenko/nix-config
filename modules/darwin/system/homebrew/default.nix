@@ -24,6 +24,7 @@ in
     taps = mkOpt (listOf str) [ ] "Homebrew taps to add";
     brews = mkOpt (listOf str) [ ] "Homebrew formulae to install";
     casks = mkOpt (listOf (either str attrs)) [ ] "Homebrew casks to install";
+    masApps = mkOpt (attrsOf int) { } "Mac App Store apps to install via mas (name = app id)";
   };
 
   config = mkIf cfg.enable {
@@ -37,6 +38,7 @@ in
       inherit (cfg) taps;
       inherit (cfg) brews;
       inherit (cfg) casks;
+      inherit (cfg) masApps;
     };
 
     environment.systemPath = [ "${homebrew.binPath}" ];
