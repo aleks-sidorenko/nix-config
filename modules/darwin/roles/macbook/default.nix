@@ -38,6 +38,11 @@ in
           casks = [
             "raycast" # Spotlight replacement
           ];
+          # Xcode is licence-bound and not in nixpkgs; the App Store is the
+          # declarative route. Needs a one-time App Store sign-in.
+          masApps = {
+            Xcode = 497799835;
+          };
         };
       };
 
