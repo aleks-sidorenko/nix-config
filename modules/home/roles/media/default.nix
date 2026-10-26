@@ -16,12 +16,16 @@ in
   };
 
   config = mkIf cfg.enable {
-    ${namespace}.media = {
-      players.vlc = enabled;
+    ${namespace} = {
+      media = {
+        players.vlc = enabled;
 
-      # GTK-only organizer, with no portable equivalent.
-      shotwell = mkIf pkgs.stdenv.isLinux enabled;
-      tools = enabled;
+        # GTK-only organizer, with no portable equivalent.
+        shotwell = mkIf pkgs.stdenv.isLinux enabled;
+        tools = enabled;
+      };
+
+      cli.tools.pdf = enabled;
     };
   };
 }
