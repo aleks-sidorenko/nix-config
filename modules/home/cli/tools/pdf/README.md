@@ -11,6 +11,30 @@ pdfcpu merge out.pdf *.pdf               # shell glob order
 pdfcpu merge -s out.pdf *.pdf            # sorted by file name
 ```
 
+## From images
+
+One page per image, in argument order. Supports JPEG, PNG, TIFF and WebP;
+convert HEIC first.
+
+```sh
+pdfcpu import out.pdf *.jpg                          # page size = image size
+pdfcpu import "f:A4, pos:c, sc:1.0 rel" out.pdf *.jpg  # fit each image to A4
+pdfcpu import "f:A4, pos:c, gray:on" out.pdf scan.png  # grayscale
+```
+
+If `out.pdf` already exists, the pages are appended to it rather than
+overwriting it.
+
+To fix sideways images, rotate their pages afterwards (clockwise, multiples
+of 90; the image data is untouched):
+
+```sh
+pdfcpu rotate -p 2,5 out.pdf 90   # pages 2 and 5, in place
+pdfcpu rotate out.pdf 180         # all pages
+```
+
+Phone photos make large files; shrink the result as described below.
+
 ## Resize pages
 
 ```sh
