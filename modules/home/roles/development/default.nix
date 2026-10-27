@@ -113,11 +113,7 @@ in
         editors.nvim = {
           enable = true;
           ai = {
-            inherit (cfg.ai) copilot;
-            # TODO: claude-code nvim plugin bundles the claude-code CLI via nixvim's
-            # extraPackages, causing a full npm build. Disable until we can decouple
-            # the plugin from the CLI (which is managed separately via Homebrew or home-manager).
-            # inherit (cfg.ai) claude-code;
+            inherit (cfg.ai) copilot claude-code;
           };
           development = {
             inherit (cfg.languages) haskell;

@@ -50,6 +50,8 @@ in
         copilot.enable = cfg.ai.copilot;
         claude-code.enable = cfg.ai.claude-code;
       };
+      # The CLI is installed separately; nixvim would otherwise build its own copy.
+      extraConfig.dependencies.claude-code.enable = false;
     };
 
     ${namespace}.cli.editors.default = mkIf cfg.default {
