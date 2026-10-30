@@ -57,6 +57,8 @@ with lib.${namespace};
     # Endpoint security on this managed host kills the qbittorrent process.
     media.qbittorrent.enable = mkForce false;
 
+    games.minecraft = enabled;
+
     styles.stylix.wallpaper = "earth";
   };
 
