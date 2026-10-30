@@ -84,7 +84,8 @@ in
 
           # ── Structure (Alt+Shift) ───────────────────────────────
           # Split creation — mirrors Neovim's C-| / C-- (and Leader+| / -)
-          "alt+shift+|=new_split:right"
+          # Physical key: on macOS Option+Shift+\ yields "»", so "|" never matches
+          "alt+shift+backslash=new_split:right"
           "alt+shift+-=new_split:down"
           # Tab management
           "alt+shift+t=new_tab"
