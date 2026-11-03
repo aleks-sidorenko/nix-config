@@ -51,7 +51,8 @@ file does not get smaller. To reduce file size, see below.
 
 ## Shrink file size
 
-pdfcpu cannot downsample images, so use Ghostscript:
+pdfcpu cannot downsample images (`pdfcpu optimize` only drops duplicate
+objects, so scans stay the same size), so use Ghostscript:
 
 ```sh
 gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -o small.pdf in.pdf
@@ -64,8 +65,10 @@ gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -o small.pdf in.pdf
 | `/printer`  | 300       | print quality           |
 | `/prepress` | 300       | print, preserves colour |
 
-Override the preset's image resolution for anything in between; 100 dpi is
-usually still readable for scanned documents:
+A preset alone may not be enough: `/ebook` leaves 150 dpi scans untouched,
+so a merged pile of scans can stay well above an upload limit. Override the
+preset's image resolution for anything in between; 100–120 dpi is usually
+still readable for scanned documents:
 
 ```sh
 gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook \
@@ -92,6 +95,19 @@ done
 
 If even 50 dpi is too big, the bulk is not images (fonts, vector content) or
 the pages need splitting across files.
+
+Ghostscript may print `Fontconfig error: Cannot load default config file`;
+it is harmless for this.
+
+### Find what makes it large
+
+```sh
+pdfcpu images list in.pdf          # every image: page, pixel size, bytes
+mkdir pages && pdfcpu split in.pdf pages && ls -lS pages | head
+```
+
+The split shows the heaviest pages. Shrink or re-scan their source document
+before merging rather than downsampling everything.
 
 ## Combine and shrink in one step
 
