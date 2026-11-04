@@ -76,6 +76,12 @@ in
           - Prefer editing existing files over creating new ones; don't add files (docs, scripts) that weren't requested.
           - Avoid self-explanatory comments. Comment only when the reason is hard to guess from the code — explain WHY the code exists, not WHAT it does.
 
+          ## Dev Environment
+
+          - Most projects I own use a `nix develop` shell and a `justfile` for common commands — run tooling inside the dev shell and prefer existing `just` recipes over raw commands.
+          - Keep recipe naming consistent across repos so the dev experience stays uniform; follow the repo's existing naming scheme when adding recipes.
+          - If a CLI command is run repeatedly, consider adding it as a `just` recipe.
+
           ## Verification
 
           - Verify before claiming done — run the build, tests, and lint, and cite the output. Never assert "it works" without evidence.
