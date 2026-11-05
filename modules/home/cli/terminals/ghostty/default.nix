@@ -108,6 +108,8 @@ in
           "${prefix}>t>q=close_tab:this"
           "${prefix}>t>[=previous_tab"
           "${prefix}>t>]=next_tab"
+          # Pinned name overrides per-split titles, which otherwise follow focus
+          "${prefix}>t>r=prompt_tab_title"
           "${prefix}>w>n=new_window"
           "${prefix}>w>q=close_window"
           "${prefix}>|=new_split:right"
