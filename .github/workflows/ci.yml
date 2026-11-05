@@ -68,10 +68,9 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up QEMU for aarch64 emulation
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -yq qemu-user-static binfmt-support
-          sudo update-binfmts --enable
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v23
@@ -142,10 +141,9 @@ jobs:
 
       - name: Set up QEMU for aarch64 emulation
         if: matrix.system == 'aarch64-linux'
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -yq qemu-user-static binfmt-support
-          sudo update-binfmts --enable
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v23
