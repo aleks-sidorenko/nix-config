@@ -59,5 +59,13 @@ in
 
     };
 
+    # macOS protects a bundle once it has been launched, after which the
+    # nix-daemon can no longer delete it. Running apps from copies keeps the
+    # store paths collectable.
+    targets.darwin = {
+      copyApps.enable = true;
+      linkApps.enable = false;
+    };
+
   };
 }

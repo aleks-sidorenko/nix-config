@@ -8,7 +8,7 @@ with lib;
 with lib.${namespace};
 let
   cfg = config.${namespace}.roles.macbook;
-  # Home-manager links its GUI apps here for the primary user. Ghostty (common
+  # Home-manager copies its GUI apps here for the primary user. Ghostty (common
   # home role) and Google Chrome come from nix.
   hmApps = "/Users/${config.${namespace}.user.name}/Applications/Home Manager Apps";
 in
