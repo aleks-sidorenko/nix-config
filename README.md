@@ -140,7 +140,7 @@ just lint                                  # statix + deadnix (read-only)
 just lint-fix                              # Auto-fix linting issues
 just flake-check                           # nix flake check
 just info                                  # Show system info
-just disk-usage                            # Show nix store usage
+disk-report                                # Rank disk usage and how to reclaim it
 ```
 
 ## Development

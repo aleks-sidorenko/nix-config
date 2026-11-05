@@ -89,7 +89,7 @@ sops updatekeys modules/nixos/secrets.yaml
 ```bash
 just update                # Update flake inputs
 just cleanup               # Garbage collect and remove old generations
-just disk-usage            # Show nix store disk usage
+disk-report                # Rank what uses disk space and how to reclaim it (any dir)
 ```
 
 ### Recipe Naming
@@ -104,7 +104,7 @@ Recipes are `<group>-<suffix>`, and within a group every suffix is the same kind
   `bootstrap-deploy`, `bootstrap-disk`.
 
 Existing exceptions are deliberate: `bootstrap-darwin`, `bootstrap-help`,
-`bootstrap-targets`, `disk-usage`, `github-fetch-hash`.
+`bootstrap-targets`, `github-fetch-hash`.
 
 Rename old recipes instead of aliasing them.
 
