@@ -48,6 +48,7 @@ in
 
         tools = {
           archivers.enable = true;
+          disk-report.enable = true;
           modern-unix.enable = true;
           network-tools.enable = true;
           # Interactive-shell essentials the common fish config depends on:

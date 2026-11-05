@@ -286,11 +286,6 @@ outputs:
     @echo "📤 Flake outputs:"
     nix flake show
 
-# Show disk usage by store paths
-disk-usage:
-    @echo "💾 Nix store disk usage:"
-    du -sh /nix/store | head -20
-
 # Shellcheck every script under scripts/
 scripts-validate:
     #!/usr/bin/env bash
