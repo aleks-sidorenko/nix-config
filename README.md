@@ -46,6 +46,7 @@ Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-li
 | Hostname | Architecture | Hardware | Role | OS | State |
 |:--------:|:----------:|:---------|:----:|:--:|:-----:|
 | `server-vm` | aarch64-linux | QEMU guest on the workbook | Home Server | NixOS | Active |
+| `server` | x86_64-linux | Beelink EQ14 (Intel N150) | Server | NixOS | Pending bootstrap |
 | `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
 | `minimal-x86_64` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
 | `minimal-aarch64` | aarch64-install-iso | Any | Installer | NixOS ISO | - |
