@@ -62,6 +62,7 @@ jobs:
       matrix:
         system:
           - "server-vm"
+          - "server"
           - "minimal-x86_64"
     steps:
       - name: Checkout repository
@@ -91,6 +92,9 @@ jobs:
               # options and failed assertions.
               nix eval .#nixosConfigurations.$system.config.system.build.toplevel.drvPath --show-trace
               ;;
+            "server")
+              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
+              ;;
             "minimal-x86_64")
               # Snowfall-lib creates install-isoConfigurations from systems/x86_64-install-iso/
               nix build .#install-isoConfigurations.$system --show-trace
@@ -106,6 +110,7 @@ jobs:
       matrix:
         config:
           - "alexander@server-vm"
+          - "alexander@server"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
