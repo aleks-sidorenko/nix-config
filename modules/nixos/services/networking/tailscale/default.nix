@@ -76,5 +76,16 @@ in
         preauthorized = true;
       };
     };
+
+    # Upstream tries the join once per boot. A host whose network comes up
+    # later (Wi-Fi set by hand on the console) would stay off the tailnet
+    # until rebooted. It exits 0 once joined, so this only retries failures.
+    systemd.services.tailscaled-autoconnect = mkIf (cfg.authKeyFile != null) {
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = "30s";
+      };
+      startLimitIntervalSec = 0;
+    };
   };
 }
