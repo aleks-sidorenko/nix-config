@@ -126,6 +126,20 @@ iso-build host:
     nix build ".#install-isoConfigurations.{{host}}" --out-link result
     @echo "✅ ISO available at ./result/iso/"
 
+# Download the installer ISO CI last built, for hosts this machine cannot build (usage: just iso-fetch minimal-x86_64)
+iso-fetch host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    # Lands where iso-build would, so iso-write takes either. `result` is only a
+    # GC-root link, and dropping it frees nothing until the next GC.
+    [ -L result ] && rm result
+    rm -rf result/iso
+    if ! gh run download -n "iso-{{host}}" -D result/iso; then
+        log_error "No CI artifact iso-{{host}} — trigger one with 'gh workflow run cache.yml'"; exit 1
+    fi
+    log_success "ISO available at ./result/iso/"
+
 # Write a built installer ISO to a USB device (usage: just iso-write minimal-x86_64 /dev/sdX)
 iso-write host device:
     #!/usr/bin/env bash
