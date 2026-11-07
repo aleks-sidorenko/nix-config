@@ -322,7 +322,7 @@ IaC configurations in `infra/`:
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just dns-*` commands
 - `tailnet/` - Tailscale ACL/tag policy managed via terranix/OpenTofu
-  - `default.nix` - `tagOwners` derived from every host's advertised tags, so the policy can't drift from what hosts actually enable
+  - `default.nix` - `tagOwners` derived from every host's advertised tags, so the policy can't drift from what hosts actually enable; each is co-owned by `tag:registrar`, the sole tag of the OAuth client hosts join with
   - `secrets.yaml` - SOPS-encrypted secrets (state passphrase; the Tailscale OAuth client comes from `infra/secrets.yaml`)
   - `terraform.tfstate` - encrypted OpenTofu state
   - Managed via `just tailnet-*` commands
