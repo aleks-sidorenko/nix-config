@@ -11,7 +11,7 @@ This configuration uses [snowfall-lib](https://github.com/snowfallorg/lib) conve
 │   ├── x86_64-install-iso/
 │   │   └── minimal-x86_64/         # Custom NixOS installer ISO
 │   ├── x86_64-linux/
-│   │   └── server/                 # Home server (Beelink EQ14, Intel N150)
+│   │   └── server/                 # Home server (mini PC, Intel Core i3-7020U)
 │   ├── aarch64-linux/
 │   │   └── server-vm/              # Headless QEMU guest, home-server test guest (workbook)
 │   └── aarch64-darwin/
@@ -265,7 +265,7 @@ Data structure (not functions) providing shared defaults:
 
 | Architecture | Systems | Description |
 |-------------|---------|-------------|
-| `x86_64-linux` | server | Home server (Beelink EQ14, Intel N150) |
+| `x86_64-linux` | server | Home server (mini PC, Intel Core i3-7020U, 8 GB RAM) |
 | `aarch64-linux` | server-vm | Headless QEMU guest on the workbook, a test guest for the home server |
 | `aarch64-darwin` | workbook | macOS Apple Silicon laptop |
 | `x86_64-install-iso` | minimal-x86_64 | Custom NixOS installer image (`nix build .#install-isoConfigurations.minimal-x86_64`) |

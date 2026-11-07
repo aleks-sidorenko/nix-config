@@ -1,6 +1,6 @@
 # Homelab Services
 
-Homelab services run on `server`, a Beelink EQ14 (Intel N150), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. `server-vm`, the QEMU guest on the workbook, is kept as a test guest on `common` only: `infra/dns` rejects two hosts claiming a service name.
+Homelab services run on `server`, a mini PC (Intel Core i3-7020U, 8 GB RAM, 2 TB SATA SSD), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. `server-vm`, the QEMU guest on the workbook, is kept as a test guest on `common` only: `infra/dns` rejects two hosts claiming a service name.
 
 ## Smart Home
 

@@ -10,21 +10,14 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot = {
-    initrd = {
-      availableKernelModules = [
-        "xhci_pci"
-        "ahci"
-        "nvme"
-        "usb_storage"
-        "sd_mod"
-      ];
-      kernelModules = [ "kvm-intel" ];
-    };
-
-    # Alder Lake-N has only the low-power encoder, which needs HuC firmware
-    # loaded through GuC.
-    kernelParams = [ "i915.enable_guc=3" ];
+  boot.initrd = {
+    availableKernelModules = [
+      "xhci_pci"
+      "ahci"
+      "usb_storage"
+      "sd_mod"
+    ];
+    kernelModules = [ "kvm-intel" ];
   };
 
   hardware = {
@@ -34,33 +27,31 @@
       enable = true;
       extraPackages = with pkgs; [
         intel-media-driver
-        vpl-gpu-rt
-        # OpenCL, for Jellyfin's HDR tone mapping
-        intel-compute-runtime
+        # OpenCL, for Jellyfin's HDR tone mapping. The current runtime
+        # dropped Gen9 (Kaby Lake) graphics.
+        intel-compute-runtime-legacy1
       ];
     };
   };
 
-  # Codecs are what this iGPU decodes and encodes in hardware.
+  # VA-API rather than QSV: the oneVPL runtime only supports Gen12+, and this
+  # is a Kaby Lake HD 620. Codecs are what its VA-API driver reports.
   services.jellyfin = {
     hardwareAcceleration = {
       enable = true;
-      type = "qsv";
+      type = "vaapi";
       device = "/dev/dri/renderD128";
     };
     transcoding = {
       enableHardwareEncoding = true;
-      enableIntelLowPowerEncoding = true;
       hardwareDecodingCodecs = {
         h264 = true;
         hevc = true;
         hevc10bit = true;
-        hevcRExt10bit = true;
-        hevcRExt12bit = true;
         mpeg2 = true;
         vc1 = true;
+        vp8 = true;
         vp9 = true;
-        av1 = true;
       };
       hardwareEncodingCodecs.hevc = true;
     };

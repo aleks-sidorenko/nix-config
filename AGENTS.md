@@ -286,7 +286,7 @@ Supports multiple desktop environments:
 ### Multi-Architecture Support
 
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal-x86_64`)
-- **x86_64-linux**: the home server (`server`, Intel N150)
+- **x86_64-linux**: the home server (`server`, Intel Core i3-7020U)
 - **aarch64-linux**: headless QEMU guest (`server-vm`) on the workbook, a test guest for the home server
 - **aarch64-darwin**: macOS workbook
 
