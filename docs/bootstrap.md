@@ -889,10 +889,11 @@ client secret in **both** secrets files under the same name:
 
 At <https://login.tailscale.com/admin/settings/oauth> → *Generate OAuth
 client*: tick `auth_keys` → **Write**, leave every other scope unticked, and
-select the tags the client may register nodes with — it can only issue keys
-for tags it is associated with, and those must already exist in `tagOwners`
-(`infra/tailnet` declares `tag:server`, `tag:desktop`, `tag:laptop`,
-`tag:agent-host`, `tag:work`).
+give it the single tag `tag:registrar`. A client can only issue keys for tags
+its own tags *own* — being associated with `tag:server` is not enough, and the
+API answers `requested tags [...] are invalid or not permitted`. `infra/tailnet`
+makes `tag:registrar` an owner of every host tag, so run `just tailnet-apply`
+before creating the client.
 
 The secret is shown **once**, on creation, in the form `tskey-client-…`. Copy
 it before closing the dialog; it cannot be retrieved later, only replaced.

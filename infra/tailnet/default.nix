@@ -24,7 +24,23 @@ let
 
   tags = unique (concatMap hostTags allHosts);
 
-  tagOwners = listToAttrs (map (tag: nameValuePair tag [ "autogroup:admin" ]) tags);
+  # The OAuth client hosts join with carries this tag and no other. Tailscale
+  # lets a client mint a key only for tags its own tags own, so every host
+  # tag lists it as an owner. No device advertises it, so no ACL names it.
+  registrarTag = "tag:registrar";
+
+  tagOwners = {
+    ${registrarTag} = [ "autogroup:admin" ];
+  }
+  // listToAttrs (
+    map (
+      tag:
+      nameValuePair tag [
+        "autogroup:admin"
+        registrarTag
+      ]
+    ) tags
+  );
 
   # A server is reached on the ports it serves and nothing else. This is the
   # layer that actually constrains tailnet peers: `tailscaled` inserts
