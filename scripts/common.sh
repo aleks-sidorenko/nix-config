@@ -155,14 +155,30 @@ check_ssh_connectivity() {
 # Hybrid ISO images carry their boot record in the disk's boot sector (sector 0),
 # so they MUST be written to the whole disk (e.g. /dev/sde), never a partition
 # (e.g. /dev/sde1, /dev/nvme0n1p1) — otherwise the resulting media won't boot.
-# Uses lsblk TYPE so it works across sd*/nvme*/mmcblk* naming instead of a
-# brittle "ends in a digit" check.
+# Asks the OS (lsblk / diskutil) instead of a brittle "ends in a digit" check,
+# which sd*/nvme*/mmcblk*/diskNsM naming all defeat.
 validate_write_disk() {
     local device="$1"
 
     if [[ -z "$device" ]]; then
         log_error "No device given"
         return 1
+    fi
+
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        local info
+        if ! info=$(diskutil info "$device" 2>/dev/null); then
+            log_error "$device is not a disk diskutil knows."
+            return 1
+        fi
+        if ! grep -qE '^ *Whole: +Yes' <<<"$info"; then
+            local parent
+            parent=$(sed -nE 's/^ *Part of Whole: +//p' <<<"$info")
+            log_error "$device is a partition, not a disk — the image would not be bootable."
+            log_error "Write to the whole disk instead${parent:+, e.g. /dev/$parent}."
+            return 1
+        fi
+        return 0
     fi
 
     local devtype
@@ -185,6 +201,24 @@ validate_write_disk() {
         log_error "$device is a '$devtype', not a whole disk — refusing to write."
         return 1
     fi
+}
+
+# Write a raw image to a whole disk validated by validate_write_disk.
+#
+# macOS refuses raw writes while any volume on the disk is mounted, and its
+# buffered /dev/diskN node is several times slower than the raw /dev/rdiskN.
+# Flags stay within what both GNU and BSD dd accept, since either may be first
+# on PATH; `sync` stands in for GNU-only conv=fsync.
+write_disk_image() {
+    local image="$1" device="$2" target="$2"
+
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        diskutil unmountDisk "$device" >&2
+        target="${device/\/dev\/disk//dev/rdisk}"
+    fi
+
+    sudo dd if="$image" of="$target" bs=4194304 status=progress
+    sync
 }
 
 # Require the operator to type an exact word before a destructive step.

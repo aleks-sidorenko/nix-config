@@ -140,7 +140,7 @@ iso-fetch host:
     fi
     log_success "ISO available at ./result/iso/"
 
-# Write a built installer ISO to a USB device (usage: just iso-write minimal-x86_64 /dev/sdX)
+# Write a built installer ISO to a USB device (usage: just iso-write minimal-x86_64 /dev/sdX, or /dev/diskN on macOS)
 iso-write host device:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -164,7 +164,7 @@ iso-write host device:
     if ! confirm {{device}} "Type '{{device}}' to confirm: "; then
         log_error "Aborted"; exit 1
     fi
-    sudo dd if="$iso" of={{device}} bs=4M status=progress conv=fsync
+    write_disk_image "$iso" {{device}}
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
 # Build an installer ISO and write it to a USB device (usage: just iso minimal-x86_64 /dev/sdX)
