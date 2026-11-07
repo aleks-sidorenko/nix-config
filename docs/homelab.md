@@ -1,6 +1,6 @@
 # Homelab Services
 
-Homelab services run on `server-vm`, a headless aarch64 QEMU guest standing in for `server`, whose hardware is being replaced (#235), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server-vm` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. Once `server` exists again, `home-server` moves there and off `server-vm`.
+Homelab services run on `server`, a Beelink EQ14 (Intel N150), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. `server-vm`, the QEMU guest on the workbook, is kept as a test guest on `common` only: `infra/dns` rejects two hosts claiming a service name.
 
 ## Smart Home
 
@@ -161,7 +161,7 @@ Two service modules run outside the `home-server` role: **Tailscale** (`modules/
 Services are typically enabled through the role system:
 
 ```nix
-# In systems/aarch64-linux/server-vm/default.nix
+# In systems/x86_64-linux/server/default.nix
 nix-config.roles.home-server.enable = true;  # Enables ALL server services
 ```
 

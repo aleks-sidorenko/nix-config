@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Overview
 
-This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (a home server (upcoming, #235), its VM stand-in, a macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
+This is a personal NixOS/nix-darwin configuration using **snowfall-lib** for modular organization. It manages multiple systems (a home server, its VM test guest, a macOS workbook) with declarative configurations for NixOS, home-manager, and nix-darwin.
 
 ## Common Commands
 
@@ -286,7 +286,8 @@ Supports multiple desktop environments:
 ### Multi-Architecture Support
 
 - **x86_64-install-iso**: Minimal installer ISO (built via `nix build .#install-isoConfigurations.minimal-x86_64`)
-- **aarch64-linux**: headless QEMU guest (`server-vm`) on the workbook, standing in for the home server
+- **x86_64-linux**: the home server (`server`, Intel N150)
+- **aarch64-linux**: headless QEMU guest (`server-vm`) on the workbook, a test guest for the home server
 - **aarch64-darwin**: macOS workbook
 
 Darwin-specific modules in `modules/darwin/` with separate role system.
@@ -368,7 +369,7 @@ launchctl kickstart -k gui/$(id -u)/org.nixos.qemu-server-vm
 ```
 
 `server-vm` is a headless aarch64-linux guest running under QEMU on the
-workbook — a home-server stand-in, not a desktop. It installs exactly like a
+workbook — a test guest for the home server, not a desktop. It installs exactly like a
 physical host — installer ISO plus `nixos-anywhere` — with QEMU standing in
 for hardware. It has no LAN presence: reach it over the tailnet, or from the
 host Mac on the vmnet subnet (`arp -a | grep 52:54` finds its address, which

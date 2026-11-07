@@ -12,13 +12,13 @@ with lib.${namespace};
   ];
 
   ${namespace} = {
-    roles = {
-      home-server = enabled;
+    # A test guest now that `server` runs `home-server`. infra/dns rejects two
+    # hosts claiming a service name, so it carries no service roles.
+    roles.common = enabled;
 
-      # The plugs, heatpump and climate sensors its automations name stayed
-      # with the old house.
-      smart-home = disabled;
-    };
+    # Kept so it still joins unattended: an OAuth-key registration with no
+    # tags is rejected, and `tag:server` came from the role dropped above.
+    services.networking.tailscale.tags = [ "tag:server" ];
 
     users.alexander = {
       primary = true;
