@@ -12,7 +12,7 @@ with lib.${namespace};
       enable = true;
       disks = {
         root = {
-          device = "/dev/nvme0n1";
+          device = "/dev/disk/by-id/ata-SSD_2TB_004208";
           encrypted = false;
           boot = {
             size = "1G";
