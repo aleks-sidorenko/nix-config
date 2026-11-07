@@ -12,10 +12,13 @@ with lib.${namespace};
   ];
 
   ${namespace} = {
-    # `home-server` stays on `server-vm` until this host is bootstrapped:
-    # infra/dns rejects two hosts claiming a name, so the move has to enable
-    # it here and drop it there in one change.
-    roles.server = enabled;
+    roles = {
+      home-server = enabled;
+
+      # The plugs, heatpump and climate sensors its automations name stayed
+      # with the old house.
+      smart-home = disabled;
+    };
 
     users.alexander = {
       primary = true;
