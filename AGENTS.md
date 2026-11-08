@@ -357,6 +357,8 @@ IaC configurations in `infra/`:
 
 Use the `server-vm` configuration for testing:
 ```bash
+# both are parked on the workbook: set virtualisation.qemu.enable and
+# nix.linux-builder.enable back to true first
 darwin-rebuild switch --flake .              # first: Linux builder, socket_vmnet, QEMU agent
 just iso-build minimal-aarch64               # build the installer ISO
 just vm-install server-vm                    # boot the guest from it (runs QEMU in the foreground)
