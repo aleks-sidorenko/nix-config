@@ -165,8 +165,12 @@ resize.
 | Swap window              | `Alt+Cmd+Shift+H/J/K/L` | `Super+Shift+H/J/K/L` |
 | Resize window            | `Ctrl+Cmd+Arrows`       | `Super+Alt+Arrows` (Hyprland) · `Super+Ctrl+Arrows` (GNOME) |
 | Close window             | `Alt+Cmd+Q`             | `Super+Q`             |
-| Fullscreen               | `Alt+Cmd+F`             | `Super+F`             |
+| Fullscreen (no gaps)     | `Alt+Cmd+F`             | `Super+F`             |
 | Toggle maximize          | `Alt+Cmd+M`             | `Super+M`             |
+| Tiles layout / flip      | `Alt+Cmd+/`             | —                     |
+| Accordion layout / flip  | `Alt+Cmd+,`             | —                     |
+| Toggle floating          | `Alt+Cmd+Shift+F`       | —                     |
+| Equalize sizes           | `Alt+Cmd+=`             | —                     |
 
 ### Workspaces
 

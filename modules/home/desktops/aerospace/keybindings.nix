@@ -23,10 +23,20 @@
   alt-cmd-q = 'close'
 
   # Fullscreen — Alt+Cmd+F (Linux: Super+F)
-  alt-cmd-f = 'fullscreen'
+  alt-cmd-f = 'fullscreen --no-outer-gaps'
 
   # Maximize (fill workspace) — Alt+Cmd+M (Linux: Super+M)
   alt-cmd-m = 'fullscreen'
+
+  # Layout — Alt+Cmd+/ tiles, Alt+Cmd+, accordion (repeat flips orientation)
+  alt-cmd-slash = 'layout tiles horizontal vertical'
+  alt-cmd-comma = 'layout accordion horizontal vertical'
+
+  # Floating — Alt+Cmd+Shift+F
+  alt-cmd-shift-f = 'layout floating tiling'
+
+  # Equalize sizes — Alt+Cmd+= (Neovim: Leader+w=)
+  alt-cmd-equal = 'balance-sizes'
 
   # Workspaces — Alt+Cmd+N (Linux: Super+N)
   alt-cmd-1 = 'workspace 1'
