@@ -50,8 +50,11 @@ with lib.${namespace};
         };
       };
 
+      # Parked: `server` runs `home-server`, so the guest's disks were deleted
+      # to reclaim space. The definition stays so `just vm-install server-vm`
+      # can bring it back; enable this (and the Linux builder) first.
       virtualisation.qemu = {
-        enable = true;
+        enable = false;
         guests.server-vm = {
           cpus = 4;
           memory = "8G";
@@ -70,8 +73,9 @@ with lib.${namespace};
   # inner build is emulated and wants real cores; the disk has to hold the
   # guest's images, and is kept across restarts so a rebuild is not a rebuild
   # of everything. maxJobs follows virtualisation.cores on its own.
+  # Parked with `server-vm`, its only aarch64-linux consumer.
   nix.linux-builder = {
-    enable = true;
+    enable = false;
     config.virtualisation = {
       cores = 8;
       darwin-builder = {
