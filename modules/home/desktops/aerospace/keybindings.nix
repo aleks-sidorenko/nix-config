@@ -23,10 +23,20 @@
   alt-cmd-q = 'close'
 
   # Fullscreen — Alt+Cmd+F (Linux: Super+F)
-  alt-cmd-f = 'fullscreen'
+  alt-cmd-f = 'fullscreen --no-outer-gaps'
 
   # Maximize (fill workspace) — Alt+Cmd+M (Linux: Super+M)
   alt-cmd-m = 'fullscreen'
+
+  # Layout — Alt+Cmd+/ tiles, Alt+Cmd+, accordion (repeat flips orientation)
+  alt-cmd-slash = 'layout tiles horizontal vertical'
+  alt-cmd-comma = 'layout accordion horizontal vertical'
+
+  # Floating — Alt+Cmd+Shift+F
+  alt-cmd-shift-f = 'layout floating tiling'
+
+  # Equalize sizes — Alt+Cmd+= (Neovim: Leader+w=)
+  alt-cmd-equal = 'balance-sizes'
 
   # Workspaces — Alt+Cmd+N (Linux: Super+N)
   alt-cmd-1 = 'workspace 1'
@@ -57,8 +67,8 @@
   ctrl-cmd-shift-right = 'focus-monitor right'
 
   # Move window to monitor — Ctrl+Cmd+Shift+hl (Linux: N/A)
-  ctrl-cmd-shift-h = 'move-node-to-monitor left'
-  ctrl-cmd-shift-l = 'move-node-to-monitor right'
+  ctrl-cmd-shift-h = 'move-node-to-monitor --focus-follows-window left'
+  ctrl-cmd-shift-l = 'move-node-to-monitor --focus-follows-window right'
 
   # App launcher (Raycast) — Alt+Cmd+D (Linux: Super+D)
   alt-cmd-d = 'exec-and-forget open -a "Raycast"'
