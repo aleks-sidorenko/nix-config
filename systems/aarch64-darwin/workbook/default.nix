@@ -25,6 +25,8 @@ with lib.${namespace};
       admin = true;
     };
 
+    media.lightroom = enabled;
+
     system.networking = {
       knownNetworkServices = [
         "Wi-Fi"
