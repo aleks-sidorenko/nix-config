@@ -16,26 +16,27 @@ with lib.${namespace};
       enable = true;
       devices = [
         {
-          name = "built-in";
-          model = "Built-in Retina Display";
-          width = 3024;
-          height = 1964;
-          primary = true;
+          name = "external";
+          model = "Mi monitor";
+          width = 3440;
+          height = 1440;
+          refreshRate = 180;
           workspaces = [
             "1"
             "2"
             "3"
             "4"
             "5"
+            "6"
           ];
         }
         {
-          name = "external";
-          model = "DELL U2419H";
-          width = 1920;
-          height = 1080;
+          name = "built-in";
+          model = "Built-in Retina Display";
+          width = 3456;
+          height = 2234;
+          primary = true;
           workspaces = [
-            "6"
             "7"
             "8"
             "9"
