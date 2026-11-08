@@ -48,6 +48,9 @@ in
         KeyRepeat = 2;
         NSAutomaticCapitalizationEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
+        # External keyboards that report an Apple vendor ID get the top-row
+        # media mapping too, but their firmware fn never reaches macOS.
+        "com.apple.keyboard.fnState" = true;
       };
 
       # Free the Ctrl+Arrow keys so Neovim's window-resize bindings
