@@ -57,8 +57,8 @@
   ctrl-cmd-shift-right = 'focus-monitor right'
 
   # Move window to monitor — Ctrl+Cmd+Shift+hl (Linux: N/A)
-  ctrl-cmd-shift-h = 'move-node-to-monitor left'
-  ctrl-cmd-shift-l = 'move-node-to-monitor right'
+  ctrl-cmd-shift-h = 'move-node-to-monitor --focus-follows-window left'
+  ctrl-cmd-shift-l = 'move-node-to-monitor --focus-follows-window right'
 
   # App launcher (Raycast) — Alt+Cmd+D (Linux: Super+D)
   alt-cmd-d = 'exec-and-forget open -a "Raycast"'
