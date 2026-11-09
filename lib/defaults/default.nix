@@ -229,6 +229,9 @@ _: rec {
         prowlarr = {
           web = 9696;
         };
+        flaresolverr = {
+          web = 8191;
+        };
         calibre = {
           web = 8083;
         };

@@ -81,6 +81,10 @@ in
             enable = true;
           };
 
+          flaresolverr = {
+            enable = true;
+          };
+
           recyclarr = {
             enable = true;
           };
