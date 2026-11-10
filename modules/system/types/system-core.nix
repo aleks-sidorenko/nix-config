@@ -30,6 +30,10 @@ in
       expr = lib.hasPrefix "fish" c.users.defaultUserShell.name;
       expected = true;
     };
+    system-core-root-bash = {
+      expr = lib.hasPrefix "bash" c.users.users.root.shell.name;
+      expected = true;
+    };
     system-core-flakes = {
       expr = builtins.elem "flakes" c.nix.settings.experimental-features;
       expected = true;
