@@ -50,6 +50,22 @@ in
     };
 
     evalTests = {
+      constants-owner = {
+        expr = config.constants.owner;
+        expected = "alexander";
+      };
+      constants-locales-in-nixos = {
+        expr = nixos.config.constants.locale.locales;
+        expected = [
+          "en_US.UTF-8"
+          "uk_UA.UTF-8"
+          "ru_RU.UTF-8"
+        ];
+      };
+      constants-tailnet = {
+        expr = config.constants.network.domains.tailnet;
+        expected = "colobus-bramble.ts.net";
+      };
       constants-top = {
         expr = config.constants.locale.timeZone;
         expected = "Europe/Kyiv";
