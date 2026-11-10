@@ -19,5 +19,6 @@ Examples:
 - `nixos/cli/shells/fish` + `darwin/cli/shells/fish` + `home/cli/shells/fish` → `cli/shells/fish/`, aspect `fish`.
 - `home/cli/shells/default` → `cli/shells/default-shell/`, aspect `default-shell`.
 - `darwin/cli/tools/coreutils` + `home/cli/tools/coreutils` → `cli/tools/coreutils/`, aspect `coreutils`.
+- `home/cli/tools/disk-report` + repo-root `packages/disk-report` → `cli/tools/disk-report/` (`disk-report.nix` + `_package.nix`), aspect `disk-report`.
 
 Rules: [../README.md](../README.md).

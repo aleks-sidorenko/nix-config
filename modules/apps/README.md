@@ -14,7 +14,7 @@ Examples:
 - `darwin/communication/slack` + `home/communication/slack` → `apps/communication/slack/`, aspect `slack`.
 - `darwin/browsers/chromium/slack` (actually the darwin Chromium cask) + `home/browsers/chromium` → `apps/browsers/chromium/`, aspect `chromium`.
 - `home/media/qbittorrent` (desktop client) → `apps/media/qbittorrent-client/`, aspect `qbittorrent-client`. The server is `services/media/qbittorrent`.
-- `home/media/tools` → `apps/media/media-tools/`, aspect `media-tools`.
+- `home/media/tools` + repo-root `packages/media-tools` → `apps/media/media-tools/` (with `_package.nix`), aspect `media-tools`.
 - `home/games/minecraft` → `apps/games/minecraft/`, aspect `minecraft`. The server is `services/gaming/minecraft-server`.
 
 Rules: [../README.md](../README.md).

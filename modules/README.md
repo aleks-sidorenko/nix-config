@@ -49,6 +49,12 @@ Tracking issue: #267.
 9. **No `specialArgs`.** Shared facts live in `constants` (read from `config`).
    Flake inputs come from the top-level module's `inputs`.
 10. **`lib/` holds functions only.**
+11. **A package lives in the feature that uses it.** Its `callPackage` file is
+    `_package.nix` in the feature directory. The feature exports it as
+    `perSystem.packages.<name>` and installs it with
+    `pkgs.callPackage ./_package.nix { }`. There is no overlay and no
+    `pkgs.nix-config.*`. A package gets its own `packages/<name>/` directory only
+    once a second feature needs it.
 
 ## Layout
 
@@ -70,7 +76,6 @@ Tracking issue: #267.
 | `users/` | One feature per person, plus profiles |
 | `hosts/` | One directory per machine |
 | `infra/` | Terranix stacks (router, dns, storage, tailnet) |
-| `packages/` | Custom packages |
 
 ## Where existing modules go
 
@@ -102,7 +107,8 @@ more examples.
 | `lib/defaults` | `constants/` |
 | `lib/*` (functions) | `lib/`, only when used |
 | `infra/<stack>` (repo root) | `infra/<stack>/` |
-| `packages/<name>` (repo root), `overlays/*` | `packages/<name>/`; overlays in `nix/` |
+| `packages/<name>` (repo root) | `_package.nix` inside the feature that uses it (rule 11) |
+| `overlays/*` | `nix/nixpkgs.nix` |
 
 ## How to add
 
@@ -141,6 +147,17 @@ in {
   flake.modules.nixos.<name> = user.nixos;
   flake.modules.darwin.<name> = user.darwin;
   flake.modules.homeManager.<name> = { /* the person's home config */ };
+}
+```
+
+**A package.** Put the `callPackage` file at `<feature>/_package.nix`, and add to the feature's module:
+
+```nix
+{
+  perSystem = { pkgs, ... }: { packages.<name> = pkgs.callPackage ./_package.nix { }; };
+  flake.modules.homeManager.<feature> = { pkgs, ... }: {
+    home.packages = [ (pkgs.callPackage ./_package.nix { }) ];
+  };
 }
 ```
 
