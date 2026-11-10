@@ -120,14 +120,18 @@ switch:
     @echo "🚀 Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
-# Build a minimal NixOS installer ISO (usage: just iso-build minimal-x86_64)
-iso-build host:
-    @echo "💿 Building installer ISO for {{host}}..."
-    nix build ".#install-isoConfigurations.{{host}}" --out-link result
+# The installer ISO exists only for x86_64-linux, so it is named in full: a bare
+# `.#installer-iso` resolves against the current system and misses on darwin.
+iso_attr := ".#packages.x86_64-linux.installer-iso"
+
+# Build the installer ISO (usage: just iso-build)
+iso-build:
+    @echo "💿 Building the installer ISO..."
+    nix build "{{iso_attr}}" --out-link result
     @echo "✅ ISO available at ./result/iso/"
 
-# Download the installer ISO CI last built, for hosts this machine cannot build (usage: just iso-fetch minimal-x86_64)
-iso-fetch host:
+# Download the installer ISO CI last built, for machines that cannot build it (usage: just iso-fetch)
+iso-fetch:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
@@ -135,27 +139,24 @@ iso-fetch host:
     # GC-root link, and dropping it frees nothing until the next GC.
     [ -L result ] && rm result
     rm -rf result/iso
-    if ! gh run download -n "iso-{{host}}" -D result/iso; then
-        log_error "No CI artifact iso-{{host}} — trigger one with 'gh workflow run cache.yml'"; exit 1
+    if ! gh run download -n iso-installer -D result/iso; then
+        log_error "No CI artifact iso-installer — cache.yml builds it on master; trigger one with 'gh workflow run cache.yml'"; exit 1
     fi
     log_success "ISO available at ./result/iso/"
 
-# Write a built installer ISO to a USB device (usage: just iso-write minimal-x86_64 /dev/sdX, or /dev/diskN on macOS)
-iso-write host device:
+# Write the built installer ISO to a USB device (usage: just iso-write /dev/sdX, or /dev/diskN on macOS)
+iso-write device:
     #!/usr/bin/env bash
     set -euo pipefail
     source scripts/common.sh
-    # The filename is asked of the flake, never guessed: `result` is a single
-    # shared out-link, and one host's ISO name is a prefix of another's, so any
-    # glob can hand this recipe the wrong image to dd over a disk.
-    if ! iso_name=$(nix eval --raw ".#install-isoConfigurations.{{host}}.name" 2>/dev/null); then
-        log_error "Unknown ISO host: {{host}}"
-        log_error "Known ISO hosts: $(nix eval --json .#install-isoConfigurations --apply builtins.attrNames 2>/dev/null | jq -r 'join(", ")')"
-        exit 1
+    # The filename is asked of the flake, never guessed: `result` is a shared
+    # out-link, so a glob can hand this recipe the wrong image to dd over a disk.
+    if ! iso_name=$(nix eval --raw "{{iso_attr}}.name" 2>/dev/null); then
+        log_error "Cannot evaluate {{iso_attr}}.name"; exit 1
     fi
     iso="result/iso/$iso_name"
     if [ ! -e "$iso" ]; then
-        log_error "No ISO at $iso for {{host}} — run 'just iso-build {{host}}' first"; exit 1
+        log_error "No ISO at $iso — run 'just iso-build' or 'just iso-fetch' first"; exit 1
     fi
     validate_write_disk {{device}} || exit 1
     log_warning "About to write $iso to {{device}} — this DESTROYS ALL DATA on it"
@@ -167,13 +168,8 @@ iso-write host device:
     write_disk_image "$iso" {{device}}
     log_success "Written — boot {{device}}; console autologins as nixos (passwordless), SSH is key-based"
 
-# Build an installer ISO and write it to a USB device (usage: just iso minimal-x86_64 /dev/sdX)
-iso host device: (iso-build host) (iso-write host device)
-
-# Boot a VM guest from the installer ISO to install it
-# Usage: just vm-install server-vm [darwin-host]   (darwin-host defaults to this Mac)
-vm-install host darwin_host="":
-    @./scripts/vm-install.sh {{host}} {{darwin_host}}
+# Build the installer ISO and write it to a USB device (usage: just iso /dev/sdX)
+iso device: iso-build (iso-write device)
 
 # Update flake inputs (optionally a single input)
 update *input:
@@ -207,22 +203,23 @@ info:
     @echo "Available systems:"
     @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
 
-# List available configurations (type: all | nixos | darwin | home)
+# List available configurations (type: all | nixos | darwin)
 configs-list type="all":
     #!/usr/bin/env bash
     set -euo pipefail
     show() {
         case "$1" in
-            nixos)  echo "🖥️  Available NixOS configurations:";       attr=nixosConfigurations ;;
-            darwin) echo "🖥️  Available Darwin configurations:";      attr=darwinConfigurations ;;
-            home)   echo "🏠 Available home-manager configurations:"; attr=homeConfigurations ;;
+            nixos)  echo "🖥️  Available NixOS configurations:";  attr=nixosConfigurations ;;
+            darwin) echo "🖥️  Available Darwin configurations:"; attr=darwinConfigurations ;;
         esac
-        nix eval --json ".#${attr}" --apply builtins.attrNames | jq -r '.[]' | sed 's/^/  /'
+        # An output the flake does not define yet is listed as empty, not an error.
+        names=$(nix eval --json ".#${attr}" --apply builtins.attrNames 2>/dev/null || echo '[]')
+        if [ "$names" = "[]" ]; then echo "  none"; else jq -r '.[]' <<<"$names" | sed 's/^/  /'; fi
     }
     case "{{ type }}" in
-        all)               show nixos; show darwin; show home ;;
-        nixos|darwin|home) show "{{ type }}" ;;
-        *) echo "Unknown type: {{ type }} (use: all, nixos, darwin, home)" >&2; exit 1 ;;
+        all)          show nixos; show darwin ;;
+        nixos|darwin) show "{{ type }}" ;;
+        *) echo "Unknown type: {{ type }} (use: all, nixos, darwin)" >&2; exit 1 ;;
     esac
 
 # Install packages temporarily for testing
@@ -399,7 +396,7 @@ bootstrap-help:
 bootstrap-targets:
     @echo "🎯 Available bootstrap targets:"
     @echo "NixOS configurations that can be bootstrapped:"
-    @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -v "install-iso" | sed 's/^/  /'
+    @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -vx installer | sed 's/^/  /' || true
 
 # ============================================
 # Router Management (MikroTik via OpenTofu)

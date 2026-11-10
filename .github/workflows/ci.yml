@@ -56,52 +56,18 @@ jobs:
     name: "Build NixOS Systems"
     runs-on: ubuntu-latest
     needs: [flake-check]
-    # The rewrite branch has no hosts until they are ported.
-    if: github.ref != 'refs/heads/refactor/dendritic-flake-parts' && github.base_ref != 'refactor/dendritic-flake-parts'
-    # Note: server-vm is aarch64-linux (ARM64), requires emulation on x86_64 runners
-    strategy:
-      fail-fast: false
-      matrix:
-        system:
-          - "server-vm"
-          - "server"
-          - "minimal-x86_64"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up QEMU for aarch64 emulation
-        uses: docker/setup-qemu-action@v4
-        with:
-          platforms: arm64
-
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v23
-        with:
-          extra-conf: |
-            extra-platforms = aarch64-linux
 
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v15
 
-      - name: Build NixOS system
-        run: |
-          system="${{ matrix.system }}"
-          case "$system" in
-            "server-vm")
-              # aarch64 headless guest: a full build under x86 emulation would
-              # outrun the runner's time limit. Evaluation still catches missing
-              # options and failed assertions.
-              nix eval .#nixosConfigurations.$system.config.system.build.toplevel.drvPath --show-trace
-              ;;
-            "server")
-              nix build .#nixosConfigurations.$system.config.system.build.toplevel --show-trace
-              ;;
-            "minimal-x86_64")
-              # Snowfall-lib creates install-isoConfigurations from systems/x86_64-install-iso/
-              nix build .#install-isoConfigurations.$system --show-trace
-              ;;
-          esac
+      - name: Build the installer ISO
+        run: nix build .#packages.x86_64-linux.installer-iso --show-trace
 
   build-home-manager:
     name: "Build Home Manager"
