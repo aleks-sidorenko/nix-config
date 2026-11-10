@@ -16,6 +16,5 @@ From `master`'s `lib/defaults`, each area moves in the milestone that first read
 - user, locale and persistence paths
 - the LAN host registry
 - domains, service ports, and provider/backup ids
-- the smart-home device and zone registries (`services/smart-home/{devices,zones}` declare options today)
 
 Rules: [../README.md](../README.md).

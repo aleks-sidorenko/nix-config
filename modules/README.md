@@ -25,9 +25,8 @@ Tracking issue: #267.
    - **Different features that clash → qualify one.** A name too generic on its
      own (`tools`, `code`, `defaults`) takes its group or platform as a prefix:
      `media-tools`, `vscode`, `macos-defaults`.
-   - **Feature directories don't nest.** The one exception is plugins of a feature
-     (Home Assistant integrations). They live inside it and are named
-     `<parent>-<leaf>`, e.g. `home-assistant-climate`.
+   - **Feature directories don't nest.** Files inside a feature directory are
+     parts of that one aspect.
 4. **Importing is enabling.** No `enable` options that only gate a module, and no
    `mkIf cfg.enable`. Real settings stay options under `nix-config.*`.
 5. **Imports are explicit and never conditional.** Never put `mkIf` around
@@ -66,7 +65,7 @@ Tracking issue: #267.
 | `desktops/` | Window managers, desktop environments, their addons, styling |
 | `apps/` | Applications a user runs: browsers, communication, media, productivity, games |
 | `development/` | Languages, platforms, build tools, dev editors, AI tools |
-| `services/` | Daemons and servers: networking, media, backup, gaming, smart-home, virtualisation |
+| `services/` | Daemons and servers: networking, media, backup, gaming, virtualisation |
 | `roles/` | Purpose bundles that compose features |
 | `users/` | One feature per person, plus profiles |
 | `hosts/` | One directory per machine |
@@ -74,6 +73,8 @@ Tracking issue: #267.
 | `packages/` | Custom packages |
 
 ## Where existing modules go
+
+Not ported: smart-home (all of `nixos/services/smart-home/*` and `nixos/roles/smart-home`) and `server-vm`. See #267.
 
 Paths on the left are relative to `modules/` on `master`. Each domain README has
 more examples.

@@ -7,7 +7,6 @@ From `master`:
 - `media-server`
 - `gaming-server`
 - `backup`, `backup-server`
-- `smart-home`
 - `gaming`
 - `work`
 - `development`
@@ -16,7 +15,6 @@ From `master`:
 - `agent-host` (today's nixos/darwin `agent-host` + home `agent`)
 
 **You can't subtract an import, so keep roles small.** Anything a host might not want is imported by the host, not baked into a role. On `master`:
-- `server` sets `smart-home = disabled`. Instead, `home-server` doesn't import `smart-home`.
 - `workbook` sets `qbittorrent.enable = mkForce false`. Instead, the `media` role doesn't carry `qbittorrent-client`.
 
 If the same mix of type and roles shows up on two hosts, it becomes a role.
