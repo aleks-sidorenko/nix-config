@@ -83,7 +83,7 @@ jobs:
 
       - name: Build ISO
         run: |
-          nix build .#install-isoConfigurations.minimal-x86_64 --show-trace
+          nix build .#packages.x86_64-linux.installer-iso --show-trace
           
           echo "## Install ISO" >> $GITHUB_STEP_SUMMARY
           echo "✅ Successfully built minimal install ISO" >> $GITHUB_STEP_SUMMARY
@@ -97,7 +97,7 @@ jobs:
       - name: Upload ISO
         uses: actions/upload-artifact@v7
         with:
-          name: iso-minimal-x86_64
+          name: iso-installer
           path: result/iso/*.iso
           if-no-files-found: error
           # squashfs is already compressed

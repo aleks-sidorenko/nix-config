@@ -24,6 +24,7 @@
           age
           mkpasswd
           just
+          shellcheck
         ];
       };
     };

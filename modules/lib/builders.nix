@@ -6,6 +6,7 @@
 }:
 let
   inherit (lib) mkOption types;
+  hostNameModule = name: { networking.hostName = lib.mkDefault name; };
   nixos = config.builders.nixos "x86_64-linux" { system.stateVersion = "26.05"; };
   darwin = config.builders.darwin "aarch64-darwin" { system.stateVersion = 5; };
 in
@@ -44,8 +45,22 @@ in
     };
 
     flake.lib = {
-      mkNixos = system: name: config.builders.nixos system config.flake.modules.nixos.${name};
-      mkDarwin = system: name: config.builders.darwin system config.flake.modules.darwin.${name};
+      mkNixos =
+        system: name:
+        config.builders.nixos system {
+          imports = [
+            config.flake.modules.nixos.${name}
+            (hostNameModule name)
+          ];
+        };
+      mkDarwin =
+        system: name:
+        config.builders.darwin system {
+          imports = [
+            config.flake.modules.darwin.${name}
+            (hostNameModule name)
+          ];
+        };
     };
 
     evalTests = {
@@ -64,6 +79,14 @@ in
       darwin-unfree = {
         expr = darwin.config.nixpkgs.config.allowUnfree;
         expected = true;
+      };
+      builder-hostname = {
+        expr =
+          (config.builders.nixos "x86_64-linux" {
+            imports = [ (hostNameModule "probe") ];
+            system.stateVersion = "26.05";
+          }).config.networking.hostName;
+        expected = "probe";
       };
       darwin-platform = {
         expr = darwin.pkgs.stdenv.hostPlatform.system;
