@@ -2,6 +2,9 @@
 
 # Common utilities for NixOS bootstrap scripts
 # This file should be sourced by other scripts, not executed directly
+#
+# Definitions only: every just recipe line sources this file, so anything run at
+# load time (output, set -e, traps, cd) would run in every recipe.
 
 # Ensure this file is only sourced once
 if [[ -n "${_COMMON_SH_LOADED:-}" ]]; then
