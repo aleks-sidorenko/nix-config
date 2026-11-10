@@ -1,13 +1,12 @@
 # justfile for nix-config management
 # Run `just --list` to see all available recipes
 
-set shell := ["bash", "-c"]
-
-# bash sources BASH_ENV before every non-interactive shell, so each recipe line
-# and shebang recipe gets common.sh's log_* helpers without a source line.
-# Status goes through them (stderr); help text and listings are the recipe's
-# output and stay on stdout with echo.
-export BASH_ENV := justfile_directory() / "scripts/common.sh"
+# Recipe lines run in bash with common.sh's log_* helpers loaded. Status goes
+# through them (stderr); help text and listings are the recipe's output and stay
+# on stdout with echo. Sourced by the recipe shell itself, never exported: an
+# exported BASH_ENV would load common.sh into every bash a recipe starts,
+# nixos-anywhere included. Shebang recipes source it themselves.
+set shell := ["bash", "-c", "source scripts/common.sh && eval \"$1\"", "just"]
 
 # Default recipe - show help
 default:
@@ -64,6 +63,7 @@ bootstrap-darwin hostname:
 bootstrap-disk hostname mode="--dry-run":
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     log_info "Formatting disks for {{hostname}} using disko..."
     case "{{mode}}" in
     --dry-run)
@@ -141,6 +141,7 @@ iso-build:
 iso-fetch:
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     # Lands where iso-build would, so iso-write takes either. `result` is only a
     # GC-root link, and dropping it frees nothing until the next GC.
     [ -L result ] && rm result
@@ -154,6 +155,7 @@ iso-fetch:
 iso-write device:
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     # The filename is asked of the flake, never guessed: `result` is a shared
     # out-link, so a glob can hand this recipe the wrong image to dd over a disk.
     if ! iso_name=$(nix eval --raw "{{iso_attr}}.name" 2>/dev/null); then
@@ -212,14 +214,14 @@ info:
 configs-list type="all":
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     show() {
         case "$1" in
             nixos)  echo "🖥️  Available NixOS configurations:";  attr=nixosConfigurations ;;
             darwin) echo "🖥️  Available Darwin configurations:"; attr=darwinConfigurations ;;
         esac
-        # An output the flake does not define yet is listed as empty, not an error.
-        names=$(nix eval --json ".#${attr}" --apply builtins.attrNames 2>/dev/null || echo '[]')
-        if [ "$names" = "[]" ]; then echo "  none"; else jq -r '.[]' <<<"$names" | sed 's/^/  /'; fi
+        names=$(flake_output_names "$attr")
+        if [ -z "$names" ]; then echo "  none"; else sed 's/^/  /' <<<"$names"; fi
     }
     case "{{ type }}" in
         all)          show nixos; show darwin ;;
@@ -306,6 +308,7 @@ outputs:
 scripts-validate:
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     log_info "Shellchecking scripts..."
     # Globbed rather than listed: a hand-maintained list silently stops covering
     # scripts as they are added, which is exactly when checking them matters.
@@ -398,9 +401,13 @@ bootstrap-help:
 
 # Show all hosts that can be bootstrapped
 bootstrap-targets:
-    @echo "🎯 Available bootstrap targets:"
-    @echo "NixOS configurations that can be bootstrapped:"
-    @nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]' | grep -vx installer | sed 's/^/  /' || true
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source scripts/common.sh
+    echo "🎯 Available bootstrap targets:"
+    all=$(flake_output_names nixosConfigurations)
+    targets=$(grep -vx installer <<<"$all" || true)
+    if [ -z "$targets" ]; then echo "  none"; else sed 's/^/  /' <<<"$targets"; fi
 
 # ============================================
 # Router Management (MikroTik via OpenTofu)

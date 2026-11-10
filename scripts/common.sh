@@ -38,6 +38,14 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
+# Names under a flake output, one per line, from the flake in the current
+# directory. An output the flake does not define yet is empty; any other
+# evaluation error still fails.
+flake_output_names() {
+    nix eval --json --impure --expr \
+        "builtins.attrNames ((builtins.getFlake (toString ./.)).$1 or { })" | jq -r '.[]'
+}
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
