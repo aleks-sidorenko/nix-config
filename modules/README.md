@@ -95,7 +95,9 @@ more examples.
 | `*/roles/{laptop,homebook,macbook,phone}`, `nixos/hardware/phone` | `hardware/devices/<feature>/` |
 | `nixos/hardware/*` | `hardware/<feature>/` |
 | `*/security/*` | `security/<feature>/` |
-| `*/cli/{shells,editors,terminals,tools}/*` | `cli/<group>/<feature>/`; `*/default` selectors become `default-<x>` features (see `cli/README.md`) |
+| `*/cli/shells/fish`, `home/cli/editors/nvim`, `home/cli/terminals/ghostty` | `cli/{fish,nvim,ghostty}/` |
+| `*/cli/tools/*` | `cli/tools/<feature>/` |
+| `*/default` selectors, `home/cli/shells/zsh` | not ported: one of each, no selectors (see `cli/README.md`) |
 | `*/desktops/*`, `*/styles/stylix` | `desktops/…`; stylix at `desktops/styles/stylix/` |
 | `*/browsers/*`, `*/communication/*`, `*/media/*` (apps), `home/productivity/*`, `home/games/*` | `apps/<group>/<feature>/` |
 | `home/development/*` | `development/<group>/<feature>/` |

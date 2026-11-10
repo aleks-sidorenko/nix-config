@@ -4,11 +4,13 @@ Applications a user runs.
 
 | Sub-directory | Features (from `master`) |
 |---|---|
-| `browsers/` | `chrome`, `chromium`, `firefox`, `default-browser` |
+| `browsers/` | `chrome`, `chromium`, `firefox` |
 | `communication/` | `slack`, `telegram`, `viber`, `zoom` |
-| `media/` | `vlc`, `shotwell`, `lightroom`, `qbittorrent-client`, `media-tools`, `default-player` |
-| `productivity/` | `libreoffice`, `default-office` |
+| `media/` | `vlc`, `shotwell`, `lightroom`, `qbittorrent-client`, `media-tools` |
+| `productivity/` | `libreoffice` |
 | `games/` | `minecraft` |
+
+**No `default` selectors.** The app a user actually uses sets itself as the default (browser, player, office suite). `master`'s `browsers/default`, `media/players/default` and `productivity/offices/default` aren't ported. The same rule applies in `../cli/README.md`.
 
 Examples:
 - `darwin/communication/slack` + `home/communication/slack` → `apps/communication/slack/`, aspect `slack`.

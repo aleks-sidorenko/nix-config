@@ -7,6 +7,6 @@
 - **darwin:** the account's home (`/Users/<name>`).
 - **both:** `home-manager.users.<name>` imports `flake.modules.homeManager.<name>` when that exists.
 
-`users/<name>/` calls it. Later milestones extend it with what `master`'s `nix-config.users` does: primary, profile, SOPS password, default shell, identity.
+`users/<name>/` calls it. Later milestones extend it with what `master`'s `nix-config.users` does: primary, profile, SOPS password, identity. The login shell comes from the `fish` feature, not the factory.
 
 Rules: [../README.md](../README.md).
