@@ -10,8 +10,9 @@ Command-line environment.
 | `tools/` | `archivers`, `atuin`, `bat`, `bottom`, `coreutils`, `direnv`, `disk-report`, `eza`, `fzf`, `gh`, `git`, `htop`, `modern-unix`, `moreutils`, `network-tools`, `nh`, `nix-index`, `nix-ld`, `pdf`, `starship`, `yazi`, `zellij`, `zoxide` |
 
 **`default` selectors.** Today these are separate modules: `cli/shells/default`, `cli/editors/default` and `cli/terminals/default`. Each becomes a `default-<x>` feature that owns the setting:
-- `default-shell` declares `nix-config.cli.shells.default`, and applies it as the users' login shell.
-- Each shell feature imports `default-shell` and sets itself with `mkDefault`.
+- `default-shell` declares `nix-config.cli.shells.default` and applies it as the users' login shell.
+- `system-common` imports `default-shell` and sets fish with `mkDefault`. A user or host that wants another shell imports that shell's feature and overrides the setting.
+- Shell features never set the default themselves. Otherwise importing both `fish` and `zsh` would give two conflicting definitions.
 - Editors and terminals work the same way, and so do `apps/browsers` (`default-browser`), `apps/media` (`default-player`) and `apps/productivity` (`default-office`).
 
 Examples:

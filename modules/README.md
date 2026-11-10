@@ -23,8 +23,8 @@ Tracking issue: #267.
    - **Same name in several classes → one feature.** For example, `podman` on
      nixos, darwin and home.
    - **Different features that clash → qualify one.** A name too generic on its
-     own (`devices`, `tools`, `code`) takes its group or platform as a prefix:
-     `smart-home-devices`, `media-tools`, `vscode`, `macos-defaults`.
+     own (`tools`, `code`, `defaults`) takes its group or platform as a prefix:
+     `media-tools`, `vscode`, `macos-defaults`.
    - **Feature directories don't nest.** The one exception is plugins of a feature
      (Home Assistant integrations). They live inside it and are named
      `<parent>-<leaf>`, e.g. `home-assistant-climate`.
@@ -32,8 +32,10 @@ Tracking issue: #267.
    `mkIf cfg.enable`. Real settings stay options under `nix-config.*`.
 5. **Imports are explicit and never conditional.** Never put `mkIf` around
    `imports`. A platform difference goes in the content (`lib.mkMerge` +
-   `lib.mkIf pkgs.stdenv.isDarwin …`, not `//`) or in the class parts. Never
-   import the same module twice on one path.
+   `lib.mkIf pkgs.stdenv.isDarwin …`, not `//`) or in the class parts. Imports
+   may overlap. Every aspect carries a `key` (`nix/modules.nix`), so when two
+   roles both import `system-server`, it is evaluated once. Plain modules that
+   aren't aspects have no key, so import them from exactly one place.
 6. **You can't subtract an import, so roles stay small.** Anything a host might
    not want is imported by the host, not baked into a role.
 7. **Types for the base environment, roles for purpose, hosts kept tiny.**
