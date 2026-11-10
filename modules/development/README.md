@@ -9,7 +9,7 @@ Developer tooling.
 | `database/` | `mysql` |
 | `editors/` | `vscode` (today's `code`), `cursor`, `idea` |
 | `languages/` | `haskell`, `java`, `scala` |
-| `platforms/` | `jvm`, `node` |
+| `platforms/` | `jvm`, `node`, `k8s` (`home/virtualization/k8s`: client tooling, not a cluster) |
 | `testing/` | `testcontainers` |
 | `projects/` | `projects` |
 

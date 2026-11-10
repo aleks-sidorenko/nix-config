@@ -8,7 +8,7 @@ Daemons and servers.
 | `media/` | `jellyfin`, `sonarr`, `radarr`, `prowlarr`, `recyclarr`, `qbittorrent`, `calibre`, `minidlna` |
 | `backup/` | `restic`, `restic-server` |
 | `gaming/` | `minecraft-server` |
-| `virtualisation/` | `podman`, `kvm`, `docker`, `colima`, `lima`, `qemu`, `rancher`, `k8s` |
+| `virtualisation/` | `podman`, `kvm`, `docker`, `colima`, `lima`, `qemu`, `rancher` |
 | `<feature>/` | `k3s`, `printing`, `syncthing`, `kdeconnect`, `teamviewer` |
 
 **Group aggregators.** Today's `services/{media,backup,gaming}/default.nix` bundle their members. They merge into the role of the same purpose (`media-server`, `backup`, `gaming-server`) in `../roles/`, and options the group shares move with them.

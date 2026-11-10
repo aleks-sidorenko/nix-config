@@ -12,19 +12,22 @@ Tracking issue: #267.
 1. **Every `.nix` file is a flake-parts module.** Paths with a `_` prefix are
    skipped. Use that prefix for plain NixOS/darwin/HM modules (`_hardware.nix`,
    `_disks.nix`), terranix configs, `callPackage` files and raw data.
-2. **One directory per feature, named after the feature.** The feature sets every
-   class it touches: `flake.modules.{nixos,darwin,homeManager,generic}.<feature>`.
-   Inside the directory, split files however suits the feature (`nixos.nix`,
-   `darwin.nix`, `home.nix`, …). Every file there adds to the same aspect.
+2. **One file per feature, or one directory once it needs more files.** A
+   feature is `<feature>.nix`. It sets every class it touches:
+   `flake.modules.{nixos,darwin,homeManager,generic}.<feature>`, side by side in
+   one file. Once it needs a second file (`_package.nix`, `_hardware.nix`, or
+   parts split per class), it becomes a `<feature>/` directory. Each file in it
+   adds to the same aspect. In these READMEs, a path like `cli/tools/bat/` means
+   `cli/tools/bat.nix` or `cli/tools/bat/`, whichever fits.
 3. **The path is for people. The aspect name is the leaf.**
    `services/media/jellyfin/` defines `flake.modules.nixos.jellyfin`. Group
    directories (`services/media/`) can nest as deep as needed. Leaf names are
    unique across the tree:
    - **Same name in several classes → one feature.** For example, `podman` on
      nixos, darwin and home.
-   - **Different features that clash → qualify one.** A name too generic on its
-     own (`tools`, `code`, `defaults`) takes its group or platform as a prefix:
-     `media-tools`, `vscode`, `macos-defaults`.
+   - **Names come from `master`**, except the renames listed under
+     [Renamed features](#renamed-features). A new clash gets a row there; don't
+     rename on the spot.
    - **Feature directories don't nest.** Files inside a feature directory are
      parts of that one aspect.
 4. **Importing is enabling.** No `enable` options that only gate a module, and no
@@ -58,24 +61,37 @@ Tracking issue: #267.
 
 ## Layout
 
-| Directory | Holds |
+Each row's test decides where a feature goes. Check the rows in order; the first
+one that fits wins.
+
+| Directory | A feature belongs here if… |
 |---|---|
-| `nix/` | Flake plumbing: flake-parts, nixpkgs, home-manager, plumbing collector, formatter, dev shell, eval tests |
-| `lib/` | `flake.lib.*` (`mkNixos`, `mkDarwin`) and the internal `builders` |
-| `constants/` | Typed shared facts, mirrored read-only into every class |
-| `factory/` | `config.factory.*`: functions that build per-class modules |
-| `system/` | Base OS features, disks, and the `system/types/` chain |
-| `hardware/` | Hardware support and device features |
-| `security/` | Secrets, SSH, GPG, auth |
-| `cli/` | Shells, editors, terminals, CLI tools |
-| `desktops/` | Window managers, desktop environments, their addons, styling |
-| `apps/` | Applications a user runs: browsers, communication, media, productivity, games |
-| `development/` | Languages, platforms, build tools, dev editors, AI tools |
-| `services/` | Daemons and servers: networking, media, backup, gaming, virtualisation |
-| `roles/` | Purpose bundles that compose features |
-| `users/` | One feature per person, plus profiles |
-| `hosts/` | One directory per machine |
-| `infra/` | Terranix stacks (router, dns, storage, tailnet) |
+| `nix/`, `lib/`, `constants/`, `factory/` | it's plumbing, a helper or shared data, not something a host turns on |
+| `hosts/` | it describes one machine |
+| `users/` | it describes one person, or a profile of people (`child`) |
+| `roles/` | it bundles other features for a purpose (what a machine is for) |
+| `security/` | it handles secrets, keys or authentication (`sops`, `ssh`, `gpg`, `pam`) |
+| `hardware/` | it supports a piece of hardware (drivers, firmware) or describes a kind of device |
+| `services/` | it runs a daemon or VM that other things connect to (`tailscale`, `nginx`, `podman`) |
+| `system/` | the OS itself needs it (boot, storage, networking, nix, compatibility), or it's a system type |
+| `development/` | only someone writing code needs it (languages, build tools, IDEs, `k8s`, `claude-code`) |
+| `cli/` | it's the shell, the terminal, the terminal editor, or a command-line tool for everyday use (`git`, `zellij`, `nh`) |
+| `apps/` | it's an application for a non-coding purpose: browsing, chat, media, office, games |
+| `desktops/` | it shapes the graphical session itself: WM, bar, launcher, theme, monitor layout |
+| `infra/` | it's a terranix stack, not a host feature |
+
+## Renamed features
+
+Every other feature keeps its name from `master`. The renames are:
+
+| On `master` | Renamed to | Why |
+|---|---|---|
+| `home/development/editors/code` | `vscode` | `code` is too generic |
+| `home/media/tools` | `media-tools` | `tools` is too generic; matches its package |
+| `home/media/qbittorrent` | `qbittorrent-client` | clashes with the `qbittorrent` service |
+| `darwin/system/defaults` | `macos-defaults` | `defaults` is too generic |
+| `*/roles/minimal`, `common`, `server`, `desktop` + `graphical` | `system-core`, `system-common`, `system-server`, `system-desktop` | system types carry the `system-` prefix |
+| `home/roles/agent` + `*/roles/agent-host` | `agent-host` | one feature across classes |
 
 ## Where existing modules go
 
@@ -101,7 +117,9 @@ more examples.
 | `*/desktops/*`, `*/styles/stylix` | `desktops/…`; stylix at `desktops/styles/stylix/` |
 | `*/browsers/*`, `*/communication/*`, `*/media/*` (apps), `home/productivity/*`, `home/games/*` | `apps/<group>/<feature>/` |
 | `home/development/*` | `development/<group>/<feature>/` |
-| `*/services/*`, `home/virtualization/*` | `services/<group>/<feature>/` |
+| `*/services/*`, `home/virtualization/podman` | `services/<group>/<feature>/` |
+| `home/virtualization/k8s` | `development/platforms/k8s/` |
+| `nixos/cli/tools/nix-ld` | `system/nix-ld/` |
 | `*/roles/*` (purpose: home-server, media-server, work, agent-host, …) | `roles/<role>/` |
 | `nixos/users`, `darwin/users`, `home/user` | `factory/user.nix` + `users/<name>/` |
 | `nixos/users/child-lockdown`, `home/roles/child`, `home/desktops/gnome/profiles/*` | `users/profiles/<profile>/` |
@@ -114,7 +132,7 @@ more examples.
 
 ## How to add
 
-**A feature.** Create `<domain>/<group>/<feature>/` with a flake-parts module:
+**A feature.** Create `<domain>/<group>/<feature>.nix` with a flake-parts module. Turn it into a directory once it needs a second file:
 
 ```nix
 { ... }:

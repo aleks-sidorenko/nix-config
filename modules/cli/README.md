@@ -7,7 +7,7 @@ Command-line environment.
 | `fish/` | `fish`, the one shell |
 | `nvim/` | `nvim`, the one editor |
 | `ghostty/` | `ghostty`, the one terminal |
-| `tools/` | `archivers`, `atuin`, `bat`, `bottom`, `coreutils`, `direnv`, `disk-report`, `eza`, `fzf`, `gh`, `git`, `htop`, `modern-unix`, `moreutils`, `network-tools`, `nh`, `nix-index`, `nix-ld`, `pdf`, `starship`, `yazi`, `zellij`, `zoxide` |
+| `tools/` | `archivers`, `atuin`, `bat`, `bottom`, `coreutils`, `direnv`, `disk-report`, `eza`, `fzf`, `gh`, `git`, `htop`, `modern-unix`, `moreutils`, `network-tools`, `nh`, `nix-index`, `pdf`, `starship`, `yazi`, `zellij`, `zoxide` |
 
 **One of each, no selectors.** `master` has several shells (fish, zsh) and a separate `default` module in each of `shells/`, `editors/` and `terminals/` to choose between them. Only one of each is used, so the rewrite keeps just that one and drops the selectors.
 - `fish` makes itself the shell: it enables `programs.fish` and sets the users' login shell. `system-common` imports it.
