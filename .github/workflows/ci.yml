@@ -2,9 +2,9 @@ name: "CI"
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "refactor/dendritic-flake-parts"]
   pull_request:
-    branches: ["master"]
+    branches: ["master", "refactor/dendritic-flake-parts"]
   workflow_dispatch:
 
 concurrency:
@@ -56,6 +56,8 @@ jobs:
     name: "Build NixOS Systems"
     runs-on: ubuntu-latest
     needs: [flake-check]
+    # The rewrite branch has no hosts until they are ported.
+    if: github.ref != 'refs/heads/refactor/dendritic-flake-parts' && github.base_ref != 'refactor/dendritic-flake-parts'
     # Note: server-vm is aarch64-linux (ARM64), requires emulation on x86_64 runners
     strategy:
       fail-fast: false
@@ -105,6 +107,7 @@ jobs:
     name: "Build Home Manager"
     runs-on: ubuntu-latest
     needs: [flake-check]
+    if: github.ref != 'refs/heads/refactor/dendritic-flake-parts' && github.base_ref != 'refactor/dendritic-flake-parts'
     strategy:
       fail-fast: false
       matrix:
@@ -170,6 +173,7 @@ jobs:
     name: "Build Darwin"
     runs-on: macos-latest
     needs: [flake-check]
+    if: github.ref != 'refs/heads/refactor/dendritic-flake-parts' && github.base_ref != 'refactor/dendritic-flake-parts'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
