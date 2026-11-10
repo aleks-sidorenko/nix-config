@@ -24,7 +24,7 @@ system-core ──▶ system-common ──┬──▶ system-server
 
 | Type | From `master` | What it is |
 |---|---|---|
-| `types/system-core/` | `*/roles/minimal` | The minimum every machine has. The installer ISOs use it. |
+| `types/system-core.nix` | `*/roles/minimal` | The minimum every machine has: imports `nix`, `locale`, `networking`, `fish` and `ssh` (done). The installer uses it. |
 | `types/system-common/` | `*/roles/common` | The everyday base, merged across nixos, darwin and home. |
 | `types/system-server/` | `nixos/roles/server` | The headless base, including its forced UTC. |
 | `types/system-desktop/` | `*/roles/{desktop,graphical}` | The graphical base. |

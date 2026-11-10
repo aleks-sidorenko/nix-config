@@ -9,7 +9,7 @@ A host owns its bare name. It's usually one role, its user, its hardware and a f
 From `master`:
 - `systems/x86_64-linux/server` → `hosts/server/`
 - `systems/aarch64-darwin/workbook` → `hosts/workbook/`
-- `systems/*-install-iso/minimal-*` → `hosts/installer/` (both ISOs)
+- `systems/x86_64-install-iso/minimal-x86_64` → `hosts/installer/installer.nix` (done). It outputs `nixosConfigurations.installer` and `packages.x86_64-linux.installer-iso`, built with `just iso-build`. The aarch64 ISO isn't ported.
 - `systems/aarch64-linux/server-vm` → `hosts/server-vm/` (out of scope for now)
 
 Home-manager runs inside the host, so `homes/<arch>/<user>@<host>` splits between `../users/<name>/` and here.
