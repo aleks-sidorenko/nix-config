@@ -1,6 +1,10 @@
 # justfile for nix-config management
 # Run `just --list` to see all available recipes
 
+# Status messages go through scripts/log.sh (stderr, one level each); help text
+# and listings are the recipe's output and stay on stdout with echo.
+log := "./scripts/log.sh"
+
 # Default recipe - show help
 default:
     @just --list
@@ -8,45 +12,45 @@ default:
 
 # Prepare secrets and SSH keys only (Step 1 of bootstrap process)
 bootstrap-secrets hostname disk_password="":
-    @echo "🔐 Preparing secrets and SSH keys for {{hostname}}..."
+    @{{log}} info "Preparing secrets and SSH keys for {{hostname}}..."
     @if [ -n "{{disk_password}}" ]; then \
         KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
         KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
-    echo "✅ Keys directory: $KEYSDIR"; \
-    echo "💡 To use in next command: set -x KEYSDIR $KEYSDIR"
+    {{log}} success "Keys directory: $KEYSDIR"; \
+    {{log}} info "To use in next command: set -x KEYSDIR $KEYSDIR"
 
 # Deploy using existing keys directory (Step 2 of bootstrap process)
 bootstrap-deploy hostname username="$USER" keysdir="${KEYSDIR:-}" *extra_opts="":
-    @echo "🚀 Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
+    @{{log}} info "Deploying NixOS to {{username}}@{{hostname}} using keys from {{keysdir}}..."
     @if [ -z "{{keysdir}}" ]; then \
-        echo "❌ No keysdir provided and KEYSDIR environment variable not set"; \
-        echo "💡 Run 'just bootstrap-secrets <hostname>' first, or provide keysdir explicitly"; \
+        {{log}} error "No keysdir provided and KEYSDIR environment variable not set"; \
+        {{log}} info "Run 'just bootstrap-secrets <hostname>' first, or provide keysdir explicitly"; \
         exit 1; \
     fi
     ./scripts/bootstrap/bootstrap-deploy.sh "{{username}}" "{{hostname}}" "{{keysdir}}" {{extra_opts}}
 
 # Complete bootstrap process (secrets + deploy in one command)
 bootstrap hostname username="$USER" disk_password="" *extra_opts="":
-    @echo "🚀 Starting complete bootstrap process for {{username}}@{{hostname}}..."
+    @{{log}} info "Starting complete bootstrap process for {{username}}@{{hostname}}..."
     @if [ -n "${KEYSDIR:-}" ]; then \
-        echo "📁 Using existing KEYSDIR: $KEYSDIR"; \
+        {{log}} info "Using existing KEYSDIR: $KEYSDIR"; \
     elif [ -n "{{disk_password}}" ]; then \
-        echo "🔐 Generating secrets with disk password..."; \
+        {{log}} info "Generating secrets with disk password..."; \
         KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}" --disk-password "{{disk_password}}"); \
     else \
-        echo "🔐 Generating secrets..."; \
+        {{log}} info "Generating secrets..."; \
         KEYSDIR=$(./scripts/bootstrap/bootstrap-secrets.sh "{{hostname}}"); \
     fi; \
-    echo "✅ Keys directory: $KEYSDIR"; \
-    echo "🚀 Proceeding with deployment..."; \
+    {{log}} success "Keys directory: $KEYSDIR"; \
+    {{log}} info "Proceeding with deployment..."; \
     ./scripts/bootstrap/bootstrap-deploy.sh "{{username}}" "{{hostname}}" "$KEYSDIR" {{extra_opts}}
 
 # Bootstrap a fresh macOS (nix-darwin) host — run ON the target Mac
 # Usage: just bootstrap-darwin <hostname>   (e.g. just bootstrap-darwin workbook)
 bootstrap-darwin hostname:
-    @echo "🍎 Bootstrapping macOS host {{hostname}}..."
+    @{{log}} info "Bootstrapping macOS host {{hostname}}..."
     ./scripts/bootstrap/bootstrap-darwin.sh "{{hostname}}"
 
 # Format disks with disko configuration
@@ -90,10 +94,10 @@ bootstrap-disk hostname mode="--dry-run":
 #   just deploy router                              # Deploy to MikroTik router
 deploy hostname *extra_opts="":
     @if [ "{{hostname}}" = "router" ]; then \
-        echo "🌐 Deploying to MikroTik router..."; \
+        {{log}} info "Deploying to MikroTik router..."; \
         nix run .#router.apply; \
     else \
-        echo "🚢 Deploying to {{hostname}}..."; \
+        {{log}} info "Deploying to {{hostname}}..."; \
         deploy .#{{hostname}} --hostname {{hostname}} --skip-checks --remote-build {{extra_opts}}; \
     fi
 
@@ -102,22 +106,22 @@ deploy hostname *extra_opts="":
 #   just calibre-import ~/Calibre\ Library                 # to server as alexander
 #   just calibre-import /path/to/lib server alexander
 calibre-import library_path hostname="server" username="alexander":
-    @echo "📚 Importing Calibre library from '{{library_path}}' to {{username}}@{{hostname}}:/data/media/Books ..."
-    @test -f "{{library_path}}/metadata.db" || { echo "❌ '{{library_path}}/metadata.db' not found — pass the Calibre library folder"; exit 1; }
+    @{{log}} info "Importing Calibre library from '{{library_path}}' to {{username}}@{{hostname}}:/data/media/Books ..."
+    @test -f "{{library_path}}/metadata.db" || { {{log}} error "'{{library_path}}/metadata.db' not found — pass the Calibre library folder"; exit 1; }
     rsync -a --info=progress2 --rsync-path="sudo rsync" "{{library_path}}/" "{{username}}@{{hostname}}:/data/media/Books/"
     ssh {{username}}@{{hostname}} 'sudo chown -R calibre-web:media /data/media/Books'
     ssh {{username}}@{{hostname}} 'sudo systemctl restart calibre-web'
-    @echo "✅ Import complete. Open http://calibre.lan and verify your library."
+    @{{log}} success "Import complete. Open http://calibre.lan and verify your library."
 
 
 # Build configuration without switching (read-only artifact)
 build:
-    @echo "🔨 Building configuration..."
+    @{{log}} info "Building configuration..."
     nixos-rebuild build --flake .
 
 # Build and switch to a new generation locally (mutates system)
 switch:
-    @echo "🚀 Switching to new generation locally..."
+    @{{log}} info "Switching to new generation locally..."
     sudo nixos-rebuild switch --flake .
 
 # The installer ISO exists only for x86_64-linux, so it is named in full: a bare
@@ -126,9 +130,9 @@ iso_attr := ".#packages.x86_64-linux.installer-iso"
 
 # Build the installer ISO (usage: just iso-build)
 iso-build:
-    @echo "💿 Building the installer ISO..."
+    @{{log}} info "Building the installer ISO..."
     nix build "{{iso_attr}}" --out-link result
-    @echo "✅ ISO available at ./result/iso/"
+    @{{log}} success "ISO available at ./result/iso/"
 
 # Download the installer ISO CI last built, for machines that cannot build it (usage: just iso-fetch)
 iso-fetch:
@@ -173,19 +177,19 @@ iso device: iso-build (iso-write device)
 
 # Update flake inputs (optionally a single input)
 update *input:
-    @echo "📦 Updating flake inputs..."
+    @{{log}} info "Updating flake inputs..."
     nix flake update {{ input }}
 
 # Check flake for issues
 flake-check:
-    @echo "🔍 Checking flake configuration..."
+    @{{log}} info "Checking flake configuration..."
     nix flake check
 
 # Fetch GitHub repository hash for Nix packages
 # Usage: just github-fetch-hash owner repo revision
 # Example: just github-fetch-hash StephanJoubert home_assistant_solarman 1.5.1
 github-fetch-hash owner repo revision:
-    @echo "🔐 Fetching hash for {{owner}}/{{repo}}@{{revision}}..."
+    @{{log}} info "Fetching hash for {{owner}}/{{repo}}@{{revision}}..."
     nix-shell -p nix-prefetch-github --run "nix-prefetch-github {{owner}} {{repo}} --rev {{revision}}"
 
 # List available wallpapers in the wallpapers package registry
@@ -207,6 +211,7 @@ info:
 configs-list type="all":
     #!/usr/bin/env bash
     set -euo pipefail
+    source scripts/common.sh
     show() {
         case "$1" in
             nixos)  echo "🖥️  Available NixOS configurations:";  attr=nixosConfigurations ;;
@@ -219,50 +224,50 @@ configs-list type="all":
     case "{{ type }}" in
         all)          show nixos; show darwin ;;
         nixos|darwin) show "{{ type }}" ;;
-        *) echo "Unknown type: {{ type }} (use: all, nixos, darwin)" >&2; exit 1 ;;
+        *) log_error "Unknown type: {{ type }} (use: all, nixos, darwin)"; exit 1 ;;
     esac
 
 # Install packages temporarily for testing
 shell packages:
-    @echo "🐚 Opening shell with packages: {{packages}}"
+    @{{log}} info "Opening shell with packages: {{packages}}"
     nix shell {{packages}}
 
 # Clean up old generations and garbage collect
 cleanup:
-    @echo "🧹 Cleaning up old generations..."
+    @{{log}} info "Cleaning up old generations..."
     sudo nix-collect-garbage -d
-    @echo "🗑️  Removing old boot entries..."
+    @{{log}} info "Removing old boot entries..."
     sudo /run/current-system/bin/switch-to-configuration boot
 
 # Format nix files with nixfmt-tree (writes)
 format *path=".":
-    @echo "✨ Formatting nix files with nixfmt-tree..."
+    @{{log}} info "Formatting nix files with nixfmt-tree..."
     nix fmt {{path}}
 
 # Check formatting without modifying files (read-only)
 format-check:
-    @echo "🔍 Checking nix file formatting..."
+    @{{log}} info "Checking nix file formatting..."
     nix fmt -- --fail-on-change
 
 # Lint with statix and deadnix (read-only)
 lint:
-    @echo "🕵️  Checking for issues with statix..."
+    @{{log}} info "Checking for issues with statix..."
     statix check .
-    @echo "💀 Checking for dead code with deadnix..."
+    @{{log}} info "Checking for dead code with deadnix..."
     deadnix --fail .
-    @echo "✅ Lint passed!"
+    @{{log}} success "Lint passed"
 
 # Auto-fix lint issues (statix fix + deadnix --edit)
 lint-fix:
-    @echo "🔧 Auto-fixing statix issues..."
+    @{{log}} info "Auto-fixing statix issues..."
     statix fix .
-    @echo "💀 Removing dead code..."
+    @{{log}} info "Removing dead code..."
     deadnix --edit .
-    @echo "✅ Lint fixes applied!"
+    @{{log}} success "Lint fixes applied"
 
 # Read-only quality umbrella: format-check + lint (CI-safe)
 check: format-check lint
-    @echo "✅ All quality checks passed!"
+    @{{log}} success "All quality checks passed"
 
 # Show secrets managed by SOPS
 secrets-list:
@@ -274,7 +279,7 @@ secrets-list:
 
 # Edit SOPS secrets
 secrets-edit type:
-    @echo "🔓 Editing {{type}} secrets..."
+    @{{log}} info "Editing {{type}} secrets..."
     sops modules/{{type}}/secrets.yaml
 
 # Unlock GPG and restart the sops-nix user service to re-materialize secrets.
@@ -294,7 +299,7 @@ secrets-revoke host mode="--dry-run":
 
 # Show flake outputs
 outputs:
-    @echo "📤 Flake outputs:"
+    @{{log}} info "Flake outputs:"
     nix flake show
 
 # Shellcheck every script under scripts/
