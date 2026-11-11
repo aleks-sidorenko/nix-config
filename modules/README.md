@@ -92,6 +92,7 @@ Every other feature keeps its name from `master`. The renames are:
 | `darwin/system/defaults` | `macos-defaults` | `defaults` is too generic |
 | `*/roles/minimal`, `common`, `server`, `desktop` + `graphical` | `system-minimal`, `system-common`, `system-server`, `system-desktop` | system types carry the `system-` prefix |
 | `home/roles/agent` + `*/roles/agent-host` | `agent-host` | one feature across classes |
+| `nixos/system/nix`'s `githubAuth` option | `nix-github-auth` | importing is enabling; needs `sops`, which the installer lacks |
 
 ## Where existing modules go
 
