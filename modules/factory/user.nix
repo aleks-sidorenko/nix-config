@@ -10,14 +10,32 @@ let
       name,
       admin ? false,
     }:
+    let
+      sshKey = (config.flake.lib.identity name).sshPublicKey;
+    in
     {
-      nixos = {
-        imports = [ (home name) ];
-        users.users.${name} = {
-          isNormalUser = true;
-          extraGroups = lib.optional admin "wheel";
+      nixos =
+        { config, ... }:
+        {
+          imports = [ (home name) ];
+
+          # Passwords come only from SOPS: with mutableUsers off, anything
+          # else would be a plaintext password in the store.
+          sops.secrets."user-${name}-password".neededForUsers = true;
+
+          users.users.${name} = {
+            isNormalUser = true;
+            group = "users";
+            extraGroups = [
+              "networkmanager"
+              "input"
+              "tty"
+            ]
+            ++ lib.optional admin "wheel";
+            hashedPasswordFile = config.sops.secrets."user-${name}-password".path;
+            openssh.authorizedKeys.keys = lib.optional (sshKey != null) sshKey;
+          };
         };
-      };
       darwin = {
         imports = [ (home name) ];
         users.users.${name}.home = "/Users/${name}";
@@ -31,12 +49,18 @@ let
   plain = config.factory.user { name = "factory-plain"; };
 
   adminHost = config.builders.nixos "x86_64-linux" {
-    imports = [ admin.nixos ];
+    imports = [
+      admin.nixos
+      config.flake.modules.nixos.sops
+    ];
     system.stateVersion = "26.05";
     home-manager.users.factory-test.home.stateVersion = "26.05";
   };
   plainHost = config.builders.nixos "x86_64-linux" {
-    imports = [ plain.nixos ];
+    imports = [
+      plain.nixos
+      config.flake.modules.nixos.sops
+    ];
     system.stateVersion = "26.05";
     home-manager.users.factory-plain.home.stateVersion = "26.05";
   };
@@ -57,6 +81,23 @@ in
     factory = { inherit user; };
 
     evalTests = {
+      factory-groups = {
+        expr = adminHost.config.users.users.factory-test.extraGroups;
+        expected = [
+          "networkmanager"
+          "input"
+          "tty"
+          "wheel"
+        ];
+      };
+      factory-password-secret = {
+        expr = adminHost.config.users.users.factory-test.hashedPasswordFile;
+        expected = "/run/secrets-for-users/user-factory-test-password";
+      };
+      factory-secret-for-users = {
+        expr = adminHost.config.sops.secrets."user-factory-test-password".neededForUsers;
+        expected = true;
+      };
       factory-admin-wheel = {
         expr = builtins.elem "wheel" adminHost.config.users.users.factory-test.extraGroups;
         expected = true;
