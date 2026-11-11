@@ -28,6 +28,12 @@ let
 
   # master's rendered layout and mounts: the live disk must not change shape.
   disksOnMaster = lib.importJSON ./_disko-master.json;
+  btrfsContent = s.disko.devices.disk.root.content.partitions.btrfs.content;
+  withoutHook =
+    devices:
+    lib.recursiveUpdate devices {
+      disk.root.content.partitions.btrfs.content.postCreateHook = null;
+    };
   mountsOnMaster = lib.importJSON ./_filesystems-master.json;
 in
 {
@@ -63,9 +69,15 @@ in
   };
 
   evalTests = {
+    # Everything but the blank-snapshot hook, which is now idempotent (only
+    # formatting runs it; the deployed system never does).
     server-disko-matches-master = {
-      expr = declarative s.disko.devices;
-      expected = disksOnMaster;
+      expr = withoutHook (declarative s.disko.devices);
+      expected = withoutHook disksOnMaster;
+    };
+    server-blank-snapshot-idempotent = {
+      expr = lib.hasInfix ''[ -e "$MNTPOINT/@root-blank" ] ||'' btrfsContent.postCreateHook;
+      expected = true;
     };
     server-filesystems-match-master = {
       expr = lib.mapAttrs (_: v: {

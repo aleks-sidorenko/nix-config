@@ -37,14 +37,15 @@ in
               "-f"
               "-L root"
             ];
-            # The read-only snapshot the rollback restores @root from.
+            # The read-only snapshot the rollback restores @root from. Guarded so
+            # formatting an already formatted disk is a no-op, as disko expects.
             postCreateHook = ''
               mkdir -p /tmp
               MNTPOINT=$(mktemp -d)
               mount -t btrfs /dev/disk/by-label/root "$MNTPOINT"
               trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
               echo "Creating blank snapshot of @root"
-              btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"
+              [ -e "$MNTPOINT/@root-blank" ] || btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"
 
             '';
             subvolumes = {
