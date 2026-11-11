@@ -178,7 +178,7 @@ setup_age_keys() {
     # reused from pass.
     log_warning "Please add the following age key to your .sops.yaml file:"
     log_warning "  - &$hostname $age_key"
-    log_warning "Then update your secrets files with: sops updatekeys ./modules/nixos/secrets.yaml"
+    log_warning "Then update your secrets files with: sops updatekeys secrets/*.yaml"
 
     if [[ "$keys_are_new" != "new" ]]; then
         log_info "(SSH keys were reused from pass; if this host is already a SOPS recipient, no change is needed.)"
