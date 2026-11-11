@@ -1,13 +1,13 @@
 { config, lib, ... }:
 let
   core = config.builders.nixos "x86_64-linux" {
-    imports = [ config.flake.modules.nixos.system-core ];
+    imports = [ config.flake.modules.nixos.system-minimal ];
     system.stateVersion = "26.05";
   };
   c = core.config;
 in
 {
-  flake.modules.nixos.system-core = {
+  flake.modules.nixos.system-minimal = {
     imports = with config.flake.modules.nixos; [
       nix
       locale
@@ -18,27 +18,27 @@ in
   };
 
   evalTests = {
-    system-core-no-root-login = {
+    system-minimal-no-root-login = {
       expr = c.services.openssh.settings.PermitRootLogin;
       expected = "no";
     };
-    system-core-no-passwords = {
+    system-minimal-no-passwords = {
       expr = c.services.openssh.settings.PasswordAuthentication;
       expected = false;
     };
-    system-core-fish = {
+    system-minimal-fish = {
       expr = lib.hasPrefix "fish" c.users.defaultUserShell.name;
       expected = true;
     };
-    system-core-root-bash = {
+    system-minimal-root-bash = {
       expr = lib.hasPrefix "bash" c.users.users.root.shell.name;
       expected = true;
     };
-    system-core-flakes = {
+    system-minimal-flakes = {
       expr = builtins.elem "flakes" c.nix.settings.experimental-features;
       expected = true;
     };
-    system-core-substituters = {
+    system-minimal-substituters = {
       expr = lib.take 3 c.nix.settings.substituters;
       expected = [
         "https://cache.nixos.org/"
@@ -46,38 +46,38 @@ in
         "https://cache.numtide.com"
       ];
     };
-    system-core-registry = {
+    system-minimal-registry = {
       expr = c.nix.registry ? nixpkgs;
       expected = true;
     };
-    system-core-timezone = {
+    system-minimal-timezone = {
       expr = c.time.timeZone;
       expected = "Europe/Kyiv";
     };
-    system-core-keymap = {
+    system-minimal-keymap = {
       expr = c.console.keyMap;
       expected = "us";
     };
-    system-core-xkb = {
+    system-minimal-xkb = {
       expr = c.services.xserver.xkb.layout;
       expected = "us,ua,ru";
     };
-    system-core-locale-native = {
+    system-minimal-locale-native = {
       expr = c.i18n.extraLocaleSettings.LC_TIME;
       expected = "uk_UA.UTF-8";
     };
-    system-core-networkmanager = {
+    system-minimal-networkmanager = {
       expr = c.networking.networkmanager.enable;
       expected = true;
     };
-    system-core-search = {
+    system-minimal-search = {
       expr = c.networking.search;
       expected = [
         "colobus-bramble.ts.net"
         "lan"
       ];
     };
-    system-core-ssh-keys-empty = {
+    system-minimal-ssh-keys-empty = {
       expr = c.users.users.root.openssh.authorizedKeys.keys;
       expected = [ ];
     };

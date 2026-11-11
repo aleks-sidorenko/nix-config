@@ -41,7 +41,7 @@ Tracking issue: #267.
 6. **You can't subtract an import, so roles stay small.** Anything a host might
    not want is imported by the host, not baked into a role.
 7. **Types for the base environment, roles for purpose, hosts kept tiny.**
-   - **System types** (`system/types/`): `system-core` → `system-common` →
+   - **System types** (`system/types/`): `system-minimal` → `system-common` →
      `system-server` / `system-desktop`. Hosts and users import them.
    - **Roles** (`roles/`) describe what a machine is for, and may import the type
      they need.
@@ -90,7 +90,7 @@ Every other feature keeps its name from `master`. The renames are:
 | `home/media/tools` | `media-tools` | `tools` is too generic; matches its package |
 | `home/media/qbittorrent` | `qbittorrent-client` | clashes with the `qbittorrent` service |
 | `darwin/system/defaults` | `macos-defaults` | `defaults` is too generic |
-| `*/roles/minimal`, `common`, `server`, `desktop` + `graphical` | `system-core`, `system-common`, `system-server`, `system-desktop` | system types carry the `system-` prefix |
+| `*/roles/minimal`, `common`, `server`, `desktop` + `graphical` | `system-minimal`, `system-common`, `system-server`, `system-desktop` | system types carry the `system-` prefix |
 | `home/roles/agent` + `*/roles/agent-host` | `agent-host` | one feature across classes |
 
 ## Where existing modules go
@@ -104,7 +104,7 @@ more examples.
 |---|---|
 | `{nixos,darwin,home}/system/*` (boot, fs, locale, networking, nix, power, hibernation, defaults, homebrew) | `system/<feature>/`, one feature across all classes |
 | `nixos/disks/{disko,impermanence}` | `system/disks/<feature>/` |
-| `*/roles/minimal` | `system/types/system-core/` |
+| `*/roles/minimal` | `system/types/system-minimal/` |
 | `*/roles/common` | `system/types/system-common/` |
 | `nixos/roles/server` | `system/types/system-server/` |
 | `*/roles/{desktop,graphical}` | `system/types/system-desktop/` |

@@ -18,13 +18,13 @@ Examples:
 These follow Doc-Steve's system types: levels of base environment, each inheriting from the one before. Hosts and users both import them.
 
 ```
-system-core ──▶ system-common ──┬──▶ system-server
-                                └──▶ system-desktop
+system-minimal ──▶ system-common ──┬──▶ system-server
+                                   └──▶ system-desktop
 ```
 
 | Type | From `master` | What it is |
 |---|---|---|
-| `types/system-core.nix` | `*/roles/minimal` | The minimum every machine has: imports `nix`, `locale`, `networking`, `fish` and `ssh` (done). The installer uses it. |
+| `types/system-minimal.nix` | `*/roles/minimal` | The minimum every machine has: imports `nix`, `locale`, `networking`, `fish` and `ssh` (done). The installer uses it. |
 | `types/system-common/` | `*/roles/common` | The everyday base, merged across nixos, darwin and home. |
 | `types/system-server/` | `nixos/roles/server` | The headless base, including its forced UTC. |
 | `types/system-desktop/` | `*/roles/{desktop,graphical}` | The graphical base. |
