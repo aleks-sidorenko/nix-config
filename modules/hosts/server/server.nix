@@ -9,22 +9,16 @@ let
   persisted = s.environment.persistence."/persist";
   owner = s.users.users.alexander;
 
-  # Only the declarative fields: disko adds functions and `_`-prefixed internals.
-  declarative =
-    v:
-    if builtins.isFunction v then
-      null
-    else if builtins.isAttrs v then
-      if v ? outPath then
-        "<path>"
-      else
-        lib.filterAttrs (_: x: x != null) (
-          lib.mapAttrs (_: declarative) (lib.filterAttrs (n: _: !lib.hasPrefix "_" n) v)
-        )
-    else if builtins.isList v then
-      map declarative v
-    else
-      v;
+  parity = import ./_parity.nix { inherit lib; };
+  inherit (parity) declarative;
+  media = parity.project s;
+  # master's media stack as rendered; see _parity.nix for what is compared.
+  mediaOnMaster = lib.importJSON ./_media-master.json;
+  # 3c: minecraft is ported with the gaming-server role.
+  minecraft = {
+    port = 25565;
+    name = "minecraft.home.sidorenko.me";
+  };
 
   # master's rendered layout and mounts: the live disk must not change shape.
   disksOnMaster = lib.importJSON ./_disko-master.json;
@@ -40,7 +34,7 @@ in
   flake = {
     modules.nixos.server = {
       imports = with config.flake.modules.nixos; [
-        system-server
+        home-server
         alexander
         disko
         ./_hardware.nix
@@ -188,6 +182,48 @@ in
         RuntimeWatchdogSec = "20s";
         RebootWatchdogSec = "30s";
       };
+    };
+    server-media-templates = {
+      expr = media.templates;
+      expected = mediaOnMaster.templates;
+    };
+    server-media-secrets = {
+      expr = media.secrets;
+      expected = mediaOnMaster.secrets;
+    };
+    server-media-users = {
+      expr = media.users;
+      expected = mediaOnMaster.users;
+    };
+    # Ordered: radarr and sonarr both declare /data/media, and the first rule
+    # decides its owner.
+    server-media-tmpfiles = {
+      expr = media.tmpfiles;
+      expected = mediaOnMaster.tmpfiles;
+    };
+    server-media-firewall = {
+      expr = media.firewall;
+      expected = lib.mapAttrs (_: lib.remove minecraft.port) mediaOnMaster.firewall;
+    };
+    server-media-vhosts = {
+      expr = media.vhosts;
+      expected = mediaOnMaster.vhosts;
+    };
+    server-media-units = {
+      expr = media.units;
+      expected = mediaOnMaster.units;
+    };
+    server-media-jellyfin = {
+      expr = media.jellyfin;
+      expected = mediaOnMaster.jellyfin;
+    };
+    server-media-names = {
+      expr = lib.sort lib.lessThan media.names;
+      expected = lib.sort lib.lessThan (lib.remove minecraft.name mediaOnMaster.names);
+    };
+    server-jellyfin-vaapi = {
+      expr = s.services.jellyfin.hardwareAcceleration.type;
+      expected = "vaapi";
     };
     deploy-server-users = {
       expr = {

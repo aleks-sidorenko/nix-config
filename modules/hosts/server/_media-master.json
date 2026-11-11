@@ -1,0 +1,734 @@
+{
+  "firewall": {
+    "allowedTCPPorts": [
+      22,
+      8200,
+      17348,
+      25565
+    ],
+    "allowedUDPPorts": [
+      1900,
+      17348,
+      25565,
+      41641
+    ]
+  },
+  "jellyfin": {
+    "cacheDir": "/var/lib/jellyfin/cache",
+    "configDir": "/var/lib/jellyfin/config",
+    "dataDir": "/var/lib/jellyfin/data",
+    "forceEncodingConfig": true,
+    "group": "media",
+    "hardwareAcceleration": {
+      "device": "/dev/dri/renderD128",
+      "enable": true,
+      "type": "vaapi"
+    },
+    "logDir": "/var/lib/jellyfin/log",
+    "transcoding": {
+      "deleteSegments": true,
+      "enableHardwareEncoding": true,
+      "enableIntelLowPowerEncoding": false,
+      "enableSubtitleExtraction": true,
+      "enableToneMapping": true,
+      "encodingPreset": "auto",
+      "h264Crf": 23,
+      "h265Crf": 28,
+      "hardwareDecodingCodecs": {
+        "av1": false,
+        "h264": true,
+        "hevc": true,
+        "hevc10bit": true,
+        "hevcRExt10bit": false,
+        "hevcRExt12bit": false,
+        "mpeg2": true,
+        "vc1": true,
+        "vp8": true,
+        "vp9": true
+      },
+      "hardwareEncodingCodecs": {
+        "av1": false,
+        "hevc": true
+      },
+      "maxConcurrentStreams": null,
+      "threadCount": null,
+      "throttleTranscoding": false
+    },
+    "user": "jellyfin"
+  },
+  "names": [
+    "calibre.home.sidorenko.me",
+    "jellyfin.home.sidorenko.me",
+    "minidlna.home.sidorenko.me",
+    "prowlarr.home.sidorenko.me",
+    "qbittorrent.home.sidorenko.me",
+    "radarr.home.sidorenko.me",
+    "sonarr.home.sidorenko.me",
+    "minecraft.home.sidorenko.me"
+  ],
+  "secrets": {
+    "service-prowlarr-api-key": {
+      "group": "media",
+      "mode": "0400",
+      "owner": "prowlarr"
+    },
+    "service-qbittorrent-alexander-password": {
+      "group": "media",
+      "mode": "0400",
+      "owner": "qbittorrent"
+    },
+    "service-radarr-api-key": {
+      "group": "media",
+      "mode": "0400",
+      "owner": "radarr"
+    },
+    "service-sonarr-api-key": {
+      "group": "media",
+      "mode": "0400",
+      "owner": "sonarr"
+    }
+  },
+  "templates": {
+    "prowlarr-config.xml": "<Config>\n  <BindAddress>127.0.0.1</BindAddress>\n  <Port>9696</Port>\n  <ApiKey><SOPS:afb03312b54daea7bfc042fff42a6395c049ac7374c19e9ecdafbe89d994c9c0:PLACEHOLDER></ApiKey>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n  <LogLevel>info</LogLevel>\n  <AnalyticsEnabled>False</AnalyticsEnabled>\n  <LogDbEnabled>False</LogDbEnabled>\n  <InstanceName>Prowlarr</InstanceName>\n  <!-- <SslPort>9898</SslPort> -->\n  <!-- <EnableSsl>False</EnableSsl> -->\n  <!-- <LaunchBrowser>True</LaunchBrowser> -->          \n  <!-- <Branch>master</Branch> -->\n  <!-- <SslCertPath></SslCertPath> -->\n  <!-- <SslCertPassword></SslCertPassword> -->\n  <!-- <UrlBase></UrlBase> -->\n</Config>\n",
+    "qbittorrent.conf": "[Application]\nFileLogger\\Age=1\nFileLogger\\AgeType=1\nFileLogger\\Backup=true\nFileLogger\\DeleteOld=true\nFileLogger\\Enabled=true\nFileLogger\\MaxSizeBytes=66560\nFileLogger\\Path=/var/lib/qbittorrent/.local/share/qBittorrent/logs\n\n[AutoRun]\n# OnTorrentAdded\\Enabled=true\n# OnTorrentAdded\\Program=${onAddScript} ${torrentScriptParams}\nenabled=true\nprogram=/nix/store/HASH-qbittorrent-on-finish \\\"%N\\\" \\\"%L\\\" \\\"%G\\\" \\\"%F\\\" \\\"%R\\\" \\\"%D\\\" \\\"%C\\\" \\\"%Z\\\" \\\"%T\\\" \\\"%I\\\" \\\"%J\\\" \\\"%K\\\"\n\n[BitTorrent]\nSession\\DefaultSavePath=/data/torrents\nSession\\DisableAutoTMMByDefault=false\nSession\\DisableAutoTMMTriggers\\CategorySavePathChanged=false\nSession\\DisableAutoTMMTriggers\\DefaultSavePathChanged=false\nSession\\ExcludedFileNames=\nSession\\GlobalUPSpeedLimit=200\nSession\\Port=17348\nSession\\QueueingSystemEnabled=\nSession\\SSL\\Port=30088\nSession\\SubcategoriesEnabled=true\nSession\\Tags=\nSession\\UseCategoryPathsInManualMode=true\nSession\\TorrentContentLayout=Subfolder\nSession\\Interface=\nSession\\InterfaceAddress=0.0.0.0\nSession\\InterfaceName=\nSession\\AddExtensionToIncompleteFiles=false\nSession\\Encryption=1\nSession\\ForceProxy=false\nSession\\ProxyType=-1\n\n[LegalNotice]\nAccepted=true\n\n[Meta]\nMigrationVersion=8\n\n[Preferences]\nGeneral\\Locale=en\nMailNotification\\req_auth=true\nWebUI\\Address=127.0.0.1\n# Authentication belongs to the proxy (see requiresProxyAuth on the\n# vhost), so loopback — where every proxied request comes from — is\n# exempt, and so are the on-host clients that drive the API. The cost\n# is that this app's own logs and bans see the proxy, not the peer.\nWebUI\\LocalHostAuth=false\nWebUI\\AuthSubnetWhitelistEnabled=false\nWebUI\\Password_PBKDF2=\"<SOPS:655d131e26812d4da94c6ac0fd05f65379068e7ab4d1155ba9c9f33a45a10420:PLACEHOLDER>\"\nWebUI\\Username=alexander\nConnection\\PortRangeMin=17348\nConnection\\UPnP=false\nConnection\\UseUPnPForWebUI=false\nAdvanced\\AnonymousMode=false\nAdvanced\\IgnoreLimitsLAN=true\nAdvanced\\IncludeOverhead=false\nAdvanced\\osCache=true\nAdvanced\\OutgoingPortsMax=0\nAdvanced\\OutgoingPortsMin=0\n\n[RSS]\nAutoDownloader\\DownloadRepacks=true\nAutoDownloader\\SmartEpisodeFilter=s(\\\\d+)e(\\\\d+), (\\\\d+)x(\\\\d+), \"(\\\\d{4}[.\\\\-]\\\\d{1,2}[.\\\\-]\\\\d{1,2})\", \"(\\\\d{1,2}[.\\\\-]\\\\d{1,2}[.\\\\-]\\\\d{4})\"\n",
+    "radarr-config.xml": "<Config>\n  <BindAddress>127.0.0.1</BindAddress>\n  <Port>7878</Port>\n  <ApiKey><SOPS:246c5e1786f1b849e9ef006927c09fbcee02ca2ba94190ce61715d8dae030cdb:PLACEHOLDER></ApiKey>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n  <LogLevel>info</LogLevel>\n  <AnalyticsEnabled>False</AnalyticsEnabled>\n  <LogDbEnabled>False</LogDbEnabled>\n  <InstanceName>Radarr</InstanceName>\n  <!-- <SslPort>9898</SslPort> -->\n  <!-- <EnableSsl>False</EnableSsl> -->\n  <!-- <LaunchBrowser>True</LaunchBrowser> -->          \n  <!-- <Branch>master</Branch> -->\n  <!-- <SslCertPath></SslCertPath> -->\n  <!-- <SslCertPassword></SslCertPassword> -->\n  <!-- <UrlBase></UrlBase> -->\n</Config>\n",
+    "recyclarr.yml": "sonarr:\n  tv:\n    base_url: http://localhost:8989\n    api_key: <SOPS:c05f4c1b504279679f42324ff4db1dc6a5030b4646ce2698b417531ce6d9bf7a:PLACEHOLDER>\n    quality_definition:\n      type: series\n    quality_profiles:\n      - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p\n        reset_unmatched_scores:\n          enabled: true\n        upgrade:\n          allowed: true\n          until_quality: WEB 720p\n        qualities:\n          - name: WEB 720p\n            qualities: [WEBDL-720p, WEBRip-720p]\n          - name: Bluray-720p\n          - name: WEB 1080p\n            qualities: [WEBDL-1080p, WEBRip-1080p]\n          - name: Bluray-1080p\n    custom_format_groups:\n      add:\n        - trash_id: 158188097a58d7687dee647e04af0da3 # [Optional] Golden Rule HD\n        - trash_id: 74aff4168620ed49dcc67e92b2c2a5b4 # [Optional] Language Profiles\n        - trash_id: 85fae4a2294965b75710ef2989c850eb # [Streaming Services] HD/UHD boost\n        - trash_id: 59c3af66780d08332fdc64e68297098f # [Unwanted] Unwanted Formats\nradarr:\n  movies:\n    base_url: http://localhost:7878\n    api_key: <SOPS:246c5e1786f1b849e9ef006927c09fbcee02ca2ba94190ce61715d8dae030cdb:PLACEHOLDER>\n    quality_definition:\n      type: movie\n    quality_profiles:\n      - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB\n        reset_unmatched_scores:\n          enabled: true\n        upgrade:\n          allowed: true\n          until_quality: WEB 720p\n        qualities:\n          - name: WEB 720p\n            qualities: [WEBDL-720p, WEBRip-720p]\n          - name: Bluray-720p\n          - name: WEB 1080p\n            qualities: [WEBDL-1080p, WEBRip-1080p]\n          - name: Bluray-1080p\n    custom_format_groups:\n      add:\n        - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # [Optional] Golden Rule HD\n        - trash_id: a3ac6af01d78e4f21fcb75f601ac96df # [Unwanted] Unwanted Formats\n",
+    "sonarr-config.xml": "<Config>\n  <BindAddress>127.0.0.1</BindAddress>\n  <Port>8989</Port>\n  <ApiKey><SOPS:c05f4c1b504279679f42324ff4db1dc6a5030b4646ce2698b417531ce6d9bf7a:PLACEHOLDER></ApiKey>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n  <LogLevel>info</LogLevel>\n  <AnalyticsEnabled>False</AnalyticsEnabled>\n  <LogDbEnabled>False</LogDbEnabled>\n  <InstanceName>Sonarr</InstanceName>\n  <!-- <SslPort>9898</SslPort> -->\n  <!-- <EnableSsl>False</EnableSsl> -->\n  <!-- <LaunchBrowser>True</LaunchBrowser> -->          \n  <!-- <Branch>master</Branch> -->\n  <!-- <SslCertPath></SslCertPath> -->\n  <!-- <SslCertPassword></SslCertPassword> -->\n  <!-- <UrlBase></UrlBase> -->\n</Config>\n"
+  },
+  "tmpfiles": [
+    "d /var/lib/sonarr 0755 sonarr media -",
+    "d /data/media 0775 sonarr media -",
+    "d /data/media/Series 0775 sonarr media -",
+    "d /var/lib/recyclarr 0755 recyclarr media -",
+    "d /var/lib/radarr 0755 radarr media -",
+    "d /data/media 0775 radarr media -",
+    "d /data/media/Movies 0775 radarr media -",
+    "d /data/torrents 0775 qbittorrent media -",
+    "d /var/lib/qbittorrent 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.config 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.config/qBittorrent 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.local 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.local/share 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.local/share/qBittorrent 0755 qbittorrent media -",
+    "d /var/lib/qbittorrent/.local/share/qBittorrent/logs 0755 qbittorrent media -",
+    "d /data/torrents/Movies 0755 qbittorrent media -",
+    "d /data/torrents/Series 0755 qbittorrent media -",
+    "d /var/lib/jellyfin 0755 jellyfin media -",
+    "d /var/lib/jellyfin/config 0755 jellyfin media -",
+    "d /var/lib/jellyfin/cache 0755 jellyfin media -",
+    "d /var/lib/jellyfin/log 0755 jellyfin media -",
+    "d /data/media/Books 0775 calibre-web media -"
+  ],
+  "units": {
+    "calibre-init": {
+      "after": [],
+      "before": [
+        "calibre-web.service"
+      ],
+      "environment": {
+        "HOME": "/var/lib/calibre-web",
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "",
+      "requiredBy": [
+        "calibre-web.service"
+      ],
+      "script": "if [ ! -f \"/data/media/Books/metadata.db\" ]; then\n  echo \"No Calibre library at /data/media/Books; creating an empty one...\"\n  /nix/store/HASH-calibre-9.14.0/bin/calibredb --with-library=\"/data/media/Books\" list >/dev/null\nfi\n",
+      "serviceConfig": {
+        "ExecStart": "/nix/store/HASH-unit-script-calibre-init-start/bin/calibre-init-start ",
+        "Group": "media",
+        "RemainAfterExit": true,
+        "Type": "oneshot",
+        "User": "calibre-web"
+      },
+      "wantedBy": [],
+      "wants": []
+    },
+    "calibre-web": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "CACHE_DIR": "/var/cache/calibre-web",
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "AmbientCapabilities": "",
+        "CacheDirectory": "calibre-web",
+        "CacheDirectoryMode": "0750",
+        "CapabilityBoundingSet": "",
+        "ExecStart": "/nix/store/HASH-calibre-web-0.6.26-unstable-2026-03-01/bin/calibre-web -p /var/lib/calibre-web/app.db -g /var/lib/calibre-web/gdrive.db -i 127.0.0.1",
+        "ExecStartPre": "<path>",
+        "Group": "media",
+        "LockPersonality": true,
+        "MemoryDenyWriteExecute": true,
+        "NoNewPrivileges": true,
+        "PrivateDevices": true,
+        "PrivateIPC": true,
+        "PrivateTmp": true,
+        "ProcSubset": "pid",
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHome": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "ProtectSystem": "strict",
+        "ReadWritePaths": [
+          "/var/lib/calibre-web",
+          "/data/media/Books"
+        ],
+        "RemoveIPC": true,
+        "Restart": "on-failure",
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_UNIX",
+          "AF_NETLINK"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "SystemCallArchitectures": "native",
+        "SystemCallFilter": [
+          "~@obsolete",
+          "~@privileged",
+          "~@raw-io",
+          "~@resources",
+          "~@mount",
+          "~@debug",
+          "~@cpu-emulation"
+        ],
+        "Type": "simple",
+        "User": "calibre-web"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "jellyfin": {
+      "after": [
+        "network-online.target"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "configDir=/var/lib/jellyfin/config\nencodingXml=\"$configDir/encoding.xml\"\nif [[ -e $encodingXml ]]; then\n  # this intentionally removes trailing newlines\n  currentText=\"$(<\"$encodingXml\")\"\n  configuredText=\"$(</nix/store/HASH-encoding.xml)\"\n  if [[ $currentText == \"$configuredText\" ]]; then\n    # don't need to do anything\n    exit 0\n  else\n    encodingXmlBackup=\"$configDir/encoding.xml.backup-$(date -u +\"%FT%H_%M_%SZ\")\"\n    mv --update=none-fail -T \"$encodingXml\" \"$encodingXmlBackup\"\n  fi\nfi\ncp --update=none-fail -T /nix/store/HASH-encoding.xml \"$encodingXml\"\nchmod u+w \"$encodingXml\"\n",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "CapabilityBoundingSet": [
+          ""
+        ],
+        "DeviceAllow": [
+          "/dev/dri/renderD128 rw"
+        ],
+        "ExecStart": "/nix/store/HASH-jellyfin-10.11.11/bin/jellyfin --datadir '/var/lib/jellyfin/data' --configdir '/var/lib/jellyfin/config' --cachedir '/var/lib/jellyfin/cache' --logdir '/var/lib/jellyfin/log'",
+        "ExecStartPre": [
+          "/nix/store/HASH-unit-script-jellyfin-pre-start/bin/jellyfin-pre-start"
+        ],
+        "Group": "media",
+        "LockPersonality": true,
+        "NoNewPrivileges": true,
+        "PrivateDevices": false,
+        "PrivateTmp": true,
+        "PrivateUsers": true,
+        "ProcSubset": "pid",
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "ProtectSystem": true,
+        "RemoveIPC": true,
+        "Restart": "on-failure",
+        "RestrictAddressFamilies": [
+          "AF_UNIX",
+          "AF_INET",
+          "AF_INET6",
+          "AF_NETLINK"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "SuccessExitStatus": [
+          "0",
+          "143"
+        ],
+        "SystemCallArchitectures": "native",
+        "SystemCallErrorNumber": "EPERM",
+        "SystemCallFilter": [
+          "@system-service",
+          "~@privileged"
+        ],
+        "TimeoutSec": 15,
+        "Type": "simple",
+        "UMask": "0077",
+        "User": "jellyfin",
+        "WorkingDirectory": "/var/lib/jellyfin/data"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": [
+        "network-online.target"
+      ]
+    },
+    "minidlna": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "AmbientCapabilities": [
+          ""
+        ],
+        "CacheDirectory": "minidlna",
+        "CapabilityBoundingSet": [
+          ""
+        ],
+        "DeviceAllow": [
+          ""
+        ],
+        "ExecStart": "/nix/store/HASH-minidlna-1.3.3/bin/minidlnad -S -P /run/minidlna/pid -f /nix/store/HASH-minidlna.conf",
+        "Group": "minidlna",
+        "LockPersonality": true,
+        "MemoryDenyWriteExecute": true,
+        "NoNewPrivileges": true,
+        "PIDFile": "/run/minidlna/pid",
+        "PrivateDevices": true,
+        "PrivateTmp": true,
+        "PrivateUsers": true,
+        "ProcSubset": "pid",
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHome": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "ProtectSystem": "strict",
+        "RemoveIPC": true,
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_NETLINK",
+          "AF_UNIX"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "RuntimeDirectory": "minidlna",
+        "SystemCallArchitectures": "native",
+        "SystemCallErrorNumber": "EPERM",
+        "SystemCallFilter": [
+          "@system-service",
+          "~@privileged",
+          "~@resources"
+        ],
+        "UMask": "0077",
+        "User": "minidlna"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "prowlarr": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "HOME": "/var/empty",
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin",
+        "PROWLARR__LOG__ANALYTICSENABLED": "false",
+        "PROWLARR__SERVER__PORT": "9696",
+        "PROWLARR__UPDATE__AUTOMATICALLY": "false",
+        "PROWLARR__UPDATE__MECHANISM": "external"
+      },
+      "preStart": "echo \"Copying Prowlarr configuration XML with secrets...\"\n# cp keeps the source's mode; the SOPS template is read-only, so an explicit\n# mode is required or Prowlarr can't rewrite its own config next start\ninstall -m 0600 /run/secrets/rendered/prowlarr-config.xml /var/lib/private/prowlarr/config.xml\necho \"Prowlarr configuration XML with secrets copied successfully\"\n",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "DynamicUser": true,
+        "EnvironmentFile": [],
+        "ExecStart": "/nix/store/HASH-prowlarr-2.6.5.5623/bin/Prowlarr -nobrowser -data=/var/lib/prowlarr",
+        "ExecStartPre": [
+          "/nix/store/HASH-unit-script-prowlarr-pre-start/bin/prowlarr-pre-start"
+        ],
+        "Restart": "on-failure",
+        "StateDirectory": "prowlarr",
+        "Type": "simple"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "qbittorrent": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "# cp keeps the source's mode; both sources are read-only, so an explicit\n# mode is required or qBittorrent can't rewrite its own config next start\ninstall -m 0600 /run/secrets/rendered/qbittorrent.conf /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf\ninstall -m 0644 /nix/store/HASH-categories.json /var/lib/qbittorrent/.config/qBittorrent/categories.json\n",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "CapabilityBoundingSet": [
+          "CAP_NET_BIND_SERVICE"
+        ],
+        "ExecStart": "/nix/store/HASH-qbittorrent-nox-5.2.2/bin/qbittorrent-nox --webui-port=8080",
+        "ExecStartPre": [
+          "/nix/store/HASH-unit-script-qbittorrent-pre-start/bin/qbittorrent-pre-start"
+        ],
+        "Group": "media",
+        "LockPersonality": true,
+        "MemoryDenyWriteExecute": true,
+        "NoNewPrivileges": true,
+        "PrivateTmp": true,
+        "ProtectHome": true,
+        "ProtectSystem": "strict",
+        "ReadWritePaths": [
+          "/var/lib/qbittorrent",
+          "/data/torrents"
+        ],
+        "Restart": "on-failure",
+        "RestartSec": "5s",
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_UNIX",
+          "AF_NETLINK"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "SystemCallArchitectures": "native",
+        "SystemCallFilter": [
+          "@system-service",
+          "@network-io",
+          "~@privileged"
+        ],
+        "Type": "exec",
+        "User": "qbittorrent"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "radarr": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin",
+        "RADARR__LOG__ANALYTICSENABLED": "false",
+        "RADARR__SERVER__PORT": "7878",
+        "RADARR__UPDATE__AUTOMATICALLY": "false",
+        "RADARR__UPDATE__MECHANISM": "external"
+      },
+      "preStart": "echo \"Copying Radarr configuration XML with secrets...\"\n# cp keeps the source's mode; the SOPS template is read-only, so an explicit\n# mode is required or Radarr can't rewrite its own config next start\ninstall -m 0600 /run/secrets/rendered/radarr-config.xml /var/lib/radarr/config.xml\necho \"Radarr configuration XML with secrets copied successfully\"\n",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "CapabilityBoundingSet": "",
+        "EnvironmentFile": [],
+        "ExecStart": "/nix/store/HASH-radarr-6.4.4.10685/bin/Radarr -nobrowser -data='/var/lib/radarr'",
+        "ExecStartPre": [
+          "/nix/store/HASH-unit-script-radarr-pre-start/bin/radarr-pre-start"
+        ],
+        "Group": "media",
+        "LockPersonality": true,
+        "NoNewPrivileges": true,
+        "PrivateDevices": true,
+        "PrivateTmp": true,
+        "PrivateUsers": true,
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHome": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "RemoveIPC": true,
+        "Restart": "on-failure",
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_UNIX"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "SystemCallArchitectures": "native",
+        "SystemCallFilter": [
+          "@system-service",
+          "~@privileged",
+          "~@debug",
+          "~@mount",
+          "@chown"
+        ],
+        "Type": "simple",
+        "UMask": "0022",
+        "User": "radarr"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "recyclarr": {
+      "after": [
+        "network-online.target",
+        "sonarr.service",
+        "radarr.service"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin"
+      },
+      "preStart": "",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "Environment": [
+          "RECYCLARR_CONFIG_DIR=/var/lib/recyclarr",
+          "RECYCLARR_DATA_DIR=/var/lib/recyclarr"
+        ],
+        "ExecStart": "/nix/store/HASH-recyclarr-8.8.0/bin/recyclarr sync --config /run/secrets/rendered/recyclarr.yml",
+        "Group": "media",
+        "Type": "oneshot",
+        "User": "recyclarr"
+      },
+      "wantedBy": [],
+      "wants": [
+        "network-online.target"
+      ]
+    },
+    "recyclarr-timer": {
+      "OnCalendar": "daily",
+      "Persistent": true
+    },
+    "sonarr": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin",
+        "SONARR__LOG__ANALYTICSENABLED": "false",
+        "SONARR__SERVER__PORT": "8989",
+        "SONARR__UPDATE__AUTOMATICALLY": "false",
+        "SONARR__UPDATE__MECHANISM": "external"
+      },
+      "preStart": "echo \"Copying Sonarr configuration XML with secrets...\"\n# cp keeps the source's mode; the SOPS template is read-only, so an explicit\n# mode is required or Sonarr can't rewrite its own config next start\ninstall -m 0600 /run/secrets/rendered/sonarr-config.xml /var/lib/sonarr/config.xml\necho \"Sonarr configuration XML with secrets copied successfully\"\n",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "CapabilityBoundingSet": "",
+        "EnvironmentFile": [],
+        "ExecStart": "\"/nix/store/HASH-sonarr-4.0.20.3014/bin/Sonarr\" \"-nobrowser\" \"-data=/var/lib/sonarr\"",
+        "ExecStartPre": [
+          "/nix/store/HASH-unit-script-sonarr-pre-start/bin/sonarr-pre-start"
+        ],
+        "Group": "media",
+        "LockPersonality": true,
+        "NoNewPrivileges": true,
+        "PrivateDevices": true,
+        "PrivateTmp": true,
+        "PrivateUsers": true,
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHome": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "RemoveIPC": true,
+        "Restart": "on-failure",
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_UNIX"
+        ],
+        "RestrictNamespaces": true,
+        "RestrictRealtime": true,
+        "RestrictSUIDSGID": true,
+        "SystemCallArchitectures": "native",
+        "SystemCallFilter": [
+          "@system-service",
+          "~@privileged",
+          "~@debug",
+          "~@mount",
+          "@chown"
+        ],
+        "Type": "simple",
+        "UMask": "0022",
+        "User": "sonarr"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    }
+  },
+  "users": {
+    "calibre-web": {
+      "createHome": false,
+      "description": "",
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": true
+    },
+    "jellyfin": {
+      "createHome": false,
+      "description": "",
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": true
+    },
+    "minidlna": {
+      "createHome": false,
+      "description": "MiniDLNA daemon user",
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": false
+    },
+    "prowlarr": {
+      "createHome": true,
+      "description": "Prowlarr indexer manager user",
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/private/prowlarr",
+      "isSystemUser": true
+    },
+    "qbittorrent": {
+      "createHome": true,
+      "description": "qBittorrent daemon user",
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/qbittorrent",
+      "isSystemUser": true
+    },
+    "radarr": {
+      "createHome": true,
+      "description": "Radarr movie management user",
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/radarr",
+      "isSystemUser": true
+    },
+    "recyclarr": {
+      "createHome": true,
+      "description": "Recyclarr sync user",
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/lib/recyclarr",
+      "isSystemUser": true
+    },
+    "sonarr": {
+      "createHome": true,
+      "description": "Sonarr TV show management user",
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/sonarr",
+      "isSystemUser": true
+    }
+  },
+  "vhosts": {
+    "calibre": {
+      "auth": false,
+      "extraConfig": "client_max_body_size 512m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:8083",
+      "proxyWebsockets": true,
+      "serverName": "calibre.home.sidorenko.me"
+    },
+    "jellyfin": {
+      "auth": false,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:8096",
+      "proxyWebsockets": true,
+      "serverName": "jellyfin.home.sidorenko.me"
+    },
+    "minidlna": {
+      "auth": true,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:8200",
+      "proxyWebsockets": false,
+      "serverName": "minidlna.home.sidorenko.me"
+    },
+    "prowlarr": {
+      "auth": true,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:9696",
+      "proxyWebsockets": true,
+      "serverName": "prowlarr.home.sidorenko.me"
+    },
+    "qbittorrent": {
+      "auth": true,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:8080",
+      "proxyWebsockets": true,
+      "serverName": "qbittorrent.home.sidorenko.me"
+    },
+    "radarr": {
+      "auth": true,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:7878",
+      "proxyWebsockets": true,
+      "serverName": "radarr.home.sidorenko.me"
+    },
+    "sonarr": {
+      "auth": true,
+      "extraConfig": "client_max_body_size 10m;\n",
+      "locationExtraConfig": "proxy_buffering off;\n",
+      "proxyPass": "http://127.0.0.1:8989",
+      "proxyWebsockets": true,
+      "serverName": "sonarr.home.sidorenko.me"
+    }
+  }
+}

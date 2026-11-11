@@ -3,8 +3,8 @@
 Purpose bundles: what a machine is for. A role is a feature that imports other features, and may import the system type it needs (`home-server` imports `system-server`).
 
 From `master`:
-- `home-server`
-- `media-server`
+- `home-server` (done: `system-server` + `media-server`; `gaming-server` and `backup` join in 3c)
+- `media-server` (done: the eight media features)
 - `gaming-server`
 - `backup`, `backup-server`
 - `gaming`
@@ -25,7 +25,7 @@ Not roles:
 - people (`child`) → `../users/profiles/`
 
 Examples:
-- `nixos/roles/home-server` → `roles/home-server/`, aspect `home-server`.
+- `nixos/roles/home-server` → `roles/home-server.nix`, aspect `home-server`.
 - `darwin/roles/work` + `home/roles/work` → `roles/work/`, aspect `work`.
 
 Rules: [../README.md](../README.md).
