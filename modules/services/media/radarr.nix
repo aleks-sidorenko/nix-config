@@ -14,37 +14,18 @@ let
   has = rules: builtins.all (r: builtins.elem r c.systemd.tmpfiles.rules) rules;
 in
 {
-  flake.modules.nixos.radarr =
-    { config, ... }:
-    let
-      media = config.nix-config.media;
-      dataDir = "/var/lib/radarr";
-    in
-    {
-      imports = [
-        (topConfig.factory.arr {
-          name = "radarr";
-          title = "Radarr";
-          userDescription = "Radarr movie management user";
-        })
-      ];
+  flake.modules.nixos.radarr = {
+    imports = [
+      (topConfig.factory.arr {
+        name = "radarr";
+        title = "Radarr";
+        userDescription = "Radarr movie management user";
+        category = "movies";
+      })
+    ];
 
-      services.radarr = {
-        user = "radarr";
-        inherit (media) group;
-        inherit dataDir;
-        settings.server.port = 7878;
-      };
-
-      # Ensure directories exist and have correct permissions
-      systemd.tmpfiles.rules = [
-        "d ${dataDir} 0755 radarr ${media.group} -"
-        # Create root directories
-        "d ${media.mediaRoot} 0775 radarr ${media.group} -"
-        # Create category-specific directories
-        "d ${media.mediaDir media.categories.movies} 0775 radarr ${media.group} -"
-      ];
-    };
+    services.radarr.settings.server.port = 7878;
+  };
 
   evalTests = {
     radarr-tmpfiles = {
