@@ -33,4 +33,29 @@
       ];
     };
   };
+
+  # VA-API rather than QSV: the oneVPL runtime only supports Gen12+, and this
+  # is a Kaby Lake HD 620. Codecs are what its VA-API driver reports.
+  services.jellyfin = {
+    hardwareAcceleration = {
+      enable = true;
+      type = "vaapi";
+      device = "/dev/dri/renderD128";
+    };
+    transcoding = {
+      enableHardwareEncoding = true;
+      hardwareDecodingCodecs = {
+        h264 = true;
+        hevc = true;
+        hevc10bit = true;
+        mpeg2 = true;
+        vc1 = true;
+        vp8 = true;
+        vp9 = true;
+      };
+      hardwareEncodingCodecs.hevc = true;
+    };
+    # Without it these settings only seed a fresh encoding.xml.
+    forceEncodingConfig = true;
+  };
 }
