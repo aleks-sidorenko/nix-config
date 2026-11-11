@@ -42,7 +42,7 @@ in
       imports = with config.flake.modules.nixos; [
         system-server
         alexander
-        inputs.disko.nixosModules.disko
+        disko
         ./_hardware.nix
         ./_disks.nix
       ];

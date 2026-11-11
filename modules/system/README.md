@@ -5,13 +5,13 @@ Base OS features, shared across nixos, darwin and home where they apply.
 | Sub-directory | Features (from `master`) |
 |---|---|
 | `<feature>/` | `boot`, `fs`, `locale`, `networking`, `nix`, `nix-github-auth`, `nix-ld`, `power`, `hibernation`, `homebrew` (darwin), `macos-defaults` (darwin `system/defaults`) |
-| `disks/` | `disko`, `impermanence` (`nixos/disks/*`) |
+| `disks/` | `disko.nix` (done: `nix-config.disks`, master's generic btrfs layout), `impermanence.nix` (done) |
 | `types/` | The system types (below) |
 
 Examples:
 - `nixos/system/locale` + `darwin/system/locale` + `home/system/locale` → `system/locale/`, aspect `locale`, with three class parts.
 - `darwin/system/defaults` → `system/macos-defaults/`, aspect `macos-defaults`.
-- `nixos/disks/impermanence` → `system/disks/impermanence/`, aspect `impermanence`.
+- `nixos/disks/impermanence` → `system/disks/impermanence.nix`, aspect `impermanence`.
 
 ## System types
 
@@ -25,8 +25,8 @@ system-minimal ──▶ system-common ──┬──▶ system-server
 | Type | From `master` | What it is |
 |---|---|---|
 | `types/system-minimal.nix` | `*/roles/minimal` | The minimum every machine has: imports `nix`, `locale`, `networking`, `fish` and `ssh` (done). The installer uses it. |
-| `types/system-common/` | `*/roles/common` | The everyday base, merged across nixos, darwin and home. |
-| `types/system-server/` | `nixos/roles/server` | The headless base, including its forced UTC. |
+| `types/system-common.nix` | `*/roles/common` | The everyday base: boot, impermanence, sops, tailscale, nh (nixos done; darwin and home in milestones 4 and 5). |
+| `types/system-server.nix` | `nixos/roles/server` | The headless base: nginx, firewall, UTC, watchdog (done). |
 | `types/system-desktop/` | `*/roles/{desktop,graphical}` | The graphical base. |
 
 Each type imports its parent (`imports = [ inputs.self.modules.<class>.system-common ];`) and has parts for every class it applies to. A type describes the environment, not the device or the purpose: devices go in `../hardware/devices/`, and purpose goes in `../roles/`.
