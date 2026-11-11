@@ -1,9 +1,6 @@
 { config, lib, ... }:
 let
-  core = config.builders.nixos "x86_64-linux" {
-    imports = [ config.flake.modules.nixos.system-minimal ];
-    system.stateVersion = "26.05";
-  };
+  core = config.builders.testNixos config.flake.modules.nixos.system-minimal;
   c = core.config;
 in
 {

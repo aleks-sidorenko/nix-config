@@ -1,10 +1,6 @@
 { config, ... }:
 let
-  c =
-    (config.builders.nixos "x86_64-linux" {
-      imports = [ config.flake.modules.nixos.boot ];
-      system.stateVersion = "26.05";
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.boot).config;
 in
 {
   flake.modules.nixos.boot =

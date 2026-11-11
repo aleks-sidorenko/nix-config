@@ -43,12 +43,11 @@ let
   parentB = {
     imports = [ aspects.nixos.diamond-shared ];
   };
-  diamond = config.builders.nixos "x86_64-linux" {
+  diamond = config.builders.testNixos {
     imports = [
       parentA
       parentB
     ];
-    system.stateVersion = "26.05";
   };
 in
 {

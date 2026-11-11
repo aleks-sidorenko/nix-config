@@ -6,7 +6,7 @@
 }:
 let
   c =
-    (config.builders.nixos "x86_64-linux" {
+    (config.builders.testNixos {
       imports = [ config.flake.modules.nixos.impermanence ];
       nix-config.impermanence.files = [ "/x" ];
       boot.initrd.systemd.enable = true;
@@ -14,7 +14,6 @@ let
         device = "none";
         fsType = "tmpfs";
       };
-      system.stateVersion = "26.05";
     }).config;
   persisted = c.environment.persistence."/persist";
   persistRoot = config.constants.persistence.root;

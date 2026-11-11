@@ -6,22 +6,20 @@
 }:
 let
   hmUser = {
-    home-manager.users.hm-test.home.stateVersion = "26.05";
+    home-manager.users.hm-test = { };
   };
   nixosHost =
     extra:
-    config.builders.nixos "x86_64-linux" {
+    config.builders.testNixos {
       imports = [
         hmUser
         extra
       ];
-      system.stateVersion = "26.05";
       users.users.hm-test.isNormalUser = true;
     };
   nixos = nixosHost { };
   overridden = nixosHost { constants.locale.timeZone = "UTC"; };
-  darwin = config.builders.darwin "aarch64-darwin" {
-    system.stateVersion = 5;
+  darwin = config.builders.testDarwin {
   };
   top = config.constants;
 in

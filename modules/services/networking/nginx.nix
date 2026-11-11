@@ -1,13 +1,12 @@
 { config, lib, ... }:
 let
   c =
-    (config.builders.nixos "x86_64-linux" {
+    (config.builders.testNixos {
       imports = with config.flake.modules.nixos; [
         sops
         tailscale
         nginx
       ];
-      system.stateVersion = "26.05";
     }).config;
 in
 {

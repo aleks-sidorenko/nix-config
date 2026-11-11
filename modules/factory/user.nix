@@ -48,26 +48,20 @@ let
   };
   plain = config.factory.user { name = "factory-plain"; };
 
-  adminHost = config.builders.nixos "x86_64-linux" {
+  adminHost = config.builders.testNixos {
     imports = [
       admin.nixos
       config.flake.modules.nixos.sops
     ];
-    system.stateVersion = "26.05";
-    home-manager.users.factory-test.home.stateVersion = "26.05";
   };
-  plainHost = config.builders.nixos "x86_64-linux" {
+  plainHost = config.builders.testNixos {
     imports = [
       plain.nixos
       config.flake.modules.nixos.sops
     ];
-    system.stateVersion = "26.05";
-    home-manager.users.factory-plain.home.stateVersion = "26.05";
   };
-  darwinHost = config.builders.darwin "aarch64-darwin" {
+  darwinHost = config.builders.testDarwin {
     imports = [ admin.darwin ];
-    system.stateVersion = 5;
-    home-manager.users.factory-test.home.stateVersion = "26.05";
   };
 in
 {
