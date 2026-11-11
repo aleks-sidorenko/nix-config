@@ -50,6 +50,10 @@ in
     };
 
     evalTests = {
+      constants-persistence-root = {
+        expr = top.persistence.root;
+        expected = "/persist";
+      };
       constants-owner = {
         expr = config.constants.owner;
         expected = "alexander";

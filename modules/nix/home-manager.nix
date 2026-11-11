@@ -5,6 +5,9 @@ let
       useGlobalPkgs = true;
       useUserPackages = true;
       sharedModules = config.plumbing.homeManager;
+      # Move unmanaged files aside instead of aborting activation when
+      # home-manager wants to own a path something else already created.
+      backupFileExtension = "backup";
     };
   };
 
@@ -33,6 +36,10 @@ in
   ];
 
   evalTests = {
+    nixos-hm-backup-ext = {
+      expr = nixos.config.home-manager.backupFileExtension;
+      expected = "backup";
+    };
     nixos-hm-global-pkgs = {
       expr = nixos.config.home-manager.useGlobalPkgs;
       expected = true;

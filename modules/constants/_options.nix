@@ -24,6 +24,11 @@ in
       };
     };
 
+    persistence.root = mkOption {
+      type = types.str;
+      description = "Where impermanent hosts keep the state that survives a reboot.";
+    };
+
     network.domains = {
       lan = mkOption {
         type = types.str;
