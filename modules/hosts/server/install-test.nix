@@ -77,7 +77,7 @@ let
           machine.wait_for_unit("multi-user.target")
 
           machine.succeed("journalctl -b -u impermanence-rollback-root --no-pager | grep -q 'Restoring blank subvolume'")
-          machine.succeed("test -e /root-marker")
+          machine.fail("test -e /root-marker")
           machine.succeed("test -e /persist/persist-marker")
         '';
       };
