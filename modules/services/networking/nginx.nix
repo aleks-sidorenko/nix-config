@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 let
   c =
     (config.builders.testNixos {
@@ -7,6 +12,13 @@ let
         tailscale
         nginx
       ];
+      nix-config.nginx.virtualHosts = {
+        probe.port = 1;
+        named = {
+          port = 2;
+          serverName = "x.example";
+        };
+      };
     }).config;
 in
 {
@@ -17,46 +29,56 @@ in
       htpasswd = config.sops.secrets."service-ingress-htpasswd".path;
     in
     {
+      imports = [ inputs.self.modules.nixos.networking ];
+
       options.nix-config.nginx.virtualHosts = lib.mkOption {
         type = lib.types.attrsOf (
-          lib.types.submodule {
-            options = {
-              port = lib.mkOption {
-                type = lib.types.port;
-                description = "Port to proxy to";
+          lib.types.submodule (
+            { name, ... }:
+            {
+              options = {
+                port = lib.mkOption {
+                  type = lib.types.port;
+                  description = "Port to proxy to";
+                };
+                serverName = lib.mkOption {
+                  type = lib.types.str;
+                  default = "${name}.${config.constants.network.domains.services}";
+                  description = "Server name for the virtual host";
+                };
+                locations = lib.mkOption {
+                  type = lib.types.attrsOf lib.types.attrs;
+                  default = { };
+                  description = "Additional location configurations";
+                };
+                clientMaxBodySize = lib.mkOption {
+                  type = lib.types.str;
+                  default = "10m";
+                  description = "Maximum allowed size of the client request body";
+                };
+                requiresProxyAuth = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "This backend performs no authentication of its own and expects the proxy to do it with the ingress htpasswd.";
+                };
+                proxyWebsockets = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Forward websocket upgrades. Off for backends whose HTTP server rejects an Upgrade header it never negotiated.";
+                };
               };
-              serverName = lib.mkOption {
-                type = lib.types.str;
-                description = "Server name for the virtual host";
-              };
-              locations = lib.mkOption {
-                type = lib.types.attrsOf lib.types.attrs;
-                default = { };
-                description = "Additional location configurations";
-              };
-              clientMaxBodySize = lib.mkOption {
-                type = lib.types.str;
-                default = "10m";
-                description = "Maximum allowed size of the client request body";
-              };
-              requiresProxyAuth = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "This backend performs no authentication of its own and expects the proxy to do it with the ingress htpasswd.";
-              };
-              proxyWebsockets = lib.mkOption {
-                type = lib.types.bool;
-                default = true;
-                description = "Forward websocket upgrades. Off for backends whose HTTP server rejects an Upgrade header it never negotiated.";
-              };
-            };
-          }
+            }
+          )
         );
         default = { };
         description = "Virtual hosts proxied to local backends.";
       };
 
       config = {
+        # Every served vhost is a name this host answers to; deriving them here
+        # means a removed service leaves no dangling record behind.
+        nix-config.networking.names = lib.mapAttrsToList (_: v: v.serverName) cfg.virtualHosts;
+
         sops.secrets."service-ingress-htpasswd" = {
           owner = config.services.nginx.user;
           inherit (config.services.nginx) group;
@@ -127,6 +149,22 @@ in
     };
 
   evalTests = {
+    nginx-servername-default = {
+      expr = c.services.nginx.virtualHosts.probe.serverName;
+      expected = "probe.home.sidorenko.me";
+    };
+    nginx-servername-override = {
+      expr = c.services.nginx.virtualHosts.named.serverName;
+      expected = "x.example";
+    };
+    # `_` is the catch-all, not a name anything should resolve to.
+    nginx-names-from-vhosts = {
+      expr = lib.sort lib.lessThan c.nix-config.networking.names;
+      expected = [
+        "probe.home.sidorenko.me"
+        "x.example"
+      ];
+    };
     nginx-default-444 = {
       expr = c.services.nginx.virtualHosts._.extraConfig;
       expected = "return 444;";

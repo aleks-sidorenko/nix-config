@@ -38,6 +38,10 @@ in
         type = types.str;
         description = "Tailnet DNS suffix.";
       };
+      services = mkOption {
+        type = types.str;
+        description = "Domain the hosts' web services are published under.";
+      };
     };
   };
 }

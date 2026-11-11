@@ -68,6 +68,10 @@ in
         expr = config.constants.network.domains.tailnet;
         expected = "colobus-bramble.ts.net";
       };
+      constants-services-domain = {
+        expr = config.constants.network.domains.services;
+        expected = "home.sidorenko.me";
+      };
       constants-top = {
         expr = config.constants.locale.timeZone;
         expected = "Europe/Kyiv";
