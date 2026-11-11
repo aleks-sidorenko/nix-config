@@ -10,11 +10,13 @@
 # nix-shell -p ssh-to-age
 # ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
 
-# Add secrets
-# sops secrets/secrets.yaml
+# Secrets files are secrets/<audience>.yaml, named by who can decrypt them. A
+# secret lives in the narrowest file covering every machine that reads it.
+# Edit one:
+# just secrets-edit server
 
-# Rekey secrets.yaml after editing recipients in .sops.yaml:
-# sops updatekeys secrets/secrets.yaml
+# Rekey a file after editing its recipients below:
+# sops updatekeys secrets/server.yaml
 keys:
   - &users:
     - &alexander 07E36E87C0270E464DB4D663B423D1630A58837C
@@ -25,7 +27,7 @@ keys:
     - &server age192swvpjx884m37rxx95ahgzp2p6ehhpdg74wmfwfazl53nd2tgvsw8rs97
 
 creation_rules:
-  - path_regex: modules/nixos/secrets.ya?ml$
+  - path_regex: secrets/server.ya?ml$
     key_groups:
       - pgp:
           - *alexander
