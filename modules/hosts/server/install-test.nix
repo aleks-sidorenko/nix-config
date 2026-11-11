@@ -1,6 +1,7 @@
 # Installs server's real disk layout into a throwaway VM the way bootstrap does
 # (partition, format, install, boot), then proves the root rollback: what is
 # written to / is gone after a reboot, what is written to /persist survives.
+# Last, it proves the media stack starts on that fresh disk.
 { config, lib, ... }:
 let
   server = config.flake.nixosConfigurations.server;
@@ -26,6 +27,10 @@ let
         system-tailscale-auth-key: tskey-test
         service-ingress-htpasswd: 'test:{PLAIN}test'
         system-github-token: access-tokens = github.com=test
+        service-radarr-api-key: 00000000000000000000000000000001
+        service-sonarr-api-key: 00000000000000000000000000000002
+        service-prowlarr-api-key: 00000000000000000000000000000003
+        service-qbittorrent-alexander-password: '@ByteArray(dGVzdA==:dGVzdA==)'
         YAML
         sops --encrypt --age "$recipient" --input-type yaml --output-type yaml plain.yaml > $out/secrets.yaml
       '';
@@ -79,6 +84,11 @@ let
           machine.succeed("journalctl -b -u impermanence-rollback-root --no-pager | grep -q 'Restoring blank subvolume'")
           machine.fail("test -e /root-marker")
           machine.succeed("test -e /persist/persist-marker")
+
+          # A fresh disk is what the live box would look like after a reinstall.
+          for unit in ["qbittorrent", "jellyfin", "radarr", "sonarr", "prowlarr", "minidlna", "calibre-web"]:
+              machine.wait_for_unit(f"{unit}.service")
+          machine.succeed("test -e /data/media/Books/metadata.db")
         '';
       };
     };
