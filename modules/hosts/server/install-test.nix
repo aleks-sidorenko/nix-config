@@ -27,9 +27,9 @@ let
         system-tailscale-auth-key: tskey-test
         service-ingress-htpasswd: 'test:{PLAIN}test'
         system-github-token: access-tokens = github.com=test
-        service-radarr-api-key: 00000000000000000000000000000001
-        service-sonarr-api-key: 00000000000000000000000000000002
-        service-prowlarr-api-key: 00000000000000000000000000000003
+        service-radarr-api-key: '00000000000000000000000000000001'
+        service-sonarr-api-key: '00000000000000000000000000000002'
+        service-prowlarr-api-key: '00000000000000000000000000000003'
         service-qbittorrent-alexander-password: '@ByteArray(dGVzdA==:dGVzdA==)'
         YAML
         sops --encrypt --age "$recipient" --input-type yaml --output-type yaml plain.yaml > $out/secrets.yaml
