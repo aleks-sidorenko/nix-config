@@ -32,6 +32,11 @@ jobs:
       - name: Check flake
         run: nix flake check --show-trace
 
+      # A failed build only shows its last 25 lines; the VM check needs more.
+      - name: Show the server install check's log
+        if: failure()
+        run: nix log .#checks.x86_64-linux.server-install | tail -n 400
+
       - name: Evaluate flake (all systems)
         run: nix flake check --all-systems --no-build --show-trace
 
@@ -68,6 +73,9 @@ jobs:
 
       - name: Build the installer ISO
         run: nix build .#packages.x86_64-linux.installer-iso --show-trace
+
+      - name: Build the server system
+        run: nix build .#nixosConfigurations.server.config.system.build.toplevel --show-trace
 
   build-home-manager:
     name: "Build Home Manager"
@@ -173,12 +181,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v15
 
       - name: Check deployment configuration
-        run: |
-          # Check if deploy configurations are valid
-          nix flake show --json | jq -r '.deploy // empty'
-
-          # Build deploy-rs checks if available
-          nix build .#checks.x86_64-linux.deploy-rs --show-trace || echo "deploy-rs checks not available"
+        run: nix build .#checks.x86_64-linux.deploy-schema .#checks.x86_64-linux.deploy-activate --show-trace
 
   check-dev-shells:
     name: "Check Development Shells"

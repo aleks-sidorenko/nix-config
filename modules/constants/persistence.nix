@@ -1,0 +1,3 @@
+{
+  constants.persistence.root = "/persist";
+}

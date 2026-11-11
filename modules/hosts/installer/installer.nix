@@ -12,7 +12,7 @@ in
 {
   flake.modules.nixos.installer = {
     imports = [
-      config.flake.modules.nixos.system-core
+      config.flake.modules.nixos.system-minimal
       "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ];
 
@@ -52,6 +52,10 @@ in
     };
 
   evalTests = {
+    installer-host-keys-etc = {
+      expr = map (k: k.path) inst.services.openssh.hostKeys;
+      expected = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    };
     installer-root-login = {
       expr = inst.services.openssh.settings.PermitRootLogin;
       expected = "prohibit-password";

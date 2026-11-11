@@ -47,7 +47,7 @@ affected_files() {
     local regex
     yq ".creation_rules[] | select(.key_groups[].age[] | alias == \"$host\") | .path_regex" "$sops_config" |
         while read -r regex; do
-            git ls-files '*secrets.yaml' '*secrets.yml' | grep -E "$regex" || true
+            git ls-files '*secrets.yaml' '*secrets.yml' 'secrets/*.yaml' 'secrets/*.yml' | grep -E "$regex" || true
         done | sort -u
 }
 

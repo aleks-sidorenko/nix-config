@@ -110,7 +110,7 @@ verify_host_key_matches_sops() {
         log_error "Host '$hostname' is not registered as a SOPS recipient in $sops_file."
         log_error "Add its age key and rekey before deploying:"
         log_error "  - &${hostname} ${deployed_age}"
-        log_error "  sops updatekeys modules/nixos/secrets.yaml modules/home/secrets.yaml"
+        log_error "  sops updatekeys secrets/*.yaml"
         log_error "Otherwise the installed host cannot decrypt its secrets (no interactive login)."
         exit 1
     fi
@@ -122,7 +122,7 @@ verify_host_key_matches_sops() {
         log_error "The installed host would boot unable to decrypt SOPS secrets: user"
         log_error "passwords never appear, so there is no interactive login (only SSH keys work)."
         log_error "Fix: set &${hostname} to ${deployed_age} in $sops_file, then"
-        log_error "  sops updatekeys modules/nixos/secrets.yaml modules/home/secrets.yaml"
+        log_error "  sops updatekeys secrets/*.yaml"
         log_error "commit, and retry. (Or re-run bootstrap-secrets so the keysdir matches.)"
         exit 1
     fi

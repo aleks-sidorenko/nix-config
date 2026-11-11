@@ -7,8 +7,12 @@
 let
   inherit (lib) mkOption types;
   hostNameModule = name: { networking.hostName = lib.mkDefault name; };
-  nixos = config.builders.nixos "x86_64-linux" { system.stateVersion = "26.05"; };
-  darwin = config.builders.darwin "aarch64-darwin" { system.stateVersion = 5; };
+  testDefaults = stateVersion: {
+    system.stateVersion = lib.mkDefault stateVersion;
+    home-manager.sharedModules = [ { home.stateVersion = lib.mkDefault "26.05"; } ];
+  };
+  nixos = config.builders.testNixos { };
+  darwin = config.builders.testDarwin { };
 in
 {
   options.builders = {
@@ -21,6 +25,16 @@ in
       type = types.raw;
       readOnly = true;
       description = "`system -> module -> darwinSystem`, with the darwin plumbing included.";
+    };
+    testNixos = mkOption {
+      type = types.raw;
+      readOnly = true;
+      description = "`module -> nixosSystem` for eval tests: x86_64-linux, with stateVersions defaulted.";
+    };
+    testDarwin = mkOption {
+      type = types.raw;
+      readOnly = true;
+      description = "`module -> darwinSystem` for eval tests: aarch64-darwin, with stateVersions defaulted.";
     };
   };
 
@@ -40,6 +54,22 @@ in
           modules = config.plumbing.darwin ++ [
             module
             { nixpkgs.hostPlatform = system; }
+          ];
+        };
+      testNixos =
+        module:
+        config.builders.nixos "x86_64-linux" {
+          imports = [
+            module
+            (testDefaults "26.05")
+          ];
+        };
+      testDarwin =
+        module:
+        config.builders.darwin "aarch64-darwin" {
+          imports = [
+            module
+            (testDefaults 5)
           ];
         };
     };
@@ -81,12 +111,30 @@ in
         expected = true;
       };
       builder-hostname = {
-        expr =
-          (config.builders.nixos "x86_64-linux" {
-            imports = [ (hostNameModule "probe") ];
-            system.stateVersion = "26.05";
-          }).config.networking.hostName;
+        expr = (config.builders.testNixos (hostNameModule "probe")).config.networking.hostName;
         expected = "probe";
+      };
+      test-nixos-defaults = {
+        expr = with (config.builders.testNixos { }).config; [
+          system.stateVersion
+          nixpkgs.hostPlatform.system
+        ];
+        expected = [
+          "26.05"
+          "x86_64-linux"
+        ];
+      };
+      test-nixos-hm-state-version = {
+        expr =
+          (config.builders.testNixos {
+            users.users.probe.isNormalUser = true;
+            home-manager.users.probe = { };
+          }).config.home-manager.users.probe.home.stateVersion;
+        expected = "26.05";
+      };
+      test-darwin-defaults = {
+        expr = (config.builders.testDarwin { }).config.system.stateVersion;
+        expected = 5;
       };
       darwin-platform = {
         expr = darwin.pkgs.stdenv.hostPlatform.system;

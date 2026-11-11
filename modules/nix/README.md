@@ -10,6 +10,6 @@ Flake plumbing. No features live here.
 - `formatter.nix`, `devshell.nix`: `nix fmt` and `nix develop`.
 - `eval-tests.nix`: `config.evalTests`, run as `checks.<system>.eval`.
 
-Later: deploy-rs nodes and checks, sops-nix/disko/impermanence plumbing.
+`deploy.nix` declares `flake.deploy.nodes` (each host adds its own node) and the deploy-rs checks. sops-nix, disko and impermanence are imported by the features that use them (`security/sops`, the host, `system/disks/impermanence`).
 
 Rules: [../README.md](../README.md).
