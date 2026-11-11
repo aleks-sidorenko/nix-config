@@ -49,11 +49,13 @@ in
             echo "Mount point already mounted"
           fi
           trap 'umount $MNTPOINT 2>/dev/null || true; rm -rf $MNTPOINT' EXIT
+
           echo "Cleaning root subvolume"
           btrfs subvolume list -o "$MNTPOINT/@root" | cut -f9 -d ' ' |
           while read -r subvolume; do
             btrfs subvolume delete "$MNTPOINT/$subvolume"
           done && btrfs subvolume delete "$MNTPOINT/@root"
+
           echo "Restoring blank subvolume"
           btrfs subvolume snapshot "$MNTPOINT/@root-blank" "$MNTPOINT/@root"
         )
