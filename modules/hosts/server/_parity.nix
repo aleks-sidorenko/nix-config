@@ -130,6 +130,28 @@ let
           logDir
           ;
       };
+      # Settings that only reach the host inside a store file (minidlna.conf,
+      # calibre-web's pre-start), which the units section sees as a hash.
+      settings =
+        declarative {
+          minidlna = config.services.minidlna.settings;
+          calibre-web = {
+            inherit (config.services.calibre-web)
+              listen
+              options
+              dataDir
+              user
+              group
+              ;
+            package = config.services.calibre-web.package.name;
+          };
+        }
+        // lib.genAttrs [ "radarr" "sonarr" "prowlarr" ] (n: {
+          inherit (config.services.${n}) settings dataDir;
+          user = config.services.${n}.user or null;
+          group = config.services.${n}.group or null;
+          package = config.services.${n}.package.name;
+        });
       names = config.nix-config.networking.names or config.nix-config.system.networking.names;
     };
 in

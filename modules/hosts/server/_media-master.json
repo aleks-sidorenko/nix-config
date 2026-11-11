@@ -88,6 +88,104 @@
       "owner": "sonarr"
     }
   },
+  "settings": {
+    "calibre-web": {
+      "dataDir": "/var/lib/calibre-web",
+      "group": "media",
+      "listen": {
+        "ip": "127.0.0.1",
+        "port": 8083
+      },
+      "options": {
+        "calibreLibrary": "/data/media/Books",
+        "enableBookConversion": true,
+        "enableBookUploading": true,
+        "enableKepubify": true,
+        "reverseProxyAuth": {
+          "enable": false,
+          "header": ""
+        }
+      },
+      "package": "calibre-web-0.6.26-unstable-2026-03-01",
+      "user": "calibre-web"
+    },
+    "minidlna": {
+      "announce_interval": [
+        60
+      ],
+      "db_dir": "/var/cache/minidlna",
+      "enable_subtitles": "yes",
+      "enable_tivo": "no",
+      "friendly_name": "Media Server",
+      "inotify": "yes",
+      "log_level": "warn",
+      "media_dir": [
+        "V,/data/media/Movies",
+        "V,/data/media/Series"
+      ],
+      "notify_interval": 90000,
+      "port": 8200,
+      "root_container": "B",
+      "strict_dlna": [
+        "no"
+      ],
+      "wide_links": "no"
+    },
+    "prowlarr": {
+      "dataDir": "/var/lib/prowlarr",
+      "group": null,
+      "package": "prowlarr-2.6.5.5623",
+      "settings": {
+        "log": {
+          "analyticsEnabled": false
+        },
+        "server": {
+          "port": 9696
+        },
+        "update": {
+          "automatically": false,
+          "mechanism": "external"
+        }
+      },
+      "user": null
+    },
+    "radarr": {
+      "dataDir": "/var/lib/radarr",
+      "group": "media",
+      "package": "radarr-6.4.4.10685",
+      "settings": {
+        "log": {
+          "analyticsEnabled": false
+        },
+        "server": {
+          "port": 7878
+        },
+        "update": {
+          "automatically": false,
+          "mechanism": "external"
+        }
+      },
+      "user": "radarr"
+    },
+    "sonarr": {
+      "dataDir": "/var/lib/sonarr",
+      "group": "media",
+      "package": "sonarr-4.0.20.3014",
+      "settings": {
+        "log": {
+          "analyticsEnabled": false
+        },
+        "server": {
+          "port": 8989
+        },
+        "update": {
+          "automatically": false,
+          "mechanism": "external"
+        }
+      },
+      "user": "sonarr"
+    }
+  },
   "templates": {
     "prowlarr-config.xml": "<Config>\n  <BindAddress>127.0.0.1</BindAddress>\n  <Port>9696</Port>\n  <ApiKey><SOPS:afb03312b54daea7bfc042fff42a6395c049ac7374c19e9ecdafbe89d994c9c0:PLACEHOLDER></ApiKey>\n  <AuthenticationMethod>External</AuthenticationMethod>\n  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>\n  <LogLevel>info</LogLevel>\n  <AnalyticsEnabled>False</AnalyticsEnabled>\n  <LogDbEnabled>False</LogDbEnabled>\n  <InstanceName>Prowlarr</InstanceName>\n  <!-- <SslPort>9898</SslPort> -->\n  <!-- <EnableSsl>False</EnableSsl> -->\n  <!-- <LaunchBrowser>True</LaunchBrowser> -->          \n  <!-- <Branch>master</Branch> -->\n  <!-- <SslCertPath></SslCertPath> -->\n  <!-- <SslCertPassword></SslCertPassword> -->\n  <!-- <UrlBase></UrlBase> -->\n</Config>\n",
     "qbittorrent.conf": "[Application]\nFileLogger\\Age=1\nFileLogger\\AgeType=1\nFileLogger\\Backup=true\nFileLogger\\DeleteOld=true\nFileLogger\\Enabled=true\nFileLogger\\MaxSizeBytes=66560\nFileLogger\\Path=/var/lib/qbittorrent/.local/share/qBittorrent/logs\n\n[AutoRun]\n# OnTorrentAdded\\Enabled=true\n# OnTorrentAdded\\Program=${onAddScript} ${torrentScriptParams}\nenabled=true\nprogram=/nix/store/HASH-qbittorrent-on-finish \\\"%N\\\" \\\"%L\\\" \\\"%G\\\" \\\"%F\\\" \\\"%R\\\" \\\"%D\\\" \\\"%C\\\" \\\"%Z\\\" \\\"%T\\\" \\\"%I\\\" \\\"%J\\\" \\\"%K\\\"\n\n[BitTorrent]\nSession\\DefaultSavePath=/data/torrents\nSession\\DisableAutoTMMByDefault=false\nSession\\DisableAutoTMMTriggers\\CategorySavePathChanged=false\nSession\\DisableAutoTMMTriggers\\DefaultSavePathChanged=false\nSession\\ExcludedFileNames=\nSession\\GlobalUPSpeedLimit=200\nSession\\Port=17348\nSession\\QueueingSystemEnabled=\nSession\\SSL\\Port=30088\nSession\\SubcategoriesEnabled=true\nSession\\Tags=\nSession\\UseCategoryPathsInManualMode=true\nSession\\TorrentContentLayout=Subfolder\nSession\\Interface=\nSession\\InterfaceAddress=0.0.0.0\nSession\\InterfaceName=\nSession\\AddExtensionToIncompleteFiles=false\nSession\\Encryption=1\nSession\\ForceProxy=false\nSession\\ProxyType=-1\n\n[LegalNotice]\nAccepted=true\n\n[Meta]\nMigrationVersion=8\n\n[Preferences]\nGeneral\\Locale=en\nMailNotification\\req_auth=true\nWebUI\\Address=127.0.0.1\n# Authentication belongs to the proxy (see requiresProxyAuth on the\n# vhost), so loopback — where every proxied request comes from — is\n# exempt, and so are the on-host clients that drive the API. The cost\n# is that this app's own logs and bans see the proxy, not the peer.\nWebUI\\LocalHostAuth=false\nWebUI\\AuthSubnetWhitelistEnabled=false\nWebUI\\Password_PBKDF2=\"<SOPS:655d131e26812d4da94c6ac0fd05f65379068e7ab4d1155ba9c9f33a45a10420:PLACEHOLDER>\"\nWebUI\\Username=alexander\nConnection\\PortRangeMin=17348\nConnection\\UPnP=false\nConnection\\UseUPnPForWebUI=false\nAdvanced\\AnonymousMode=false\nAdvanced\\IgnoreLimitsLAN=true\nAdvanced\\IncludeOverhead=false\nAdvanced\\osCache=true\nAdvanced\\OutgoingPortsMax=0\nAdvanced\\OutgoingPortsMin=0\n\n[RSS]\nAutoDownloader\\DownloadRepacks=true\nAutoDownloader\\SmartEpisodeFilter=s(\\\\d+)e(\\\\d+), (\\\\d+)x(\\\\d+), \"(\\\\d{4}[.\\\\-]\\\\d{1,2}[.\\\\-]\\\\d{1,2})\", \"(\\\\d{1,2}[.\\\\-]\\\\d{1,2}[.\\\\-]\\\\d{4})\"\n",

@@ -195,12 +195,28 @@ in
       expr = media.users;
       expected = mediaOnMaster.users;
     };
-    # Ordered: radarr and sonarr both declare /data/media, and the first rule
-    # decides its owner.
     server-media-tmpfiles = {
-      expr = media.tmpfiles;
-      expected = mediaOnMaster.tmpfiles;
+      expr = lib.sort lib.lessThan media.tmpfiles;
+      expected = lib.sort lib.lessThan mediaOnMaster.tmpfiles;
     };
+    # Where two rules name the same path, the first decides its owner, so
+    # those must keep master's order.
+    server-media-tmpfiles-owners =
+      let
+        firstPerPath =
+          rules:
+          lib.foldl' (
+            acc: r:
+            let
+              path = builtins.elemAt (lib.splitString " " r) 1;
+            in
+            if acc ? ${path} then acc else acc // { ${path} = r; }
+          ) { } rules;
+      in
+      {
+        expr = firstPerPath media.tmpfiles;
+        expected = firstPerPath mediaOnMaster.tmpfiles;
+      };
     server-media-firewall = {
       expr = media.firewall;
       expected = lib.mapAttrs (_: lib.remove minecraft.port) mediaOnMaster.firewall;
@@ -216,6 +232,10 @@ in
     server-media-jellyfin = {
       expr = media.jellyfin;
       expected = mediaOnMaster.jellyfin;
+    };
+    server-media-settings = {
+      expr = media.settings;
+      expected = mediaOnMaster.settings;
     };
     server-media-names = {
       expr = lib.sort lib.lessThan media.names;
