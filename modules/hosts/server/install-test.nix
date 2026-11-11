@@ -36,6 +36,11 @@ let
       secrets = testSecrets pkgs;
     in
     {
+      # disko's test disks are 4 GB; the real 8G swapfile fills btrfs and
+      # leaves it read-only. Everything else is the real layout.
+      disko.devices.disk.root.content.partitions.btrfs.content.subvolumes."@swap".swap.swapfile.size =
+        lib.mkForce "256M";
+
       disko.tests = {
         extraConfig = {
           # sops-nix refuses a key file in the store, so copy it out before
