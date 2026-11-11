@@ -47,7 +47,7 @@ in
         ./_disks.nix
       ];
 
-      sops.defaultSopsFile = inputs.self + "/secrets/server.yaml";
+      sops.defaultSopsFile = ../../../secrets/server.yaml;
 
       # Do not change: tracks when NixOS was first installed on this machine.
       system.stateVersion = "26.05";
@@ -171,6 +171,13 @@ in
     };
     server-sops-file = {
       expr = lib.hasSuffix "/secrets/server.yaml" (toString s.sops.defaultSopsFile);
+      expected = true;
+    };
+    # A path value copies just this file to the store; a string built from the
+    # flake source would put the whole repo in the closure and change it on
+    # every commit.
+    server-sops-file-alone = {
+      expr = builtins.isPath s.sops.defaultSopsFile;
       expected = true;
     };
     server-watchdog = {
