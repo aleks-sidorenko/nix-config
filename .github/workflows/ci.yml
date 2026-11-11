@@ -32,6 +32,11 @@ jobs:
       - name: Check flake
         run: nix flake check --show-trace
 
+      # A failed build only shows its last 25 lines; the VM check needs more.
+      - name: Show the server install check's log
+        if: failure()
+        run: nix log .#checks.x86_64-linux.server-install | tail -n 400
+
       - name: Evaluate flake (all systems)
         run: nix flake check --all-systems --no-build --show-trace
 
