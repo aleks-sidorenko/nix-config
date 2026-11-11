@@ -51,6 +51,10 @@ let
             setupSecretsForUsers.deps = [ "testAgeKey" ];
           };
 
+          # Joining needs the network the VM doesn't have; each try holds up
+          # multi-user.target for minutes. tailscaled itself still runs.
+          systemd.services.tailscaled-autoconnect.enable = false;
+
           sops = {
             defaultSopsFile = lib.mkForce "${secrets}/secrets.yaml";
             # A build output is only known at build time; validating it would
@@ -67,7 +71,9 @@ let
           machine.succeed("test -e /run/secrets-for-users/user-alexander-password")
 
           machine.succeed("touch /root-marker /persist/persist-marker")
-          machine.reboot()
+          # The test's QEMU exits on reboot, so power-cycle the same disks.
+          machine.shutdown()
+          machine.start()
           machine.wait_for_unit("multi-user.target")
 
           machine.succeed("journalctl -b -u impermanence-rollback-root --no-pager | grep -q 'Restoring blank subvolume'")
