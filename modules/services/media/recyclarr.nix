@@ -5,14 +5,7 @@
   ...
 }:
 let
-  c =
-    (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        recyclarr
-        sops
-        nginx
-      ];
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.recyclarr).config;
   yaml = c.sops.templates."recyclarr.yml".content;
 in
 {
@@ -20,7 +13,7 @@ in
     { config, pkgs, ... }:
     let
       user = "recyclarr";
-      inherit (config.nix-config.media) group;
+      inherit (config.constants.media) group;
       dataDir = "/var/lib/recyclarr";
       # Unstable: needs recyclarr >= 8 for the v8 config schema (trash_id quality
       # profiles + custom_format_groups); the stable pin ships 7.x.
@@ -99,25 +92,17 @@ in
     {
       # It reuses their API-key secrets and syncs into them.
       imports = with inputs.self.modules.nixos; [
+        media-library
         sonarr
         radarr
       ];
 
-      # Render the config with the Sonarr/Radarr API keys substituted in. Reuses
-      # the exact secrets those services already expose, so no new SOPS entries.
-      sops.templates."recyclarr.yml" = {
-        content = recyclarrConfig;
-        owner = user;
-        inherit group;
-        mode = "0400";
-      };
-
-      users.users.${user} = {
-        isSystemUser = true;
-        group = lib.mkForce group;
+      # The Sonarr/Radarr API keys are substituted in from the secrets those
+      # services already expose, so no new SOPS entries.
+      nix-config.media.users.${user} = {
         home = dataDir;
-        createHome = true;
         description = "Recyclarr sync user";
+        templates."recyclarr.yml" = recyclarrConfig;
       };
 
       systemd = {

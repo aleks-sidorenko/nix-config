@@ -5,31 +5,22 @@
   ...
 }:
 let
-  c =
-    (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        qbittorrent
-        sops
-        nginx
-      ];
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.qbittorrent).config;
   inherit (c.networking.firewall) allowedTCPPorts allowedUDPPorts;
 in
 {
   flake.modules.nixos.qbittorrent =
     { config, pkgs, ... }:
     let
-      media = config.nix-config.media;
+      inherit (config.constants.media) group downloadRoot;
       user = "qbittorrent";
-      inherit (media) group;
       dataDir = "/var/lib/qbittorrent";
-      downloadDir = media.downloadRoot;
-      categories = with media.categories; [
+      categories = with config.constants.media.categories; [
         movies
         series
       ];
-      webPort = 8080;
-      torrentPort = 17348;
+      inherit (config.constants.network.ports.qbittorrent) web torrent;
+      secret = "service-qbittorrent-${userName}-password";
       configDir = "${dataDir}/.config/qBittorrent";
       logsDir = "${dataDir}/.local/share/qBittorrent/logs";
       userName = config.constants.owner;
@@ -86,12 +77,11 @@ in
         ${pkgs.systemd}/bin/systemd-cat -t qbittorrent echo "Download completed: $QB_NAME"
       '';
 
-      # Generate categories.json from the categories
       categoriesJson = pkgs.writeText "categories.json" (
         builtins.toJSON (
           builtins.listToAttrs (
             map (category: {
-              name = category;
+              inherit (category) name;
               value = {
                 save_path = "";
               };
@@ -101,23 +91,22 @@ in
       );
     in
     {
-      imports = [ inputs.self.modules.nixos.media-library ];
-
-      # SOPS secret for qBittorrent password
-      sops.secrets."service-qbittorrent-${userName}-password" = {
-        owner = user;
-        inherit group;
-        mode = "0400";
-      };
+      imports = with inputs.self.modules.nixos; [
+        media-library
+        nginx
+      ];
 
       nix-config.nginx.virtualHosts.qbittorrent = {
-        port = webPort;
+        port = web;
         requiresProxyAuth = true;
       };
 
-      # SOPS template for qBittorrent configuration with secret substitution
-      sops.templates."qbittorrent.conf" = {
-        content = ''
+      nix-config.media.users.${user} = {
+        home = dataDir;
+        description = "qBittorrent daemon user";
+        extraGroups = [ "users" ];
+        secrets = [ secret ];
+        templates."qbittorrent.conf" = ''
           [Application]
           FileLogger\Age=1
           FileLogger\AgeType=1
@@ -134,13 +123,13 @@ in
           program=${onFinishScript} ${torrentScriptParams}
 
           [BitTorrent]
-          Session\DefaultSavePath=${downloadDir}
+          Session\DefaultSavePath=${downloadRoot}
           Session\DisableAutoTMMByDefault=false
           Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
           Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
           Session\ExcludedFileNames=
           Session\GlobalUPSpeedLimit=${toString 200}
-          Session\Port=${toString torrentPort}
+          Session\Port=${toString torrent}
           Session\QueueingSystemEnabled=${toString false}
           Session\SSL\Port=30088
           Session\SubcategoriesEnabled=true
@@ -171,9 +160,9 @@ in
           # is that this app's own logs and bans see the proxy, not the peer.
           WebUI\LocalHostAuth=false
           WebUI\AuthSubnetWhitelistEnabled=false
-          WebUI\Password_PBKDF2="${config.sops.placeholder."service-qbittorrent-${userName}-password"}"
+          WebUI\Password_PBKDF2="${config.sops.placeholder.${secret}}"
           WebUI\Username=${userName}
-          Connection\PortRangeMin=${toString torrentPort}
+          Connection\PortRangeMin=${toString torrent}
           Connection\UPnP=false
           Connection\UseUPnPForWebUI=false
           Advanced\AnonymousMode=false
@@ -187,21 +176,8 @@ in
           AutoDownloader\DownloadRepacks=true
           AutoDownloader\SmartEpisodeFilter=s(\\d+)e(\\d+), (\\d+)x(\\d+), "(\\d{4}[.\\-]\\d{1,2}[.\\-]\\d{1,2})", "(\\d{1,2}[.\\-]\\d{1,2}[.\\-]\\d{4})"
         '';
-        owner = user;
-        inherit group;
-        mode = "0400";
       };
 
-      users.users.${user} = {
-        isSystemUser = true;
-        group = lib.mkForce group;
-        extraGroups = [ "users" ];
-        home = dataDir;
-        createHome = true;
-        description = "qBittorrent daemon user";
-      };
-
-      # Create systemd service for qBittorrent
       systemd.services.qbittorrent = {
         description = "qBittorrent daemon";
         after = [ "network.target" ];
@@ -213,7 +189,7 @@ in
           Type = "exec";
           User = user;
           Group = group;
-          ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=${toString webPort}";
+          ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=${toString web}";
           Restart = "on-failure";
           RestartSec = "5s";
 
@@ -223,7 +199,7 @@ in
           ProtectHome = true;
           ReadWritePaths = [
             dataDir
-            downloadDir
+            downloadRoot
           ];
 
           # Network restrictions - Allow common address families
@@ -266,16 +242,15 @@ in
         # Web UI is reached through nginx (loopback); the peer port stays open
         # since inbound torrent connections don't go through the proxy.
         allowedTCPPorts = [
-          torrentPort # BitTorrent protocol
+          torrent # BitTorrent protocol
         ];
         allowedUDPPorts = [
-          torrentPort # DHT and other UDP traffic
+          torrent # DHT and other UDP traffic
         ];
       };
 
-      # Ensure the media directories exist and have correct permissions
       systemd.tmpfiles.rules = [
-        "d ${downloadDir} 0775 ${user} ${group} -"
+        "d ${downloadRoot} 0775 ${user} ${group} -"
         "d ${dataDir} 0755 ${user} ${group} -"
         "d ${dataDir}/.config 0755 ${user} ${group} -"
         "d ${dataDir}/.config/qBittorrent 0755 ${user} ${group} -"
@@ -284,9 +259,8 @@ in
         "d ${dataDir}/.local/share/qBittorrent 0755 ${user} ${group} -"
         "d ${dataDir}/.local/share/qBittorrent/logs 0755 ${user} ${group} -"
       ]
-      ++ map (category: "d ${downloadDir}/${category} 0755 ${user} ${group} -") categories;
+      ++ map (category: "d ${category.downloadDir} 0755 ${user} ${group} -") categories;
 
-      # Add qBittorrent package to system packages
       environment.systemPackages = [ pkgs.qbittorrent-nox ];
     };
 

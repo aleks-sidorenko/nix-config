@@ -4,29 +4,23 @@
   ...
 }:
 let
-  c =
-    (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        minidlna
-        sops
-        nginx
-      ];
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.minidlna).config;
 in
 {
   flake.modules.nixos.minidlna =
     { config, lib, ... }:
     let
-      media = config.nix-config.media;
-      inherit (config.services.minidlna.settings) port;
-      # SSDP
-      discoveryPort = 1900;
+      inherit (config.constants.media) group categories;
+      inherit (config.constants.network.ports.dlna) web discovery;
     in
     {
-      imports = [ inputs.self.modules.nixos.media-library ];
+      imports = with inputs.self.modules.nixos; [
+        media-library
+        nginx
+      ];
 
       nix-config.nginx.virtualHosts.minidlna = {
-        inherit port;
+        port = web;
         # No login of its own, and the DLNA clients that need it
         # unauthenticated reach this port directly rather than through the
         # vhost, so guarding the vhost costs them nothing.
@@ -39,15 +33,15 @@ in
       services.minidlna = {
         enable = true;
         settings = {
-          media_dir = map (category: "V,${media.mediaDir category}") (
-            with media.categories;
+          media_dir = map (category: "V,${category.mediaDir}") (
+            with categories;
             [
               movies
               series
             ]
           );
           friendly_name = "Media Server";
-          port = 8200;
+          port = web;
           announce_interval = 60;
           strict_dlna = "no";
           inotify = "yes";
@@ -61,13 +55,13 @@ in
       # DLNA clients discover the server over SSDP and then fetch media straight
       # from this port, not through the nginx vhost, so it stays open -- closing
       # it would leave the server announcing itself but unable to serve.
-      networking.firewall.allowedTCPPorts = [ port ];
+      networking.firewall.allowedTCPPorts = [ web ];
 
       # SSDP is UDP-only; minidlna never listens for discovery on TCP.
-      networking.firewall.allowedUDPPorts = [ discoveryPort ];
+      networking.firewall.allowedUDPPorts = [ discovery ];
 
       users.users.minidlna = {
-        group = lib.mkForce media.group;
+        group = lib.mkForce group;
         extraGroups = [
           "users"
         ]; # so minidlna can access the files.

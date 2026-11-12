@@ -4,21 +4,14 @@
   ...
 }:
 let
-  c =
-    (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        jellyfin
-        sops
-        nginx
-      ];
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.jellyfin).config;
 in
 {
   flake.modules.nixos.jellyfin =
     { config, pkgs, ... }:
     let
       user = "jellyfin";
-      inherit (config.nix-config.media) group;
+      inherit (config.constants.media) group;
       root = "/var/lib/jellyfin";
       configDir = "${root}/config";
       cacheDir = "${root}/cache";
@@ -26,9 +19,12 @@ in
       dataDir = "${root}/data";
     in
     {
-      imports = [ inputs.self.modules.nixos.media-library ];
+      imports = with inputs.self.modules.nixos; [
+        media-library
+        nginx
+      ];
 
-      nix-config.nginx.virtualHosts.jellyfin.port = 8096;
+      nix-config.nginx.virtualHosts.jellyfin.port = config.constants.network.ports.jellyfin.web;
 
       services.jellyfin = {
         enable = true;
@@ -44,7 +40,6 @@ in
           ;
       };
 
-      # Ensure directories exist and have correct permissions
       systemd.tmpfiles.rules = [
         "d ${root} 0755 ${user} ${group} -"
         "d ${configDir} 0755 ${user} ${group} -"

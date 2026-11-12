@@ -43,5 +43,46 @@ in
         description = "Domain the hosts' web services are published under.";
       };
     };
+
+    network.ports = mkOption {
+      type = types.attrsOf (types.attrsOf types.port);
+      description = "Ports the services listen on, by service and purpose (`web`, `torrent`, …).";
+    };
+
+    media = {
+      group = mkOption {
+        type = types.str;
+        description = "Group the media services share.";
+      };
+      downloadRoot = mkOption {
+        type = types.str;
+        description = "Where downloads land.";
+      };
+      mediaRoot = mkOption {
+        type = types.str;
+        description = "Where the libraries live.";
+      };
+      categories = mkOption {
+        type = types.attrsOf (
+          types.submodule {
+            options = {
+              name = mkOption {
+                type = types.str;
+                description = "Directory name of the category under both roots.";
+              };
+              downloadDir = mkOption {
+                type = types.str;
+                description = "Where the category's downloads land.";
+              };
+              mediaDir = mkOption {
+                type = types.str;
+                description = "Where the category's library lives.";
+              };
+            };
+          }
+        );
+        description = "Media categories, each a directory under both roots.";
+      };
+    };
   };
 }

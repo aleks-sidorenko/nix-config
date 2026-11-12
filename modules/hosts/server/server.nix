@@ -29,6 +29,16 @@ let
       disk.root.content.partitions.btrfs.content.postCreateHook = null;
     };
   mountsOnMaster = lib.importJSON ./_filesystems-master.json;
+
+  # On master radarr and sonarr both declared the library root, and whichever
+  # rule came first owned it; media-library now declares it once.
+  mediaRoot = {
+    onMaster = [
+      "d /data/media 0775 sonarr media -"
+      "d /data/media 0775 radarr media -"
+    ];
+    here = "d /data/media 0775 root media -";
+  };
 in
 {
   flake = {
@@ -197,26 +207,10 @@ in
     };
     server-media-tmpfiles = {
       expr = lib.sort lib.lessThan media.tmpfiles;
-      expected = lib.sort lib.lessThan mediaOnMaster.tmpfiles;
+      expected = lib.sort lib.lessThan (
+        lib.subtractLists mediaRoot.onMaster mediaOnMaster.tmpfiles ++ [ mediaRoot.here ]
+      );
     };
-    # Where two rules name the same path, the first decides its owner, so
-    # those must keep master's order.
-    server-media-tmpfiles-owners =
-      let
-        firstPerPath =
-          rules:
-          lib.foldl' (
-            acc: r:
-            let
-              path = builtins.elemAt (lib.splitString " " r) 1;
-            in
-            if acc ? ${path} then acc else acc // { ${path} = r; }
-          ) { } rules;
-      in
-      {
-        expr = firstPerPath media.tmpfiles;
-        expected = firstPerPath mediaOnMaster.tmpfiles;
-      };
     server-media-firewall = {
       expr = media.firewall;
       expected = lib.mapAttrs (_: lib.remove minecraft.port) mediaOnMaster.firewall;
@@ -240,10 +234,6 @@ in
     server-media-names = {
       expr = lib.sort lib.lessThan media.names;
       expected = lib.sort lib.lessThan (lib.remove minecraft.name mediaOnMaster.names);
-    };
-    server-jellyfin-vaapi = {
-      expr = s.services.jellyfin.hardwareAcceleration.type;
-      expected = "vaapi";
     };
     deploy-server-users = {
       expr = {

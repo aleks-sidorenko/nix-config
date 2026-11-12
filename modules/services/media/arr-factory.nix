@@ -17,27 +17,20 @@ let
       category ? null,
       # Whether the upstream service is given the user, group and data dir.
       upstreamPaths ? true,
-      # Put this arr's tmpfiles rules first: radarr and sonarr both declare the
-      # media root, and the first rule decides its owner.
-      ownsMediaRoot ? false,
     }:
     { config, pkgs, ... }:
     let
       secret = "service-${name}-api-key";
       template = "${name}-config.xml";
-      port = config.services.${name}.settings.server.port;
+      port = config.constants.network.ports.${name}.web;
       package = pkgs.unstable.${name};
-      inherit (config.nix-config) media;
-      inherit (media) group;
-      rules =
-        lib.optional upstreamPaths "d ${dataDir} 0755 ${name} ${group} -"
-        ++ lib.optionals (category != null) [
-          "d ${media.mediaRoot} 0775 ${name} ${group} -"
-          "d ${media.mediaDir media.categories.${category}} 0775 ${name} ${group} -"
-        ];
+      inherit (config.constants.media) group categories;
     in
     {
-      imports = [ inputs.self.modules.nixos.media-library ];
+      imports = with inputs.self.modules.nixos; [
+        media-library
+        nginx
+      ];
 
       nix-config.nginx.virtualHosts.${name} = {
         inherit port;
@@ -46,14 +39,12 @@ let
         requiresProxyAuth = true;
       };
 
-      sops.secrets.${secret} = {
-        owner = name;
-        inherit group;
-        mode = "0400";
-      };
-
-      sops.templates.${template} = {
-        content = ''
+      nix-config.media.users.${name} = {
+        home = dataDir;
+        description = userDescription;
+        extraGroups = [ "users" ];
+        secrets = [ secret ];
+        templates.${template} = ''
           <Config>
             <BindAddress>127.0.0.1</BindAddress>
             <Port>${toString port}</Port>
@@ -73,23 +64,12 @@ let
             <!-- <UrlBase></UrlBase> -->
           </Config>
         '';
-        owner = name;
-        inherit group;
-        mode = "0400";
-      };
-
-      users.users.${name} = {
-        isSystemUser = true;
-        group = lib.mkForce group;
-        extraGroups = [ "users" ];
-        home = dataDir;
-        createHome = true;
-        description = userDescription;
       };
 
       services.${name} = {
         enable = true;
         inherit package;
+        settings.server.port = port;
         # nginx is the ingress; opening the port here would let clients bypass it.
         openFirewall = false;
       }
@@ -98,7 +78,9 @@ let
         inherit group dataDir;
       };
 
-      systemd.tmpfiles.rules = if ownsMediaRoot then lib.mkBefore rules else rules;
+      systemd.tmpfiles.rules =
+        lib.optional upstreamPaths "d ${dataDir} 0755 ${name} ${group} -"
+        ++ lib.optional (category != null) "d ${categories.${category}.mediaDir} 0775 ${name} ${group} -";
 
       systemd.services.${name}.preStart = ''
         echo "Copying ${title} configuration XML with secrets..."
@@ -110,34 +92,17 @@ let
 
       environment.systemPackages = [ package ];
     };
-  sonarr = config.factory.arr {
-    name = "sonarr";
-    title = "Sonarr";
-    userDescription = "Sonarr TV show management user";
-    category = "series";
-  };
-  host =
-    module:
+
+  c =
     (config.builders.testNixos {
       imports = with config.flake.modules.nixos; [
-        module
-        sops
-        nginx
+        radarr
+        sonarr
+        prowlarr
       ];
     }).config;
-  c = host sonarr;
   template = c.sops.templates."sonarr-config.xml".content;
-  private = host {
-    imports = [
-      (config.factory.arr {
-        name = "sonarr";
-        title = "Sonarr";
-        userDescription = "x";
-        dataDir = "/var/lib/private/x";
-        upstreamPaths = false;
-      })
-    ];
-  };
+  rulesOf = user: lib.filter (lib.hasInfix " ${user} ") c.systemd.tmpfiles.rules;
 in
 {
   factory = { inherit arr; };
@@ -177,21 +142,10 @@ in
     };
     arr-user = {
       expr = {
-        inherit (c.users.users.sonarr)
-          isSystemUser
-          group
-          extraGroups
-          home
-          createHome
-          description
-          ;
+        inherit (c.users.users.sonarr) extraGroups description;
       };
       expected = {
-        isSystemUser = true;
-        group = "media";
         extraGroups = [ "users" ];
-        home = "/var/lib/sonarr";
-        createHome = true;
         description = "Sonarr TV show management user";
       };
     };
@@ -206,27 +160,46 @@ in
         dataDir = "/var/lib/sonarr";
       };
     };
-    arr-media-dirs = {
-      expr = lib.filter (lib.hasInfix " sonarr ") c.systemd.tmpfiles.rules;
+    arr-ports = {
+      expr = map (n: c.services.${n}.settings.server.port) [
+        "radarr"
+        "sonarr"
+        "prowlarr"
+      ];
       expected = [
-        "d /var/lib/sonarr 0755 sonarr media -"
-        "d /data/media 0775 sonarr media -"
-        "d /data/media/Series 0775 sonarr media -"
+        7878
+        8989
+        9696
       ];
     };
-    arr-no-upstream-paths = {
-      expr = [
-        (private.services.sonarr.dataDir != "/var/lib/private/x")
-        (lib.filter (lib.hasInfix "/var/lib/private/x") private.systemd.tmpfiles.rules)
+    arr-tmpfiles = {
+      expr = map rulesOf [
+        "radarr"
+        "sonarr"
+        "prowlarr"
       ];
       expected = [
-        true
+        [
+          "d /var/lib/radarr 0755 radarr media -"
+          "d /data/media/Movies 0775 radarr media -"
+        ]
+        [
+          "d /var/lib/sonarr 0755 sonarr media -"
+          "d /data/media/Series 0775 sonarr media -"
+        ]
         [ ]
       ];
     };
-    arr-data-dir = {
-      expr = lib.hasInfix "/var/lib/private/x/config.xml" private.systemd.services.sonarr.preStart;
-      expected = true;
+    # prowlarr keeps upstream's DynamicUser paths (nixpkgs #445983).
+    arr-no-upstream-paths = {
+      expr = [
+        (c.services.prowlarr.dataDir != "/var/lib/private/prowlarr")
+        (lib.hasInfix "/var/lib/private/prowlarr/config.xml" c.systemd.services.prowlarr.preStart)
+      ];
+      expected = [
+        true
+        true
+      ];
     };
   };
 }

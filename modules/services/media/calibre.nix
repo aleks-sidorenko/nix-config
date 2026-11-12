@@ -4,27 +4,22 @@
   ...
 }:
 let
-  c =
-    (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        calibre
-        sops
-        nginx
-      ];
-    }).config;
+  c = (config.builders.testNixos config.flake.modules.nixos.calibre).config;
 in
 {
   flake.modules.nixos.calibre =
     { config, pkgs, ... }:
     let
-      media = config.nix-config.media;
+      inherit (config.constants.media) group categories;
       user = "calibre-web";
-      inherit (media) group;
-      libraryDir = media.mediaDir media.categories.books;
+      libraryDir = categories.books.mediaDir;
       dataDir = "/var/lib/calibre-web";
     in
     {
-      imports = [ inputs.self.modules.nixos.media-library ];
+      imports = with inputs.self.modules.nixos; [
+        media-library
+        nginx
+      ];
 
       nix-config.nginx.virtualHosts.calibre = {
         inherit (config.services.calibre-web.listen) port;
@@ -38,7 +33,7 @@ in
         listen = {
           # nginx proxies to 127.0.0.1; upstream defaults to ::1 which would not connect.
           ip = "127.0.0.1";
-          port = 8083;
+          port = config.constants.network.ports.calibre.web;
         };
         inherit user group dataDir;
         # Access is via nginx only; do not expose the raw port on the firewall.
