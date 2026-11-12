@@ -11,13 +11,7 @@ let
         tailscale
         nginx
       ];
-      nix-config.nginx.virtualHosts = {
-        probe.port = 1;
-        named = {
-          port = 2;
-          serverName = "x.example";
-        };
-      };
+      nix-config.nginx.virtualHosts.probe.port = 1;
     }).config;
 in
 {
@@ -26,6 +20,7 @@ in
     let
       cfg = config.nix-config.nginx;
       htpasswd = config.sops.secrets."service-ingress-htpasswd".path;
+      serverName = name: "${name}.${config.constants.network.domains.services}";
     in
     {
       imports = with inputs.self.modules.nixos; [
@@ -35,51 +30,45 @@ in
 
       options.nix-config.nginx.virtualHosts = lib.mkOption {
         type = lib.types.attrsOf (
-          lib.types.submodule (
-            { name, ... }:
-            {
-              options = {
-                port = lib.mkOption {
-                  type = lib.types.port;
-                  description = "Port to proxy to";
-                };
-                serverName = lib.mkOption {
-                  type = lib.types.str;
-                  default = "${name}.${config.constants.network.domains.services}";
-                  description = "Server name for the virtual host";
-                };
-                locations = lib.mkOption {
-                  type = lib.types.attrsOf lib.types.attrs;
-                  default = { };
-                  description = "Additional location configurations";
-                };
-                clientMaxBodySize = lib.mkOption {
-                  type = lib.types.str;
-                  default = "10m";
-                  description = "Maximum allowed size of the client request body";
-                };
-                requiresProxyAuth = lib.mkOption {
-                  type = lib.types.bool;
-                  default = false;
-                  description = "This backend performs no authentication of its own and expects the proxy to do it with the ingress htpasswd.";
-                };
-                proxyWebsockets = lib.mkOption {
-                  type = lib.types.bool;
-                  default = true;
-                  description = "Forward websocket upgrades. Off for backends whose HTTP server rejects an Upgrade header it never negotiated.";
-                };
+          lib.types.submodule {
+            options = {
+              port = lib.mkOption {
+                type = lib.types.port;
+                description = "Port to proxy to";
               };
-            }
-          )
+              clientMaxBodySize = lib.mkOption {
+                type = lib.types.str;
+                default = "10m";
+                description = "Maximum allowed size of the client request body";
+              };
+              requiresProxyAuth = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = "This backend performs no authentication of its own and expects the proxy to do it with the ingress htpasswd.";
+              };
+              proxyWebsockets = lib.mkOption {
+                type = lib.types.bool;
+                default = true;
+                description = "Forward websocket upgrades. Off for backends whose HTTP server rejects an Upgrade header it never negotiated.";
+              };
+            };
+          }
         );
         default = { };
-        description = "Virtual hosts proxied to local backends.";
+        description = "Virtual hosts proxied to local backends, each served as `<name>` under the services domain.";
       };
 
       config = {
+        assertions = [
+          {
+            assertion = !(cfg.virtualHosts ? _);
+            message = "nix-config.nginx.virtualHosts: `_` is the catch-all vhost and can't be a service.";
+          }
+        ];
+
         # Every served vhost is a name this host answers to; deriving them here
         # means a removed service leaves no dangling record behind.
-        nix-config.networking.names = lib.mapAttrsToList (_: v: v.serverName) cfg.virtualHosts;
+        nix-config.networking.names = map serverName (lib.attrNames cfg.virtualHosts);
 
         sops.secrets."service-ingress-htpasswd" = {
           owner = config.services.nginx.user;
@@ -99,21 +88,19 @@ in
           '';
           virtualHosts =
             lib.mapAttrs (
-              _name: vhost:
+              name: vhost:
               {
-                inherit (vhost) serverName;
+                serverName = serverName name;
                 extraConfig = ''
                   client_max_body_size ${vhost.clientMaxBodySize};
                 '';
-                locations = vhost.locations // {
-                  "/" = {
-                    proxyPass = "http://127.0.0.1:${toString vhost.port}";
-                    recommendedProxySettings = true;
-                    inherit (vhost) proxyWebsockets;
-                    extraConfig = ''
-                      proxy_buffering off;
-                    '';
-                  };
+                locations."/" = {
+                  proxyPass = "http://127.0.0.1:${toString vhost.port}";
+                  recommendedProxySettings = true;
+                  inherit (vhost) proxyWebsockets;
+                  extraConfig = ''
+                    proxy_buffering off;
+                  '';
                 };
               }
               // lib.optionalAttrs vhost.requiresProxyAuth { basicAuthFile = htpasswd; }
@@ -151,21 +138,14 @@ in
     };
 
   evalTests = {
-    nginx-servername-default = {
+    nginx-servername = {
       expr = c.services.nginx.virtualHosts.probe.serverName;
       expected = "probe.home.sidorenko.me";
     };
-    nginx-servername-override = {
-      expr = c.services.nginx.virtualHosts.named.serverName;
-      expected = "x.example";
-    };
     # `_` is the catch-all, not a name anything should resolve to.
     nginx-names-from-vhosts = {
-      expr = lib.sort lib.lessThan c.nix-config.networking.names;
-      expected = [
-        "probe.home.sidorenko.me"
-        "x.example"
-      ];
+      expr = c.nix-config.networking.names;
+      expected = [ "probe.home.sidorenko.me" ];
     };
     nginx-default-444 = {
       expr = c.services.nginx.virtualHosts._.extraConfig;
