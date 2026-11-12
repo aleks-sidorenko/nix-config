@@ -8,7 +8,6 @@ let
   c =
     (config.builders.testNixos {
       imports = with config.flake.modules.nixos; [
-        sops
         tailscale
         nginx
       ];
@@ -29,7 +28,10 @@ in
       htpasswd = config.sops.secrets."service-ingress-htpasswd".path;
     in
     {
-      imports = [ inputs.self.modules.nixos.networking ];
+      imports = with inputs.self.modules.nixos; [
+        networking-names
+        sops
+      ];
 
       options.nix-config.nginx.virtualHosts = lib.mkOption {
         type = lib.types.attrsOf (

@@ -4,7 +4,7 @@ Base OS features, shared across nixos, darwin and home where they apply.
 
 | Sub-directory | Features (from `master`) |
 |---|---|
-| `<feature>/` | `boot`, `fs`, `locale`, `networking`, `nix`, `nix-github-auth`, `nix-ld`, `power`, `hibernation`, `homebrew` (darwin), `macos-defaults` (darwin `system/defaults`) |
+| `<feature>/` | `boot`, `fs`, `locale`, `networking` (imports `networking-names`, the `nix-config.networking.names` option alone, which `nginx` imports too), `nix`, `nix-github-auth`, `nix-ld`, `power`, `hibernation`, `homebrew` (darwin), `macos-defaults` (darwin `system/defaults`) |
 | `disks/` | `disko.nix` (done: `nix-config.disks`, master's generic btrfs layout), `impermanence.nix` (done) |
 | `types/` | The system types (below) |
 
