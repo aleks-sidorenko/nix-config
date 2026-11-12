@@ -1,6 +1,7 @@
 { config, ... }:
 let
   persistRoot = config.constants.persistence.root;
+  c = (config.builders.testNixos config.flake.modules.nixos.system-common).config;
 in
 {
   flake.modules.nixos.system-common =
@@ -42,4 +43,15 @@ in
         }
       ];
     };
+
+  evalTests = {
+    system-common-mutable-users = {
+      expr = c.users.mutableUsers;
+      expected = false;
+    };
+    system-common-host-key-persist = {
+      expr = map (k: k.path) c.services.openssh.hostKeys;
+      expected = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+    };
+  };
 }

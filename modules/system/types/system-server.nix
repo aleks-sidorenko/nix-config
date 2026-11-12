@@ -1,4 +1,7 @@
 { config, ... }:
+let
+  c = (config.builders.testNixos config.flake.modules.nixos.system-server).config;
+in
 {
   flake.modules.nixos.system-server =
     { lib, pkgs, ... }:
@@ -86,4 +89,41 @@
         };
       };
     };
+
+  evalTests = {
+    system-server-firewall = {
+      expr = c.networking.firewall.enable;
+      expected = true;
+    };
+    system-server-locale = {
+      expr = {
+        inherit (c.i18n) supportedLocales defaultLocale;
+        inherit (c.time) timeZone;
+        layout = c.services.xserver.xkb.layout;
+      };
+      expected = {
+        supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+        defaultLocale = "en_US.UTF-8";
+        timeZone = "UTC";
+        layout = "us";
+      };
+    };
+    system-server-tailscale-tag = {
+      expr = c.services.tailscale.extraUpFlags;
+      expected = [ "--advertise-tags=tag:server" ];
+    };
+    system-server-sudo-nopasswd = {
+      expr = c.security.sudo.wheelNeedsPassword;
+      expected = false;
+    };
+    system-server-watchdog = {
+      expr = {
+        inherit (c.systemd.settings.Manager) RuntimeWatchdogSec RebootWatchdogSec;
+      };
+      expected = {
+        RuntimeWatchdogSec = "20s";
+        RebootWatchdogSec = "30s";
+      };
+    };
+  };
 }
