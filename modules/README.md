@@ -153,18 +153,23 @@ more examples.
 **A host.** Create `hosts/<host>/<host>.nix` (plus `_hardware.nix`, `_disks.nix`):
 
 ```nix
-{ inputs, ... }:
+{ config, ... }:
 {
+  hosts.<host> = {
+    system = "x86_64-linux";
+    deploy.sshUser = "<user>"; # only for hosts deployed with deploy-rs
+  };
   flake.modules.nixos.<host> = {
-    imports = with inputs.self.modules.nixos; [ <role> <user> ./_hardware.nix ];
+    imports = with config.flake.modules.nixos; [ <role> <user> ./_hardware.nix ];
     system.stateVersion = "…";
   };
-  flake.nixosConfigurations.<host> = inputs.self.lib.mkNixos "x86_64-linux" "<host>";
 }
 ```
 
-Darwin is the same, with `mkDarwin "aarch64-darwin"`. Home-manager runs inside
-the host; there are no standalone `homeConfigurations`.
+`hosts.<host>` builds `nixosConfigurations.<host>`, its `host-<host>` check and,
+with `deploy`, `deploy.nodes.<host>`. Darwin is the same with an
+`aarch64-darwin` system and `flake.modules.darwin.<host>`. Home-manager runs
+inside the host; there are no standalone `homeConfigurations`.
 
 **A user.** Create `users/<name>/<name>.nix`:
 

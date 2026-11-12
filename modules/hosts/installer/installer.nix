@@ -41,7 +41,7 @@ in
     system.stateVersion = "25.05";
   };
 
-  flake.nixosConfigurations.installer = inputs.self.lib.mkNixos "x86_64-linux" "installer";
+  hosts.installer.system = "x86_64-linux";
 
   perSystem =
     { system, ... }:

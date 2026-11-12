@@ -11,14 +11,8 @@ let
       };
     })
   ];
-  module = {
-    nixpkgs = { inherit config overlays; };
-  };
 in
 {
-  plumbing.nixos = [ module ];
-  plumbing.darwin = [ module ];
-
   perSystem =
     { system, ... }:
     {

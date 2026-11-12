@@ -5,37 +5,49 @@
   ...
 }:
 let
-  # A raw `flake.deploy` set in two host files would conflict; nodes merge here.
-  nodesType = lib.types.lazyAttrsOf lib.types.raw;
-
-  merged = lib.evalModules {
-    modules = [
-      { options.deploy.nodes = lib.mkOption { type = nodesType; }; }
-      { deploy.nodes.a = { }; }
-      { deploy.nodes.b = { }; }
-    ];
-  };
+  inherit (lib) mkOption types;
 in
 {
-  options.flake.deploy.nodes = lib.mkOption {
-    type = nodesType;
-    default = { };
-    description = "deploy-rs nodes, one per deployable host, added by the host's own file.";
+  options.hosts = mkOption {
+    type = types.lazyAttrsOf (
+      types.submodule {
+        options.deploy = mkOption {
+          type = types.nullOr (
+            types.submodule {
+              options.sshUser = mkOption {
+                type = types.str;
+                description = "User deploy-rs connects as before activating as root.";
+              };
+            }
+          );
+          default = null;
+          description = "deploy-rs settings. A host without them is left out of `deploy.nodes`.";
+        };
+      }
+    );
   };
 
-  # Only on x86_64-linux: the activation check builds every node's profile,
-  # and today every node is x86_64-linux.
-  config.perSystem =
-    { system, ... }:
-    lib.optionalAttrs (system == "x86_64-linux") {
-      checks = inputs.deploy-rs.lib.${system}.deployChecks config.flake.deploy;
-    };
+  config = {
+    flake.deploy.nodes = lib.mapAttrs (name: host: {
+      hostname = name;
+      profiles.system = {
+        user = "root";
+        # No interactiveSudo: deployed hosts are system-server, whose wheel is
+        # passwordless.
+        inherit (host.deploy) sshUser;
+        path = inputs.deploy-rs.lib.${host.system}.activate.nixos config.flake.nixosConfigurations.${name};
+      };
+    }) (lib.filterAttrs (_: host: host.deploy != null) config.hosts);
 
-  config.evalTests.deploy-nodes-mergeable = {
-    expr = lib.attrNames merged.config.deploy.nodes;
-    expected = [
-      "a"
-      "b"
-    ];
+    perSystem =
+      { system, ... }:
+      let
+        nodes = lib.filterAttrs (name: _: config.hosts.${name}.system == system) config.flake.deploy.nodes;
+      in
+      {
+        checks = lib.optionalAttrs (nodes != { }) (
+          inputs.deploy-rs.lib.${system}.deployChecks { inherit nodes; }
+        );
+      };
   };
 }

@@ -2,11 +2,19 @@
   config,
   inputs,
   lib,
+  withSystem,
   ...
 }:
 let
   inherit (lib) mkOption types;
-  hostNameModule = name: { networking.hostName = lib.mkDefault name; };
+  # Hosts and tests take perSystem's nixpkgs instead of each importing their
+  # own, so nixpkgs config and overlays are set in nix/nixpkgs.nix only.
+  nixpkgsFor = system: {
+    nixpkgs = {
+      hostPlatform = system;
+      pkgs = withSystem system ({ pkgs, ... }: pkgs);
+    };
+  };
   testDefaults = stateVersion: {
     system.stateVersion = lib.mkDefault stateVersion;
     home-manager.sharedModules = [ { home.stateVersion = lib.mkDefault "26.05"; } ];
@@ -45,7 +53,7 @@ in
         inputs.nixpkgs.lib.nixosSystem {
           modules = config.plumbing.nixos ++ [
             module
-            { nixpkgs.hostPlatform = system; }
+            (nixpkgsFor system)
           ];
         };
       darwin =
@@ -53,7 +61,7 @@ in
         inputs.darwin.lib.darwinSystem {
           modules = config.plumbing.darwin ++ [
             module
-            { nixpkgs.hostPlatform = system; }
+            (nixpkgsFor system)
           ];
         };
       testNixos =
@@ -74,28 +82,9 @@ in
         };
     };
 
-    flake.lib = {
-      mkNixos =
-        system: name:
-        config.builders.nixos system {
-          imports = [
-            config.flake.modules.nixos.${name}
-            (hostNameModule name)
-          ];
-        };
-      mkDarwin =
-        system: name:
-        config.builders.darwin system {
-          imports = [
-            config.flake.modules.darwin.${name}
-            (hostNameModule name)
-          ];
-        };
-    };
-
     evalTests = {
       nixos-unfree = {
-        expr = nixos.config.nixpkgs.config.allowUnfree;
+        expr = nixos.pkgs.config.allowUnfree;
         expected = true;
       };
       nixos-unstable = {
@@ -107,12 +96,8 @@ in
         expected = "x86_64-linux";
       };
       darwin-unfree = {
-        expr = darwin.config.nixpkgs.config.allowUnfree;
+        expr = darwin.pkgs.config.allowUnfree;
         expected = true;
-      };
-      builder-hostname = {
-        expr = (config.builders.testNixos (hostNameModule "probe")).config.networking.hostName;
-        expected = "probe";
       };
       test-nixos-defaults = {
         expr = with (config.builders.testNixos { }).config; [
