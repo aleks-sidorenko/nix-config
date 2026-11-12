@@ -47,6 +47,16 @@ let
     "cache"
     "log"
   ];
+
+  # master forced minidlna's primary group to media, which the unit's pinned
+  # Group= ignores; it now joins media as a supplementary group instead.
+  minidlna = {
+    user = {
+      group = "minidlna";
+      extraGroups = [ ];
+    };
+    serviceConfig.SupplementaryGroups = [ "media" ];
+  };
 in
 {
   flake = {
@@ -211,7 +221,7 @@ in
     };
     server-media-users = {
       expr = media.users;
-      expected = mediaOnMaster.users;
+      expected = lib.recursiveUpdate mediaOnMaster.users { minidlna = minidlna.user; };
     };
     server-media-tmpfiles = {
       expr = lib.sort lib.lessThan media.tmpfiles;
@@ -230,7 +240,9 @@ in
     };
     server-media-units = {
       expr = media.units;
-      expected = mediaOnMaster.units;
+      expected = lib.recursiveUpdate mediaOnMaster.units {
+        minidlna = { inherit (minidlna) serviceConfig; };
+      };
     };
     server-media-jellyfin = {
       expr = media.jellyfin;

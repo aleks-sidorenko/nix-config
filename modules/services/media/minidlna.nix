@@ -8,7 +8,7 @@ let
 in
 {
   flake.modules.nixos.minidlna =
-    { config, lib, ... }:
+    { config, ... }:
     let
       inherit (config.constants.media) group categories;
       inherit (config.constants.network.ports.dlna) web discovery;
@@ -47,7 +47,6 @@ in
           inotify = "yes";
           enable_tivo = "no";
           wide_links = "no";
-          # Ensure read-only access
           root_container = "B";
         };
       };
@@ -60,13 +59,9 @@ in
       # SSDP is UDP-only; minidlna never listens for discovery on TCP.
       networking.firewall.allowedUDPPorts = [ discovery ];
 
-      users.users.minidlna = {
-        group = lib.mkForce group;
-        extraGroups = [
-          "users"
-        ]; # so minidlna can access the files.
-        description = "MiniDLNA daemon user";
-      };
+      # Upstream pins Group=, so the account's primary group never reaches
+      # the process.
+      systemd.services.minidlna.serviceConfig.SupplementaryGroups = [ group ];
     };
 
   evalTests = {
