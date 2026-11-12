@@ -109,6 +109,11 @@
       "package": "calibre-web-0.6.26-unstable-2026-03-01",
       "user": "calibre-web"
     },
+    "flaresolverr": {
+      "openFirewall": false,
+      "package": "flaresolverr-3.5.2",
+      "port": 8191
+    },
     "minidlna": {
       "announce_interval": [
         60
@@ -305,6 +310,96 @@
         ],
         "Type": "simple",
         "User": "calibre-web"
+      },
+      "wantedBy": [
+        "multi-user.target"
+      ],
+      "wants": []
+    },
+    "flaresolverr": {
+      "after": [
+        "network.target"
+      ],
+      "before": [],
+      "environment": {
+        "HOME": "/run/flaresolverr",
+        "HOST": "127.0.0.1",
+        "PATH": "/nix/store/HASH-coreutils-9.11/bin:/nix/store/HASH-findutils-4.10.0/bin:/nix/store/HASH-gnugrep-3.12/bin:/nix/store/HASH-gnused-4.10/bin:/nix/store/HASH-systemd-260.5/bin:/nix/store/HASH-coreutils-9.11/sbin:/nix/store/HASH-findutils-4.10.0/sbin:/nix/store/HASH-gnugrep-3.12/sbin:/nix/store/HASH-gnused-4.10/sbin:/nix/store/HASH-systemd-260.5/sbin",
+        "PORT": "8191"
+      },
+      "preStart": "",
+      "requiredBy": [],
+      "script": "",
+      "serviceConfig": {
+        "CapabilityBoundingSet": [
+          "~CAP_BLOCK_SUSPEND",
+          "~CAP_BPF",
+          "~CAP_CHOWN",
+          "~CAP_IPC_LOCK",
+          "~CAP_MKNOD",
+          "~CAP_NET_ADMIN",
+          "~CAP_NET_RAW",
+          "~CAP_PERFMON",
+          "~CAP_SYSLOG",
+          "~CAP_SYS_ADMIN",
+          "~CAP_SYS_BOOT",
+          "~CAP_SYS_MODULE",
+          "~CAP_SYS_PACCT",
+          "~CAP_SYS_PTRACE",
+          "~CAP_SYS_TIME",
+          "~CAP_WAKE_ALARM"
+        ],
+        "DynamicUser": true,
+        "ExecStart": "/nix/store/HASH-flaresolverr-3.5.2/bin/flaresolverr",
+        "LockPersonality": true,
+        "PrivateDevices": true,
+        "PrivateMounts": true,
+        "PrivateUsers": true,
+        "ProtectClock": true,
+        "ProtectControlGroups": true,
+        "ProtectHome": true,
+        "ProtectHostname": true,
+        "ProtectKernelLogs": true,
+        "ProtectKernelModules": true,
+        "ProtectKernelTunables": true,
+        "ProtectProc": "invisible",
+        "Restart": "always",
+        "RestartSec": 5,
+        "RestrictAddressFamilies": [
+          "AF_INET",
+          "AF_INET6",
+          "AF_UNIX"
+        ],
+        "RestrictNamespaces": [
+          "net",
+          "pid",
+          "user"
+        ],
+        "RestrictRealtime": true,
+        "RuntimeDirectory": "flaresolverr",
+        "SyslogIdentifier": "flaresolverr",
+        "SystemCallArchitectures": "native",
+        "SystemCallErrorNumber": "EPERM",
+        "SystemCallFilter": [
+          "~@chown",
+          "~@clock",
+          "~@cpu-emulation",
+          "~@debug",
+          "~@keyring",
+          "~@memlock",
+          "~@module",
+          "~@obsolete",
+          "~@pkey",
+          "~@raw-io",
+          "~@reboot",
+          "~@setuid",
+          "~@swap",
+          "~@timer"
+        ],
+        "TimeoutStopSec": 30,
+        "Type": "simple",
+        "UMask": "0077",
+        "WorkingDirectory": "/run/flaresolverr"
       },
       "wantedBy": [
         "multi-user.target"

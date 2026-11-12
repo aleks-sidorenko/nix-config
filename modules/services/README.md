@@ -5,7 +5,7 @@ Daemons and servers.
 | Sub-directory | Features (from `master`) |
 |---|---|
 | `networking/` | `tailscale` (done), `openvpn`, `nginx` (done), `socket-vmnet` |
-| `media/` | `jellyfin`, `sonarr`, `radarr`, `prowlarr`, `recyclarr`, `qbittorrent`, `calibre`, `minidlna` (all done, one `.nix` each), plus `media-library` and `arr-factory.nix` (below) |
+| `media/` | `jellyfin`, `sonarr`, `radarr`, `prowlarr`, `flaresolverr`, `recyclarr`, `qbittorrent`, `calibre`, `minidlna` (all done, one `.nix` each), plus `media-library` and `arr-factory.nix` (below) |
 | `backup/` | `restic`, `restic-server` |
 | `gaming/` | `minecraft-server` |
 | `virtualisation/` | `podman`, `kvm`, `docker`, `colima`, `lima`, `qemu`, `rancher` |

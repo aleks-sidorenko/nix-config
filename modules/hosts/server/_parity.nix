@@ -54,6 +54,7 @@ let
     "calibre-web"
     "jellyfin"
     "minidlna"
+    "flaresolverr"
   ];
   templates = [
     "radarr-config.xml"
@@ -144,6 +145,10 @@ let
               group
               ;
             package = config.services.calibre-web.package.name;
+          };
+          flaresolverr = {
+            inherit (config.services.flaresolverr) port openFirewall;
+            package = config.services.flaresolverr.package.name;
           };
         }
         // lib.genAttrs [ "radarr" "sonarr" "prowlarr" ] (n: {

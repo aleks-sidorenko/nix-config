@@ -4,7 +4,7 @@ Purpose bundles: what a machine is for. A role is a feature that imports other f
 
 From `master`:
 - `home-server` (done: `system-server` + `media-server`; `gaming-server` and `backup` join in 3c)
-- `media-server` (done: the eight media features)
+- `media-server` (done: the nine media features)
 - `gaming-server`
 - `backup`, `backup-server`
 - `gaming`

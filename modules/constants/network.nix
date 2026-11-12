@@ -18,6 +18,7 @@
       radarr.web = 7878;
       sonarr.web = 8989;
       prowlarr.web = 9696;
+      flaresolverr.web = 8191;
       calibre.web = 8083;
     };
   };
