@@ -3,8 +3,8 @@ let
   c = (config.builders.testNixos config.flake.modules.nixos.flaresolverr).config;
 in
 {
-  # Solves the Cloudflare challenges that indexers behind it put up, as
-  # Prowlarr's indexer proxy.
+  # Solves the bot challenges some indexers put up, as the indexer manager's
+  # proxy.
   flake.modules.nixos.flaresolverr =
     { config, pkgs, ... }:
     {

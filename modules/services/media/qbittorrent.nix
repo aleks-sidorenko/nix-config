@@ -73,7 +73,6 @@ in
           echo "  Warning: target does not exist, skipping chmod"
         fi
 
-        # Log to systemd journal for monitoring
         ${pkgs.systemd}/bin/systemd-cat -t qbittorrent echo "Download completed: $QB_NAME"
       '';
 
@@ -202,7 +201,6 @@ in
             downloadRoot
           ];
 
-          # Network restrictions - Allow common address families
           RestrictAddressFamilies = [
             "AF_INET"
             "AF_INET6"
@@ -210,7 +208,6 @@ in
             "AF_NETLINK"
           ];
 
-          # Capabilities - Allow basic network capabilities
           CapabilityBoundingSet = [
             "CAP_NET_BIND_SERVICE"
           ];
@@ -221,7 +218,6 @@ in
           RestrictRealtime = true;
           RestrictSUIDSGID = true;
           SystemCallArchitectures = "native";
-          # Relaxed system call filter
           SystemCallFilter = [
             "@system-service"
             "@network-io"
