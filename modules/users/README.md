@@ -1,6 +1,13 @@
 # users/
 
-One feature per person, built with `config.factory.user` (see `../factory/`), plus profiles.
+One feature per person, built with `config.factory.user`, plus profiles.
+
+`user-factory.nix`: `config.factory.user { name; admin ? false; }` returns `{ nixos; darwin; }`.
+- **nixos:** a normal user, plus `wheel` when admin.
+- **darwin:** the account's home (`/Users/<name>`).
+- **both:** `home-manager.users.<name>` imports `flake.modules.homeManager.<name>` when that exists.
+
+Later milestones extend it with what `master`'s `nix-config.users` does: primary, profile, SOPS password, identity. The login shell comes from the `fish` feature, not the factory.
 
 | Sub-directory | From `master` |
 |---|---|

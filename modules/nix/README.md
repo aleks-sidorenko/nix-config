@@ -9,6 +9,7 @@ Flake plumbing. No features live here.
 - `home-manager.nix`: home-manager inside nixos/darwin hosts (`useGlobalPkgs`, `useUserPackages`). `plumbing.homeManager` becomes `sharedModules`.
 - `formatter.nix`, `devshell.nix`: `nix fmt` and `nix develop`.
 - `eval-tests.nix`: `config.evalTests`, run as `checks.<system>.eval`.
+- `factory.nix`: declares `config.factory`. The factories themselves live with their callers (rule 12).
 
 `deploy.nix` declares `flake.deploy.nodes` (each host adds its own node) and the deploy-rs checks. sops-nix, disko and impermanence are imported by the features that use them (`security/sops`, the host, `system/disks/impermanence`).
 

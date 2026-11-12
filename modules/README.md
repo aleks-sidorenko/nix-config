@@ -58,6 +58,13 @@ Tracking issue: #267.
     `pkgs.callPackage ./_package.nix { }`. There is no overlay and no
     `pkgs.nix-config.*`. A package gets its own `packages/<name>/` directory only
     once a second feature needs it.
+12. **A factory lives with its callers.** `config.factory.<name>` holds
+    functions that build modules from parameters (Doc-Steve's *factory aspect*),
+    for features that share a shape but can't share one aspect. Keys are flat
+    and unique, like aspect names. The factory goes in `<name>-factory.nix` in
+    the directory of the features that call it (`users/user-factory.nix`,
+    `services/media/arr-factory.nix`), and moves up only once callers elsewhere
+    need it.
 
 ## Layout
 
@@ -66,7 +73,7 @@ one that fits wins.
 
 | Directory | A feature belongs here if… |
 |---|---|
-| `nix/`, `lib/`, `constants/`, `factory/` | it's plumbing, a helper or shared data, not something a host turns on |
+| `nix/`, `lib/`, `constants/` | it's plumbing, a helper or shared data, not something a host turns on |
 | `hosts/` | it describes one machine |
 | `users/` | it describes one person, or a profile of people (`child`) |
 | `roles/` | it bundles other features for a purpose (what a machine is for) |
@@ -122,7 +129,7 @@ more examples.
 | `home/virtualization/k8s` | `development/platforms/k8s/` |
 | `nixos/cli/tools/nix-ld` | `system/nix-ld/` |
 | `*/roles/*` (purpose: home-server, media-server, work, agent-host, …) | `roles/<role>/` |
-| `nixos/users`, `darwin/users`, `home/user` | `factory/user.nix` + `users/<name>/` |
+| `nixos/users`, `darwin/users`, `home/user` | `users/user-factory.nix` + `users/<name>/` |
 | `nixos/users/child-lockdown`, `home/roles/child`, `home/desktops/gnome/profiles/*` | `users/profiles/<profile>/` |
 | `systems/<arch>/<host>`, `homes/<arch>/<user>@<host>` | `hosts/<host>/` |
 | `lib/defaults` | `constants/` |
