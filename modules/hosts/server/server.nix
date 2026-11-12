@@ -39,6 +39,14 @@ let
     ];
     here = "d /data/media 0775 root media -";
   };
+
+  # master redeclared the dirs upstream jellyfin already declares (as 700),
+  # so tmpfiles warned of duplicates and master's 0755 won.
+  jellyfinDirsOnMaster = map (d: "d /var/lib/jellyfin/${d} 0755 jellyfin media -") [
+    "config"
+    "cache"
+    "log"
+  ];
 in
 {
   flake = {
@@ -208,7 +216,8 @@ in
     server-media-tmpfiles = {
       expr = lib.sort lib.lessThan media.tmpfiles;
       expected = lib.sort lib.lessThan (
-        lib.subtractLists mediaRoot.onMaster mediaOnMaster.tmpfiles ++ [ mediaRoot.here ]
+        lib.subtractLists (mediaRoot.onMaster ++ jellyfinDirsOnMaster) mediaOnMaster.tmpfiles
+        ++ [ mediaRoot.here ]
       );
     };
     server-media-firewall = {

@@ -40,12 +40,8 @@ in
           ;
       };
 
-      systemd.tmpfiles.rules = [
-        "d ${root} 0755 ${user} ${group} -"
-        "d ${configDir} 0755 ${user} ${group} -"
-        "d ${cacheDir} 0755 ${user} ${group} -"
-        "d ${logDir} 0755 ${user} ${group} -"
-      ];
+      # Upstream creates the dirs under it, but not their parent.
+      systemd.tmpfiles.rules = [ "d ${root} 0755 ${user} ${group} -" ];
 
       environment.systemPackages = [ pkgs.jellyfin ];
     };
