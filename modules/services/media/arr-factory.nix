@@ -66,6 +66,8 @@ let
         '';
       };
 
+      # Not mkIf: prowlarr's upstream module has no user or group options, and
+      # even a false mkIf needs the options it sets to exist.
       services.${name} = {
         enable = true;
         inherit package;
@@ -93,12 +95,24 @@ let
       environment.systemPackages = [ package ];
     };
 
+  # Instances built here, not the callers, so a caller's arguments can change
+  # without touching these tests. The names must be real arr services.
   c =
     (config.builders.testNixos {
-      imports = with config.flake.modules.nixos; [
-        radarr
-        sonarr
-        prowlarr
+      imports = [
+        (arr {
+          name = "sonarr";
+          title = "Probe";
+          userDescription = "Probe user";
+          category = "series";
+        })
+        (arr {
+          name = "prowlarr";
+          title = "Probe";
+          userDescription = "Probe user";
+          dataDir = "/var/lib/private/prowlarr";
+          upstreamPaths = false;
+        })
       ];
     }).config;
   template = c.sops.templates."sonarr-config.xml".content;
@@ -146,7 +160,7 @@ in
       };
       expected = {
         extraGroups = [ "users" ];
-        description = "Sonarr TV show management user";
+        description = "Probe user";
       };
     };
     # One data dir: the service reads config.xml from where preStart puts it.
@@ -162,27 +176,20 @@ in
     };
     arr-ports = {
       expr = map (n: c.services.${n}.settings.server.port) [
-        "radarr"
         "sonarr"
         "prowlarr"
       ];
       expected = [
-        7878
         8989
         9696
       ];
     };
     arr-tmpfiles = {
       expr = map rulesOf [
-        "radarr"
         "sonarr"
         "prowlarr"
       ];
       expected = [
-        [
-          "d /var/lib/radarr 0755 radarr media -"
-          "d /data/media/Movies 0775 radarr media -"
-        ]
         [
           "d /var/lib/sonarr 0755 sonarr media -"
           "d /data/media/Series 0775 sonarr media -"
@@ -190,7 +197,8 @@ in
         [ ]
       ];
     };
-    # prowlarr keeps upstream's DynamicUser paths (nixpkgs #445983).
+    # Without upstreamPaths the service keeps its own paths, and preStart
+    # still writes to the dataDir given.
     arr-no-upstream-paths = {
       expr = [
         (c.services.prowlarr.dataDir != "/var/lib/private/prowlarr")
