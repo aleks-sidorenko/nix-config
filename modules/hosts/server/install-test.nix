@@ -86,7 +86,7 @@ let
           machine.succeed("test -e /persist/persist-marker")
 
           # A fresh disk is what the live box would look like after a reinstall.
-          for unit in ["qbittorrent", "jellyfin", "radarr", "sonarr", "prowlarr", "minidlna", "calibre-web"]:
+          for unit in ["qbittorrent", "jellyfin", "radarr", "sonarr", "prowlarr", "minidlna", "calibre-web", "flaresolverr"]:
               machine.wait_for_unit(f"{unit}.service")
           machine.succeed("test -e /data/media/Books/metadata.db")
         '';
