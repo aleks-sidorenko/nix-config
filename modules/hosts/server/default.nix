@@ -12,6 +12,7 @@ in
   den.hosts.x86_64-linux.server = {
     users.alexander = { };
     stateVersion = "26.05";
+    deploy.sshUser = "alexander";
     settings.storage.disko = {
       device = "/dev/disk/by-id/ata-SSD_2TB_004208";
       encrypted = false;
