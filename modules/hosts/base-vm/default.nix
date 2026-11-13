@@ -92,10 +92,6 @@ in
       expr = baseNameOf (toString c.sops.defaultSopsFile);
       expected = "nixos.yaml";
     };
-    home-persistence-reaches-user = {
-      expr = builtins.attrNames c.home-manager.users.alexander.home.persistence;
-      expected = [ "/persist" ];
-    };
     base-vm-builds = {
       expr = lib.isString c.system.build.toplevel.drvPath;
       expected = true;

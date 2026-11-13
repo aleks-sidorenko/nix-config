@@ -63,10 +63,7 @@
       classes = lib.mkDefault [ "homeManager" ];
     };
 
-    quirks = {
-      persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
-      persistHome.description = "Home state kept across reboots: { directories ? [ ]; files ? [ ]; }";
-    };
+    quirks.persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
 
     default = {
       nixos =
