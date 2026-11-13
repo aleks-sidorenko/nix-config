@@ -101,16 +101,5 @@ in
           );
         };
       };
-
-    # A host's own `homeManager` content never reaches its users; this reads each user's pool.
-    provides.to-users =
-      { host, ... }:
-      {
-        homeManager =
-          { persistHome, ... }:
-          {
-            home.persistence.${host.settings.storage.impermanence.root} = merge persistHome;
-          };
-      };
   };
 }
