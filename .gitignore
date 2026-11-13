@@ -1,3 +1,5 @@
 result*
 .direnv
 .superpowers
+.DS_Store
+.claude/settings.local.json
