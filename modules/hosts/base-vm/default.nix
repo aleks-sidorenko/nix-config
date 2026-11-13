@@ -70,6 +70,18 @@ in
         initrd = true;
       };
     };
+    sudo-exec-wheel-only = {
+      expr = c.security.sudo.execWheelOnly;
+      expected = true;
+    };
+    nix-trusted-users = {
+      # NixOS lists root itself; nix-darwin, also reached by `os`, doesn't.
+      expr = lib.unique c.nix.settings.trusted-users;
+      expected = [
+        "root"
+        "@wheel"
+      ];
+    };
     persist-collects-ssh-key = {
       expr = lib.elem "/etc/ssh/ssh_host_ed25519_key" (
         map (f: f.filePath) c.environment.persistence."/persist".files
