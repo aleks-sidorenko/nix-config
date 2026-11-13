@@ -63,7 +63,10 @@
       classes = lib.mkDefault [ "homeManager" ];
     };
 
-    quirks.persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
+    quirks = {
+      persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
+      installChecks.description = "Python snippets the install test runs on the installed, rebooted host.";
+    };
 
     default = {
       nixos =
