@@ -56,7 +56,10 @@
     };
 
     schema.user = {
-      includes = [ den.batteries.define-user ];
+      includes = [
+        den.batteries.define-user
+        den.aspects.security.user-password
+      ];
       classes = lib.mkDefault [ "homeManager" ];
     };
 

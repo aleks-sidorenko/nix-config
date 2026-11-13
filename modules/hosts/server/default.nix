@@ -19,13 +19,8 @@ in
   };
 
   den.aspects.server = {
-    includes = [ den.aspects.storage.disko ];
-
-    nixos = {
-      imports = [ ./_hardware.nix ];
-      # Stand-in until system.boot provides a boot loader.
-      boot.loader.grub.enable = false;
-    };
+    includes = [ den.aspects.roles.base ];
+    nixos.imports = [ ./_hardware.nix ];
   };
 
   # The live disk must not change shape when server deploys from this tree.
@@ -33,6 +28,11 @@ in
     server-disko-matches-master = {
       expr = withoutHook (declarative s.disko.devices);
       expected = withoutHook (lib.importJSON ./_disko-master.json);
+    };
+    # Hidden by `withoutHook`, yet the boot-time rollback restores this snapshot.
+    disko-snapshots-blank-root = {
+      expr = lib.hasInfix ''btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"'' s.disko.devices.disk.root.content.partitions.btrfs.content.postCreateHook;
+      expected = true;
     };
     server-filesystems-match-master = {
       expr = mounts s.fileSystems;

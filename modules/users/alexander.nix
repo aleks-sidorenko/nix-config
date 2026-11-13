@@ -26,5 +26,9 @@ in
       expr = c.users.users.alexander.openssh.authorizedKeys.keys;
       expected = [ (lib.trim (builtins.readFile ../../identities/alexander/ssh.pub)) ];
     };
+    password-from-sops = {
+      expr = c.users.users.alexander.hashedPasswordFile;
+      expected = "/run/secrets-for-users/user-alexander-password";
+    };
   };
 }
