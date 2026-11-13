@@ -33,6 +33,15 @@ check: format-check lint flake-check
 flake-check:
     nix flake check
 
+# Build a host's system without switching
+build host:
+    nix build .#nixosConfigurations.{{ host }}.config.system.build.toplevel
+
+# Run a VM host's install test; needs x86_64 Linux with KVM
+vm-test host:
+    @if [ "$(uname -sm)" != "Linux x86_64" ]; then echo "install tests run in CI (x86_64 KVM)" >&2; exit 1; fi
+    nix build .#checks.x86_64-linux.install-{{ host }} -L
+
 # Regenerate flake.nix from the flake-file.inputs declarations
 flake-write:
     nix run .#write-flake
