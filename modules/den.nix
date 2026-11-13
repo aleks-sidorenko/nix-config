@@ -30,6 +30,8 @@
   den = {
     migrations.user-host-content.acknowledged = true;
 
+    reservedKeys = [ "settings" ];
+
     schema.host = {
       includes = [
         den.batteries.hostname
@@ -40,9 +42,16 @@
         den.aspects.security.ssh
       ];
 
-      options.stateVersion = lib.mkOption {
-        type = lib.types.str;
-        description = "Release the host's and its users' stateful data was first created with.";
+      options = {
+        stateVersion = lib.mkOption {
+          type = lib.types.str;
+          description = "Release the host's and its users' stateful data was first created with.";
+        };
+        settings = lib.mkOption {
+          type = import ./_lib/settings-type.nix { inherit den lib; };
+          default = { };
+          description = "Per-host values for the settings aspects declare, at the aspect's path.";
+        };
       };
     };
 
