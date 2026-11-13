@@ -4,7 +4,7 @@
       efi.canTouchEfiVariables = true;
       systemd-boot = {
         enable = true;
-        # Each generation's kernel and initrd take room on the small ESP.
+        # Each generation's kernel and initrd take room on the ESP.
         configurationLimit = 3;
       };
     };

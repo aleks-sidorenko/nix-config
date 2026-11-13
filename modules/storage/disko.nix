@@ -124,6 +124,7 @@ in
       {
         imports = [ inputs.disko.nixosModules.disko ];
 
+        # Run by the install test (modules/flake/install-tests.nix), after its base asserts (mkBefore).
         disko.tests.extraChecks = lib.concatLines installChecks;
 
         disko.devices.disk.root = {
