@@ -14,11 +14,14 @@ Four den concepts; read den's docs, not this file, for how they work:
 - **Entities**: hosts (`den.hosts.<system>.<name>`) and users
   (`den.hosts.<system>.<name>.users.<user>`, content in `den.aspects.<user>`).
 - **Aspects**: units of configuration, `den.aspects.<path>`, with a class body
-  per target (`nixos`, `homeManager`) and `includes`.
+  per target (`nixos`, `homeManager`) and `includes`. An entity gets an aspect
+  by including it; `den.schema.<kind>.includes` and `den.default` attach one
+  to every entity of a kind.
   See [overview](https://den.denful.dev/overview/) and
   [settings](https://den.denful.dev/guides/aspect-settings/).
-- **Policies**: how aspects reach entities (`den.schema.<kind>.includes`,
-  `den.default`, `provides.to-hosts`).
+- **Policies**: `den.policies` and batteries like
+  `den.batteries.mutual-provider` that shape the entity topology: which
+  entities provide to which (`provides.to-hosts`).
 - **Quirks**: typed collections aspects contribute to and class bodies read
   (`den.quirks`; see [quirks](https://den.denful.dev/guides/quirks/)).
 
@@ -34,6 +37,7 @@ install-tested in CI).
 | Applies to every host / user | schema include | `den.schema.host.includes` / `den.schema.user.includes` in `modules/den.nix` |
 | Per-host value an aspect needs | setting | `settings` on the aspect; set in `den.hosts.<system>.<host>.settings.<category>.<feature>` |
 | Per-host fact for any aspect (stateVersion, deploy) | host option | `den.schema.host.options` |
+| Shared fact with a default, overridable per entity (timeZone, locales) | conf option | `den.schema.conf.options` beside its reader (`modules/system/locale.nix`); override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `disko.tests.extraConfig` | inside the aspect's `nixos` body |
@@ -41,7 +45,7 @@ install-tested in CI).
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
 | Pure helpers | plain function | `modules/_lib/<name>.nix` |
-| Shared constants | plain attrset | `modules/storage/_layout.nix` (disk label and subvolume names, defined once) |
+| Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks or host/user/conf options |
 | Secrets | SOPS | `secrets/nixos.yaml`; recipients in `.sops.yaml` |
 
 Hostnames, usernames, `/persist` and domains appear only in `modules/hosts/`,
@@ -88,9 +92,12 @@ Stage new files (`git add`) before `just check`.
    A test-VM accommodation (no network, no real secrets):
    `disko.tests.extraConfig.<option> = lib.mkForce …;` in the `nixos` body
    (see `modules/services/tailscale.nix`).
-5. Add `evalTests.<feature>-<what> = { expr = …; expected = …; };` in the
-   nearest test-owning module (`modules/hosts/*/default.nix`,
-   `modules/users/*.nix`, or `modules/flake/*.nix`).
+5. Add `evalTests.<name> = { expr = …; expected = …; };`, `<name>` a unique
+   descriptive name, beside what it pins: the feature's own file for
+   behaviour on every host that includes it (see
+   `modules/services/tailscale.nix`), the host or user module for one entity
+   (`modules/hosts/*/default.nix`, `modules/users/*.nix`), `modules/flake/*.nix`
+   for outputs and tooling.
 
 ### A host
 
@@ -168,6 +175,16 @@ Stage new files (`git add`) before `just check`.
 - Never commit secrets; respect SOPS. Move secrets files, do not re-encrypt.
 - Install tests run in CI only. On darwin `just check` evaluates them without
   building.
+
+## Secrets
+
+- Edit with `sops secrets/nixos.yaml`; recipients are in `.sops.yaml`.
+- After adding a host's recipient: `sops updatekeys secrets/nixos.yaml`.
+  Never re-encrypt by hand.
+- The install test generates its own secrets, encrypted to a throwaway age
+  key, so CI never decrypts with a real host key. The host-key → sops path on
+  the second boot is covered by the interactive install rehearsal (next
+  slice), not by CI.
 
 ## Commands
 
