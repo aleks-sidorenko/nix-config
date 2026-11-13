@@ -118,9 +118,11 @@ in
     };
 
     nixos =
-      { host, ... }:
+      { host, installChecks, ... }:
       {
         imports = [ inputs.disko.nixosModules.disko ];
+
+        disko.tests.extraChecks = lib.concatLines installChecks;
 
         disko.devices.disk.root = {
           type = "disk";
