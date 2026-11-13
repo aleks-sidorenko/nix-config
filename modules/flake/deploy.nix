@@ -53,6 +53,10 @@ in
         hostname = lib.defaultTo host.name host.deploy.hostname;
         profiles.system = {
           user = "root";
+          # A password-protected sudo can't be answered over non-interactive
+          # SSH; deploy-rs then prompts locally and pipes it in.
+          interactiveSudo =
+            config.flake.nixosConfigurations.${host.name}.config.security.sudo.wheelNeedsPassword;
           path =
             inputs.deploy-rs.lib.${host.system}.activate.nixos
               config.flake.nixosConfigurations.${host.name};
@@ -78,8 +82,10 @@ in
     deploy-server = {
       expr = {
         inherit (config.flake.deploy.nodes.server) hostname sshUser;
+        inherit (config.flake.deploy.nodes.server.profiles.system) interactiveSudo;
       };
       expected = {
+        interactiveSudo = true;
         hostname = "server";
         sshUser = "alexander";
       };
