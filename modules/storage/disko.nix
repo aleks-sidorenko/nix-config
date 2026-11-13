@@ -48,12 +48,14 @@ let
       "-L ${label}"
     ];
     # Taken whether or not the host is impermanent, so it can become so later.
+    # Guarded because a re-format would otherwise snapshot into the existing
+    # read-only blank and fail.
     postCreateHook = ''
       mkdir -p /tmp
       MNTPOINT=$(mktemp -d)
       mount -t btrfs /dev/disk/by-label/${label} "$MNTPOINT"
       trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
-      btrfs subvolume snapshot -r "$MNTPOINT/${layout.root}" "$MNTPOINT/${layout.blank}"
+      btrfs subvolume show "$MNTPOINT/${layout.blank}" >/dev/null 2>&1 || btrfs subvolume snapshot -r "$MNTPOINT/${layout.root}" "$MNTPOINT/${layout.blank}"
     '';
     subvolumes = lib.mapAttrs (_: subvolume: removeAttrs subvolume [ "neededForBoot" ]) (
       subvolumes host
