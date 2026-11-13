@@ -35,6 +35,11 @@ in
       expr = lib.hasInfix ''btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"'' s.disko.devices.disk.root.content.partitions.btrfs.content.postCreateHook;
       expected = true;
     };
+    # disko's install test formats twice; the second run must not snapshot again.
+    disko-blank-snapshot-idempotent = {
+      expr = lib.hasInfix ''btrfs subvolume show "$MNTPOINT/@root-blank" >/dev/null 2>&1 || btrfs subvolume snapshot -r'' s.disko.devices.disk.root.content.partitions.btrfs.content.postCreateHook;
+      expected = true;
+    };
     server-filesystems-match-master = {
       expr = mounts s.fileSystems;
       expected = lib.importJSON ./_filesystems-master.json;
