@@ -37,6 +37,7 @@
         den.batteries.hostname
         den.batteries.mutual-provider
         den.aspects.system.nix
+        den.aspects.system.nixpkgs
         den.aspects.system.locale
         den.aspects.system.networking
         den.aspects.security.ssh
