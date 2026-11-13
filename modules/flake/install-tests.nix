@@ -130,11 +130,6 @@ let
                   ${luksKey} = pkgs.writeText "secret.key" "secretsecret";
                 };
 
-                # The test VM has no network, so joining would only fail and retry.
-                systemd.services = lib.mkIf (original.systemd.services ? tailscaled-autoconnect) {
-                  tailscaled-autoconnect.enable = lib.mkForce false;
-                };
-
                 # sops-nix refuses a key file in the store, so copy it out
                 # before either secrets step runs.
                 system.activationScripts = {
@@ -222,6 +217,18 @@ in
     install-base-vm-evaluates = {
       expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
       expected = true;
+    };
+    install-disables-autoconnect = {
+      expr = {
+        installed =
+          (installedSystem den.hosts.x86_64-linux.server-vm)
+          .config.systemd.services.tailscaled-autoconnect.enable;
+        real = (systemOf "server-vm").config.systemd.services.tailscaled-autoconnect.enable;
+      };
+      expected = {
+        installed = false;
+        real = true;
+      };
     };
     test-secrets-cover-host = {
       expr = testSecretNames "base-vm";
