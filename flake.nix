@@ -7,6 +7,10 @@
     den = {
       url = "github:denful/den";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-file = {
       url = "github:denful/flake-file";
     };

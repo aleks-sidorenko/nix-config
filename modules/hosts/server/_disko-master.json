@@ -1,0 +1,185 @@
+{
+  "bcachefs_filesystems": {},
+  "disk": {
+    "root": {
+      "content": {
+        "device": "/dev/disk/by-id/ata-SSD_2TB_004208",
+        "efiGptPartitionFirst": true,
+        "partitions": {
+          "boot": {
+            "alignment": 0,
+            "attributes": [],
+            "content": {
+              "device": "/dev/disk/by-partlabel/boot",
+              "extraArgs": [
+                "-nboot"
+              ],
+              "format": "vfat",
+              "mountOptions": [
+                "umask=0077"
+              ],
+              "mountpoint": "/boot",
+              "postCreateHook": "",
+              "postMountHook": "",
+              "postUnmountHook": "",
+              "preCreateHook": "",
+              "preMountHook": "",
+              "preUnmountHook": "",
+              "type": "filesystem"
+            },
+            "device": "/dev/disk/by-partlabel/boot",
+            "end": "+1G",
+            "label": "boot",
+            "name": "boot",
+            "priority": 1,
+            "size": "1G",
+            "start": "0",
+            "type": "EF00"
+          },
+          "btrfs": {
+            "alignment": 0,
+            "attributes": [],
+            "content": {
+              "device": "/dev/disk/by-partlabel/root",
+              "extraArgs": [
+                "-f",
+                "-L root"
+              ],
+              "mountOptions": [
+                "defaults"
+              ],
+              "postCreateHook": "mkdir -p /tmp\nMNTPOINT=$(mktemp -d)\nmount -t btrfs /dev/disk/by-label/root \"$MNTPOINT\"\ntrap 'umount \"$MNTPOINT\"; rm -rf \"$MNTPOINT\"' EXIT\necho \"Creating blank snapshot of @root\"\nbtrfs subvolume snapshot -r \"$MNTPOINT/@root\" \"$MNTPOINT/@root-blank\"\n\n",
+              "postMountHook": "",
+              "postUnmountHook": "",
+              "preCreateHook": "",
+              "preMountHook": "",
+              "preUnmountHook": "",
+              "subvolumes": {
+                "@data": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "subvol=data",
+                    "noatime"
+                  ],
+                  "mountpoint": "/data",
+                  "name": "@data",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@home": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "subvol=home",
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/home",
+                  "name": "@home",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@log": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "subvol=log",
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/var/log",
+                  "name": "@log",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@nix": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/nix",
+                  "name": "@nix",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@persist": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/persist",
+                  "name": "@persist",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@root": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/",
+                  "name": "@root",
+                  "swap": {},
+                  "type": "btrfs_subvol"
+                },
+                "@swap": {
+                  "extraArgs": [],
+                  "mountOptions": [
+                    "compress=zstd",
+                    "noatime"
+                  ],
+                  "mountpoint": "/swap",
+                  "name": "@swap",
+                  "swap": {
+                    "swapfile": {
+                      "options": [
+                        "defaults"
+                      ],
+                      "path": "swapfile",
+                      "size": "8G"
+                    }
+                  },
+                  "type": "btrfs_subvol"
+                }
+              },
+              "swap": {},
+              "type": "btrfs"
+            },
+            "device": "/dev/disk/by-partlabel/root",
+            "end": "-0",
+            "label": "root",
+            "name": "btrfs",
+            "priority": 9001,
+            "size": "100%",
+            "start": "0",
+            "type": "8300"
+          }
+        },
+        "postCreateHook": "",
+        "postMountHook": "",
+        "postUnmountHook": "",
+        "preCreateHook": "",
+        "preMountHook": "",
+        "preUnmountHook": "",
+        "type": "gpt"
+      },
+      "destroy": true,
+      "device": "/dev/disk/by-id/ata-SSD_2TB_004208",
+      "imageName": "root",
+      "imageSize": "2G",
+      "name": "root",
+      "postCreateHook": "",
+      "postMountHook": "",
+      "postUnmountHook": "",
+      "preCreateHook": "",
+      "preMountHook": "",
+      "preUnmountHook": "",
+      "type": "disk"
+    }
+  },
+  "lvm_vg": {},
+  "mdadm": {},
+  "nodev": {},
+  "zpool": {}
+}

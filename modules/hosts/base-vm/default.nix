@@ -7,19 +7,17 @@ in
   den.hosts.x86_64-linux.base-vm = {
     users.alexander = { };
     stateVersion = "26.05";
+    settings.storage.disko.device = "/dev/vda";
   };
 
   den.aspects.base-vm = {
-    includes = [ den.aspects.hardware.qemu-guest ];
+    includes = [
+      den.aspects.hardware.qemu-guest
+      den.aspects.storage.disko
+    ];
 
-    # Stand-ins so the system evaluates until the boot and disk aspects land.
-    nixos = {
-      boot.loader.grub.enable = false;
-      fileSystems."/" = {
-        device = "/dev/vda";
-        fsType = "ext4";
-      };
-    };
+    # Stand-in until system.boot provides a boot loader.
+    nixos.boot.loader.grub.enable = false;
   };
 
   evalTests = {
@@ -51,6 +49,10 @@ in
         PasswordAuthentication = false;
         PermitRootLogin = "no";
       };
+    };
+    base-vm-encrypted = {
+      expr = c.disko.devices.disk.root.content.partitions ? encrypted;
+      expected = true;
     };
     unstable-overlay = {
       expr = system.pkgs ? unstable;
