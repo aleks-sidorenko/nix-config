@@ -182,10 +182,17 @@ let
       );
     };
 
-  installTest =
+  testSystem = host: (systemOf host.name).extendModules { modules = [ (testModule host) ]; };
+
+  # What the test boots: disko applies `extraConfig` only to the installed system.
+  installedSystem =
     host:
-    ((systemOf host.name).extendModules { modules = [ (testModule host) ]; })
-    .config.system.build.installTest;
+    let
+      system = testSystem host;
+    in
+    system.extendModules { modules = [ system.config.disko.tests.extraConfig ]; };
+
+  installTest = host: (testSystem host).config.system.build.installTest;
 in
 {
   perSystem =
@@ -207,9 +214,13 @@ in
       expr = config.allSystems.x86_64-linux.checks ? install-server;
       expected = false;
     };
+    install-base-vm-evaluates = {
+      expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
+      expected = true;
+    };
     test-secrets-cover-host = {
       expr = testSecretNames "base-vm";
-      expected = lib.attrNames config.flake.nixosConfigurations.base-vm.config.sops.secrets;
+      expected = lib.attrNames (installedSystem den.hosts.x86_64-linux.base-vm).config.sops.secrets;
     };
   };
 }
