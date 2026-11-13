@@ -7,6 +7,25 @@ let
     files = lib.unique (lib.concatMap (e: e.files or [ ]) entries);
   };
 
+  # Merged with the aspects' entries, so one repeating a base path can't trip
+  # impermanence's duplicate-path assertion.
+  collect =
+    persist:
+    merge (
+      [
+        {
+          # systemd runs on every host; it keeps the stamps of `Persistent=`
+          # timers and the random seed here.
+          directories = [
+            "/var/lib/nixos"
+            "/var/lib/systemd"
+          ];
+          files = [ "/etc/machine-id" ];
+        }
+      ]
+      ++ persist
+    );
+
   rollback = ''
     mkdir /tmp -p
     MNTPOINT=$(mktemp -d)
@@ -56,7 +75,7 @@ in
       }:
       let
         persistRoot = host.settings.storage.impermanence.root;
-        state = merge persist;
+        state = collect persist;
       in
       {
         imports = [ inputs.impermanence.nixosModules.impermanence ];
@@ -90,8 +109,7 @@ in
 
           environment.persistence.${persistRoot} = {
             hideMounts = true;
-            directories = [ "/var/lib/nixos" ] ++ state.directories;
-            files = [ "/etc/machine-id" ] ++ state.files;
+            inherit (state) directories files;
           };
         }
         # Secrets decrypt before the bind mounts exist, so read the key where it really lives.
@@ -101,5 +119,16 @@ in
           );
         };
       };
+  };
+
+  evalTests.persist-dedupes-base = {
+    expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];
+    expected = {
+      directories = [
+        "/var/lib/nixos"
+        "/var/lib/systemd"
+      ];
+      files = [ "/etc/machine-id" ];
+    };
   };
 }

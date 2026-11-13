@@ -82,6 +82,12 @@ in
         "@wheel"
       ];
     };
+    persist-systemd-state = {
+      expr = lib.elem "/var/lib/systemd" (
+        map (d: d.dirPath) c.environment.persistence."/persist".directories
+      );
+      expected = true;
+    };
     persist-collects-ssh-key = {
       expr = lib.elem "/etc/ssh/ssh_host_ed25519_key" (
         map (f: f.filePath) c.environment.persistence."/persist".files
