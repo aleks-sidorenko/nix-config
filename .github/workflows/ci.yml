@@ -1,0 +1,43 @@
+name: "CI"
+
+on:
+  push:
+    branches: ["master", "refactor/den-aspects"]
+  pull_request:
+    branches: ["master", "refactor/den-aspects"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: "Check, install tests and server build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Before installing Nix, so it sees /dev/kvm and offers the `kvm` system
+      # feature the install tests require.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v15
+
+      - name: Check
+        run: nix develop -c just check
+
+      - name: Install tests
+        run: nix build .#checks.x86_64-linux.install-base-vm .#checks.x86_64-linux.install-server-vm -L
+
+      - name: Build server
+        run: nix build .#nixosConfigurations.server.config.system.build.toplevel
