@@ -1,11 +1,8 @@
 { den, lib }:
 let
   inherit (lib) mkOption types;
-  inherit (den.lib.aspects.fx.keyClassification) isStructuralKey;
 
-  # Keys that are pipeline machinery, class content or quirk data,
-  # never child aspects.
-  skipKey = k: isStructuralKey k || (den.classes or { }) ? ${k} || (den.quirks or { }) ? ${k};
+  skipKey = import ./reserved-key.nix { inherit den; };
 
   # `settings` is either a bare attrset of options, or a module with
   # options / config / imports.
