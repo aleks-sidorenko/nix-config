@@ -61,10 +61,14 @@ in
       expr = {
         docs = sv.documentation.enable;
         watchdog = sv.systemd.settings.Manager.RuntimeWatchdogSec;
+        rebootWatchdog = sv.systemd.settings.Manager.RebootWatchdogSec or null;
+        emergencyMode = sv.systemd.enableEmergencyMode;
       };
       expected = {
         docs = false;
         watchdog = "30s";
+        rebootWatchdog = "30s";
+        emergencyMode = false;
       };
     };
     server-vm-install-check = {

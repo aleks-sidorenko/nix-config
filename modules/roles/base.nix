@@ -5,5 +5,6 @@
     den.aspects.storage.disko
     den.aspects.storage.impermanence
     den.aspects.security.sops
+    den.aspects.security.sudo
   ];
 }
