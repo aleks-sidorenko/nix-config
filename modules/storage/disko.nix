@@ -8,20 +8,25 @@ let
     "noatime"
   ];
 
+  # `neededForBoot` is ours, not disko's: it is stripped before disko sees the table.
   subvolumes =
-    swapSize:
+    host:
     lib.mapAttrs (_: subvolume: { mountOptions = defaultMountOptions; } // subvolume) {
       "@root".mountpoint = "/";
       "@nix".mountpoint = "/nix";
       "@log" = {
         mountpoint = "/var/log";
         mountOptions = [ "subvol=log" ] ++ defaultMountOptions;
+        neededForBoot = true;
       };
       "@swap" = {
         mountpoint = "/swap";
-        swap.swapfile.size = swapSize;
+        swap.swapfile.size = host.settings.storage.disko.swapSize;
       };
-      "@persist".mountpoint = "/persist";
+      "@persist" = {
+        mountpoint = host.settings.storage.impermanence.root;
+        neededForBoot = true;
+      };
       "@home" = {
         mountpoint = "/home";
         mountOptions = [ "subvol=home" ] ++ defaultMountOptions;
@@ -35,7 +40,7 @@ let
       };
     };
 
-  btrfs = cfg: {
+  btrfs = host: {
     type = "btrfs";
     extraArgs = [
       "-f"
@@ -49,13 +54,15 @@ let
       trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
       btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"
     '';
-    subvolumes = subvolumes cfg.swapSize;
+    subvolumes = lib.mapAttrs (_: subvolume: removeAttrs subvolume [ "neededForBoot" ]) (
+      subvolumes host
+    );
   };
 
   # Attribute names are part of the layout: renaming one changes the partition.
   rootPartition =
-    cfg:
-    if cfg.encrypted then
+    host:
+    if host.settings.storage.disko.encrypted then
       {
         encrypted = {
           size = "100%";
@@ -72,7 +79,7 @@ let
                 "token-timeout=10"
               ];
             };
-            content = btrfs cfg;
+            content = btrfs host;
           };
         };
       }
@@ -81,7 +88,7 @@ let
         btrfs = {
           size = "100%";
           inherit label;
-          content = btrfs cfg;
+          content = btrfs host;
         };
       };
 in
@@ -111,15 +118,12 @@ in
 
     nixos =
       { host, ... }:
-      let
-        cfg = host.settings.storage.disko;
-      in
       {
         imports = [ inputs.disko.nixosModules.disko ];
 
         disko.devices.disk.root = {
           type = "disk";
-          inherit (cfg) device;
+          inherit (host.settings.storage.disko) device;
           content = {
             type = "gpt";
             partitions = {
@@ -137,13 +141,13 @@ in
                 };
               };
             }
-            // rootPartition cfg;
+            // rootPartition host;
           };
         };
 
-        fileSystems = lib.genAttrs [ "/var/log" "/persist" ] (_: {
-          neededForBoot = true;
-        });
+        fileSystems = lib.mapAttrs' (
+          _: subvolume: lib.nameValuePair subvolume.mountpoint { neededForBoot = true; }
+        ) (lib.filterAttrs (_: subvolume: subvolume.neededForBoot or false) (subvolumes host));
       };
   };
 }
