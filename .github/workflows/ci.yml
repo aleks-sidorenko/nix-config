@@ -15,9 +15,17 @@ jobs:
   ci:
     name: "Check, install tests and server build"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      # Two VM install tests and the server closure outgrow the runner's free disk.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
 
       # Before installing Nix, so it sees /dev/kvm and offers the `kvm` system
       # feature the install tests require.
@@ -33,11 +41,28 @@ jobs:
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v15
 
-      - name: Check
-        run: nix develop -c just check
+      - name: Check formatting
+        run: nix develop -c just format-check
 
-      - name: Install tests
-        run: nix build .#checks.x86_64-linux.install-base-vm .#checks.x86_64-linux.install-server-vm -L
+      - name: Lint
+        run: nix develop -c just lint
+
+      # Built ahead of the flake check, which would build them too but
+      # without their logs.
+      - name: Install test (base-vm)
+        run: nix build .#checks.x86_64-linux.install-base-vm -L
+
+      - name: Install test (server-vm)
+        run: nix build .#checks.x86_64-linux.install-server-vm -L
 
       - name: Build server
         run: nix build .#nixosConfigurations.server.config.system.build.toplevel
+
+      - name: Flake check
+        run: nix develop -c just flake-check
+
+      # Other systems' checks can't build here, so only evaluate them. After a
+      # build step: --no-build never copies the flake source into the store, so
+      # on a fresh runner it fails with "path ... is not valid".
+      - name: Evaluate flake (all systems)
+        run: nix flake check --all-systems --no-build --show-trace
