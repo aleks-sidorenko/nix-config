@@ -1,4 +1,9 @@
-{ config, den, ... }:
+{
+  config,
+  den,
+  lib,
+  ...
+}:
 let
   system = config.flake.nixosConfigurations.base-vm;
   c = system.config;
@@ -13,11 +18,8 @@ in
   den.aspects.base-vm = {
     includes = [
       den.aspects.hardware.qemu-guest
-      den.aspects.storage.disko
+      den.aspects.roles.base
     ];
-
-    # Stand-in until system.boot provides a boot loader.
-    nixos.boot.loader.grub.enable = false;
   };
 
   evalTests = {
@@ -56,6 +58,46 @@ in
     };
     unstable-overlay = {
       expr = system.pkgs ? unstable;
+      expected = true;
+    };
+    systemd-boot = {
+      expr = {
+        loader = c.boot.loader.systemd-boot.enable;
+        initrd = c.boot.initrd.systemd.enable;
+      };
+      expected = {
+        loader = true;
+        initrd = true;
+      };
+    };
+    persist-collects-ssh-key = {
+      expr = lib.elem "/etc/ssh/ssh_host_ed25519_key" (
+        map (f: f.filePath) c.environment.persistence."/persist".files
+      );
+      expected = true;
+    };
+    rollback-unit = {
+      expr = c.boot.initrd.systemd.services ? impermanence-rollback-root;
+      expected = true;
+    };
+    rollback-restores-blank = {
+      expr = lib.hasInfix ''btrfs subvolume snapshot "$MNTPOINT/@root-blank" "$MNTPOINT/@root"'' c.boot.initrd.systemd.services.impermanence-rollback-root.script;
+      expected = true;
+    };
+    sops-key-under-persist = {
+      expr = c.sops.age.sshKeyPaths;
+      expected = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+    };
+    sops-default-file = {
+      expr = baseNameOf (toString c.sops.defaultSopsFile);
+      expected = "nixos.yaml";
+    };
+    home-persistence-reaches-user = {
+      expr = builtins.attrNames c.home-manager.users.alexander.home.persistence;
+      expected = [ "/persist" ];
+    };
+    base-vm-builds = {
+      expr = lib.isString c.system.build.toplevel.drvPath;
       expected = true;
     };
   };

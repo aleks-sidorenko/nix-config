@@ -2,7 +2,8 @@
 let
   inherit (lib) mkOption types;
 
-  label = "root";
+  layout = import ./_layout.nix;
+  inherit (layout) label;
   defaultMountOptions = [
     "compress=zstd"
     "noatime"
@@ -12,7 +13,7 @@ let
   subvolumes =
     host:
     lib.mapAttrs (_: subvolume: { mountOptions = defaultMountOptions; } // subvolume) {
-      "@root".mountpoint = "/";
+      ${layout.root}.mountpoint = "/";
       "@nix".mountpoint = "/nix";
       "@log" = {
         mountpoint = "/var/log";
@@ -52,7 +53,7 @@ let
       MNTPOINT=$(mktemp -d)
       mount -t btrfs /dev/disk/by-label/${label} "$MNTPOINT"
       trap 'umount "$MNTPOINT"; rm -rf "$MNTPOINT"' EXIT
-      btrfs subvolume snapshot -r "$MNTPOINT/@root" "$MNTPOINT/@root-blank"
+      btrfs subvolume snapshot -r "$MNTPOINT/${layout.root}" "$MNTPOINT/${layout.blank}"
     '';
     subvolumes = lib.mapAttrs (_: subvolume: removeAttrs subvolume [ "neededForBoot" ]) (
       subvolumes host

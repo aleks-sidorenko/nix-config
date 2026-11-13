@@ -25,7 +25,7 @@ keys:
     - &server age192swvpjx884m37rxx95ahgzp2p6ehhpdg74wmfwfazl53nd2tgvsw8rs97
 
 creation_rules:
-  - path_regex: modules/nixos/secrets.ya?ml$
+  - path_regex: secrets/nixos.ya?ml$
     key_groups:
       - pgp:
           - *alexander
