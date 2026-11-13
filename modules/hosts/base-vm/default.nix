@@ -52,6 +52,10 @@ in
         PermitRootLogin = "no";
       };
     };
+    base-vm-no-tailscale = {
+      expr = c.services.tailscale.enable;
+      expected = false;
+    };
     base-vm-encrypted = {
       expr = c.disko.devices.disk.root.content.partitions ? encrypted;
       expected = true;

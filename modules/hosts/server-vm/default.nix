@@ -7,7 +7,6 @@
 let
   sv = config.flake.nixosConfigurations.server-vm.config;
   s = config.flake.nixosConfigurations.server.config;
-  b = config.flake.nixosConfigurations.base-vm.config;
   inherit (import ../server/_parity.nix { inherit lib; }) declarative;
 
   # The only intended differences from `server`.
@@ -48,10 +47,6 @@ in
         map (d: d.dirPath) sv.environment.persistence."/persist".directories
       );
       expected = true;
-    };
-    base-vm-no-tailscale = {
-      expr = b.services.tailscale.enable;
-      expected = false;
     };
     server-vm-disk-like-server = {
       expr = withoutDevice (declarative sv.disko.devices);
