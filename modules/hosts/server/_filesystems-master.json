@@ -1,0 +1,86 @@
+{
+  "/": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": false,
+    "options": [
+      "x-initrd.mount",
+      "compress=zstd",
+      "noatime",
+      "subvol=@root"
+    ]
+  },
+  "/boot": {
+    "device": "/dev/disk/by-partlabel/boot",
+    "fsType": "vfat",
+    "neededForBoot": false,
+    "options": [
+      "umask=0077"
+    ]
+  },
+  "/data": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": false,
+    "options": [
+      "subvol=data",
+      "noatime",
+      "subvol=@data"
+    ]
+  },
+  "/home": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": false,
+    "options": [
+      "subvol=home",
+      "compress=zstd",
+      "noatime",
+      "subvol=@home"
+    ]
+  },
+  "/nix": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": false,
+    "options": [
+      "x-initrd.mount",
+      "compress=zstd",
+      "noatime",
+      "subvol=@nix"
+    ]
+  },
+  "/persist": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": true,
+    "options": [
+      "x-initrd.mount",
+      "compress=zstd",
+      "noatime",
+      "subvol=@persist"
+    ]
+  },
+  "/swap": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": false,
+    "options": [
+      "compress=zstd",
+      "noatime",
+      "subvol=@swap"
+    ]
+  },
+  "/var/log": {
+    "device": "/dev/disk/by-partlabel/root",
+    "fsType": "btrfs",
+    "neededForBoot": true,
+    "options": [
+      "x-initrd.mount",
+      "subvol=log",
+      "compress=zstd",
+      "noatime",
+      "subvol=@log"
+    ]
+  }
+}
