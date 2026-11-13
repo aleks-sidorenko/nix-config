@@ -24,8 +24,8 @@ in
     nixos.imports = [ ./_hardware.nix ];
   };
 
-  # The live disk must not change shape when server deploys from this tree.
   evalTests = {
+    # The live disk must not change shape when server deploys from this tree.
     server-disko-matches-master = {
       expr = withoutHook (declarative s.disko.devices);
       expected = withoutHook (lib.importJSON ./_disko-master.json);
@@ -43,6 +43,21 @@ in
     server-filesystems-match-master = {
       expr = mounts s.fileSystems;
       expected = lib.importJSON ./_filesystems-master.json;
+    };
+    deploy-only-server = {
+      expr = lib.attrNames config.flake.deploy.nodes;
+      expected = [ "server" ];
+    };
+    deploy-server = {
+      expr = {
+        inherit (config.flake.deploy.nodes.server) hostname sshUser;
+        inherit (config.flake.deploy.nodes.server.profiles.system) interactiveSudo;
+      };
+      expected = {
+        interactiveSudo = true;
+        hostname = "server";
+        sshUser = "alexander";
+      };
     };
   };
 }

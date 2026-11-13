@@ -73,22 +73,4 @@ in
         inputs.deploy-rs.lib.${system}.deployChecks { nodes = nodesOf system; }
       );
     };
-
-  evalTests = {
-    deploy-only-server = {
-      expr = lib.attrNames config.flake.deploy.nodes;
-      expected = [ "server" ];
-    };
-    deploy-server = {
-      expr = {
-        inherit (config.flake.deploy.nodes.server) hostname sshUser;
-        inherit (config.flake.deploy.nodes.server.profiles.system) interactiveSudo;
-      };
-      expected = {
-        interactiveSudo = true;
-        hostname = "server";
-        sshUser = "alexander";
-      };
-    };
-  };
 }

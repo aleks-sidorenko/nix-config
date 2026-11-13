@@ -195,44 +195,42 @@ let
   installTest = host: (testSystem host).config.system.build.installTest;
 in
 {
-  perSystem =
-    { system, ... }:
-    {
-      checks = lib.mapAttrs' (name: host: lib.nameValuePair "install-${name}" (installTest host)) (
-        lib.filterAttrs (_: host: host.hasAspect den.aspects.hardware.qemu-guest) (
-          den.hosts.${system} or { }
-        )
-      );
-    };
+  options.installedSystem = lib.mkOption {
+    type = lib.types.functionTo lib.types.raw;
+    readOnly = true;
+    description = "A VM host's system as its install test boots it, for aspects' eval tests.";
+  };
 
-  evalTests = {
-    install-test-exists = {
-      expr = config.allSystems.x86_64-linux.checks ? install-base-vm;
-      expected = true;
-    };
-    install-test-no-real = {
-      expr = config.allSystems.x86_64-linux.checks ? install-server;
-      expected = false;
-    };
-    install-base-vm-evaluates = {
-      expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
-      expected = true;
-    };
-    install-disables-autoconnect = {
-      expr = {
-        installed =
-          (installedSystem den.hosts.x86_64-linux.server-vm)
-          .config.systemd.services.tailscaled-autoconnect.enable;
-        real = (systemOf "server-vm").config.systemd.services.tailscaled-autoconnect.enable;
+  config = {
+    inherit installedSystem;
+
+    perSystem =
+      { system, ... }:
+      {
+        checks = lib.mapAttrs' (name: host: lib.nameValuePair "install-${name}" (installTest host)) (
+          lib.filterAttrs (_: host: host.hasAspect den.aspects.hardware.qemu-guest) (
+            den.hosts.${system} or { }
+          )
+        );
       };
-      expected = {
-        installed = false;
-        real = true;
+
+    evalTests = {
+      install-test-exists = {
+        expr = config.allSystems.x86_64-linux.checks ? install-base-vm;
+        expected = true;
       };
-    };
-    test-secrets-cover-host = {
-      expr = testSecretNames "base-vm";
-      expected = lib.attrNames (installedSystem den.hosts.x86_64-linux.base-vm).config.sops.secrets;
+      install-test-no-real = {
+        expr = config.allSystems.x86_64-linux.checks ? install-server;
+        expected = false;
+      };
+      install-base-vm-evaluates = {
+        expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
+        expected = true;
+      };
+      test-secrets-cover-host = {
+        expr = testSecretNames "base-vm";
+        expected = lib.attrNames (installedSystem den.hosts.x86_64-linux.base-vm).config.sops.secrets;
+      };
     };
   };
 }
