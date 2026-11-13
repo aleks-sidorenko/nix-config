@@ -19,7 +19,7 @@ in
   };
 
   den.aspects.server = {
-    includes = [ den.aspects.roles.base ];
+    includes = [ den.aspects.roles.server ];
     nixos.imports = [ ./_hardware.nix ];
   };
 

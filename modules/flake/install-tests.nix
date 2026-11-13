@@ -130,6 +130,11 @@ let
                   ${luksKey} = pkgs.writeText "secret.key" "secretsecret";
                 };
 
+                # The test VM has no network, so joining would only fail and retry.
+                systemd.services = lib.mkIf (original.systemd.services ? tailscaled-autoconnect) {
+                  tailscaled-autoconnect.enable = lib.mkForce false;
+                };
+
                 # sops-nix refuses a key file in the store, so copy it out
                 # before either secrets step runs.
                 system.activationScripts = {
