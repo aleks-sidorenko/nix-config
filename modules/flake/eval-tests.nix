@@ -17,11 +17,6 @@ in
   };
 
   config = {
-    evalTests.no-hosts-yet = {
-      expr = config.den.hosts;
-      expected = { };
-    };
-
     perSystem =
       { pkgs, ... }:
       let

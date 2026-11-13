@@ -1,4 +1,9 @@
-{ inputs, lib, ... }:
+{
+  den,
+  inputs,
+  lib,
+  ...
+}:
 {
   imports = [
     inputs.den.flakeModules.dendritic
@@ -22,5 +27,50 @@
     flake-file.url = "github:denful/flake-file";
   };
 
-  den.schema.user.classes = lib.mkDefault [ "homeManager" ];
+  den = {
+    migrations.user-host-content.acknowledged = true;
+
+    schema.host = {
+      includes = [
+        den.batteries.hostname
+        den.batteries.mutual-provider
+        den.aspects.system.nix
+        den.aspects.system.locale
+        den.aspects.system.networking
+        den.aspects.security.ssh
+      ];
+
+      options.stateVersion = lib.mkOption {
+        type = lib.types.str;
+        description = "Release the host's and its users' stateful data was first created with.";
+      };
+    };
+
+    schema.user = {
+      includes = [ den.batteries.define-user ];
+      classes = lib.mkDefault [ "homeManager" ];
+    };
+
+    quirks = {
+      persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
+      persistHome.description = "Home state kept across reboots: { directories ? [ ]; files ? [ ]; }";
+    };
+
+    default = {
+      nixos =
+        { host, ... }:
+        {
+          system.stateVersion = host.stateVersion;
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+          };
+        };
+      homeManager =
+        { host, ... }:
+        {
+          home.stateVersion = host.stateVersion;
+        };
+    };
+  };
 }
