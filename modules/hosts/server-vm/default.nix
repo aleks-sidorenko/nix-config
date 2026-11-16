@@ -36,7 +36,7 @@ in
   };
 
   den.aspects.server-vm.includes = [
-    den.aspects.roles.server
+    den.aspects.roles.home-server
     den.aspects.hardware.qemu-guest
   ];
 

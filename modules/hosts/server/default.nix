@@ -30,7 +30,7 @@ in
   };
 
   den.aspects.server = {
-    includes = [ den.aspects.roles.server ];
+    includes = [ den.aspects.roles.home-server ];
     nixos.imports = [ ./_hardware.nix ];
   };
 
@@ -73,6 +73,18 @@ in
     server-parity-sudo = same [ "sudo" ];
     server-parity-manager = same [ "manager" ];
     server-parity-misc = same [ "misc" ];
+    server-parity-default-vhost = same [
+      "vhosts"
+      "_"
+    ];
+    server-parity-tailnet-ingress = same [
+      "firewall"
+      "interfaces"
+    ];
+    server-has-htpasswd = {
+      expr = s.sops.secrets ? service-ingress-htpasswd;
+      expected = true;
+    };
     server-parity-primary-groups = same [ "primaryGroups" ];
     # Losing these wipes saved connections on reboot and the box drops off the LAN.
     server-persists-network = {
