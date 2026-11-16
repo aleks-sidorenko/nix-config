@@ -44,7 +44,15 @@ in
       extraGroups = sorted u.extraGroups;
     }
   );
-  primaryGroups = sorted c.users.users.alexander.extraGroups;
+  # A set: the primary-user battery and the network aspect both grant a group.
+  primaryGroups = attrNames (
+    listToAttrs (
+      map (g: {
+        name = g;
+        value = null;
+      }) c.users.users.alexander.extraGroups
+    )
+  );
   firewall = {
     tcp = sorted c.networking.firewall.allowedTCPPorts;
     udp = sorted c.networking.firewall.allowedUDPPorts;

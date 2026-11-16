@@ -1,23 +1,31 @@
 {
-  den.aspects.system.headless.nixos = {
-    documentation = {
-      enable = false;
-      doc.enable = false;
-      man.enable = false;
-      info.enable = false;
-      nixos.enable = false;
-    };
-    fonts.fontconfig.enable = false;
-    systemd = {
-      # Root is locked and no one is at the console, so the emergency shell is
-      # a dead end; carrying on with the boot may still leave SSH reachable.
-      enableEmergencyMode = false;
-      settings.Manager = {
-        # Reboots a hung host that has no one at the console to power-cycle it.
-        RuntimeWatchdogSec = "30s";
-        # Likewise for a shutdown that hangs before it reaches the reboot.
-        RebootWatchdogSec = "30s";
+  den.aspects.system.headless.nixos =
+    { pkgs, ... }:
+    {
+      documentation = {
+        enable = false;
+        doc.enable = false;
+        man.enable = false;
+        info.enable = false;
+        nixos.enable = false;
+      };
+      fonts.fontconfig.enable = false;
+      # Without a display, a browser launch has nothing to open; echo prints the URL.
+      environment = {
+        stub-ld.enable = false;
+        variables.BROWSER = "echo";
+        systemPackages = [ pkgs.dnsutils ];
+      };
+      systemd = {
+        # Root is locked and no one is at the console, so the emergency shell is
+        # a dead end; carrying on with the boot may still leave SSH reachable.
+        enableEmergencyMode = false;
+        settings.Manager = {
+          # Reboots a hung host that has no one at the console to power-cycle it.
+          RuntimeWatchdogSec = "20s";
+          # Likewise for a shutdown that hangs before it reaches the reboot.
+          RebootWatchdogSec = "30s";
+        };
       };
     };
-  };
 }

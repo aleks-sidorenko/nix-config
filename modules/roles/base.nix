@@ -6,5 +6,6 @@
     den.aspects.storage.impermanence
     den.aspects.security.sops
     den.aspects.security.sudo
+    den.aspects.security.nix-access-tokens
   ];
 }

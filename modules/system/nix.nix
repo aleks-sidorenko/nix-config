@@ -24,20 +24,21 @@
             "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
           ];
         };
-        gc = {
-          automatic = true;
-          options = "--delete-older-than 7d";
-        };
       };
     };
 
     nixos.nix = {
       # corrupts the store on darwin, so NixOS only
       settings.auto-optimise-store = true;
-      gc = {
-        dates = "weekly";
-        persistent = true;
-        randomizedDelaySec = "1hour";
+    };
+
+    # nix.gc would prune by age alone; nh keeps the last generations whatever
+    # their age, so a fallback generation survives.
+    nixos.programs.nh = {
+      enable = true;
+      clean = {
+        enable = true;
+        extraArgs = "--keep-since 7d --keep 5";
       };
     };
   };

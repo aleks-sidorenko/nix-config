@@ -26,6 +26,9 @@ in
   den.hosts.x86_64-linux.server-vm = {
     users.alexander = { };
     stateVersion = "26.05";
+    timeZone = "UTC";
+    locales = [ "en_US.UTF-8" ];
+    layouts = [ "us" ];
     settings.storage.disko = {
       device = "/dev/vda";
       encrypted = false;
@@ -61,7 +64,7 @@ in
       };
       expected = {
         docs = false;
-        watchdog = "30s";
+        watchdog = "20s";
         rebootWatchdog = "30s";
         emergencyMode = false;
       };

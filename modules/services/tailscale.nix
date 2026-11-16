@@ -28,6 +28,7 @@ in
 
         services.tailscale = {
           enable = true;
+          openFirewall = true;
           authKeyFile = config.sops.secrets."system-tailscale-auth-key".path;
           # Required for OAuth client secrets used as auth keys; a plain,
           # already-approved key ignores it.

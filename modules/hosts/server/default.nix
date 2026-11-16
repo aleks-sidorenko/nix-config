@@ -19,6 +19,9 @@ in
   den.hosts.x86_64-linux.server = {
     users.alexander = { };
     stateVersion = "26.05";
+    timeZone = "UTC";
+    locales = [ "en_US.UTF-8" ];
+    layouts = [ "us" ];
     deploy.sshUser = "alexander";
     settings.storage.disko = {
       device = "/dev/disk/by-id/ata-SSD_2TB_004208";
@@ -65,6 +68,24 @@ in
       "misc"
       "bootLimit"
     ];
+    server-parity-networking = same [ "networking" ];
+    server-parity-locale = same [ "locale" ];
+    server-parity-sudo = same [ "sudo" ];
+    server-parity-manager = same [ "manager" ];
+    server-parity-misc = same [ "misc" ];
+    server-parity-primary-groups = same [ "primaryGroups" ];
+    # Losing these wipes saved connections on reboot and the box drops off the LAN.
+    server-persists-network = {
+      expr =
+        let
+          dirs = map (d: d.dirPath) s.environment.persistence."/persist".directories;
+        in
+        lib.all (p: lib.elem p dirs) [
+          "/etc/NetworkManager/system-connections"
+          "/var/lib/NetworkManager"
+        ];
+      expected = true;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
@@ -75,7 +96,7 @@ in
         inherit (config.flake.deploy.nodes.server.profiles.system) interactiveSudo;
       };
       expected = {
-        interactiveSudo = true;
+        interactiveSudo = false;
         hostname = "server";
         sshUser = "alexander";
       };

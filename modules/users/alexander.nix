@@ -13,6 +13,12 @@ in
     (den.batteries.user-shell "fish")
   ];
 
+  # Account-level groups master grants every user beside `networkmanager`.
+  den.aspects.alexander.user.extraGroups = [
+    "input"
+    "tty"
+  ];
+
   evalTests = {
     alexander-wheel = {
       expr = lib.elem "wheel" c.users.users.alexander.extraGroups;
