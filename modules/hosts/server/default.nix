@@ -129,8 +129,22 @@ in
       "vhosts"
       "jellyfin"
     ];
+    server-parity-minidlna-user = same [
+      "users"
+      "minidlna"
+    ];
+    server-parity-minidlna-vhost = same [
+      "vhosts"
+      "minidlna"
+    ];
     server-persists-jellyfin = {
       expr = lib.elem "/var/lib/jellyfin" (
+        map (d: d.dirPath) s.environment.persistence."/persist".directories
+      );
+      expected = true;
+    };
+    server-persists-minidlna = {
+      expr = lib.elem "/var/cache/minidlna" (
         map (d: d.dirPath) s.environment.persistence."/persist".directories
       );
       expected = true;
