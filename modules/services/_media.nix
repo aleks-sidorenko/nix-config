@@ -11,9 +11,4 @@ root: rec {
   downloadDir = category: "${downloadRoot}/${category}";
   mediaDir = category: "${mediaRoot}/${category}";
   group = "media";
-  # Shared with recyclarr, which syncs into both.
-  ports = {
-    sonarr = 8989;
-    radarr = 7878;
-  };
 }

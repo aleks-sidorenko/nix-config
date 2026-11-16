@@ -1,5 +1,5 @@
 let
-  webPort = (import ./_media.nix "").ports.sonarr;
+  webPort = 8989;
   dataDir = "/var/lib/sonarr";
 in
 {
@@ -46,6 +46,7 @@ in
             user = "sonarr";
             inherit group dataDir;
             # nginx is the ingress; opening the port here would let clients bypass it.
+            settings.server.port = webPort;
             openFirewall = false;
           };
 

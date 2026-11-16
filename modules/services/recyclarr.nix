@@ -20,12 +20,11 @@ in
         media = import ./_media.nix host.mediaRoot;
         inherit (media) group;
         package = pkgs.unstable.recyclarr;
-        inherit (media) ports;
 
         # Direct to the local apps: they disable auth for local addresses, and
         # going through the proxy would couple the sync to it.
-        sonarrUrl = "http://localhost:${toString ports.sonarr}";
-        radarrUrl = "http://localhost:${toString ports.radarr}";
+        sonarrUrl = "http://localhost:${toString config.services.sonarr.settings.server.port}";
+        radarrUrl = "http://localhost:${toString config.services.radarr.settings.server.port}";
 
         # Stock TRaSH HD profiles by trash_id, with the qualities overridden so
         # 720p is the target and 1080p only a fallback: 720p groups rank above

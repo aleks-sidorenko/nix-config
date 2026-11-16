@@ -222,6 +222,20 @@ in
       "recyclarr"
     ];
     server-persists-recyclarr = persistsAll [ "/var/lib/recyclarr" ];
+    server-recyclarr-targets-arr-ports = {
+      expr =
+        let
+          content = s.sops.templates."recyclarr.yml".content;
+        in
+        map (url: lib.hasInfix "base_url: ${url}\n" content) [
+          "http://localhost:8989"
+          "http://localhost:7878"
+        ];
+      expected = [
+        true
+        true
+      ];
+    };
     server-recyclarr-from-unstable = {
       expr = lib.elem unstable.recyclarr.outPath (map (p: p.outPath) s.environment.systemPackages);
       expected = true;

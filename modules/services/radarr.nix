@@ -1,5 +1,5 @@
 let
-  webPort = (import ./_media.nix "").ports.radarr;
+  webPort = 7878;
   dataDir = "/var/lib/radarr";
 in
 {
