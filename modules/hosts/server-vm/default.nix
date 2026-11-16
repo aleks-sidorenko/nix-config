@@ -40,17 +40,16 @@ in
     };
   };
 
-  evalTests.server-vm-qbittorrent-secret = {
-    expr = sv.sops.secrets ? service-qbittorrent-alexander-password;
-    expected = true;
-  };
-
   den.aspects.server-vm.includes = [
     den.aspects.roles.home-server
     den.aspects.hardware.qemu-guest
   ];
 
   evalTests = {
+    server-vm-qbittorrent-secret = {
+      expr = sv.sops.secrets ? service-qbittorrent-alexander-password;
+      expected = true;
+    };
     server-vm-tailscale = {
       expr = sv.services.tailscale.enable;
       expected = true;

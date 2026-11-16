@@ -56,23 +56,20 @@ in
         unstable = "1d060086d60cb76a40cf37109f979d88a5bd6396";
       };
     };
+    # Master's daemon at c3bfac7, which the nixpkgs pin preserves.
     server-nix-as-master = {
       expr = s.nix.package.version;
       expected = "2.35.3";
     };
     server-tools-as-master = {
-      expr =
-        let
-          names = map lib.getName s.environment.systemPackages;
-        in
-        lib.all (n: lib.elem n names) [
-          "efibootmgr"
-          "efitools"
-          "efivar"
-          "fwupd"
-          "jellyfin"
-        ];
-      expected = true;
+      expr = lib.subtractLists (map lib.getName s.environment.systemPackages) [
+        "efibootmgr"
+        "efitools"
+        "efivar"
+        "fwupd"
+        "jellyfin"
+      ];
+      expected = [ ];
     };
     # The live disk must not change shape when server deploys from this tree.
     server-disko-matches-master = {
@@ -116,17 +113,10 @@ in
     };
     server-parity-primary-groups = same [ "primaryGroups" ];
     # Losing these wipes saved connections on reboot and the box drops off the LAN.
-    server-persists-network = {
-      expr =
-        let
-          dirs = map (d: d.dirPath) s.environment.persistence."/persist".directories;
-        in
-        lib.all (p: lib.elem p dirs) [
-          "/etc/NetworkManager/system-connections"
-          "/var/lib/NetworkManager"
-        ];
-      expected = true;
-    };
+    server-persists-network = persistsAll [
+      "/etc/NetworkManager/system-connections"
+      "/var/lib/NetworkManager"
+    ];
     server-parity-qbittorrent-user = same [
       "users"
       "qbittorrent"
@@ -135,12 +125,7 @@ in
       "vhosts"
       "qbittorrent"
     ];
-    server-persists-qbittorrent = {
-      expr = lib.elem "/var/lib/qbittorrent" (
-        map (d: d.dirPath) s.environment.persistence."/persist".directories
-      );
-      expected = true;
-    };
+    server-persists-qbittorrent = persistsAll [ "/var/lib/qbittorrent" ];
     server-qbittorrent-secret = {
       expr = s.sops.secrets ? service-qbittorrent-alexander-password;
       expected = true;
@@ -174,24 +159,9 @@ in
       "calibre"
     ];
     server-parity-jellyfin-dirs = same [ "jellyfin" ];
-    server-persists-jellyfin = {
-      expr = lib.elem "/var/lib/jellyfin" (
-        map (d: d.dirPath) s.environment.persistence."/persist".directories
-      );
-      expected = true;
-    };
-    server-persists-minidlna = {
-      expr = lib.elem "/var/cache/minidlna" (
-        map (d: d.dirPath) s.environment.persistence."/persist".directories
-      );
-      expected = true;
-    };
-    server-persists-calibre-web = {
-      expr = lib.elem "/var/lib/calibre-web" (
-        map (d: d.dirPath) s.environment.persistence."/persist".directories
-      );
-      expected = true;
-    };
+    server-persists-jellyfin = persistsAll [ "/var/lib/jellyfin" ];
+    server-persists-minidlna = persistsAll [ "/var/cache/minidlna" ];
+    server-persists-calibre-web = persistsAll [ "/var/lib/calibre-web" ];
     server-parity-sonarr-user = same [
       "users"
       "sonarr"
