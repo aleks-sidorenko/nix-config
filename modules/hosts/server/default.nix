@@ -78,6 +78,19 @@ in
       expr = s.nix.package.version;
       expected = "2.35.3";
     };
+    server-tools-as-master = {
+      expr =
+        let
+          names = map lib.getName s.environment.systemPackages;
+        in
+        lib.all (n: lib.elem n names) [
+          "efibootmgr"
+          "efitools"
+          "efivar"
+          "fwupd"
+        ];
+      expected = true;
+    };
     # The live disk must not change shape when server deploys from this tree.
     server-disko-matches-master = {
       expr = withoutHook (declarative s.disko.devices);
