@@ -8,6 +8,7 @@
   };
 
   den.aspects.roles.media-server.includes = [
+    den.aspects.services.jellyfin
     den.aspects.services.nginx
     den.aspects.services.qbittorrent
   ];

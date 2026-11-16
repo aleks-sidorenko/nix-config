@@ -121,6 +121,20 @@ in
       expr = s.services.nginx.virtualHosts.qbittorrent.basicAuthFile;
       expected = s.sops.secrets.service-ingress-htpasswd.path;
     };
+    server-parity-jellyfin-user = same [
+      "users"
+      "jellyfin"
+    ];
+    server-parity-jellyfin-vhost = same [
+      "vhosts"
+      "jellyfin"
+    ];
+    server-persists-jellyfin = {
+      expr = lib.elem "/var/lib/jellyfin" (
+        map (d: d.dirPath) s.environment.persistence."/persist".directories
+      );
+      expected = true;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
