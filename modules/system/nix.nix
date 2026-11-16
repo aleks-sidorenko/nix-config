@@ -31,8 +31,8 @@
       { pkgs, ... }:
       {
         nix = {
-          # The tree this one replaces ran latest; a daemon downgrade is a package
-          # version change the cutover must not make.
+          # Latest, like the generations before it, so booting between them
+          # never downgrades the daemon over a store a newer one has used.
           package = pkgs.nixVersions.latest;
           # corrupts the store on darwin, so NixOS only
           settings.auto-optimise-store = true;

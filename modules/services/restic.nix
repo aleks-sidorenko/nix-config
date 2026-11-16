@@ -98,7 +98,7 @@ in
           "service-restic-r2-secret-access-key" = { };
         };
 
-        # R2 speaks S3 and takes `auto` as its region.
+        # The S3 endpoint takes `auto` as its region.
         sops.templates."restic-r2.env" = owned // {
           content = ''
             AWS_ACCESS_KEY_ID=${config.sops.placeholder."service-restic-r2-access-key-id"}
