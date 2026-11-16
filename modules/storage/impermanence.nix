@@ -88,8 +88,10 @@ in
 
   den.aspects.storage.impermanence = {
     # Startup must finish so that every service has written its state again.
+    # The state is matched, not piped: the driver's pipefail would take
+    # systemctl's non-zero exit on a degraded system as a failure.
     installChecks = [
-      ''machine.wait_until_succeeds("systemctl is-system-running --wait | grep -qE 'running|degraded'")''
+      ''machine.wait_until_succeeds("[[ $(systemctl is-system-running --wait) =~ ^(running|degraded)$ ]]")''
       ''machine.succeed("persist-guard /etc/persist-guard.json")''
     ];
 
