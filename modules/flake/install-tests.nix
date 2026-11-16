@@ -123,34 +123,36 @@ let
         ) luks
         ++ [
           {
-            disko.tests = {
-              extraConfig = {
-                # The harness puts the key into the installer only.
-                boot.initrd.secrets = lib.mkIf (luks != [ ]) {
-                  ${luksKey} = pkgs.writeText "secret.key" "secretsecret";
-                };
-
-                # sops-nix refuses a key file in the store, so copy it out
-                # before either secrets step runs.
-                system.activationScripts = {
-                  testAgeKey = {
-                    deps = [ "specialfs" ];
-                    text = "install -D -m 600 ${secrets}/key.txt /run/test-age.key";
-                  };
-                }
-                // lib.genAttrs secretSteps (_: {
-                  deps = [ "testAgeKey" ];
-                });
-
-                sops = {
-                  defaultSopsFile = lib.mkForce "${secrets}/secrets.yaml";
-                  # A build output is only known at build time; validating it
-                  # would need import-from-derivation.
-                  validateSopsFiles = false;
-                  age.keyFile = "/run/test-age.key";
-                  age.sshKeyPaths = lib.mkForce [ ];
-                };
+            installTest.extraConfig = {
+              # The harness puts the key into the installer only.
+              boot.initrd.secrets = lib.mkIf (luks != [ ]) {
+                ${luksKey} = pkgs.writeText "secret.key" "secretsecret";
               };
+
+              # sops-nix refuses a key file in the store, so copy it out
+              # before either secrets step runs.
+              system.activationScripts = {
+                testAgeKey = {
+                  deps = [ "specialfs" ];
+                  text = "install -D -m 600 ${secrets}/key.txt /run/test-age.key";
+                };
+              }
+              // lib.genAttrs secretSteps (_: {
+                deps = [ "testAgeKey" ];
+              });
+
+              sops = {
+                defaultSopsFile = lib.mkForce "${secrets}/secrets.yaml";
+                # A build output is only known at build time; validating it
+                # would need import-from-derivation.
+                validateSopsFiles = false;
+                age.keyFile = "/run/test-age.key";
+                age.sshKeyPaths = lib.mkForce [ ];
+              };
+            };
+
+            disko.tests = {
+              extraConfig.imports = [ config.installTest.extraConfig ];
 
               # Ahead of the host's own `installChecks`.
               extraChecks = lib.mkBefore (
@@ -184,13 +186,16 @@ let
 
   testSystem = host: (systemOf host.name).extendModules { modules = [ (testModule host) ]; };
 
-  # What the test boots: disko applies `extraConfig` only to the installed system.
-  installedSystem =
-    host:
+  # What the test boots: disko applies `extraConfig` only to the installed
+  # system. `modules` lets eval tests add definitions before that split.
+  installedWith =
+    host: modules:
     let
-      system = testSystem host;
+      system = (testSystem host).extendModules { inherit modules; };
     in
     system.extendModules { modules = [ system.config.disko.tests.extraConfig ]; };
+
+  installedSystem = host: installedWith host [ ];
 
   installTest = host: (testSystem host).config.system.build.installTest;
 in
@@ -226,6 +231,31 @@ in
       install-base-vm-evaluates = {
         expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
         expected = true;
+      };
+      # The probe shares a top-level key with impermanence's accommodation,
+      # which disko's untyped option would have dropped.
+      installed-accommodations-merge = {
+        expr =
+          let
+            c =
+              (installedWith den.hosts.x86_64-linux.server-vm [
+                { installTest.extraConfig.environment.etc.merge-probe.text = ""; }
+              ]).config;
+          in
+          {
+            autoconnect = c.systemd.services.tailscaled-autoconnect.enable;
+            guard = c.environment.etc ? "persist-guard.json";
+            probe = c.environment.etc ? merge-probe;
+            inherit (c.nix) extraOptions;
+            inherit (c.sops.age) keyFile;
+          };
+        expected = {
+          autoconnect = false;
+          guard = true;
+          probe = true;
+          extraOptions = "";
+          keyFile = "/run/test-age.key";
+        };
       };
       test-secrets-cover-host = {
         expr = testSecretNames "base-vm";

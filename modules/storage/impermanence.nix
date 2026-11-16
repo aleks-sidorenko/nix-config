@@ -149,7 +149,7 @@ in
           };
 
           # Fails the install test on state that a reboot would lose unnoticed.
-          disko.tests.extraConfig.environment = {
+          installTest.extraConfig.environment = {
             systemPackages = [ (guard pkgs) ];
             etc."persist-guard.json".text = builtins.toJSON {
               inherit walk;

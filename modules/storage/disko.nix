@@ -124,36 +124,46 @@ in
       {
         imports = [ inputs.disko.nixosModules.disko ];
 
-        # Run by the install test (modules/flake/install-tests.nix), after its base asserts (mkBefore).
-        disko.tests.extraChecks = lib.concatLines installChecks;
-
-        disko.devices.disk.root = {
-          type = "disk";
-          inherit (host.settings.storage.disko) device;
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                priority = 1;
-                label = "boot";
-                size = "1G";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  extraArgs = [ "-nboot" ];
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [ "umask=0077" ];
-                };
-              };
-            }
-            // rootPartition host;
-          };
+        # A module, unlike disko's untyped `extraConfig`, so definitions from
+        # several aspects merge per option instead of replacing each other.
+        options.installTest.extraConfig = lib.mkOption {
+          type = types.deferredModule;
+          default = { };
+          description = "Config applied only to the system the install test installs and boots.";
         };
 
-        fileSystems = lib.mapAttrs' (
-          _: subvolume: lib.nameValuePair subvolume.mountpoint { neededForBoot = true; }
-        ) (lib.filterAttrs (_: subvolume: subvolume.neededForBoot or false) (subvolumes host));
+        config = {
+          # Run by the install test (modules/flake/install-tests.nix), after its base asserts (mkBefore).
+          disko.tests.extraChecks = lib.concatLines installChecks;
+
+          disko.devices.disk.root = {
+            type = "disk";
+            inherit (host.settings.storage.disko) device;
+            content = {
+              type = "gpt";
+              partitions = {
+                boot = {
+                  priority = 1;
+                  label = "boot";
+                  size = "1G";
+                  type = "EF00";
+                  content = {
+                    type = "filesystem";
+                    extraArgs = [ "-nboot" ];
+                    format = "vfat";
+                    mountpoint = "/boot";
+                    mountOptions = [ "umask=0077" ];
+                  };
+                };
+              }
+              // rootPartition host;
+            };
+          };
+
+          fileSystems = lib.mapAttrs' (
+            _: subvolume: lib.nameValuePair subvolume.mountpoint { neededForBoot = true; }
+          ) (lib.filterAttrs (_: subvolume: subvolume.neededForBoot or false) (subvolumes host));
+        };
       };
   };
 }

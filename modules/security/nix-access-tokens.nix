@@ -27,7 +27,7 @@ in
 
       # The install test's placeholder secret is no nix.conf line, and nix
       # refuses to run with it included.
-      disko.tests.extraConfig.nix.extraOptions = lib.mkForce "";
+      installTest.extraConfig.nix.extraOptions = lib.mkForce "";
     };
 
   evalTests.install-skips-access-token = {

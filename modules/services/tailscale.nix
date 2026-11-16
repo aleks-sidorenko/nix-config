@@ -36,7 +36,7 @@ in
         };
 
         # The install test VM has no network, so joining would only fail and retry.
-        disko.tests.extraConfig.systemd.services.tailscaled-autoconnect.enable = lib.mkForce false;
+        installTest.extraConfig.systemd.services.tailscaled-autoconnect.enable = lib.mkForce false;
 
         # Upstream tries the join once per boot, so a host whose network comes
         # up later would stay off the tailnet. It exits 0 once joined, so this

@@ -40,7 +40,7 @@ install-tested in CI).
 | Shared fact with a default, overridable per entity (timeZone, locales) | conf option | `den.schema.conf.options` beside its reader (`modules/system/locale.nix`); override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
-| Test-VM-only config an aspect needs | `disko.tests.extraConfig` | inside the aspect's `nixos` body |
+| Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
@@ -90,7 +90,7 @@ Stage new files (`git add`) before `just check`.
 4. State that survives reboot: `persist.directories = [ … ];`.
    An install-test assertion: `installChecks = [ ''machine.succeed("…")'' ];`.
    A test-VM accommodation (no network, no real secrets):
-   `disko.tests.extraConfig.<option> = lib.mkForce …;` in the `nixos` body
+   `installTest.extraConfig.<option> = lib.mkForce …;` in the `nixos` body
    (see `modules/services/tailscale.nix`).
 5. Add `evalTests.<name> = { expr = …; expected = …; };`, `<name>` a unique
    descriptive name, beside what it pins: the feature's own file for
@@ -168,7 +168,7 @@ Stage new files (`git add`) before `just check`.
 - No `._` in aspect names; helpers are `_`-prefixed on disk only.
 - `/home` is its own persistent subvolume; the only persistence quirk is
   `persist`. `installChecks` holds install-test Python only.
-- An aspect owns its install-test accommodations (`disko.tests.extraConfig`);
+- An aspect owns its install-test accommodations (`installTest.extraConfig`);
   hosts and the harness do not special-case aspects.
 - `server`'s disk must keep matching master's layout (parity tests); change it
   deliberately, together with the parity fixtures.
