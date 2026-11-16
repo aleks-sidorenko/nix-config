@@ -7,6 +7,7 @@
 }:
 let
   inherit (import ./_layout.nix) label root blank;
+  inherit (import ../_lib/install-test.nix) settled;
 
   walk = [
     "/var/lib"
@@ -21,6 +22,12 @@ let
     _: host:
     host.hasAspect den.aspects.storage.impermanence && host.hasAspect den.aspects.hardware.qemu-guest
   ) den.hosts.x86_64-linux;
+
+  guardCheck = ''machine.succeed("persist-guard /etc/persist-guard.json")'';
+
+  lastCheck =
+    system:
+    lib.last (lib.filter (l: l != "") (lib.splitString "\n" system.config.disko.tests.extraChecks));
 
   hasGuard = system: system.config.environment.etc ? "persist-guard.json";
 
@@ -89,14 +96,6 @@ in
   flake-file.inputs.impermanence.url = "github:nix-community/impermanence";
 
   den.aspects.storage.impermanence = {
-    # Startup must finish so that every service has written its state again.
-    # The state is matched, not piped: the driver's pipefail would take
-    # systemctl's non-zero exit on a degraded system as a failure.
-    installChecks = [
-      ''machine.wait_until_succeeds("[[ $(systemctl is-system-running --wait) =~ ^(running|degraded)$ ]]")''
-      ''machine.succeed("persist-guard /etc/persist-guard.json")''
-    ];
-
     settings.root = lib.mkOption {
       type = lib.types.str;
       default = "/persist";
@@ -151,6 +150,15 @@ in
             hideMounts = true;
             inherit (state) directories files;
           };
+
+          # Last, after nginx's checks (mkAfter, 1500): any check may make a
+          # service write state, and the guard must see all of it.
+          disko.tests.extraChecks = lib.mkOrder 1600 (
+            lib.concatLines [
+              settled
+              guardCheck
+            ]
+          );
 
           # Fails the install test on state that a reboot would lose unnoticed.
           installTest.extraConfig.environment = {
@@ -223,6 +231,16 @@ in
         installed = true;
         real = false;
       }) installTested;
+    };
+    persist-guard-runs-last = {
+      expr = {
+        tested = installTested != { };
+        last = lib.mapAttrs (_: host: lastCheck (config.installedSystem host)) installTested;
+      };
+      expected = {
+        tested = true;
+        last = lib.mapAttrs (_: _: guardCheck) installTested;
+      };
     };
     persist-dedupes-base = {
       expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];

@@ -183,9 +183,12 @@ Stage new files (`git add`) before `just check`.
 - No hostname, username, `/persist` path or domain in a feature aspect.
 - No `._` in aspect names; helpers are `_`-prefixed on disk only.
 - `/home` is its own persistent subvolume; the only persistence quirk is
-  `persist`. `installChecks` holds install-test Python only; the one
-  exception is nginx's per-vhost checks, generated from the `vhosts` quirk
-  through `disko.tests.extraChecks` with `mkAfter`.
+  `persist`. `installChecks` holds install-test Python only. Two exceptions
+  write `disko.tests.extraChecks` directly: nginx's per-vhost checks
+  (`mkAfter`), generated from the `vhosts` quirk, so not static; and the
+  undeclared-state guard (`mkOrder 1600`, after nginx), which must run last
+  to see the state every earlier check made a service write, while the
+  quirk runs in include order.
 - State a service writes must be persisted or ignored: the install test's
   undeclared-state guard (`modules/storage/impermanence.nix`,
   `_persist-guard.py`) fails every install test on a non-empty entry under
