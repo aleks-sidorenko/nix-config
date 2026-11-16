@@ -4,5 +4,6 @@
     den.aspects.roles.server
     den.aspects.roles.media-server
     den.aspects.services.restic
+    den.aspects.services.minecraft-server
   ];
 }

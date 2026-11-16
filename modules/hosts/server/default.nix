@@ -19,6 +19,7 @@ let
     expected = true;
   };
   inherit (config.flake.nixosConfigurations.server.pkgs) unstable;
+  minecraft = config.den.hosts.x86_64-linux.server.settings.services.minecraft-server;
   inherit (import ./_parity.nix { inherit lib; }) declarative withoutHook mounts;
 in
 {
@@ -29,10 +30,31 @@ in
     locales = [ "en_US.UTF-8" ];
     layouts = [ "us" ];
     deploy.sshUser = "alexander";
-    settings.services.qbittorrent.webUser = "alexander";
-    settings.storage.disko = {
-      device = "/dev/disk/by-id/ata-SSD_2TB_004208";
-      encrypted = false;
+    settings = {
+      services.qbittorrent.webUser = "alexander";
+      services.minecraft-server = {
+        ops = [
+          {
+            uuid = "036251c9-562e-48b6-af54-1ae7a154c01f"; # https://mcuuid.net/?q=s1dus
+            name = "s1dus";
+            level = 4;
+            bypassesPlayerLimit = true;
+          }
+        ];
+        whitelist = {
+          d1mius = "80fd0535-faba-4838-ba48-38e61a51f38b";
+          s1dus = "036251c9-562e-48b6-af54-1ae7a154c01f";
+        };
+        serverProperties.difficulty = "hard";
+        gamerules = {
+          keep_inventory = true;
+          mob_griefing = true;
+        };
+      };
+      storage.disko = {
+        device = "/dev/disk/by-id/ata-SSD_2TB_004208";
+        encrypted = false;
+      };
     };
   };
 
@@ -239,6 +261,49 @@ in
     server-recyclarr-from-unstable = {
       expr = lib.elem unstable.recyclarr.outPath (map (p: p.outPath) s.environment.systemPackages);
       expected = true;
+    };
+    server-parity-minecraft-user = same [
+      "users"
+      "minecraft"
+    ];
+    server-persists-minecraft = persistsAll [ "/var/lib/minecraft" ];
+    server-minecraft-from-unstable = {
+      expr = s.services.minecraft-server.package.outPath;
+      expected = unstable.minecraft-server.outPath;
+    };
+    server-minecraft-settings = {
+      expr = {
+        ops = lib.importJSON (builtins.toFile "ops.json" s.environment.etc."minecraft/ops.json".text);
+        difficulty = s.services.minecraft-server.serverProperties.difficulty;
+        whitelist = s.services.minecraft-server.serverProperties.white-list;
+        inherit (minecraft) gamerules;
+        datapackInstalled = lib.hasInfix "datapacks/nix-gamerules" s.systemd.services.minecraft-server.preStart;
+        firewall = {
+          tcp = lib.elem 25565 s.networking.firewall.allowedTCPPorts;
+          udp = lib.elem 25565 s.networking.firewall.allowedUDPPorts;
+        };
+      };
+      expected = {
+        ops = [
+          {
+            uuid = "036251c9-562e-48b6-af54-1ae7a154c01f";
+            name = "s1dus";
+            level = 4;
+            bypassesPlayerLimit = true;
+          }
+        ];
+        difficulty = "hard";
+        whitelist = "true";
+        gamerules = {
+          keep_inventory = true;
+          mob_griefing = true;
+        };
+        datapackInstalled = true;
+        firewall = {
+          tcp = true;
+          udp = true;
+        };
+      };
     };
     server-parity-restic = same [ "restic" ];
     server-parity-restic-user = same [
