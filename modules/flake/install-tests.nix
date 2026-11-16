@@ -7,6 +7,8 @@
   ...
 }:
 let
+  inherit (import ../_lib/install-test.nix) settled;
+
   systemOf = name: config.flake.nixosConfigurations.${name};
 
   testSecretNames = name: lib.attrNames (systemOf name).config.sops.secrets;
@@ -104,6 +106,16 @@ let
       succeed = call "succeed";
       exists = path: succeed "test -e ${lib.escapeShellArg path}";
       bootCheck = ''machine.wait_for_unit("multi-user.target")'';
+
+      # home-manager's activation asks nix-daemon to chown the store, which
+      # the test VM's store refuses (EINVAL); it fails in every install VM,
+      # whatever the config.
+      vmFailures = map (user: "home-manager-${user.userName}.service") (lib.attrValues host.users);
+      noFailedUnits = ''
+        failed = set(machine.succeed("systemctl list-units --state=failed --plain --no-legend --full | cut -d ' ' -f 1").split())
+        unexpected = failed - set(${builtins.toJSON vmFailures})
+        assert not unexpected, f"failed units: {sorted(unexpected)}"
+      '';
     in
     {
       config = lib.mkMerge (
@@ -154,30 +166,40 @@ let
             disko.tests = {
               extraConfig.imports = [ config.installTest.extraConfig ];
 
-              # Ahead of the host's own `installChecks`.
-              extraChecks = lib.mkBefore (
-                lib.concatLines (
-                  [
-                    bootCheck
-                    (succeed "systemctl is-active sshd.service")
+              extraChecks = lib.mkMerge [
+                # After nginx's checks (mkAfter) and before the guard (1600),
+                # so a unit any check broke counts.
+                (lib.mkOrder 1550 (
+                  lib.concatLines [
+                    settled
+                    noFailedUnits
                   ]
-                  ++ map (user: succeed "id ${user.userName}") (lib.attrValues host.users)
-                  ++ map exists passwordFiles
-                  ++ [
-                    (succeed "touch /root-marker ${lib.escapeShellArg "${root}/persist-marker"}")
-                    # The test's QEMU exits on reboot, so power-cycle the same disks.
-                    "machine.shutdown()"
-                    "machine.start()"
-                    bootCheck
-                    (call "fail" "test -e /root-marker")
-                    (exists "${root}/persist-marker")
-                  ]
-                  # Files not yet in the persistence root are linked on the
-                  # first boot and only bind-mounted from the second.
-                  ++ map (path: succeed "findmnt --mountpoint ${lib.escapeShellArg path}") persistedPaths
-                  ++ map exists passwordFiles
-                )
-              );
+                ))
+                # Ahead of the host's own `installChecks`.
+                (lib.mkBefore (
+                  lib.concatLines (
+                    [
+                      bootCheck
+                      (succeed "systemctl is-active sshd.service")
+                    ]
+                    ++ map (user: succeed "id ${user.userName}") (lib.attrValues host.users)
+                    ++ map exists passwordFiles
+                    ++ [
+                      (succeed "touch /root-marker ${lib.escapeShellArg "${root}/persist-marker"}")
+                      # The test's QEMU exits on reboot, so power-cycle the same disks.
+                      "machine.shutdown()"
+                      "machine.start()"
+                      bootCheck
+                      (call "fail" "test -e /root-marker")
+                      (exists "${root}/persist-marker")
+                    ]
+                    # Files not yet in the persistence root are linked on the
+                    # first boot and only bind-mounted from the second.
+                    ++ map (path: succeed "findmnt --mountpoint ${lib.escapeShellArg path}") persistedPaths
+                    ++ map exists passwordFiles
+                  )
+                ))
+              ];
             };
           }
         ]
@@ -198,6 +220,13 @@ let
   installedSystem = host: installedWith host [ ];
 
   installTest = host: (testSystem host).config.system.build.installTest;
+
+  vmHostsOf =
+    system:
+    lib.filterAttrs (_: host: host.hasAspect den.aspects.hardware.qemu-guest) (
+      den.hosts.${system} or { }
+    );
+  vmHosts = vmHostsOf "x86_64-linux";
 in
 {
   options.installedSystem = lib.mkOption {
@@ -213,9 +242,7 @@ in
       { system, ... }:
       {
         checks = lib.mapAttrs' (name: host: lib.nameValuePair "install-${name}" (installTest host)) (
-          lib.filterAttrs (_: host: host.hasAspect den.aspects.hardware.qemu-guest) (
-            den.hosts.${system} or { }
-          )
+          vmHostsOf system
         );
       };
 
@@ -227,6 +254,20 @@ in
       install-test-no-real = {
         expr = config.allSystems.x86_64-linux.checks ? install-server;
         expected = false;
+      };
+      install-checks-failed-units = {
+        expr = {
+          tested = vmHosts != { };
+          checked = lib.mapAttrs (
+            _: host:
+            lib.hasInfix "systemctl list-units --state=failed" (installedSystem host)
+            .config.disko.tests.extraChecks
+          ) vmHosts;
+        };
+        expected = {
+          tested = true;
+          checked = lib.mapAttrs (_: _: true) vmHosts;
+        };
       };
       install-base-vm-evaluates = {
         expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
