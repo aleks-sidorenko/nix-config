@@ -13,5 +13,6 @@
     den.aspects.services.minidlna
     den.aspects.services.nginx
     den.aspects.services.qbittorrent
+    den.aspects.services.sonarr
   ];
 }

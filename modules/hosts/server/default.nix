@@ -13,6 +13,12 @@ let
     expr = lib.getAttrFromPath path (parityOf s);
     expected = lib.getAttrFromPath path master;
   };
+  persisted = map (d: d.dirPath) s.environment.persistence."/persist".directories;
+  persistsAll = paths: {
+    expr = lib.all (p: lib.elem p persisted) paths;
+    expected = true;
+  };
+  inherit (config.flake.nixosConfigurations.server.pkgs) unstable;
   inherit (import ./_parity.nix { inherit lib; }) declarative withoutHook mounts;
 in
 {
@@ -162,6 +168,19 @@ in
         map (d: d.dirPath) s.environment.persistence."/persist".directories
       );
       expected = true;
+    };
+    server-parity-sonarr-user = same [
+      "users"
+      "sonarr"
+    ];
+    server-parity-sonarr-vhost = same [
+      "vhosts"
+      "sonarr"
+    ];
+    server-persists-sonarr = persistsAll [ "/var/lib/sonarr" ];
+    server-sonarr-from-unstable = {
+      expr = s.services.sonarr.package.outPath;
+      expected = unstable.sonarr.outPath;
     };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
