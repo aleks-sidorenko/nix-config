@@ -8,6 +8,7 @@ let
   sv = config.flake.nixosConfigurations.server-vm.config;
   s = config.flake.nixosConfigurations.server.config;
   inherit (import ../server/_parity.nix { inherit lib; }) declarative;
+  parityOf = import ../server/_parity-services.nix;
 
   # The only intended differences from `server`.
   withoutDevice =
@@ -109,6 +110,15 @@ in
       expr = lib.hasSuffix "/server-vm" sv.services.restic.backups.default.repository;
       expected = true;
     };
+    # The guest stands in for server in CI, so it must run what server runs.
+    server-vm-like-server =
+      let
+        sections = c: lib.getAttrs [ "units" "timers" "vhosts" "users" ] (parityOf c);
+      in
+      {
+        expr = sections sv;
+        expected = sections s;
+      };
     server-builds = {
       expr = lib.isString s.system.build.toplevel.drvPath;
       expected = true;

@@ -310,6 +310,36 @@ in
       "users"
       "restic"
     ];
+    # Each earlier test pins one section; this catches a section none of them name.
+    server-matches-master = {
+      expr = lib.mapAttrs (k: _: (parityOf s).${k}) (removeAttrs master [ "secrets" ]);
+      expected = removeAttrs master [ "secrets" ];
+    };
+    server-secrets-match-master = {
+      expr = lib.sort lib.lessThan (parityOf s).secrets;
+      expected = master.secrets;
+    };
+    # The live box's state, exactly: a missing path comes up empty after the first
+    # reboot, an extra one is state the live box never had.
+    server-persists-live-state = {
+      expr = lib.sort lib.lessThan persisted;
+      expected = lib.sort lib.lessThan [
+        "/var/lib/jellyfin"
+        "/var/lib/minecraft"
+        "/var/lib/sonarr"
+        "/var/lib/radarr"
+        "/var/lib/qbittorrent"
+        "/var/lib/recyclarr"
+        "/var/lib/calibre-web"
+        "/var/lib/tailscale"
+        "/var/lib/NetworkManager"
+        "/var/lib/nixos"
+        "/var/lib/systemd"
+        "/var/lib/private/prowlarr"
+        "/var/cache/minidlna"
+        "/etc/NetworkManager/system-connections"
+      ];
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
