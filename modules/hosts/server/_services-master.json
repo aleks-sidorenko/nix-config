@@ -1,0 +1,295 @@
+{
+  "firewall": {
+    "interfaces": {
+      "tailscale0": {
+        "tcp": [
+          80,
+          443
+        ],
+        "udp": []
+      }
+    },
+    "tcp": [
+      22,
+      8200,
+      17348,
+      25565
+    ],
+    "udp": [
+      1900,
+      17348,
+      25565,
+      41641
+    ]
+  },
+  "locale": {
+    "defaultLocale": "en_US.UTF-8",
+    "layout": "us",
+    "supportedLocales": [
+      "en_US.UTF-8/UTF-8"
+    ],
+    "timeZone": "UTC"
+  },
+  "manager": {
+    "RebootWatchdogSec": "30s",
+    "RuntimeWatchdogSec": "20s"
+  },
+  "misc": {
+    "bootLimit": 3,
+    "browser": "echo",
+    "nhClean": true,
+    "nhCleanArgs": "--keep-since 7d --keep 5",
+    "nixGc": false,
+    "nixLd": true,
+    "stubLd": false
+  },
+  "networking": {
+    "cc": "bbr",
+    "domain": "lan",
+    "networkdWaitOnline": false,
+    "nm": true,
+    "nmWaitOnline": false,
+    "qdisc": "fq",
+    "search": [
+      "colobus-bramble.ts.net",
+      "lan"
+    ],
+    "tsOpenFirewall": true
+  },
+  "primaryGroups": [
+    "input",
+    "networkmanager",
+    "tty",
+    "wheel"
+  ],
+  "restic": {
+    "default": {
+      "exclude": [
+        "*.cache",
+        "*.class",
+        "*.log",
+        "*.tmp",
+        "*/.stack-work",
+        "*/build",
+        "*/dist",
+        "*/dist-newstyle",
+        "*/target",
+        "/home/*/.cabal-sandbox",
+        "/home/*/.cache",
+        "/home/*/.cargo/git",
+        "/home/*/.cargo/registry",
+        "/home/*/.config/*/Cache",
+        "/home/*/.ghc",
+        "/home/*/.gradle",
+        "/home/*/.ivy2",
+        "/home/*/.local/cache",
+        "/home/*/.local/share/Trash",
+        "/home/*/.m2/repository",
+        "/home/*/.mozilla/firefox/*/cache2",
+        "/home/*/.npm/_cacache",
+        "/home/*/.stack-work",
+        "/home/*/Pictures",
+        "/home/*/Videos",
+        "/home/*/snap/*/common/.cache",
+        "/persist/var/cache",
+        "/persist/var/lib/jellyfin/cache",
+        "/persist/var/log",
+        "/persist/var/tmp",
+        "/var/cache",
+        "/var/log",
+        "/var/tmp"
+      ],
+      "initialize": true,
+      "paths": [
+        "/data/media/Books",
+        "/home",
+        "/persist",
+        "/root"
+      ],
+      "pruneOpts": [
+        "--keep-daily 7",
+        "--keep-weekly 4",
+        "--keep-monthly 6",
+        "--keep-yearly 2"
+      ],
+      "repository": "s3:https://4e18ae7a3707f53f8d7cd82fb8e6abad.r2.cloudflarestorage.com/backups/server",
+      "timerConfig": {
+        "OnCalendar": "*-*-* 03:00:00",
+        "Persistent": false,
+        "RandomizedDelaySec": "30m"
+      }
+    }
+  },
+  "secrets": [
+    "service-ingress-htpasswd",
+    "service-prowlarr-api-key",
+    "service-qbittorrent-alexander-password",
+    "service-radarr-api-key",
+    "service-restic-password",
+    "service-restic-r2-access-key-id",
+    "service-restic-r2-secret-access-key",
+    "service-sonarr-api-key",
+    "system-github-token",
+    "system-tailscale-auth-key",
+    "user-alexander-password"
+  ],
+  "sudo": {
+    "execWheelOnly": true,
+    "wheelNeedsPassword": false
+  },
+  "timers": [
+    "nh-clean",
+    "recyclarr",
+    "restic-backups-default"
+  ],
+  "units": [
+    "NetworkManager",
+    "calibre-web",
+    "flaresolverr",
+    "jellyfin",
+    "minecraft-server",
+    "minidlna",
+    "nginx",
+    "prowlarr",
+    "qbittorrent",
+    "radarr",
+    "sonarr",
+    "tailscaled"
+  ],
+  "users": {
+    "calibre-web": {
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": true
+    },
+    "jellyfin": {
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": true
+    },
+    "minecraft": {
+      "extraGroups": [],
+      "group": "gaming",
+      "home": "/var/lib/minecraft",
+      "isSystemUser": true
+    },
+    "minidlna": {
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/empty",
+      "isSystemUser": false
+    },
+    "nginx": {
+      "extraGroups": [],
+      "group": "nginx",
+      "home": "/var/empty",
+      "isSystemUser": true
+    },
+    "prowlarr": {
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/private/prowlarr",
+      "isSystemUser": true
+    },
+    "qbittorrent": {
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/qbittorrent",
+      "isSystemUser": true
+    },
+    "radarr": {
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/radarr",
+      "isSystemUser": true
+    },
+    "recyclarr": {
+      "extraGroups": [],
+      "group": "media",
+      "home": "/var/lib/recyclarr",
+      "isSystemUser": true
+    },
+    "restic": {
+      "extraGroups": [],
+      "group": "backup",
+      "home": "/var/lib/restic",
+      "isSystemUser": true
+    },
+    "sonarr": {
+      "extraGroups": [
+        "users"
+      ],
+      "group": "media",
+      "home": "/var/lib/sonarr",
+      "isSystemUser": true
+    }
+  },
+  "vhosts": {
+    "_": {
+      "auth": false,
+      "default": true,
+      "proxyPass": null,
+      "proxyWebsockets": false,
+      "serverName": null
+    },
+    "calibre": {
+      "auth": false,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:8083",
+      "proxyWebsockets": true,
+      "serverName": "calibre.home.sidorenko.me"
+    },
+    "jellyfin": {
+      "auth": false,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:8096",
+      "proxyWebsockets": true,
+      "serverName": "jellyfin.home.sidorenko.me"
+    },
+    "minidlna": {
+      "auth": true,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:8200",
+      "proxyWebsockets": false,
+      "serverName": "minidlna.home.sidorenko.me"
+    },
+    "prowlarr": {
+      "auth": true,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:9696",
+      "proxyWebsockets": true,
+      "serverName": "prowlarr.home.sidorenko.me"
+    },
+    "qbittorrent": {
+      "auth": true,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:8080",
+      "proxyWebsockets": true,
+      "serverName": "qbittorrent.home.sidorenko.me"
+    },
+    "radarr": {
+      "auth": true,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:7878",
+      "proxyWebsockets": true,
+      "serverName": "radarr.home.sidorenko.me"
+    },
+    "sonarr": {
+      "auth": true,
+      "default": false,
+      "proxyPass": "http://127.0.0.1:8989",
+      "proxyWebsockets": true,
+      "serverName": "sonarr.home.sidorenko.me"
+    }
+  }
+}

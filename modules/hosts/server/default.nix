@@ -7,6 +7,12 @@
 }:
 let
   s = config.flake.nixosConfigurations.server.config;
+  parityOf = import ./_parity-services.nix;
+  master = lib.importJSON ./_services-master.json;
+  same = path: {
+    expr = lib.getAttrFromPath path (parityOf s);
+    expected = lib.getAttrFromPath path master;
+  };
   inherit (import ./_parity.nix { inherit lib; }) declarative withoutHook mounts;
 in
 {
@@ -55,6 +61,10 @@ in
       expr = mounts s.fileSystems;
       expected = lib.importJSON ./_filesystems-master.json;
     };
+    server-parity-boot-limit = same [
+      "misc"
+      "bootLimit"
+    ];
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
