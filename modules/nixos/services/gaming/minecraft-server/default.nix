@@ -121,6 +121,15 @@ in
       '';
     };
 
+    whitelist = mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      description = "Whitelisted players as username -> UUID; enables the whitelist when non-empty";
+      example = {
+        PlayerName = "550e8400-e29b-41d4-a716-446655440000";
+      };
+    };
+
     serverProperties = mkOption {
       type = types.attrsOf types.str;
       default = {
@@ -189,7 +198,9 @@ in
       inherit (cfg) package;
       openFirewall = true;
       declarative = true;
-      inherit (cfg) serverProperties;
+      inherit (cfg) whitelist;
+      serverProperties =
+        cfg.serverProperties // optionalAttrs (cfg.whitelist != { }) { white-list = "true"; };
     };
 
     # Ensure runtime user/group exist and bind the service to them
