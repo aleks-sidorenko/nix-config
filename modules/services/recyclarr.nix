@@ -1,9 +1,15 @@
+{ den, ... }:
 let
   dataDir = "/var/lib/recyclarr";
   user = "recyclarr";
 in
 {
   den.aspects.services.recyclarr = {
+    # It syncs their profiles with their API keys.
+    includes = [
+      den.aspects.services.sonarr
+      den.aspects.services.radarr
+    ];
     persist.directories = [ dataDir ];
     # The sync itself needs network the install test VM lacks.
     installChecks = [ ''machine.succeed("systemctl is-active recyclarr.timer")'' ];
@@ -83,7 +89,7 @@ in
         '';
       in
       {
-        # Reuses the secrets sonarr and radarr declare; the role includes both.
+        # Reuses the secrets sonarr and radarr declare.
         sops.templates."recyclarr.yml" = {
           content = recyclarrConfig;
           owner = user;
