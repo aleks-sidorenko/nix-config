@@ -1,4 +1,5 @@
 let
+  arr = import ./_arr.nix;
   webPort = 9696;
   # Upstream runs prowlarr as a dynamic user, so its state lives under the
   # private directory, which systemd keeps at 0700.
@@ -12,15 +13,7 @@ in
       ''machine.succeed("test \"$(stat -c %a /var/lib/private)\" = 700")''
     ];
 
-    vhosts = [
-      {
-        name = "prowlarr";
-        port = webPort;
-        # config.xml sets External authentication: the app authenticates nobody
-        # and serves its API key to whoever asks.
-        requiresProxyAuth = true;
-      }
-    ];
+    vhosts = [ (arr.vhost "prowlarr" webPort) ];
 
     nixos =
       {
@@ -35,7 +28,7 @@ in
         inherit (media) group;
       in
       lib.mkMerge [
-        (import ./_arr.nix {
+        (arr.common {
           inherit lib group dataDir;
           name = "prowlarr";
           title = "Prowlarr";
@@ -55,8 +48,6 @@ in
           };
 
           systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
-
-          environment.systemPackages = [ pkgs.unstable.prowlarr ];
         }
       ];
   };
