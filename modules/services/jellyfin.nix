@@ -18,7 +18,7 @@ in
     ];
 
     nixos =
-      { host, ... }:
+      { config, host, ... }:
       let
         media = import ./_media.nix host.mediaRoot;
       in
@@ -35,6 +35,8 @@ in
           inherit cacheDir;
           logDir = "${dataDir}/log";
         };
+
+        environment.systemPackages = [ config.services.jellyfin.package ];
 
         systemd.tmpfiles.rules = [
           "d ${dataDir} 0755 jellyfin ${media.group} -"

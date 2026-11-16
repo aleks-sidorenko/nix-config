@@ -88,6 +88,7 @@ in
           "efitools"
           "efivar"
           "fwupd"
+          "jellyfin"
         ];
       expected = true;
     };
