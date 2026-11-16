@@ -192,31 +192,57 @@ in
                 "/var/lib/a"
                 "/var/lib/private/p"
               ];
-              ignore = [ "/var/lib/junk.status" ];
+              # Declared paths are normalised.
+              ignore = [
+                "/var/lib/junk.status"
+                "/var/lib/scratch/"
+              ];
             };
             passAsFile = [ "config" ];
           }
           ''
             tree=$TMPDIR/root
-            mkdir -p $tree/var/lib/a $tree/var/lib/private/p $tree/var/lib/empty $tree/var/cache
+            # Fails unless the guard reports exactly $1, or passes when $1 is empty.
+            expect() {
+              if persist-guard --root $tree $configPath > report; then
+                [ -z "$1" ] && return
+                echo "guard passed, expected $1" >&2
+              else
+                [ "$(cat report)" = "$1" ] && return
+                echo "guard reported, expected ''${1:-nothing}:" >&2
+                cat report >&2
+              fi
+              exit 1
+            }
+
+            mkdir -p $tree/var/lib/a $tree/var/lib/private/p $tree/var/lib/empty $tree/var/lib/scratch $tree/var/cache
             echo state > $tree/var/lib/a/db
             echo state > $tree/var/lib/private/p/db
+            echo state > $tree/var/lib/scratch/tmp
             ln -s private/p $tree/var/lib/link
             ln -s missing $tree/var/lib/dangling
+            touch $tree/var/lib/flag
+            ln -s flag/missing $tree/var/lib/through-file
+            ln -s loop-b/x $tree/var/lib/loop-a
+            ln -s loop-a/x $tree/var/lib/loop-b
             echo state > $tree/var/lib/junk.status
-            persist-guard --root $tree $configPath
+            expect ""
+
+            # Named on its own, not as the parent that holds a declared child.
+            mkdir $tree/var/lib/private/q
+            echo state > $tree/var/lib/private/q/db
+            expect /var/lib/private/q
+            rm -r $tree/var/lib/private/q
+
+            mkdir -p $tree/opt/data
+            echo state > $tree/opt/data/db
+            ln -s /opt/data $tree/var/lib/elsewhere
+            expect /var/lib/elsewhere
+            rm $tree/var/lib/elsewhere
 
             mkdir $tree/var/lib/stray
             echo state > $tree/var/lib/stray/db
-            if persist-guard --root $tree $configPath > report; then
-              echo "guard passed undeclared state" >&2
-              exit 1
-            fi
-            if [ "$(cat report)" != /var/lib/stray ]; then
-              echo "guard reported, expected /var/lib/stray:" >&2
-              cat report >&2
-              exit 1
-            fi
+            expect /var/lib/stray
             touch $out
           '';
     };

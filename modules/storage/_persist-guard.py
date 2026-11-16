@@ -9,7 +9,7 @@ class Guard:
     def __init__(self, root, persisted, ignore):
         # Paths are as on the host; `root` only maps them onto the disk.
         self.root = root
-        self.declared = set(persisted) | set(ignore)
+        self.declared = {os.path.normpath(p) for p in [*persisted, *ignore]}
 
     def has_declared_below(self, path):
         prefix = path.rstrip("/") + "/"
@@ -20,9 +20,10 @@ class Guard:
         if path in self.declared:
             return []
         real = self.root + path
+        # Also a dangling link through a file or a loop: neither holds state.
         try:
             st = os.lstat(real)
-        except FileNotFoundError:
+        except OSError:
             return []
         if stat.S_ISLNK(st.st_mode):
             # A link loop holds no state.
@@ -37,7 +38,7 @@ class Guard:
         if stat.S_ISDIR(st.st_mode):
             try:
                 entries = sorted(os.listdir(real))
-            except FileNotFoundError:
+            except OSError:
                 return []
             failing = [
                 f
