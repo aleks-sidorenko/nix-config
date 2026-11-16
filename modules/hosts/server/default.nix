@@ -1,6 +1,7 @@
 {
   config,
   den,
+  inputs,
   lib,
   ...
 }:
@@ -25,6 +26,16 @@ in
   };
 
   evalTests = {
+    nixpkgs-pinned-to-master = {
+      expr = {
+        stable = inputs.nixpkgs.rev;
+        unstable = inputs.nixpkgs-unstable.rev;
+      };
+      expected = {
+        stable = "7dcdd87373d72e7a2173e4db02e20d3d7f495cfd";
+        unstable = "1d060086d60cb76a40cf37109f979d88a5bd6396";
+      };
+    };
     # The live disk must not change shape when server deploys from this tree.
     server-disko-matches-master = {
       expr = withoutHook (declarative s.disko.devices);
