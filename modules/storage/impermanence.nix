@@ -7,7 +7,7 @@
 }:
 let
   inherit (import ./_layout.nix) label root blank;
-  inherit (import ../_lib/install-test.nix) settled;
+  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost settled;
 
   walk = [
     "/var/lib"
@@ -16,12 +16,6 @@ let
 
   guard =
     pkgs: pkgs.writers.writePython3Bin "persist-guard" { } (builtins.readFile ./_persist-guard.py);
-
-  # Hosts whose install test runs the guard.
-  installTested = lib.filterAttrs (
-    _: host:
-    host.hasAspect den.aspects.storage.impermanence && host.hasAspect den.aspects.hardware.qemu-guest
-  ) den.hosts.x86_64-linux;
 
   guardCheck = ''machine.succeed("persist-guard /etc/persist-guard.json")'';
 
@@ -248,26 +242,19 @@ in
     };
 
   evalTests = {
-    persist-guard-test-only = {
-      expr = lib.mapAttrs (name: host: {
-        installed = hasGuard (config.installedSystem host);
-        real = hasGuard config.flake.nixosConfigurations.${name};
-      }) installTested;
-      expected = lib.mapAttrs (_: _: {
-        installed = true;
-        real = false;
-      }) installTested;
-    };
-    persist-guard-runs-last = {
-      expr = {
-        tested = installTested != { };
-        last = lib.mapAttrs (_: host: lastCheck (config.installedSystem host)) installTested;
-      };
-      expected = {
-        tested = true;
-        last = lib.mapAttrs (_: _: guardCheck) installTested;
-      };
-    };
+    persist-guard-test-only =
+      perTestedHost den.aspects.storage.impermanence
+        (name: host: {
+          installed = hasGuard (config.installedSystem host);
+          real = hasGuard config.flake.nixosConfigurations.${name};
+        })
+        {
+          installed = true;
+          real = false;
+        };
+    persist-guard-runs-last = perTestedHost den.aspects.storage.impermanence (
+      _: host: lastCheck (config.installedSystem host)
+    ) guardCheck;
     persist-dedupes-base = {
       expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];
       expected = {

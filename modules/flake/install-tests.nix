@@ -7,7 +7,11 @@
   ...
 }:
 let
-  inherit (import ../_lib/install-test.nix) settled;
+  inherit (import ../_lib/install-test.nix { inherit den lib; })
+    isInstallTested
+    perTestedHost
+    settled
+    ;
 
   systemOf = name: config.flake.nixosConfigurations.${name};
 
@@ -221,12 +225,7 @@ let
 
   installTest = host: (testSystem host).config.system.build.installTest;
 
-  vmHostsOf =
-    system:
-    lib.filterAttrs (_: host: host.hasAspect den.aspects.hardware.qemu-guest) (
-      den.hosts.${system} or { }
-    );
-  vmHosts = vmHostsOf "x86_64-linux";
+  vmHostsOf = system: lib.filterAttrs (_: isInstallTested) (den.hosts.${system} or { });
 in
 {
   options.installedSystem = lib.mkOption {
@@ -255,20 +254,11 @@ in
         expr = config.allSystems.x86_64-linux.checks ? install-server;
         expected = false;
       };
-      install-checks-failed-units = {
-        expr = {
-          tested = vmHosts != { };
-          checked = lib.mapAttrs (
-            _: host:
-            lib.hasInfix "systemctl list-units --state=failed" (installedSystem host)
-            .config.disko.tests.extraChecks
-          ) vmHosts;
-        };
-        expected = {
-          tested = true;
-          checked = lib.mapAttrs (_: _: true) vmHosts;
-        };
-      };
+      install-checks-failed-units = perTestedHost den.aspects.hardware.qemu-guest (
+        _: host:
+        lib.hasInfix "systemctl list-units --state=failed" (installedSystem host)
+        .config.disko.tests.extraChecks
+      ) true;
       install-base-vm-evaluates = {
         expr = lib.isString config.allSystems.x86_64-linux.checks.install-base-vm.drvPath;
         expected = true;

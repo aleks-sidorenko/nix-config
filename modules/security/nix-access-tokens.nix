@@ -5,12 +5,7 @@
   ...
 }:
 let
-  # Hosts whose install test boots this aspect.
-  installTested = lib.filterAttrs (
-    _: host:
-    host.hasAspect den.aspects.security.nix-access-tokens
-    && host.hasAspect den.aspects.hardware.qemu-guest
-  ) den.hosts.x86_64-linux;
+  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost;
 
   includesToken = system: lib.hasInfix "!include" system.config.nix.extraOptions;
 in
@@ -30,14 +25,14 @@ in
       installTest.extraConfig.nix.extraOptions = lib.mkForce "";
     };
 
-  evalTests.install-skips-access-token = {
-    expr = lib.mapAttrs (name: host: {
-      installed = includesToken (config.installedSystem host);
-      real = includesToken config.flake.nixosConfigurations.${name};
-    }) installTested;
-    expected = lib.mapAttrs (_: _: {
-      installed = false;
-      real = true;
-    }) installTested;
-  };
+  evalTests.install-skips-access-token =
+    perTestedHost den.aspects.security.nix-access-tokens
+      (name: host: {
+        installed = includesToken (config.installedSystem host);
+        real = includesToken config.flake.nixosConfigurations.${name};
+      })
+      {
+        installed = false;
+        real = true;
+      };
 }

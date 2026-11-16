@@ -54,11 +54,7 @@ let
     "*.class"
   ];
 
-  # Hosts whose install test boots this aspect.
-  installTested = lib.filterAttrs (
-    _: host:
-    host.hasAspect den.aspects.services.restic && host.hasAspect den.aspects.hardware.qemu-guest
-  ) den.hosts.x86_64-linux;
+  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost;
 
   scheduled = system: system.config.systemd.timers.restic-backups-default.enable;
 in
@@ -173,14 +169,14 @@ in
       };
   };
 
-  evalTests.install-disables-backup-timer = {
-    expr = lib.mapAttrs (name: host: {
-      installed = scheduled (config.installedSystem host);
-      real = scheduled config.flake.nixosConfigurations.${name};
-    }) installTested;
-    expected = lib.mapAttrs (_: _: {
-      installed = false;
-      real = true;
-    }) installTested;
-  };
+  evalTests.install-disables-backup-timer =
+    perTestedHost den.aspects.services.restic
+      (name: host: {
+        installed = scheduled (config.installedSystem host);
+        real = scheduled config.flake.nixosConfigurations.${name};
+      })
+      {
+        installed = false;
+        real = true;
+      };
 }
