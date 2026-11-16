@@ -65,7 +65,7 @@
     };
 
     quirks = {
-      persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; }";
+      persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; ignore ? [ ]; }. `ignore` names throwaway state, which the install test's undeclared-state guard then accepts.";
       installChecks.description = "Python snippets the install test runs on the installed, rebooted host.";
     };
 

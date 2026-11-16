@@ -1,10 +1,33 @@
-{ inputs, lib, ... }:
+{
+  config,
+  den,
+  inputs,
+  lib,
+  ...
+}:
 let
   inherit (import ./_layout.nix) label root blank;
+
+  walk = [
+    "/var/lib"
+    "/var/cache"
+  ];
+
+  guard =
+    pkgs: pkgs.writers.writePython3Bin "persist-guard" { } (builtins.readFile ./_persist-guard.py);
+
+  # Hosts whose install test runs the guard.
+  installTested = lib.filterAttrs (
+    _: host:
+    host.hasAspect den.aspects.storage.impermanence && host.hasAspect den.aspects.hardware.qemu-guest
+  ) den.hosts.x86_64-linux;
+
+  hasGuard = system: system.config.environment.etc ? "persist-guard.json";
 
   merge = entries: {
     directories = lib.unique (lib.concatMap (e: e.directories or [ ]) entries);
     files = lib.unique (lib.concatMap (e: e.files or [ ]) entries);
+    ignore = lib.unique (lib.concatMap (e: e.ignore or [ ]) entries);
   };
 
   # Merged with the aspects' entries, so one repeating a base path can't trip
@@ -21,6 +44,11 @@ let
             "/var/lib/systemd"
           ];
           files = [ "/etc/machine-id" ];
+          # Login and rotation bookkeeping, rebuilt as it goes.
+          ignore = [
+            "/var/lib/lastlog"
+            "/var/lib/logrotate.status"
+          ];
         }
       ]
       ++ persist
@@ -59,6 +87,12 @@ in
   flake-file.inputs.impermanence.url = "github:nix-community/impermanence";
 
   den.aspects.storage.impermanence = {
+    # Startup must finish so that every service has written its state again.
+    installChecks = [
+      ''machine.wait_until_succeeds("systemctl is-system-running --wait | grep -qE 'running|degraded'")''
+      ''machine.succeed("persist-guard /etc/persist-guard.json")''
+    ];
+
     settings.root = lib.mkOption {
       type = lib.types.str;
       default = "/persist";
@@ -71,11 +105,13 @@ in
         host,
         options,
         persist,
+        pkgs,
         ...
       }:
       let
         persistRoot = host.settings.storage.impermanence.root;
         state = collect persist;
+        persisted = config.environment.persistence.${persistRoot};
       in
       {
         imports = [ inputs.impermanence.nixosModules.impermanence ];
@@ -111,6 +147,16 @@ in
             hideMounts = true;
             inherit (state) directories files;
           };
+
+          # Fails the install test on state that a reboot would lose unnoticed.
+          disko.tests.extraConfig.environment = {
+            systemPackages = [ (guard pkgs) ];
+            etc."persist-guard.json".text = builtins.toJSON {
+              inherit walk;
+              inherit (state) ignore;
+              persisted = map (d: d.dirPath) persisted.directories ++ map (f: f.filePath) persisted.files;
+            };
+          };
         }
         # Secrets decrypt before the bind mounts exist, so read the key where it really lives.
         // lib.optionalAttrs (options ? sops) {
@@ -121,14 +167,87 @@ in
       };
   };
 
-  evalTests.persist-dedupes-base = {
-    expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];
-    expected = {
-      directories = [
-        "/var/lib/nixos"
-        "/var/lib/systemd"
-      ];
-      files = [ "/etc/machine-id" ];
+  perSystem =
+    { pkgs, ... }:
+    {
+      checks.persist-guard =
+        pkgs.runCommand "persist-guard"
+          {
+            nativeBuildInputs = [ (guard pkgs) ];
+            config = builtins.toJSON {
+              inherit walk;
+              persisted = [
+                "/var/lib/a"
+                "/var/lib/private/p"
+              ];
+              ignore = [ "/var/lib/junk.status" ];
+            };
+            passAsFile = [ "config" ];
+          }
+          ''
+            tree=$TMPDIR/root
+            mkdir -p $tree/var/lib/a $tree/var/lib/private/p $tree/var/lib/empty $tree/var/cache
+            echo state > $tree/var/lib/a/db
+            echo state > $tree/var/lib/private/p/db
+            ln -s private/p $tree/var/lib/link
+            ln -s missing $tree/var/lib/dangling
+            echo state > $tree/var/lib/junk.status
+            persist-guard --root $tree $configPath
+
+            mkdir $tree/var/lib/stray
+            echo state > $tree/var/lib/stray/db
+            if persist-guard --root $tree $configPath > report; then
+              echo "guard passed undeclared state" >&2
+              exit 1
+            fi
+            if [ "$(cat report)" != /var/lib/stray ]; then
+              echo "guard reported, expected /var/lib/stray:" >&2
+              cat report >&2
+              exit 1
+            fi
+            touch $out
+          '';
+    };
+
+  evalTests = {
+    persist-guard-test-only = {
+      expr = lib.mapAttrs (name: host: {
+        installed = hasGuard (config.installedSystem host);
+        real = hasGuard config.flake.nixosConfigurations.${name};
+      }) installTested;
+      expected = lib.mapAttrs (_: _: {
+        installed = true;
+        real = false;
+      }) installTested;
+    };
+    persist-dedupes-base = {
+      expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];
+      expected = {
+        directories = [
+          "/var/lib/nixos"
+          "/var/lib/systemd"
+        ];
+        files = [ "/etc/machine-id" ];
+        ignore = [
+          "/var/lib/lastlog"
+          "/var/lib/logrotate.status"
+        ];
+      };
+    };
+    persist-collects-ignore = {
+      expr = collect [ { ignore = [ "/var/lib/x" ]; } ];
+      expected = {
+        directories = [
+          "/var/lib/nixos"
+          "/var/lib/systemd"
+        ];
+        files = [ "/etc/machine-id" ];
+        ignore = [
+          "/var/lib/lastlog"
+          "/var/lib/logrotate.status"
+          "/var/lib/x"
+        ];
+      };
     };
   };
 }
