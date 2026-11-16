@@ -44,10 +44,12 @@ let
             "/var/lib/systemd"
           ];
           files = [ "/etc/machine-id" ];
-          # Login and rotation bookkeeping, rebuilt as it goes.
+          # Login and rotation bookkeeping and the man page index, all rebuilt
+          # as the system runs.
           ignore = [
             "/var/lib/lastlog"
             "/var/lib/logrotate.status"
+            "/var/cache/man"
           ];
         }
       ]
@@ -233,6 +235,7 @@ in
         ignore = [
           "/var/lib/lastlog"
           "/var/lib/logrotate.status"
+          "/var/cache/man"
         ];
       };
     };
@@ -247,6 +250,7 @@ in
         ignore = [
           "/var/lib/lastlog"
           "/var/lib/logrotate.status"
+          "/var/cache/man"
           "/var/lib/x"
         ];
       };
