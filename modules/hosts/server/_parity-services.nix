@@ -9,6 +9,13 @@ let
     elem
     sort
     lessThan
+    isAttrs
+    isList
+    isPath
+    isString
+    split
+    concatStringsSep
+    unsafeDiscardStringContext
     ;
   sorted = sort lessThan;
   serviceUsers = [
@@ -24,6 +31,36 @@ let
     "restic"
     "sonarr"
   ];
+  unitNames = [
+    "calibre-web"
+    "flaresolverr"
+    "jellyfin"
+    "minecraft-server"
+    "minidlna"
+    "NetworkManager"
+    "nginx"
+    "prowlarr"
+    "qbittorrent"
+    "radarr"
+    "sonarr"
+    "tailscaled"
+  ];
+  # Hashes differ between the trees even for the same package; the name and
+  # version after them, and everything else in the string, must still match.
+  unhash =
+    v:
+    if isString v then
+      concatStringsSep "" (
+        map (part: if isList part then "/nix/store/" else part) (
+          split "/nix/store/[0-9a-z]{32}-" (unsafeDiscardStringContext v)
+        )
+      )
+    else if isPath v || isAttrs v && v ? outPath then
+      unhash (toString v)
+    else if isList v then
+      map unhash v
+    else
+      v;
   pick =
     names: f:
     listToAttrs (
@@ -107,26 +144,43 @@ in
     bootLimit = c.boot.loader.systemd-boot.configurationLimit;
   };
   units = sorted (
-    filter
+    filter (
+      n:
+      c.systemd.services.${n}.enable && elem "multi-user.target" (c.systemd.services.${n}.wantedBy or [ ])
+    ) unitNames
+  );
+  unitFields =
+    pick
+      (
+        unitNames
+        ++ [
+          "recyclarr"
+          "restic-backups-default"
+        ]
+      )
       (
         n:
-        c.systemd.services.${n}.enable && elem "multi-user.target" (c.systemd.services.${n}.wantedBy or [ ])
-      )
-      [
-        "calibre-web"
-        "flaresolverr"
-        "jellyfin"
-        "minecraft-server"
-        "minidlna"
-        "NetworkManager"
-        "nginx"
-        "prowlarr"
-        "qbittorrent"
-        "radarr"
-        "sonarr"
-        "tailscaled"
-      ]
-  );
+        let
+          sc = c.systemd.services.${n}.serviceConfig or { };
+        in
+        mapAttrs (_: unhash) {
+          ExecStart = sc.ExecStart or null;
+          ExecStartPre = sc.ExecStartPre or null;
+          WorkingDirectory = sc.WorkingDirectory or null;
+          User = sc.User or null;
+          Group = sc.Group or null;
+          ReadWritePaths = sc.ReadWritePaths or null;
+          StateDirectory = sc.StateDirectory or null;
+        }
+      );
+  jellyfin = {
+    inherit (c.services.jellyfin)
+      dataDir
+      configDir
+      cacheDir
+      logDir
+      ;
+  };
   timers = sorted (
     filter (n: c.systemd.timers ? ${n}) [
       "recyclarr"

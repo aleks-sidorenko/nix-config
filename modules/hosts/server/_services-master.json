@@ -22,6 +22,12 @@
       41641
     ]
   },
+  "jellyfin": {
+    "cacheDir": "/var/lib/jellyfin/cache",
+    "configDir": "/var/lib/jellyfin/config",
+    "dataDir": "/var/lib/jellyfin/data",
+    "logDir": "/var/lib/jellyfin/log"
+  },
   "locale": {
     "defaultLocale": "en_US.UTF-8",
     "layout": "us",
@@ -142,6 +148,161 @@
     "recyclarr",
     "restic-backups-default"
   ],
+  "unitFields": {
+    "NetworkManager": {
+      "ExecStart": null,
+      "ExecStartPre": null,
+      "Group": null,
+      "ReadWritePaths": null,
+      "StateDirectory": "NetworkManager",
+      "User": null,
+      "WorkingDirectory": null
+    },
+    "calibre-web": {
+      "ExecStart": "/nix/store/calibre-web-0.6.26-unstable-2026-03-01/bin/calibre-web -p /var/lib/calibre-web/app.db -g /var/lib/calibre-web/gdrive.db -i 127.0.0.1",
+      "ExecStartPre": "/nix/store/calibre-web-pre-start",
+      "Group": "media",
+      "ReadWritePaths": [
+        "/var/lib/calibre-web",
+        "/data/media/Books"
+      ],
+      "StateDirectory": null,
+      "User": "calibre-web",
+      "WorkingDirectory": null
+    },
+    "flaresolverr": {
+      "ExecStart": "/nix/store/flaresolverr-3.5.2/bin/flaresolverr",
+      "ExecStartPre": null,
+      "Group": null,
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": null,
+      "WorkingDirectory": "/run/flaresolverr"
+    },
+    "jellyfin": {
+      "ExecStart": "/nix/store/jellyfin-10.11.11/bin/jellyfin --datadir '/var/lib/jellyfin/data' --configdir '/var/lib/jellyfin/config' --cachedir '/var/lib/jellyfin/cache' --logdir '/var/lib/jellyfin/log'",
+      "ExecStartPre": [
+        "/nix/store/unit-script-jellyfin-pre-start/bin/jellyfin-pre-start"
+      ],
+      "Group": "media",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "jellyfin",
+      "WorkingDirectory": "/var/lib/jellyfin/data"
+    },
+    "minecraft-server": {
+      "ExecStart": "/nix/store/minecraft-server-26.3/bin/minecraft-server -Xms2G -Xmx2G",
+      "ExecStartPre": [
+        "/nix/store/unit-script-minecraft-server-pre-start/bin/minecraft-server-pre-start"
+      ],
+      "Group": "gaming",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "minecraft",
+      "WorkingDirectory": "/var/lib/minecraft"
+    },
+    "minidlna": {
+      "ExecStart": "/nix/store/minidlna-1.3.3/bin/minidlnad -S -P /run/minidlna/pid -f /nix/store/minidlna.conf",
+      "ExecStartPre": null,
+      "Group": "minidlna",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "minidlna",
+      "WorkingDirectory": null
+    },
+    "nginx": {
+      "ExecStart": "/nix/store/nginx-1.30.6/bin/nginx -c '/nix/store/nginx.conf'",
+      "ExecStartPre": [
+        "/nix/store/unit-script-nginx-pre-start/bin/nginx-pre-start"
+      ],
+      "Group": "nginx",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "nginx",
+      "WorkingDirectory": null
+    },
+    "prowlarr": {
+      "ExecStart": "/nix/store/prowlarr-2.6.5.5623/bin/Prowlarr -nobrowser -data=/var/lib/prowlarr",
+      "ExecStartPre": [
+        "/nix/store/unit-script-prowlarr-pre-start/bin/prowlarr-pre-start"
+      ],
+      "Group": null,
+      "ReadWritePaths": null,
+      "StateDirectory": "prowlarr",
+      "User": null,
+      "WorkingDirectory": null
+    },
+    "qbittorrent": {
+      "ExecStart": "/nix/store/qbittorrent-nox-5.2.2/bin/qbittorrent-nox --webui-port=8080",
+      "ExecStartPre": [
+        "/nix/store/unit-script-qbittorrent-pre-start/bin/qbittorrent-pre-start"
+      ],
+      "Group": "media",
+      "ReadWritePaths": [
+        "/var/lib/qbittorrent",
+        "/data/torrents"
+      ],
+      "StateDirectory": null,
+      "User": "qbittorrent",
+      "WorkingDirectory": null
+    },
+    "radarr": {
+      "ExecStart": "/nix/store/radarr-6.4.4.10685/bin/Radarr -nobrowser -data='/var/lib/radarr'",
+      "ExecStartPre": [
+        "/nix/store/unit-script-radarr-pre-start/bin/radarr-pre-start"
+      ],
+      "Group": "media",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "radarr",
+      "WorkingDirectory": null
+    },
+    "recyclarr": {
+      "ExecStart": "/nix/store/recyclarr-8.8.0/bin/recyclarr sync --config /run/secrets/rendered/recyclarr.yml",
+      "ExecStartPre": null,
+      "Group": "media",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "recyclarr",
+      "WorkingDirectory": null
+    },
+    "restic-backups-default": {
+      "ExecStart": [
+        "/nix/store/restic-0.18.1/bin/restic backup --exclude-file=/nix/store/exclude-patterns --files-from=/run/restic-backups-default/includes",
+        "/nix/store/restic-0.18.1/bin/restic unlock",
+        "/nix/store/restic-0.18.1/bin/restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --keep-yearly 2",
+        "/nix/store/restic-0.18.1/bin/restic check --read-data-subset=5%"
+      ],
+      "ExecStartPre": [
+        "/nix/store/unit-script-restic-backups-default-pre-start/bin/restic-backups-default-pre-start"
+      ],
+      "Group": null,
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "restic",
+      "WorkingDirectory": null
+    },
+    "sonarr": {
+      "ExecStart": "\"/nix/store/sonarr-4.0.20.3014/bin/Sonarr\" \"-nobrowser\" \"-data=/var/lib/sonarr\"",
+      "ExecStartPre": [
+        "/nix/store/unit-script-sonarr-pre-start/bin/sonarr-pre-start"
+      ],
+      "Group": "media",
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": "sonarr",
+      "WorkingDirectory": null
+    },
+    "tailscaled": {
+      "ExecStart": null,
+      "ExecStartPre": null,
+      "Group": null,
+      "ReadWritePaths": null,
+      "StateDirectory": null,
+      "User": null,
+      "WorkingDirectory": null
+    }
+  },
   "units": [
     "NetworkManager",
     "calibre-web",
