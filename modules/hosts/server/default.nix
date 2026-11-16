@@ -217,6 +217,15 @@ in
       expr = s.services.flaresolverr.package.outPath;
       expected = unstable.flaresolverr.outPath;
     };
+    server-parity-recyclarr-user = same [
+      "users"
+      "recyclarr"
+    ];
+    server-persists-recyclarr = persistsAll [ "/var/lib/recyclarr" ];
+    server-recyclarr-from-unstable = {
+      expr = lib.elem unstable.recyclarr.outPath (map (p: p.outPath) s.environment.systemPackages);
+      expected = true;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];

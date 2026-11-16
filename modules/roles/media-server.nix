@@ -16,6 +16,7 @@
     den.aspects.services.prowlarr
     den.aspects.services.qbittorrent
     den.aspects.services.radarr
+    den.aspects.services.recyclarr
     den.aspects.services.sonarr
   ];
 }
