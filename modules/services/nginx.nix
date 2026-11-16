@@ -25,6 +25,9 @@ let
     in
     "machine.wait_until_succeeds(${builtins.toJSON command})";
 
+  duplicateNames =
+    vhosts: lib.attrNames (lib.filterAttrs (_: vs: lib.length vs > 1) (lib.groupBy (v: v.name) vhosts));
+
   checksFor =
     domain: vhosts: map (vhost: checkFor "${vhost.name}.${domain}" (withDefaults vhost)) vhosts;
 
@@ -50,6 +53,14 @@ in
       htpasswd = config.sops.secrets."service-ingress-htpasswd".path;
     in
     {
+      # listToAttrs would keep one of two same-named vhosts and drop the other.
+      assertions = [
+        {
+          assertion = duplicateNames vhosts == [ ];
+          message = "vhosts: ${lib.concatStringsSep ", " (duplicateNames vhosts)} contributed more than once; vhost names must be unique.";
+        }
+      ];
+
       # Always declared, so a host can't gain an auth-requiring vhost without it.
       sops.secrets."service-ingress-htpasswd" = {
         owner = config.services.nginx.user;
@@ -120,6 +131,15 @@ in
 
       installTest.extraConfig.environment.systemPackages = [ pkgs.curl ];
     };
+
+  evalTests.nginx-duplicate-vhosts = {
+    expr = duplicateNames [
+      { name = "a"; }
+      { name = "b"; }
+      { name = "a"; }
+    ];
+    expected = [ "a" ];
+  };
 
   evalTests.nginx-vhost-checks = {
     expr = checksFor "example.test" [
