@@ -2,10 +2,22 @@ let
   webPort = 8083;
   dataDir = "/var/lib/calibre-web";
   user = "calibre-web";
+  libraryDirOf =
+    host:
+    let
+      media = import ./_media.nix host.mediaRoot;
+    in
+    media.mediaDir media.categories.books;
 in
 {
   den.aspects.services.calibre-web = {
     persist.directories = [ dataDir ];
+    # Hand-curated and small, unlike the re-downloadable libraries.
+    backup =
+      { host, ... }:
+      {
+        paths = [ (libraryDirOf host) ];
+      };
     installChecks = [ ''machine.wait_for_unit("calibre-web.service")'' ];
 
     vhosts = [
@@ -21,7 +33,7 @@ in
       { host, pkgs, ... }:
       let
         media = import ./_media.nix host.mediaRoot;
-        libraryDir = media.mediaDir media.categories.books;
+        libraryDir = libraryDirOf host;
       in
       {
         users.groups.${media.group} = { };

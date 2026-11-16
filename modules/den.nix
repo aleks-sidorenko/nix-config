@@ -67,6 +67,7 @@
     quirks = {
       persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; ignore ? [ ]; }. `ignore` names throwaway state, which the install test's undeclared-state guard then accepts.";
       vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<serviceDomain>`.";
+      backup.description = "What offsite backups add to their defaults: { paths ? [ ]; exclude ? [ ]; }, as live paths. Excludes are matched under the persistence root, where backups read state.";
       installChecks.description = "Python snippets the install test runs on the installed, rebooted host.";
     };
 

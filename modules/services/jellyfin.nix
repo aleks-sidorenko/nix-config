@@ -1,10 +1,13 @@
 let
   webPort = 8096;
   dataDir = "/var/lib/jellyfin";
+  cacheDir = "${dataDir}/cache";
 in
 {
   den.aspects.services.jellyfin = {
     persist.directories = [ dataDir ];
+    # Regenerable, and most of a backup by size.
+    backup.exclude = [ cacheDir ];
     installChecks = [ ''machine.wait_for_unit("jellyfin.service")'' ];
 
     vhosts = [
@@ -29,14 +32,14 @@ in
           openFirewall = false;
           inherit dataDir;
           configDir = "${dataDir}/config";
-          cacheDir = "${dataDir}/cache";
+          inherit cacheDir;
           logDir = "${dataDir}/log";
         };
 
         systemd.tmpfiles.rules = [
           "d ${dataDir} 0755 jellyfin ${media.group} -"
           "d ${dataDir}/config 0755 jellyfin ${media.group} -"
-          "d ${dataDir}/cache 0755 jellyfin ${media.group} -"
+          "d ${cacheDir} 0755 jellyfin ${media.group} -"
           "d ${dataDir}/log 0755 jellyfin ${media.group} -"
         ];
       };

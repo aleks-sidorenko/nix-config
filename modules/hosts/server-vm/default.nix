@@ -83,6 +83,11 @@ in
       expr = lib.isString config.allSystems.x86_64-linux.checks.install-server-vm.drvPath;
       expected = true;
     };
+    # Hosts never share a repository or its lock.
+    server-vm-own-repository = {
+      expr = lib.hasSuffix "/server-vm" sv.services.restic.backups.default.repository;
+      expected = true;
+    };
     server-builds = {
       expr = lib.isString s.system.build.toplevel.drvPath;
       expected = true;

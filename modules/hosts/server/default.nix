@@ -240,6 +240,11 @@ in
       expr = lib.elem unstable.recyclarr.outPath (map (p: p.outPath) s.environment.systemPackages);
       expected = true;
     };
+    server-parity-restic = same [ "restic" ];
+    server-parity-restic-user = same [
+      "users"
+      "restic"
+    ];
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
