@@ -213,6 +213,10 @@ in
       expr = lib.elem "d /var/lib/private 0700 root root -" s.systemd.tmpfiles.rules;
       expected = true;
     };
+    server-flaresolverr-from-unstable = {
+      expr = s.services.flaresolverr.package.outPath;
+      expected = unstable.flaresolverr.outPath;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
