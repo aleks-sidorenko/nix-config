@@ -98,6 +98,28 @@ in
         ];
       expected = true;
     };
+    server-parity-qbittorrent-user = same [
+      "users"
+      "qbittorrent"
+    ];
+    server-parity-qbittorrent-vhost = same [
+      "vhosts"
+      "qbittorrent"
+    ];
+    server-persists-qbittorrent = {
+      expr = lib.elem "/var/lib/qbittorrent" (
+        map (d: d.dirPath) s.environment.persistence."/persist".directories
+      );
+      expected = true;
+    };
+    server-qbittorrent-secret = {
+      expr = s.sops.secrets ? service-qbittorrent-alexander-password;
+      expected = true;
+    };
+    server-qbittorrent-vhost-auth = {
+      expr = s.services.nginx.virtualHosts.qbittorrent.basicAuthFile;
+      expected = s.sops.secrets.service-ingress-htpasswd.path;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
