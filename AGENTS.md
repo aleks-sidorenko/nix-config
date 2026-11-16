@@ -38,7 +38,7 @@ minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 | Applies to every host / user | schema include | `den.schema.host.includes` / `den.schema.user.includes` in `modules/den.nix` |
 | Per-host value an aspect needs | setting | `settings` on the aspect; set in `den.hosts.<system>.<host>.settings.<category>.<feature>` |
 | Per-host fact for any aspect (stateVersion, deploy) | host option | `den.schema.host.options` |
-| Shared fact with a default, overridable per entity (timeZone, locales, `serviceDomain`, `mediaRoot`, `lanDomain`, `tailnetDomain`) | conf option | `den.schema.conf.options` beside its reader (`modules/system/locale.nix`; `mediaRoot` in `modules/roles/media-server.nix`); override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
+| Shared fact with a default, overridable per entity | conf option | `den.schema.conf.options` beside its reader: `timeZone`, `locales`, `layouts` in `modules/system/locale.nix`; `lanDomain`, `tailnetDomain` in `modules/system/networkmanager.nix`; `serviceDomain` in `modules/services/nginx.nix`; `mediaRoot` in `modules/roles/media-server.nix`. Override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
 | A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<serviceDomain>` (`modules/services/nginx.nix`) |
@@ -193,8 +193,12 @@ Stage new files (`git add`) before `just check`.
   undeclared-state guard (`modules/storage/impermanence.nix`,
   `_persist-guard.py`) fails every install test on a non-empty entry under
   `/var/lib` or `/var/cache` that is neither.
-- An aspect owns its install-test accommodations (`installTest.extraConfig`, declared by `storage.disko`);
-  hosts and the harness do not special-case aspects.
+- An aspect owns its install-test accommodations (`installTest.extraConfig`,
+  declared by `storage.disko`); hosts and the harness do not special-case
+  aspects.
+- A failed unit fails every install test. The harness allows only each
+  user's home-manager unit, which every test VM fails for a reason of its
+  own (`modules/flake/install-tests.nix`).
 - `server`'s disk must keep matching master's layout (parity tests); change it
   deliberately, together with the parity fixtures.
 - Never commit secrets; respect SOPS. Move secrets files, do not re-encrypt.
