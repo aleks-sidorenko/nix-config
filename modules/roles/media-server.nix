@@ -8,6 +8,7 @@
   };
 
   den.aspects.roles.media-server.includes = [
+    den.aspects.services.calibre-web
     den.aspects.services.jellyfin
     den.aspects.services.minidlna
     den.aspects.services.nginx

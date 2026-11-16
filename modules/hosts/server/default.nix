@@ -137,6 +137,14 @@ in
       "vhosts"
       "minidlna"
     ];
+    server-parity-calibre-web-user = same [
+      "users"
+      "calibre-web"
+    ];
+    server-parity-calibre-web-vhost = same [
+      "vhosts"
+      "calibre"
+    ];
     server-persists-jellyfin = {
       expr = lib.elem "/var/lib/jellyfin" (
         map (d: d.dirPath) s.environment.persistence."/persist".directories
@@ -145,6 +153,12 @@ in
     };
     server-persists-minidlna = {
       expr = lib.elem "/var/cache/minidlna" (
+        map (d: d.dirPath) s.environment.persistence."/persist".directories
+      );
+      expected = true;
+    };
+    server-persists-calibre-web = {
+      expr = lib.elem "/var/lib/calibre-web" (
         map (d: d.dirPath) s.environment.persistence."/persist".directories
       );
       expected = true;
