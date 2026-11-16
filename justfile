@@ -37,6 +37,10 @@ flake-check:
 build host:
     nix build .#nixosConfigurations.{{ host }}.config.system.build.toplevel
 
+# Deploy a host with deploy-rs, building on the target (`--boot` to activate on next boot)
+deploy host *args:
+    {{ run }} deploy .#{{ host }} --skip-checks --remote-build {{ args }}
+
 # Run a VM host's install test; needs x86_64 Linux with KVM
 vm-test host:
     @if [ "$(uname -sm)" != "Linux x86_64" ]; then echo "install tests run in CI (x86_64 KVM)" >&2; exit 1; fi

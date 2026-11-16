@@ -11,6 +11,7 @@
           pkgs.age
           pkgs.nixfmt-tree
           pkgs.nvd
+          pkgs.deploy-rs
         ];
       };
     };
