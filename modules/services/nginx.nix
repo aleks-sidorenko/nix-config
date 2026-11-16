@@ -115,6 +115,7 @@ in
         443
       ];
 
+      # Generated from the vhosts quirk, so they can't be written as static installChecks.
       disko.tests.extraChecks = lib.mkAfter (lib.concatLines (checksFor host.serviceDomain vhosts));
 
       installTest.extraConfig.environment.systemPackages = [ pkgs.curl ];

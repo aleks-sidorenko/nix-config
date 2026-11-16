@@ -25,8 +25,9 @@ Four den concepts; read den's docs, not this file, for how they work:
 - **Quirks**: typed collections aspects contribute to and class bodies read
   (`den.quirks`; see [quirks](https://den.denful.dev/guides/quirks/)).
 
-Hosts: `server` (real, x86_64), `server-vm` and `base-vm` (QEMU guests,
-install-tested in CI).
+Hosts: `server` (real, x86_64) and `server-vm` (QEMU guest) run
+`roles.home-server` (`roles.server` + `roles.media-server` + restic +
+minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 
 ## Where things go
 
@@ -37,8 +38,11 @@ install-tested in CI).
 | Applies to every host / user | schema include | `den.schema.host.includes` / `den.schema.user.includes` in `modules/den.nix` |
 | Per-host value an aspect needs | setting | `settings` on the aspect; set in `den.hosts.<system>.<host>.settings.<category>.<feature>` |
 | Per-host fact for any aspect (stateVersion, deploy) | host option | `den.schema.host.options` |
-| Shared fact with a default, overridable per entity (timeZone, locales) | conf option | `den.schema.conf.options` beside its reader (`modules/system/locale.nix`); override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
+| Shared fact with a default, overridable per entity (timeZone, locales, `serviceDomain`, `mediaRoot`, `lanDomain`, `tailnetDomain`) | conf option | `den.schema.conf.options` beside its reader (`modules/system/locale.nix`; `mediaRoot` in `modules/roles/media-server.nix`); override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
+| Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
+| A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<serviceDomain>` (`modules/services/nginx.nix`) |
+| Offsite backup paths or excludes | `backup` quirk | `backup = { paths; exclude; };` in the aspect (`modules/services/restic.nix`) |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
@@ -66,7 +70,8 @@ it, never write the path.
 - No path segment may be a den reserved key: `name description meta includes
   excludes admits policyEnforcement provides policies into classes _module _`,
   anything starting `__`, `settings`, any class (`nixos darwin homeManager os
-  user hjem maid wsl`), any quirk (`persist installChecks`). Declaring a new
+  user hjem maid wsl`), any quirk
+  (`persist installChecks vhosts backup`). Declaring a new
   quirk or class reserves its name too.
 - Include named aspects (`den.aspects.system.nix`), never inline modules in
   `includes`.
@@ -87,7 +92,16 @@ Stage new files (`git add`) before `just check`.
    (`flake-file.inputs.<name>.url = "…";`), then `just flake-write`.
 3. Include it from a role (`modules/roles/*.nix`), a host aspect, or
    `den.schema.<kind>.includes` in `modules/den.nix` if it applies to all.
-4. State that survives reboot: `persist.directories = [ … ];`.
+4. State that survives reboot: `persist.directories = [ … ];`; throwaway
+   state: `persist.ignore = [ … ];`. Every non-empty entry under `/var/lib` or
+   `/var/cache` the service writes must be one or the other.
+   A proxied service: `vhosts = [ { name = "…"; port = …; } ];` (optional
+   `requiresProxyAuth`, `proxyWebsockets`, `clientMaxBodySize`, `locations`).
+   Offsite backup: `backup = { paths = [ … ]; exclude = [ … ]; };`, or
+   `backup = { host, ... }: { … };` when it depends on the host (a quirk value
+   may be a function den calls per host; see `modules/services/calibre-web.nix`).
+   Excludes are absolute paths of persisted state, not globs: restic resolves
+   them under the persistence root, so anything else silently matches nothing.
    An install-test assertion: `installChecks = [ ''machine.succeed("…")'' ];`.
    A test-VM accommodation (no network, no real secrets):
    `installTest.extraConfig.<option> = lib.mkForce …;` in the `nixos` body
@@ -137,7 +151,9 @@ Stage new files (`git add`) before `just check`.
 ### A setting
 
 1. In the aspect: `settings.<name> = lib.mkOption { type; default; description; };`
-   (see `settings.root` in `modules/storage/impermanence.nix`).
+   (see `settings.root` in `modules/storage/impermanence.nix`; others:
+   `services.qbittorrent.webUser`, `services.restic.bucketUrl`, minecraft's
+   `ops`, `whitelist`, `gamerules`, `serverProperties`).
 2. Read in a class body: `host.settings.<category>.<feature>.<name>`.
 3. Override per host: `settings.<category>.<feature>.<name> = …;` on the
    `den.hosts.<system>.<host>` entry.
@@ -167,8 +183,14 @@ Stage new files (`git add`) before `just check`.
 - No hostname, username, `/persist` path or domain in a feature aspect.
 - No `._` in aspect names; helpers are `_`-prefixed on disk only.
 - `/home` is its own persistent subvolume; the only persistence quirk is
-  `persist`. `installChecks` holds install-test Python only.
-- An aspect owns its install-test accommodations (`installTest.extraConfig`);
+  `persist`. `installChecks` holds install-test Python only; the one
+  exception is nginx's per-vhost checks, generated from the `vhosts` quirk
+  through `disko.tests.extraChecks` with `mkAfter`.
+- State a service writes must be persisted or ignored: the install test's
+  undeclared-state guard (`modules/storage/impermanence.nix`,
+  `_persist-guard.py`) fails every install test on a non-empty entry under
+  `/var/lib` or `/var/cache` that is neither.
+- An aspect owns its install-test accommodations (`installTest.extraConfig`, declared by `storage.disko`);
   hosts and the harness do not special-case aspects.
 - `server`'s disk must keep matching master's layout (parity tests); change it
   deliberately, together with the parity fixtures.
@@ -200,6 +222,7 @@ just lint-fix
 just flake-write      # regenerate flake.nix from flake-file.inputs
 just flake-check      # nix flake check
 just build <host>     # build a host's toplevel
+just deploy <host> [args]  # deploy-rs, built on the target; `--boot` activates on next boot
 just vm-test <host>   # install test; x86_64 Linux with KVM only (exits 1 elsewhere)
 just update [input]   # nix flake update
 nix run .#<host> -- switch   # nh wrapper per host
