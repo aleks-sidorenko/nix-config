@@ -182,6 +182,19 @@ in
       expr = s.services.sonarr.package.outPath;
       expected = unstable.sonarr.outPath;
     };
+    server-parity-radarr-user = same [
+      "users"
+      "radarr"
+    ];
+    server-parity-radarr-vhost = same [
+      "vhosts"
+      "radarr"
+    ];
+    server-persists-radarr = persistsAll [ "/var/lib/radarr" ];
+    server-radarr-from-unstable = {
+      expr = s.services.radarr.package.outPath;
+      expected = unstable.radarr.outPath;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
