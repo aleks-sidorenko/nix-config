@@ -74,6 +74,10 @@ in
         unstable = "1d060086d60cb76a40cf37109f979d88a5bd6396";
       };
     };
+    server-nix-as-master = {
+      expr = s.nix.package.version;
+      expected = "2.35.3";
+    };
     # The live disk must not change shape when server deploys from this tree.
     server-disko-matches-master = {
       expr = withoutHook (declarative s.disko.devices);

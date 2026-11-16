@@ -27,19 +27,26 @@
       };
     };
 
-    nixos.nix = {
-      # corrupts the store on darwin, so NixOS only
-      settings.auto-optimise-store = true;
-    };
+    nixos =
+      { pkgs, ... }:
+      {
+        nix = {
+          # The tree this one replaces ran latest; a daemon downgrade is a package
+          # version change the cutover must not make.
+          package = pkgs.nixVersions.latest;
+          # corrupts the store on darwin, so NixOS only
+          settings.auto-optimise-store = true;
+        };
 
-    # nix.gc would prune by age alone; nh keeps the last generations whatever
-    # their age, so a fallback generation survives.
-    nixos.programs.nh = {
-      enable = true;
-      clean = {
-        enable = true;
-        extraArgs = "--keep-since 7d --keep 5";
+        # nix.gc would prune by age alone; nh keeps the last generations whatever
+        # their age, so a fallback generation survives.
+        programs.nh = {
+          enable = true;
+          clean = {
+            enable = true;
+            extraArgs = "--keep-since 7d --keep 5";
+          };
+        };
       };
-    };
   };
 }
