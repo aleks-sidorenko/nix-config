@@ -195,6 +195,24 @@ in
       expr = s.services.radarr.package.outPath;
       expected = unstable.radarr.outPath;
     };
+    server-parity-prowlarr-user = same [
+      "users"
+      "prowlarr"
+    ];
+    server-parity-prowlarr-vhost = same [
+      "vhosts"
+      "prowlarr"
+    ];
+    server-persists-prowlarr = persistsAll [ "/var/lib/private/prowlarr" ];
+    server-prowlarr-from-unstable = {
+      expr = s.services.prowlarr.package.outPath;
+      expected = unstable.prowlarr.outPath;
+    };
+    # Prowlarr's state lives under it, and systemd refuses a looser mode.
+    server-private-state-mode = {
+      expr = lib.elem "d /var/lib/private 0700 root root -" s.systemd.tmpfiles.rules;
+      expected = true;
+    };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];
