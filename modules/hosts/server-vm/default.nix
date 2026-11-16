@@ -32,25 +32,7 @@ in
     layouts = [ "us" ];
     settings = {
       services.qbittorrent.webUser = "alexander";
-      services.minecraft-server = {
-        ops = [
-          {
-            uuid = "036251c9-562e-48b6-af54-1ae7a154c01f"; # https://mcuuid.net/?q=s1dus
-            name = "s1dus";
-            level = 4;
-            bypassesPlayerLimit = true;
-          }
-        ];
-        whitelist = {
-          d1mius = "80fd0535-faba-4838-ba48-38e61a51f38b";
-          s1dus = "036251c9-562e-48b6-af54-1ae7a154c01f";
-        };
-        serverProperties.difficulty = "hard";
-        gamerules = {
-          keep_inventory = true;
-          mob_griefing = true;
-        };
-      };
+      services.minecraft-server = import ../_minecraft.nix;
       storage.disko = {
         device = "/dev/vda";
         encrypted = false;
@@ -119,6 +101,18 @@ in
         expr = sections sv;
         expected = sections s;
       };
+    # The full heap everywhere but the install test's small VM.
+    server-vm-minecraft-heap = {
+      expr = {
+        real = sv.services.minecraft-server.jvmOpts;
+        installed =
+          (config.installedSystem den.hosts.x86_64-linux.server-vm).config.services.minecraft-server.jvmOpts;
+      };
+      expected = {
+        real = "-Xms2G -Xmx2G";
+        installed = "-Xms256M -Xmx512M";
+      };
+    };
     server-builds = {
       expr = lib.isString s.system.build.toplevel.drvPath;
       expected = true;

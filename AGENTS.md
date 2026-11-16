@@ -46,7 +46,7 @@ minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
-| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
+| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it; values several hosts share in `modules/hosts/_<name>.nix`, e.g. `_minecraft.nix`) |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
 | Pure helpers | plain function | `modules/_lib/<name>.nix` |
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks or host/user/conf options |
