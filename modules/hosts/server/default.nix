@@ -23,6 +23,7 @@ in
     locales = [ "en_US.UTF-8" ];
     layouts = [ "us" ];
     deploy.sshUser = "alexander";
+    settings.services.qbittorrent.webUser = "alexander";
     settings.storage.disko = {
       device = "/dev/disk/by-id/ata-SSD_2TB_004208";
       encrypted = false;

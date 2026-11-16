@@ -29,10 +29,16 @@ in
     timeZone = "UTC";
     locales = [ "en_US.UTF-8" ];
     layouts = [ "us" ];
+    settings.services.qbittorrent.webUser = "alexander";
     settings.storage.disko = {
       device = "/dev/vda";
       encrypted = false;
     };
+  };
+
+  evalTests.server-vm-qbittorrent-secret = {
+    expr = sv.sops.secrets ? service-qbittorrent-alexander-password;
+    expected = true;
   };
 
   den.aspects.server-vm.includes = [

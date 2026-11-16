@@ -12,6 +12,11 @@ in
   den.aspects.services.qbittorrent = {
     persist.directories = [ dataDir ];
     installChecks = [ ''machine.wait_for_unit("qbittorrent.service")'' ];
+    settings.webUser = lib.mkOption {
+      type = lib.types.str;
+      description = "User the web UI authenticates as; its password is the `service-qbittorrent-<user>-password` secret.";
+    };
+
     vhosts = [
       {
         name = "qbittorrent";
@@ -35,12 +40,7 @@ in
           media.categories.series
         ];
 
-        # The battery is parametric, so `hasAspect` can't match it; its resolved
-        # node is named after the user it marks.
-        isPrimary = u: lib.any (a: lib.hasPrefix "den/batteries/primary-user(" a.identity) u.aspects;
-        webUser =
-          (lib.findFirst isPrimary (throw "qbittorrent needs a primary user") (lib.attrValues host.users))
-          .userName;
+        webUser = host.settings.services.qbittorrent.webUser;
         secret = "service-qbittorrent-${webUser}-password";
 
         torrentScriptParams = ''\"%N\" \"%L\" \"%G\" \"%F\" \"%R\" \"%D\" \"%C\" \"%Z\" \"%T\" \"%I\" \"%J\" \"%K\"'';
