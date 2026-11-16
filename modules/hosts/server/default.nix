@@ -191,6 +191,22 @@ in
       "vhosts"
       "calibre"
     ];
+    server-jellyfin-dirs-as-master = {
+      expr = {
+        inherit (s.services.jellyfin)
+          dataDir
+          configDir
+          cacheDir
+          logDir
+          ;
+      };
+      expected = {
+        dataDir = "/var/lib/jellyfin/data";
+        configDir = "/var/lib/jellyfin/config";
+        cacheDir = "/var/lib/jellyfin/cache";
+        logDir = "/var/lib/jellyfin/log";
+      };
+    };
     server-persists-jellyfin = {
       expr = lib.elem "/var/lib/jellyfin" (
         map (d: d.dirPath) s.environment.persistence."/persist".directories
