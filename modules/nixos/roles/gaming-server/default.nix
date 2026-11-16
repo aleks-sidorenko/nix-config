@@ -28,6 +28,10 @@ in
                 bypassesPlayerLimit = true;
               }
             ];
+            whitelist = {
+              d1mius = "80fd0535-faba-4838-ba48-38e61a51f38b";
+              s1dus = "036251c9-562e-48b6-af54-1ae7a154c01f";
+            };
             serverProperties = {
               difficulty = "hard";
             };
