@@ -1,184 +1,105 @@
 [![CI](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml)
-[![Update Dependencies](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/update.yml)
-[![Deploy Check](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/deploy-check.yml)
 
-## About
+# nix-config
 
-Personal NixOS, nix-darwin, and home-manager configuration built on [snowfall-lib](https://github.com/snowfallorg/lib). Manages multiple systems across three architectures with declarative, role-based configuration, **multi-user "family" hosts with `adult`/`child` profiles**, encrypted secrets, and opt-in persistence.
+Personal NixOS configuration built on [den](https://den.denful.dev/), a
+dendritic layout on flake-parts: every file under `modules/` is a module that
+[import-tree](https://github.com/denful/import-tree) loads, and each feature is
+an aspect that hosts and roles include.
 
-## Features
+It runs a home server: a media stack behind an nginx ingress on the tailnet,
+offsite restic backups and a Minecraft server, on an impermanent btrfs root
+whose state is declared per service.
 
-**Structure & Tooling**
-- Modular organization with **snowfall-lib** and role-based composition
-- Custom **Neovim** setup via **nixvim** (AI assistants, multi-language support)
-- Multiple terminals (ghostty, kitty, alacritty, foot) and shells (fish, zsh)
+## Hosts
 
-**System Management**
-- **Multi-user "family" hosts**: every account (including the primary) declared uniformly via `nix-config.users`, with `adult`/`child` profiles driving group presets, sudo, and per-person identities
-- Declarative disk layout with **disko** (BTRFS + LUKS encryption)
-- **Opt-in persistence** through **impermanence** + blank snapshot
-- **SOPS-nix** secrets management with per-host age keys
-- Remote deployment via **deploy-rs**, fresh installs via **nixos-anywhere**
+| Host | Platform | What it is | Role |
+| --- | --- | --- | --- |
+| `server` | x86_64-linux | Mini PC (Intel Core i3-7020U, 8 GB RAM, 2 TB SATA SSD), Wi-Fi only | `roles.home-server` |
+| `server-vm` | x86_64-linux | QEMU guest standing in for `server`, install-tested in CI | `roles.home-server` |
+| `base-vm` | x86_64-linux | Bare QEMU guest with an encrypted disk, install-tested in CI | `roles.base` |
 
-**Desktop**
-- **Hyprland** (hypridle, hyprlock, hyprpaper, pyprland) and **GNOME** desktop environments
-- **Profile-based GNOME**: full power-user desktop for adults vs. a **locked-down child desktop** — minimal extensions, hidden Settings, no WiFi/Bluetooth toggling, app grid disabled, restricted app dock
-- **Stylix** system-wide theming with **Catppuccin** color scheme
-- Waybar, swaync, rofi, wlogout, kanshi
+Only `server` is a deploy target.
 
-**Homelab**
-- **Home Assistant** with 9 sub-modules (climate, heatpump, inverter, zigbee2mqtt, telegram, weather, plugs, night-schedule, zones)
-- Media stack: **Jellyfin**, Sonarr, Radarr, Prowlarr, qBittorrent, MiniDLNA
-- **k3s** (Kubernetes), **Podman**, **Tailscale** VPN, nginx, Minecraft server
-- **Restic** backups offsite to Cloudflare R2 (a self-hosted REST server module is available, off by default)
-
-**macOS**
-- **nix-darwin** with Homebrew integration
-- Colima/Lima/Rancher virtualization
-
-**Infrastructure**
-- **MikroTik RouterOS** managed via **terranix**/OpenTofu
-- **CI/CD**: GitHub Actions (flake check, system builds, deploy check, security scan, weekly auto-update)
-- Custom live ISO for NixOS installation
-
-## Configurations
-
-| Hostname | Architecture | Hardware | Role | OS | State |
-|:--------:|:----------:|:---------|:----:|:--:|:-----:|
-| `server` | x86_64-linux | Mini PC (Intel Core i3-7020U, 8 GB RAM) | Home Server | NixOS | Active |
-| `server-vm` | aarch64-linux | QEMU guest on the workbook | Test guest | NixOS | Active |
-| `workbook` | aarch64-darwin | Apple Silicon MacBook | Work | macOS | Active |
-| `minimal-x86_64` | x86_64-install-iso | Any | Installer | NixOS ISO | - |
-| `minimal-aarch64` | aarch64-install-iso | Any | Installer | NixOS ISO | - |
-
-## Architecture
+## Layout
 
 ```
-.
-├── systems/          # System configs: server, server-vm, workbook, installers
-├── homes/            # Home-manager configs: alexander@server, alexander@server-vm, oleksandrsy@workbook
-├── modules/
-│   ├── nixos/        # NixOS modules (roles, services, desktops, hardware, disks, cli, security)
-│   ├── home/         # Home-manager modules (roles, desktops, cli, development, browsers, media)
-│   └── darwin/       # nix-darwin modules (roles, system, services, cli)
-├── packages/         # Custom packages: nvim (nixvim), install ISO, wallpapers
-├── overlays/         # Nixpkgs overlays
-├── lib/              # Library: module helpers, context detection, deploy config, network utils
-├── infra/            # Infrastructure-as-code: MikroTik router (terranix/OpenTofu)
-└── scripts/          # Bootstrap and utility scripts
+modules/
+├── den.nix         # den and flake setup: host/user schema, defaults, inputs
+├── flake/          # outputs and tooling: deploy-rs, install tests, eval tests, devshell, naming check
+├── hosts/          # one folder per host, plus home-servers.nix (what server and server-vm share)
+├── roles/          # bundles of aspects: base, server, media-server, home-server
+├── system/         # boot, nix, nixpkgs, locale, networking, NetworkManager, headless
+├── storage/        # disko layout, impermanence and the undeclared-state guard
+├── security/       # ssh, sops, sudo, user passwords, authorized keys
+├── services/       # tailscale, nginx, restic, the media stack, minecraft
+├── hardware/       # qemu-guest
+└── users/          # alexander
+identities/         # per-person public keys (see identities/README.md)
+secrets/nixos.yaml  # SOPS-encrypted system secrets
 ```
 
-All modules use the `nix-config` namespace (`config.nix-config.*`). Roles compose related modules: e.g., `home-server` enables server + media-server + smart-home + gaming-server + backup.
-
-See [docs/architecture.md](docs/architecture.md) for the full role hierarchy, library functions, and flake inputs.
+`flake.nix` is generated from the `flake-file.inputs` each module declares;
+run `just flake-write` after changing one and never edit it by hand.
 
 ## Usage
 
-### Getting Started
+Everything runs through `just` and the dev shell (`nix develop`); recipes enter
+the shell themselves when needed.
 
-```bash
-git clone git@github.com:aleks-sidorenko/nix-config.git ~/.nix-config
-cd ~/.nix-config
-```
+| Command | What it does |
+| --- | --- |
+| `just check` | Format check, lint (statix, deadnix) and `nix flake check`, including the eval tests |
+| `just format [path]` | Format with nixfmt (writes) |
+| `just lint-fix` | Apply statix and deadnix fixes |
+| `just build <host>` | Build a host's system without switching |
+| `just deploy <host> [args]` | Deploy with deploy-rs, building on the target; `--boot` activates on the next boot |
+| `just vm-test <host>` | Run a VM host's install test (x86_64 Linux with KVM only; otherwise CI runs it) |
+| `just flake-write` | Regenerate `flake.nix` |
+| `just update [input]` | Update flake inputs |
 
-Prerequisites: Nix installed, git. For secrets management: `pass` configured, PGP key available.
-
-### Local Deploy
-
-```bash
-# NixOS system configuration (uses hostname to find flake)
-nh os switch
-
-# Home-manager user configuration (uses hostname + username)
-nh home switch
-
-# Alternative without nh
-sudo nixos-rebuild switch --flake .
-```
-
-### Remote Deploy
-
-```bash
-just deploy <hostname>                     # Deploy (remote build by default)
-just deploy <hostname> --dry-run           # Preview changes
-just deploy router                         # Deploy MikroTik router config
-```
-
-### Build Installer ISO
-
-```bash
-just iso-build minimal-x86_64            # Build minimal NixOS installer ISO (-> ./result/iso/)
-just iso-write minimal-x86_64 /dev/sdX   # Write the built ISO to a USB device
-just iso minimal-x86_64 /dev/sdX         # Build + write in one step
-```
-
-For the full build → flash → boot → login walkthrough and fresh installations on
-new hardware, see [docs/bootstrap.md](docs/bootstrap.md).
+On a host itself, `nix run .#<host> -- switch` runs nh for that host.
 
 ### Secrets
 
-Secrets are encrypted with [SOPS](https://github.com/getsops/sops) using age keys derived from each host's SSH key.
+System secrets live in `secrets/nixos.yaml`, encrypted with
+[SOPS](https://github.com/getsops/sops) to the age keys in `.sops.yaml`: each
+host's key comes from its SSH host key, kept under `/persist/etc/ssh`. Edit
+with `sops secrets/nixos.yaml`; after adding a host's key,
+`sops updatekeys secrets/nixos.yaml`.
 
-```bash
-just secrets-list                          # List all secrets
-just secrets-edit nixos                    # Edit NixOS secrets
-just secrets-edit home                     # Edit home-manager secrets
-```
+## Testing
 
-Secrets files:
-- `modules/nixos/secrets.yaml` - system secrets (user passwords, API keys, WiFi)
-- `modules/home/secrets.yaml` - user secrets
-- `infra/router/secrets.yaml` - router secrets
+- **Eval tests** (`evalTests` in each module, run by `just check`) pin
+  behaviour next to the code that owns it.
+- **Parity tests** compare `server` with the evaluated config of the
+  snowfall tree it replaces, so a port can't silently change the live box.
+- **Install tests** (`checks.x86_64-linux.install-<host>`) install each VM
+  host into a disko test VM the way a real install does, reboot it,
+  power-cycle it, and check that root is wiped, persisted state survives,
+  every service and site comes up, no unit failed, and no service wrote state
+  that is neither persisted nor declared throwaway.
 
-To add a new host's key, see [docs/bootstrap.md](docs/bootstrap.md#step-4--generate-host-keys--register-with-sops).
-
-### Maintenance
-
-```bash
-just update                                # Update flake inputs
-just cleanup                               # Garbage collect old generations
-just lint                                  # statix + deadnix (read-only)
-just lint-fix                              # Auto-fix linting issues
-just flake-check                           # nix flake check
-just info                                  # Show system info
-disk-report                                # Rank disk usage and how to reclaim it
-```
-
-## Development
-
-```bash
-# Typical workflow
-just format                                # Format nix files
-just check                                 # Verify code quality (CI-friendly)
-just build                                 # Test build without switching
-just deploy <hostname>                     # Deploy
-```
-
-CI runs on push/PR to master: flake check, formatting, security scan (Trivy). Full system and home-manager builds run on master branch only. Flake inputs are auto-updated weekly.
-
-## Companion flakes
-
-Reusable components are maintained as standalone flakes and consumed as inputs here:
-
-| Flake | Description |
-|-------|-------------|
-| [nix-nvim](https://github.com/aleks-sidorenko/nix-nvim) | Configurable Neovim distribution built with nixvim |
-| [nix-routeros](https://github.com/aleks-sidorenko/nix-routeros) | MikroTik RouterOS management with terranix |
-| [nix-wallpapers](https://github.com/aleks-sidorenko/nix-wallpapers) | Vendored wallpaper collection (hermetic, no hash drift) |
+CI (`.github/workflows/ci.yml`) runs all of them on pushes and pull requests
+to `master`, then builds `server`.
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [docs/architecture.md](docs/architecture.md) | Repository structure, role hierarchy, library functions, flake inputs |
-| [docs/bootstrap.md](docs/bootstrap.md) | Fresh installation, bootstrap process, disk formatting |
-| [docs/homelab.md](docs/homelab.md) | Homelab services overview, network layout |
-| [docs/router.md](docs/router.md) | MikroTik router management with terranix/OpenTofu |
-| [docs/references.md](docs/references.md) | Inspirations, NixOS resources, credits |
+| Document | What it covers |
+| --- | --- |
+| [docs/architecture.md](docs/architecture.md) | How the den layout fits together: entities, aspects, roles, settings, quirks, storage, tests, deploys |
+| [docs/homelab.md](docs/homelab.md) | What `server` runs, where its state lives, ingress, backups and restore, deploys and rollback |
+| [AGENTS.md](AGENTS.md) | Conventions and step-by-step recipes for adding features, hosts, users, settings and quirks |
+| [identities/README.md](identities/README.md) | Public key material per person |
 
-## Credits
+## Status
 
-See [docs/references.md](docs/references.md) for inspirations, resources, and wallpaper credits.
+This tree is a rewrite of the earlier snowfall-lib configuration, done in
+slices ([#272](https://github.com/aleks-sidorenko/nix-config/issues/272)).
+Ported so far: the base system, the server role, and everything `server` runs.
+Not yet ported: the macOS workbook, home-manager modules beyond the user's
+shell, the installer ISO, bootstrap scripts, and the infrastructure stacks
+(router, DNS, storage bucket, tailnet policy).
 
 ## License
 

@@ -1,190 +1,130 @@
-# Homelab Services
+# Homelab
 
-Homelab services run on `server`, a mini PC (Intel Core i3-7020U, 8 GB RAM, 2 TB SATA SSD), using the `home-server` NixOS role, which composes: `common` + `server` + `media-server` + `smart-home` + `gaming-server` + `backup`. `server` switches `smart-home` back off, since the plugs, heatpump and climate sensors its automations name stayed with the old house. `server-vm`, the QEMU guest on the workbook, is kept as a test guest on `common` only: `infra/dns` rejects two hosts claiming a service name.
+`server` is a mini PC (Intel Core i3-7020U, 8 GB RAM, 2 TB SATA SSD) on the
+home Wi-Fi, running `roles.home-server`. `server-vm` runs the same role as a
+test guest; CI install-tests it in place of `server`.
 
-## Smart Home
+## Services
 
-### Home Assistant
+| Service | Aspect | Site | Port | Proxy auth | State |
+| --- | --- | --- | --- | --- | --- |
+| Jellyfin (media server) | `services.jellyfin` | `jellyfin` | 8096 | no, own login | `/var/lib/jellyfin` |
+| Sonarr (series) | `services.sonarr` | `sonarr` | 8989 | yes | `/var/lib/sonarr` |
+| Radarr (movies) | `services.radarr` | `radarr` | 7878 | yes | `/var/lib/radarr` |
+| Prowlarr (indexers) | `services.prowlarr` | `prowlarr` | 9696 | yes | `/var/lib/private/prowlarr` |
+| qBittorrent | `services.qbittorrent` | `qbittorrent` | 8080 | yes | `/var/lib/qbittorrent` |
+| Calibre-Web (books) | `services.calibre-web` | `calibre` | 8083 | no, own login | `/var/lib/calibre-web` |
+| MiniDLNA | `services.minidlna` | `minidlna` | 8200 | yes | `/var/cache/minidlna` |
+| FlareSolverr | `services.flaresolverr` | none | 8191, loopback only | — | none |
+| Recyclarr | `services.recyclarr` | none | — | — | `/var/lib/recyclarr` |
+| Minecraft | `services.minecraft-server` | none | 25565 | — | `/var/lib/minecraft` |
 
-Full home automation platform with the following sub-modules:
+- **Sonarr and Radarr** import finished downloads by hardlink, so downloads
+  and the library share `/data`. Their API keys come from SOPS
+  (`service-<app>-api-key`) and are rendered into each app's `config.xml`.
+- **Prowlarr** feeds indexers to Sonarr and Radarr. FlareSolverr listens on
+  loopback for the indexers behind a browser challenge.
+- **Recyclarr** syncs TRaSH quality profiles into Sonarr and Radarr daily,
+  directly over loopback. It targets 720p, with 1080p as a fallback.
+- **qBittorrent**'s settings are rendered from nix at every start, with the
+  web password from `service-qbittorrent-<user>-password`; the web login is
+  the host's `primaryUser`. Peers connect on 17348 (TCP and UDP).
+- **MiniDLNA** serves Movies and Series to TVs on the LAN. TVs find it over
+  SSDP (UDP 1900) and stream from port 8200 directly; only its status page
+  goes through the proxy.
+- **Calibre-Web** keeps its library at `/data/media/Books` and creates an
+  empty one on first start.
+- **Minecraft**: operators, whitelist, difficulty and gamerules are settings
+  in `modules/hosts/home-servers.nix`; gamerules apply through a datapack on
+  world load. The heap is 2 GB.
 
-| Sub-module                 | Purpose                                                        |
-| -------------------------- | -------------------------------------------------------------- |
-| **climate**                | HVAC and climate control                                       |
-| **heatpump**               | Heat pump integration and monitoring                           |
-| **inverter**               | Deye solar inverter monitoring                                 |
-| **night-schedule**         | Scheduled automations (time-based)                             |
-| **plugs**                  | Smart plug control (TV, Fireplace, Hall Mirror, Kids Door, PC) |
-| **telegram-notifications** | Telegram bot alerts and notifications                          |
-| **weather**                | Weather data integration                                       |
-| **zigbee2mqtt**            | Zigbee device bridge integration                               |
+## Ingress
 
-Configuration: `modules/nixos/services/smart-home/home-assistant/`
+nginx serves each proxied service at `<site>.home.sidorenko.me`, the nginx
+`domain` setting. Those names resolve to the server's tailnet address, and
+ports 80 and 443 are open only on `tailscale0`, so the sites are reachable
+from the tailnet and not from the LAN. Traffic is plain HTTP inside the
+tailnet; 443 is open so an upgraded request is refused instead of hanging.
 
-### Mosquitto MQTT
+Sites marked "proxy auth" need HTTP basic auth from the `service-ingress-htpasswd`
+secret: those apps trust every request that reaches them. An unknown `Host`
+gets connection closed (444) instead of the first site.
 
-MQTT message broker for IoT device communication. Used by Home Assistant and Zigbee2MQTT.
+## Storage
 
-Configuration: `modules/nixos/services/smart-home/mosquitto/`
+```
+/data/torrents/{Movies,Series}    qBittorrent downloads
+/data/media/{Movies,Series}       the Sonarr and Radarr libraries
+/data/media/Books                 the Calibre library
+```
 
-### Zigbee2MQTT
+Everything under `/data` sits on its own subvolume and survives reboots.
+Service state lives under `/var/lib` (or `/var/cache`), bind-mounted from
+`/persist`; root itself is reset at every boot (see
+[architecture](architecture.md#storage)). All media services share the
+`media` group.
 
-Bridges Zigbee devices to MQTT using a SONOFF Zigbee adapter (Ember). Manages smart plugs, sensors, and other Zigbee devices.
+## Network
 
-Configuration: `modules/nixos/services/smart-home/zigbee2mqtt/`
+The box has only Wi-Fi. NetworkManager manages it, and the saved connection
+is persisted state (`/etc/NetworkManager/system-connections`), not part of
+this config: losing it takes the box off the network. The LAN domain is
+`lan`, and the tailnet's MagicDNS domain comes first in the search list.
 
-### Zones & Devices
+Tailscale joins unattended with the `system-tailscale-auth-key` secret and
+retries until it succeeds. **Do not run `tailscale logout`**: this config
+advertises no tags, so rejoining with that key would be refused.
 
-Zone-based automation (room/area definitions) and device management.
+The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
+1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
+(41641/UDP), and on the tailnet for 80 and 443.
 
-Configuration: `modules/nixos/services/smart-home/zones/`, `modules/nixos/services/smart-home/devices/`
+## Backups
 
-## Media Stack
+restic backs each `home-server` host up every night at 03:00 (with up to
+30 minutes' random delay) to its own repository in the R2 bucket `backups`,
+at `backups/<host>`. A night the host is off is skipped, not run at boot.
 
-### Jellyfin
-
-Media server for movies, TV shows, and music. Accessible via web interface.
-
-### Sonarr & Radarr
-
-Automated TV show (Sonarr) and movie (Radarr) management. Monitors for new episodes/releases and triggers downloads.
-
-### Prowlarr
-
-Torrent and Usenet indexer manager. Provides unified search across indexers for Sonarr and Radarr.
-
-### qBittorrent
-
-Torrent client. Downloads are organized into:
-
-- `/data/torrents/Movies/`
-- `/data/torrents/Series/`
-
-Media files are served from:
-
-- `/data/media/Movies/`
-- `/data/media/Series/`
-
-### MiniDLNA
-
-UPnP/DLNA media server for streaming to TVs and other DLNA-compatible devices on the local network.
-
-Configuration for all media services: `modules/nixos/services/media/`
-
-## Networking
-
-### Nginx
-
-Reverse proxy for internal services. Routes traffic to appropriate backends.
-
-Configuration: `modules/nixos/services/networking/nginx/`
-
-## Gaming
-
-### Minecraft Server
-
-Dedicated Minecraft server with configured ops, difficulty (hard), and game rules (keep inventory, mob griefing).
-
-Configuration: `modules/nixos/services/gaming/minecraft-server/`
-
-## Backup
-
-Each `home-server` host backs its state up daily (03:00, `Persistent = false`
-— a run missed while the host is off is skipped) with restic to its own
-repository in the Cloudflare R2 bucket `backups`, at `backups/<hostname>`.
-
-- **What**: `/home`, `/root`, the whole persist root, plus `extraPaths` modules
-  contribute (Calibre's library). Media on `/data` is not backed up — it can be
-  re-fetched. Modules exclude what they can regenerate via `extraExclude`
-  (Jellyfin's cache). The host's SSH key is included, so a restore brings its
-  SOPS identity back.
-- **Where it's declared**: the bucket in `infra/storage`; its name in
-  `lib/defaults.backup.bucket` and the account in
-  `lib/defaults.providers.cloudflare.accountId`; the client in
-  `modules/nixos/services/backup/restic/`.
-- **Other roles**: the `graphical` role also enables `backup`, so a future
-  desktop host would back up its `/home` to the same bucket unless it turns
-  `backup` off.
+- **What**: `/home`, `/root`, the whole `/persist`, and the Calibre library.
+  The rest of `/data` can be fetched again and is not backed up. Jellyfin's
+  cache, temporary files, logs and build artifacts are excluded. The host's
+  SSH key is under `/persist`, so a restore brings back its SOPS identity.
+- **Retention**: 7 daily, 4 weekly, 6 monthly and 2 yearly snapshots.
+- **Credentials** (SOPS): `service-restic-password` (the repository password)
+  and `service-restic-r2-access-key-id` / `service-restic-r2-secret-access-key`
+  (an R2 token limited to the bucket). Rotate the token by creating a new one,
+  updating both secrets, deploying, then revoking the old one.
 - **Failures are silent**: check `systemctl status restic-backups-default`.
-
-### Bootstrap (once)
-
-1. Cloudflare dashboard → add **Workers R2 Storage: Edit** (account permission) to the existing Cloudflare token (the
-   one in `infra/secrets.yaml`, also used by `infra/dns`) — no new token. `just storage-secrets-edit` holds only a new
-   random `state-passphrase`.
-2. `just storage-apply` — creates the bucket.
-3. Dashboard → R2 → API token, **Object Read & Write**, bucket `backups` only →
-   `just secrets-edit nixos`: `service-restic-r2-access-key-id` (Access Key ID)
-   and `service-restic-r2-secret-access-key` (Secret Access Key). The host
-   won't build (sops-nix's manifest check fails on a missing key) until both
-   are in `modules/nixos/secrets.yaml`, so add them before building or deploying.
-4. Deploy the host, then `sudo systemctl start restic-backups-default` and
-   `journalctl -u restic-backups-default` for the first snapshot.
+- The install test turns the timer off: its VM has no network.
 
 ### Restore
 
-On the host (or a fresh one with the same identity):
+On the host, or a fresh one with the same identity:
 
 ```bash
 sudo -u restic restic-default snapshots
 sudo restic-default restore --no-cache <snapshot-id> --target /tmp/restore --include /persist/var/lib/<service>
 ```
 
-`restic-default` is the NixOS wrapper that carries the repository, password
-and R2 environment. Read-only commands run as the `restic` user, which owns
-the shared cache directory; `restore` runs as root, so it skips the cache to
-avoid leaving root-owned files there.
+`restic-default` wraps restic with the repository, password and R2
+credentials. Read-only commands run as the `restic` user, which owns the
+cache; `restore` runs as root, so it skips the cache rather than leave
+root-owned files in it.
 
-**If every device is lost**, a restore needs only this repo and the PGP private
-key: the key decrypts the restic password and the R2 credential from SOPS. The
-PGP key's own backup is the root of disaster recovery.
+If every device is lost, a restore needs only this repository and the PGP
+private key that decrypts the SOPS secrets.
 
-### Rotating the R2 credential
+## Deploys and rollback
 
-Create a new bucket-scoped token, `just secrets-edit nixos`, deploy, then revoke
-the old token in the dashboard.
-
-## Available Modules (Not Currently Enabled)
-
-These service modules exist in the repo but no host enables them. Enable them explicitly if needed.
-
-| Module | Purpose | Configuration |
-| ------ | ------- | ------------- |
-| **k3s** | Lightweight Kubernetes (server/agent, token auth) | `modules/nixos/services/k3s/` |
-| **CUPS** | Print server with network sharing | `modules/nixos/services/printing/` |
-| **restic-server** | Self-hosted restic REST target (`roles.backup-server`) | `modules/nixos/services/backup/restic-server/` |
-
-Two service modules run outside the `home-server` role: **Tailscale** (`modules/nixos/services/networking/tailscale/`), which `common` enables on every host, and **Podman** (`modules/nixos/services/virtualisation/podman/`), enabled by the `desktop` role.
-
-## Enabling Services
-
-Services are typically enabled through the role system:
-
-```nix
-# In systems/x86_64-linux/server/default.nix
-nix-config.roles.home-server.enable = true;  # Enables ALL server services
+```bash
+just deploy server            # build on the box and switch now
+just deploy server --boot     # build on the box; switch at the next boot
 ```
 
-Individual services can also be toggled:
+Use `--boot` for changes that are risky to switch live, then reboot with
+someone at the keyboard. The boot menu lists the last 3 generations, so
+rolling back means choosing the previous entry. nh prunes old generations
+weekly but always keeps the last 5 and anything from the last 7 days.
 
-```nix
-# Enable specific services
-nix-config.services.media.jellyfin.enable = true;
-nix-config.services.smart-home.home-assistant.enable = true;
-nix-config.services.backup.restic.enable = true;
-```
-
-## Network Layout
-
-All homelab devices have static IPs managed by the router (see [docs/router.md](router.md)):
-
-| Device       | IP           | Purpose                    |
-| ------------ | ------------ | -------------------------- |
-| server       | 10.0.0.40    | Main server (all services) |
-| router       | 10.0.0.1     | MikroTik gateway           |
-| cap1/cap2    | 10.0.0.11-12 | WiFi access points         |
-| monitor      | 10.0.0.30    | Security camera            |
-| ajax         | 10.0.0.31    | Security hub               |
-| tv / tv-wifi | 10.0.0.50-51 | Smart TVs                  |
-| inverter     | 10.0.0.52    | Solar inverter             |
-| heatpump     | 10.0.0.53    | Heat pump                  |
+After a deploy, check that `systemctl --failed` is empty and that the sites
+answer.

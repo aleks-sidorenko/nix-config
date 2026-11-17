@@ -3,10 +3,11 @@
 Public key material for each person who has an account on any host, colocated
 so that adding someone is a single copy-paste.
 
-Each identity is one folder, referenced by name from
-`nix-config.security.identity.name` (which defaults to the account's username).
-The `gpg`, `ssh`, and git-signing home modules — plus the hosts'
-`authorizedKeys` — all resolve their key material from here.
+Each identity is one folder, named by a user's `identity` (which defaults to
+the account's username; `modules/security/authorized-keys.nix`). Hosts read
+`ssh.pub` from it into the account's SSH `authorizedKeys`. The GPG files are
+kept for the home-manager modules (gpg, ssh agent, git signing) that have not
+been ported to den yet.
 
 ```
 identities/
@@ -21,12 +22,12 @@ identities/
 1. `cp -r identities/alexander identities/<name>`
 2. Replace all three files with the new person's public key material.
 3. If their account username differs from `<name>` (same human, different
-   account — e.g. `oleksandrsy@workbook` reusing `alexander`), set
-   `nix-config.security.identity.name = "<name>";` in that home config.
+   account), set `identity = "<name>";` on that user's entry,
+   `den.hosts.<system>.<host>.users.<user>`.
 
-That's it — gpg import, ssh-agent identity, git signing, and host
-`authorizedKeys` all pick it up automatically. A person with **no** folder here
-(e.g. a child account) simply gets no key material; nothing else needs changing.
+Host `authorizedKeys` pick it up automatically. Every user on a host needs a
+folder with an `ssh.pub` for now: the SSH aspect reads it for each account and
+has no fallback for someone without one.
 
 > Only **public** material lives here. The private GPG key (the single secret
 > root) is imported out-of-band during bootstrap on each machine.

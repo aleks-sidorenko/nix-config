@@ -1,21 +1,9 @@
 result*
 .direnv
-*.rsc
-
-# Darwin
 .DS_Store
 
-# terraform
-.terraform
-.terraform.*
-*.tfstate.backup
-errored.tfstate
-config.tf.json
-# Generated into each state dir by lib/terraform, like config.tf.json above.
-encryption.tf
-
-# vagrant
-.vagrant
-
-# claude
+# agent tooling
 .claude/settings.local.json
+.claude/worktrees/
+.superpowers/
+docs/superpowers/
