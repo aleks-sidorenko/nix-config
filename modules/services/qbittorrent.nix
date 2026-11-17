@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ den, lib, ... }:
 let
   webPort = 8080;
   torrentPort = 17348;
@@ -10,6 +10,7 @@ let
 in
 {
   den.aspects.services.qbittorrent = {
+    includes = [ den.aspects.services.media ];
     persist.directories = [ dataDir ];
     installChecks = [ ''machine.wait_for_unit("qbittorrent.service")'' ];
     settings.webUser = lib.mkOption {
@@ -33,7 +34,7 @@ in
         ...
       }:
       let
-        media = import ./_media.nix host.mediaRoot;
+        media = import ./_media.nix host;
         inherit (media) group;
         downloadCategories = [
           media.categories.movies
@@ -151,7 +152,6 @@ in
           mode = "0400";
         };
 
-        users.groups.${group} = { };
         users.users.${user} = {
           isSystemUser = true;
           inherit group;

@@ -7,6 +7,7 @@ in
   den.aspects.services.recyclarr = {
     # It syncs their profiles with their API keys.
     includes = [
+      den.aspects.services.media
       den.aspects.services.sonarr
       den.aspects.services.radarr
     ];
@@ -23,7 +24,7 @@ in
         ...
       }:
       let
-        media = import ./_media.nix host.mediaRoot;
+        media = import ./_media.nix host;
         inherit (media) group;
         package = pkgs.unstable.recyclarr;
 
@@ -97,7 +98,6 @@ in
           mode = "0400";
         };
 
-        users.groups.${group} = { };
         users.users.${user} = {
           isSystemUser = true;
           inherit group;

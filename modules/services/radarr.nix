@@ -1,18 +1,9 @@
-let
-  arr = import ./_arr.nix;
-  name = "radarr";
-  port = 7878;
-  dataDir = "/var/lib/radarr";
-in
+{ den, ... }:
 {
-  den.aspects.services.radarr = {
-    persist.directories = [ dataDir ];
-    installChecks = [ ''machine.wait_for_unit("radarr.service")'' ];
-    vhosts = [ (arr.vhost name port) ];
-    nixos = arr.manager {
-      inherit name port dataDir;
-      title = "Radarr";
-      category = "movies";
-    };
+  den.aspects.services.radarr = (import ./_arr.nix { inherit den; }).manager {
+    name = "radarr";
+    title = "Radarr";
+    port = 7878;
+    category = "movies";
   };
 }

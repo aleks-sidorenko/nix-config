@@ -1,16 +1,24 @@
+# What sonarr, radarr and prowlarr share.
+{ den }:
 let
+  vhost = name: port: {
+    inherit name port;
+    # config.xml sets External authentication: the app authenticates nobody
+    # and serves its API key to whoever asks.
+    requiresProxyAuth = true;
+  };
+
   # An API key secret and a config.xml rendered from it, installed before each
   # start, the service user, and the package on PATH.
   common =
     {
-      lib,
       name,
       title,
       port,
       dataDir,
       group,
     }:
-    config:
+    { config, lib, ... }:
     let
       secret = "service-${name}-api-key";
       template = "${name}-config.xml";
@@ -58,17 +66,46 @@ let
 
       environment.systemPackages = [ config.services.${name}.package ];
     };
-in
-# What sonarr, radarr and prowlarr share.
-{
-  inherit common;
 
-  vhost = name: port: {
-    inherit name port;
-    # config.xml sets External authentication: the app authenticates nobody
-    # and serves its API key to whoever asks.
-    requiresProxyAuth = true;
-  };
+  # The aspect for one *arr app; `nixos` takes the media layout and returns
+  # the app's own NixOS module.
+  aspect =
+    {
+      name,
+      title,
+      port,
+      dataDir,
+      checks ? [ ],
+      nixos,
+    }:
+    {
+      includes = [ den.aspects.services.media ];
+      persist.directories = [ dataDir ];
+      installChecks = [ ''machine.wait_for_unit("${name}.service")'' ] ++ checks;
+      vhosts = [ (vhost name port) ];
+      nixos =
+        { host, ... }:
+        let
+          media = import ./_media.nix host;
+        in
+        {
+          imports = [
+            (common {
+              inherit
+                name
+                title
+                port
+                dataDir
+                ;
+              inherit (media) group;
+            })
+            (nixos media)
+          ];
+        };
+    };
+in
+{
+  inherit aspect;
 
   # sonarr and radarr, each managing one media category.
   manager =
@@ -76,50 +113,38 @@ in
       name,
       title,
       port,
-      dataDir,
       category,
     }:
-    {
-      config,
-      host,
-      lib,
-      pkgs,
-      ...
-    }:
     let
-      media = import ./_media.nix host.mediaRoot;
-      inherit (media) group;
-      mediaDir = media.mediaDir media.categories.${category};
+      dataDir = "/var/lib/${name}";
     in
-    lib.mkMerge [
-      (common {
-        inherit
-          lib
-          name
-          title
-          port
-          dataDir
-          group
-          ;
-      } config)
-      {
-        users.groups.${group} = { };
+    aspect {
+      inherit
+        name
+        title
+        port
+        dataDir
+        ;
+      nixos =
+        media:
+        { pkgs, ... }:
+        {
+          services.${name} = {
+            enable = true;
+            package = pkgs.unstable.${name};
+            user = name;
+            inherit (media) group;
+            inherit dataDir;
+            # nginx is the ingress; opening the port here would let clients bypass it.
+            openFirewall = false;
+            settings.server.port = port;
+          };
 
-        services.${name} = {
-          enable = true;
-          package = pkgs.unstable.${name};
-          user = name;
-          inherit group dataDir;
-          # nginx is the ingress; opening the port here would let clients bypass it.
-          openFirewall = false;
-          settings.server.port = port;
+          systemd.tmpfiles.rules = [
+            "d ${dataDir} 0755 ${name} ${media.group} -"
+            "d ${media.libraryRoot} 0775 ${name} ${media.group} -"
+            "d ${media.mediaDir media.categories.${category}} 0775 ${name} ${media.group} -"
+          ];
         };
-
-        systemd.tmpfiles.rules = [
-          "d ${dataDir} 0755 ${name} ${group} -"
-          "d ${media.mediaRoot} 0775 ${name} ${group} -"
-          "d ${mediaDir} 0775 ${name} ${group} -"
-        ];
-      }
-    ];
+    };
 }

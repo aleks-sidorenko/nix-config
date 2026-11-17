@@ -1,3 +1,4 @@
+{ den, ... }:
 let
   webPort = 8096;
   stateDir = "/var/lib/jellyfin";
@@ -5,6 +6,7 @@ let
 in
 {
   den.aspects.services.jellyfin = {
+    includes = [ den.aspects.services.media ];
     persist.directories = [ stateDir ];
     # Regenerable, and most of a backup by size.
     backup.exclude = [ cacheDir ];
@@ -20,10 +22,9 @@ in
     nixos =
       { config, host, ... }:
       let
-        media = import ./_media.nix host.mediaRoot;
+        media = import ./_media.nix host;
       in
       {
-        users.groups.${media.group} = { };
 
         services.jellyfin = {
           enable = true;

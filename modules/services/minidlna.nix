@@ -1,9 +1,11 @@
+{ den, ... }:
 let
   webPort = 8200;
   discoveryPort = 1900;
 in
 {
   den.aspects.services.minidlna = {
+    includes = [ den.aspects.services.media ];
     # Avoids rescanning the library each boot.
     persist.directories = [ "/var/cache/minidlna" ];
     installChecks = [ ''machine.wait_for_unit("minidlna.service")'' ];
@@ -25,10 +27,9 @@ in
     nixos =
       { host, lib, ... }:
       let
-        media = import ./_media.nix host.mediaRoot;
+        media = import ./_media.nix host;
       in
       {
-        users.groups.${media.group} = { };
 
         services.minidlna = {
           enable = true;

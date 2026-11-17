@@ -1,18 +1,9 @@
-let
-  arr = import ./_arr.nix;
-  name = "sonarr";
-  port = 8989;
-  dataDir = "/var/lib/sonarr";
-in
+{ den, ... }:
 {
-  den.aspects.services.sonarr = {
-    persist.directories = [ dataDir ];
-    installChecks = [ ''machine.wait_for_unit("sonarr.service")'' ];
-    vhosts = [ (arr.vhost name port) ];
-    nixos = arr.manager {
-      inherit name port dataDir;
-      title = "Sonarr";
-      category = "series";
-    };
+  den.aspects.services.sonarr = (import ./_arr.nix { inherit den; }).manager {
+    name = "sonarr";
+    title = "Sonarr";
+    port = 8989;
+    category = "series";
   };
 }

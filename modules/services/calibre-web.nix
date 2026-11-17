@@ -1,3 +1,4 @@
+{ den, ... }:
 let
   webPort = 8083;
   dataDir = "/var/lib/calibre-web";
@@ -5,12 +6,13 @@ let
   libraryDirOf =
     host:
     let
-      media = import ./_media.nix host.mediaRoot;
+      media = import ./_media.nix host;
     in
     media.mediaDir media.categories.books;
 in
 {
   den.aspects.services.calibre-web = {
+    includes = [ den.aspects.services.media ];
     persist.directories = [ dataDir ];
     # Hand-curated and small, unlike the re-downloadable libraries.
     backup =
@@ -32,11 +34,10 @@ in
     nixos =
       { host, pkgs, ... }:
       let
-        media = import ./_media.nix host.mediaRoot;
+        media = import ./_media.nix host;
         libraryDir = libraryDirOf host;
       in
       {
-        users.groups.${media.group} = { };
 
         services.calibre-web = {
           enable = true;
