@@ -21,15 +21,27 @@ let
   inherit (config.flake.nixosConfigurations.server.pkgs) unstable;
   minecraft = config.den.hosts.x86_64-linux.server.settings.services.minecraft-server;
   inherit (import ./_parity.nix { inherit lib; }) declarative withoutHook mounts;
+
+  # server-vm stands in for server in CI; these are its only intended differences.
+  sv = config.flake.nixosConfigurations.server-vm.config;
+  withoutDevice =
+    devices:
+    lib.recursiveUpdate devices {
+      disk.root = {
+        device = null;
+        content = {
+          device = null;
+          partitions.btrfs.content.subvolumes."@swap".swap.swapfile.size = null;
+        };
+      };
+    };
 in
 {
-  den.hosts.x86_64-linux.server = lib.mkMerge [
-    (import ../_home-server.nix)
-    {
-      deploy = { };
-      settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
-    }
-  ];
+  # Shared with server-vm in ../home-servers.nix.
+  den.hosts.x86_64-linux.server = {
+    deploy = { };
+    settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
+  };
 
   den.aspects.server = {
     includes = [ den.aspects.roles.home-server ];
@@ -304,6 +316,19 @@ in
         "/etc/NetworkManager/system-connections"
       ];
     };
+    server-vm-disk-like-server = {
+      expr = withoutDevice (declarative sv.disko.devices);
+      expected = withoutDevice (declarative s.disko.devices);
+    };
+    # The guest stands in for server in CI, so it must run what server runs.
+    server-vm-like-server =
+      let
+        sections = c: lib.getAttrs [ "units" "timers" "vhosts" "users" ] (parityOf c);
+      in
+      {
+        expr = sections sv;
+        expected = sections s;
+      };
     deploy-only-server = {
       expr = lib.attrNames config.flake.deploy.nodes;
       expected = [ "server" ];

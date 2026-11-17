@@ -7,27 +7,10 @@
 let
   sv = config.flake.nixosConfigurations.server-vm.config;
   s = config.flake.nixosConfigurations.server.config;
-  inherit (import ../server/_parity.nix { inherit lib; }) declarative;
-  parityOf = import ../server/_parity-services.nix;
-
-  # The only intended differences from `server`.
-  withoutDevice =
-    devices:
-    lib.recursiveUpdate devices {
-      disk.root = {
-        device = null;
-        content = {
-          device = null;
-          partitions.btrfs.content.subvolumes."@swap".swap.swapfile.size = null;
-        };
-      };
-    };
 in
 {
-  den.hosts.x86_64-linux.server-vm = lib.mkMerge [
-    (import ../_home-server.nix)
-    { settings.storage.disko.device = "/dev/vda"; }
-  ];
+  # Shared with server in ../home-servers.nix.
+  den.hosts.x86_64-linux.server-vm.settings.storage.disko.device = "/dev/vda";
 
   den.aspects.server-vm.includes = [
     den.aspects.roles.home-server
@@ -48,10 +31,6 @@ in
         map (d: d.dirPath) sv.environment.persistence."/persist".directories
       );
       expected = true;
-    };
-    server-vm-disk-like-server = {
-      expr = withoutDevice (declarative sv.disko.devices);
-      expected = withoutDevice (declarative s.disko.devices);
     };
     server-vm-headless = {
       expr = {
@@ -80,15 +59,6 @@ in
       expr = lib.hasSuffix "/server-vm" sv.services.restic.backups.default.repository;
       expected = true;
     };
-    # The guest stands in for server in CI, so it must run what server runs.
-    server-vm-like-server =
-      let
-        sections = c: lib.getAttrs [ "units" "timers" "vhosts" "users" ] (parityOf c);
-      in
-      {
-        expr = sections sv;
-        expected = sections s;
-      };
     # The full heap everywhere but the install test's small VM.
     server-vm-minecraft-heap = {
       expr = {
