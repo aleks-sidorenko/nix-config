@@ -1,6 +1,6 @@
 {
   den.aspects.system.headless.nixos =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     {
       documentation = {
         enable = false;
@@ -9,7 +9,8 @@
         info.enable = false;
         nixos.enable = false;
       };
-      fonts.fontconfig.enable = false;
+      # A default: an aspect that renders text (a headless browser) turns it back on.
+      fonts.fontconfig.enable = lib.mkDefault false;
       # Without a display, a browser launch has nothing to open; echo prints the URL.
       environment = {
         stub-ld.enable = false;
