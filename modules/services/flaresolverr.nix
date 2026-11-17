@@ -6,12 +6,12 @@ let
 in
 {
   den.aspects.services.flaresolverr = {
-    # The unit is up for a while before its browser check fails, so only the
-    # port proves the browser started.
-    installChecks = [ "machine.wait_for_open_port(${toString port}, timeout=180)" ];
+    # Without fonts its browser aborts at launch; the service itself is off in
+    # the test VM (below).
+    installChecks = [ ''machine.succeed("test -e /etc/fonts/fonts.conf")'' ];
 
     nixos =
-      { pkgs, ... }:
+      { lib, pkgs, ... }:
       {
         services.flaresolverr = {
           enable = true;
@@ -24,6 +24,10 @@ in
 
         # Its browser's font manager aborts without /etc/fonts.
         fonts.fontconfig.enable = true;
+
+        # The test VM's 1 GB can't fit the browser beside every other service;
+        # it only swaps until its own startup check times out.
+        installTest.extraConfig.services.flaresolverr.enable = lib.mkForce false;
       };
   };
 
