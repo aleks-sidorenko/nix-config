@@ -31,13 +31,13 @@ let
   inherit (lib) types;
 in
 {
-  den.schema.conf.options.serviceDomain = lib.mkOption {
+  den.aspects.services.nginx.settings.domain = lib.mkOption {
     type = types.str;
     default = "home.sidorenko.me";
-    description = "Domain the proxied services are served under, as `<name>.<serviceDomain>`.";
+    description = "Domain the proxied services are served under, as `<name>.<domain>`.";
   };
 
-  den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<serviceDomain>`.";
+  den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<domain>`, the nginx `domain` setting.";
 
   # Read back from the rendered vhosts, so each check tests what nginx serves.
   den.aspects.services.nginx.installChecks =
@@ -93,7 +93,7 @@ in
               vhost:
               lib.nameValuePair vhost.name (
                 {
-                  serverName = "${vhost.name}.${host.serviceDomain}";
+                  serverName = "${vhost.name}.${host.settings.services.nginx.domain}";
                   extraConfig = ''
                     client_max_body_size ${vhost.clientMaxBodySize};
                   '';

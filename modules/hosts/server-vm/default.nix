@@ -27,10 +27,12 @@ in
   den.hosts.x86_64-linux.server-vm = {
     users.alexander = { };
     stateVersion = "26.05";
-    timeZone = "UTC";
-    locales = [ "en_US.UTF-8" ];
-    layouts = [ "us" ];
     settings = {
+      system.locale = {
+        timeZone = "UTC";
+        locales = [ "en_US.UTF-8" ];
+        layouts = [ "us" ];
+      };
       services.qbittorrent.webUser = "alexander";
       services.minecraft-server = import ../_minecraft.nix;
       storage.disko = {

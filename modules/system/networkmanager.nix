@@ -3,20 +3,20 @@ let
   inherit (lib) types;
 in
 {
-  den.schema.conf.options = {
-    lanDomain = lib.mkOption {
-      type = types.str;
-      default = "lan";
-      description = "Local network domain.";
-    };
-    tailnetDomain = lib.mkOption {
-      type = types.str;
-      default = "colobus-bramble.ts.net";
-      description = "Tailnet MagicDNS domain.";
-    };
-  };
-
   den.aspects.system.networkmanager = {
+    settings = {
+      lanDomain = lib.mkOption {
+        type = types.str;
+        default = "lan";
+        description = "Local network domain.";
+      };
+      tailnetDomain = lib.mkOption {
+        type = types.str;
+        default = "colobus-bramble.ts.net";
+        description = "Tailnet MagicDNS domain.";
+      };
+    };
+
     persist.directories = [
       "/etc/NetworkManager/system-connections"
       "/var/lib/NetworkManager"
@@ -25,13 +25,16 @@ in
 
     nixos =
       { host, ... }:
+      let
+        inherit (host.settings.system.networkmanager) lanDomain tailnetDomain;
+      in
       {
         networking = {
           networkmanager.enable = true;
-          domain = host.lanDomain;
+          domain = lanDomain;
           search = [
-            host.tailnetDomain
-            host.lanDomain
+            tailnetDomain
+            lanDomain
           ];
         };
 

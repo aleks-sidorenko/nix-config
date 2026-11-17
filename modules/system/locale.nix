@@ -3,49 +3,50 @@ let
   inherit (lib) types;
 in
 {
-  den.schema.conf.options = {
-    timeZone = lib.mkOption {
-      type = types.str;
-      default = "Europe/Kyiv";
-      description = "Time zone (IANA name).";
-    };
-    locales = lib.mkOption {
-      type = types.listOf types.str;
-      default = [
-        "en_US.UTF-8"
-        "uk_UA.UTF-8"
-        "ru_RU.UTF-8"
-      ];
-      description = "Supported locales. The first is the system locale, the second the native one for LC_* settings.";
-    };
-    layouts = lib.mkOption {
-      type = types.listOf types.str;
-      default = [
-        "us"
-        "ua"
-        "ru"
-      ];
-      description = "Keyboard layouts. The first is the default.";
-    };
-  };
-
   den.aspects.system.locale = {
+    settings = {
+      timeZone = lib.mkOption {
+        type = types.str;
+        default = "Europe/Kyiv";
+        description = "Time zone (IANA name).";
+      };
+      locales = lib.mkOption {
+        type = types.listOf types.str;
+        default = [
+          "en_US.UTF-8"
+          "uk_UA.UTF-8"
+          "ru_RU.UTF-8"
+        ];
+        description = "Supported locales. The first is the system locale, the second the native one for LC_* settings.";
+      };
+      layouts = lib.mkOption {
+        type = types.listOf types.str;
+        default = [
+          "us"
+          "ua"
+          "ru"
+        ];
+        description = "Keyboard layouts. The first is the default.";
+      };
+    };
+
     os =
       { host, ... }:
       {
-        time.timeZone = host.timeZone;
+        time.timeZone = host.settings.system.locale.timeZone;
       };
 
     nixos =
       { host, ... }:
       let
-        systemLocale = lib.head host.locales;
-        nativeLocale = lib.head (lib.tail host.locales ++ [ systemLocale ]);
+        inherit (host.settings.system.locale) locales layouts;
+        systemLocale = lib.head locales;
+        nativeLocale = lib.head (lib.tail locales ++ [ systemLocale ]);
       in
       {
         i18n = {
           defaultLocale = systemLocale;
-          supportedLocales = map (locale: "${locale}/UTF-8") host.locales;
+          supportedLocales = map (locale: "${locale}/UTF-8") locales;
           extraLocaleSettings = {
             LC_CTYPE = systemLocale;
             LC_IDENTIFICATION = systemLocale;
@@ -62,10 +63,10 @@ in
         };
 
         services.xserver.xkb = {
-          layout = lib.concatStringsSep "," host.layouts;
+          layout = lib.concatStringsSep "," layouts;
           options = "grp:win_space_toggle";
         };
-        console.keyMap = lib.head host.layouts;
+        console.keyMap = lib.head layouts;
       };
   };
 }
