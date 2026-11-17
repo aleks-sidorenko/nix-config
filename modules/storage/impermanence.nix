@@ -147,8 +147,8 @@ in
             inherit (state) directories files;
           };
 
-          # Last, after nginx's checks (mkAfter, 1500): any check may make a
-          # service write state, and the guard must see all of it.
+          # Last, after the harness's settle check (mkAfter): any check may
+          # make a service write state, and the guard must see all of it.
           disko.tests.extraChecks = lib.mkOrder 1600 (
             lib.concatLines [
               settled

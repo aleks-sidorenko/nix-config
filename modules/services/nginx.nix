@@ -14,11 +14,11 @@ let
   # unreachable ingress (000) or a failing backend (5xx) is wrong; a vhost
   # that needs proxy auth must refuse a request carrying no credentials.
   checkFor =
-    serverName: vhost:
+    serverName: requiresProxyAuth:
     let
       status = "curl -s -o /dev/null -w '%{http_code}' -H 'Host: ${serverName}' http://127.0.0.1/";
       command =
-        if vhost.requiresProxyAuth then
+        if requiresProxyAuth then
           ''[ "$(${status})" = 401 ]''
         else
           ''c=$(${status}); [ "$c" -gt 0 ] && [ "$c" -lt 500 ]'';
@@ -27,9 +27,6 @@ let
 
   duplicateNames =
     vhosts: lib.attrNames (lib.filterAttrs (_: vs: lib.length vs > 1) (lib.groupBy (v: v.name) vhosts));
-
-  checksFor =
-    domain: vhosts: map (vhost: checkFor "${vhost.name}.${domain}" (withDefaults vhost)) vhosts;
 
   inherit (lib) types;
 in
@@ -41,6 +38,13 @@ in
   };
 
   den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<serviceDomain>`.";
+
+  # Read back from the rendered vhosts, so each check tests what nginx serves.
+  den.aspects.services.nginx.installChecks =
+    { config, ... }:
+    lib.mapAttrsToList (_: vhost: checkFor vhost.serverName (vhost.basicAuthFile != null)) (
+      removeAttrs config.services.nginx.virtualHosts [ "_" ]
+    );
 
   den.aspects.services.nginx.nixos =
     {
@@ -128,9 +132,6 @@ in
         443
       ];
 
-      # Generated from the vhosts quirk, so they can't be written as static installChecks.
-      disko.tests.extraChecks = lib.mkAfter (lib.concatLines (checksFor host.serviceDomain vhosts));
-
       installTest.extraConfig.environment.systemPackages = [ pkgs.curl ];
     };
 
@@ -144,16 +145,9 @@ in
   };
 
   evalTests.nginx-vhost-checks = {
-    expr = checksFor "example.test" [
-      {
-        name = "open";
-        port = 1;
-      }
-      {
-        name = "guarded";
-        port = 2;
-        requiresProxyAuth = true;
-      }
+    expr = [
+      (checkFor "open.example.test" false)
+      (checkFor "guarded.example.test" true)
     ];
     expected = [
       ''machine.wait_until_succeeds("c=$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: open.example.test' http://127.0.0.1/); [ \"$c\" -gt 0 ] && [ \"$c\" -lt 500 ]")''

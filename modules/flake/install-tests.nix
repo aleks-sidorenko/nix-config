@@ -171,9 +171,9 @@ let
               extraConfig.imports = [ config.installTest.extraConfig ];
 
               extraChecks = lib.mkMerge [
-                # After nginx's checks (mkAfter) and before the guard (1600),
-                # so a unit any check broke counts.
-                (lib.mkOrder 1550 (
+                # After every aspect's `installChecks` and before the guard
+                # (1600), so a unit any check broke counts.
+                (lib.mkAfter (
                   lib.concatLines [
                     settled
                     noFailedUnits
