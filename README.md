@@ -10,14 +10,24 @@
 
 # nix-config
 
-Personal NixOS configuration built on [den](https://den.denful.dev/), a
-dendritic layout on flake-parts: every file under `modules/` is a module that
-[import-tree](https://github.com/denful/import-tree) loads, and each feature is
-an aspect that hosts and roles include.
+Personal NixOS configuration built on [den](https://den.denful.dev), the
+aspect-oriented framework for the [dendritic pattern](https://github.com/mightyiam/dendritic).
+It runs a home server and the VMs that test it in CI.
 
-It runs a home server: a media stack behind an nginx ingress on the tailnet,
-offsite restic backups and a Minecraft server, on an impermanent btrfs root
-whose state is declared per service.
+## Highlights
+
+- **Aspects, not hosts.** Every file under `modules/` is a flake-parts module
+  that [import-tree](https://github.com/denful/import-tree) loads; each feature
+  is an aspect that hosts and roles include.
+- **Generated `flake.nix`.** Each module declares its own inputs through
+  [flake-file](https://github.com/denful/flake-file); CI fails if the flake is stale.
+- **Impermanent root.** The btrfs root is wiped on every boot, and each service
+  declares the state it keeps.
+- **Homelab.** A media stack behind an nginx ingress on the tailnet, a
+  Minecraft server, and offsite backups with restic.
+- **Secrets.** SOPS with age keys derived from each host's SSH host key.
+- **Tested end to end.** Eval tests, parity checks against the previous tree,
+  and a full install test for every VM host, all in CI.
 
 ## Hosts
 
@@ -34,7 +44,7 @@ Only `server` is a deploy target.
 ```
 modules/
 ├── den.nix         # den and flake setup: host/user schema, defaults, inputs
-├── flake/          # outputs and tooling: deploy-rs, install tests, eval tests, devshell, naming check
+├── flake/          # outputs and tooling: deploy-rs, nh, install tests, eval tests, devshell, naming check
 ├── hosts/          # one folder per host, plus home-servers.nix (what server and server-vm share)
 ├── roles/          # bundles of aspects: base, server, media-server, home-server
 ├── system/         # boot, nix, nixpkgs, locale, networking, NetworkManager, headless
@@ -47,13 +57,16 @@ identities/         # per-person public keys (see identities/README.md)
 secrets/nixos.yaml  # SOPS-encrypted system secrets
 ```
 
-`flake.nix` is generated from the `flake-file.inputs` each module declares;
-run `just flake-write` after changing one and never edit it by hand.
+- The aspect path mirrors the file path: `modules/services/nginx.nix` defines
+  `den.aspects.services.nginx`.
+- `flake.nix` is generated: run `just flake-write` after changing an input, and
+  never edit it by hand.
 
 ## Usage
 
-Everything runs through `just` and the dev shell (`nix develop`); recipes enter
-the shell themselves when needed.
+- Everything runs through `just` and the dev shell (`nix develop`); recipes
+  enter the shell themselves when needed.
+- On a host itself, `nix run .#<host> -- switch` runs nh for that host.
 
 | Command | What it does |
 | --- | --- |
@@ -66,30 +79,29 @@ the shell themselves when needed.
 | `just flake-write` | Regenerate `flake.nix` |
 | `just update [input]` | Update flake inputs |
 
-On a host itself, `nix run .#<host> -- switch` runs nh for that host.
+## Secrets
 
-### Secrets
-
-System secrets live in `secrets/nixos.yaml`, encrypted with
-[SOPS](https://github.com/getsops/sops) to the age keys in `.sops.yaml`: each
-host's key comes from its SSH host key, kept under `/persist/etc/ssh`. Edit
-with `sops secrets/nixos.yaml`; after adding a host's key,
-`sops updatekeys secrets/nixos.yaml`.
+- System secrets live in `secrets/nixos.yaml`, encrypted with
+  [SOPS](https://github.com/getsops/sops) to the age keys in `.sops.yaml`.
+- Each host's age key comes from its SSH host key, kept under `/persist/etc/ssh`.
+- Edit with `sops secrets/nixos.yaml`; after adding a host's key, run
+  `sops updatekeys secrets/nixos.yaml`.
 
 ## Testing
 
 - **Eval tests** (`evalTests` in each module, run by `just check`) pin
   behaviour next to the code that owns it.
-- **Parity tests** compare `server` with the evaluated config of the
-  snowfall tree it replaces, so a port can't silently change the live box.
-- **Install tests** (`checks.x86_64-linux.install-<host>`) install each VM
-  host into a disko test VM the way a real install does, reboot it,
-  power-cycle it, and check that root is wiped, persisted state survives,
-  every service and site comes up, no unit failed, and no service wrote state
-  that is neither persisted nor declared throwaway.
+- **Parity tests** compare `server` with snapshots of the snowfall tree's
+  evaluated config, so a port can't silently change the live box.
+- **Install tests** (`checks.x86_64-linux.install-<host>`) install each VM host
+  into a disko test VM the way a real install does, then reboot and
+  power-cycle it. They check that:
+  - root is wiped and persisted state survives;
+  - every service and site comes up, and no unit failed;
+  - no service wrote state that is neither persisted nor declared throwaway.
 
-CI (`.github/workflows/ci.yml`) runs all of them on pushes and pull requests
-to `master`, then builds `server`.
+CI ([`ci.yml`](.github/workflows/ci.yml)) runs all of them on pushes and pull
+requests to `master`, then builds `server`.
 
 ## Documentation
 
@@ -102,13 +114,18 @@ to `master`, then builds `server`.
 
 ## Status
 
-This tree is a rewrite of the earlier snowfall-lib configuration, done in
-slices ([#272](https://github.com/aleks-sidorenko/nix-config/issues/272)).
-Ported so far: the base system, the server role, and everything `server` runs.
-Not yet ported: the macOS workbook, home-manager modules beyond the user's
-shell, the installer ISO, bootstrap scripts, and the infrastructure stacks
-(router, DNS, storage bucket, tailnet policy).
+This tree replaces the earlier snowfall-lib configuration, which stays
+available at the [`v1`](https://github.com/aleks-sidorenko/nix-config/tree/v1)
+tag. The rewrite lands in slices, tracked in
+[#272](https://github.com/aleks-sidorenko/nix-config/issues/272).
+
+- **Ported:** the base system, the server role, and everything `server` runs.
+- **Not yet ported:**
+  - the macOS workbook;
+  - home-manager modules beyond the user's shell;
+  - the installer ISO and bootstrap scripts;
+  - the infrastructure stacks (router, DNS, storage bucket, tailnet policy).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT, see [LICENSE](LICENSE).
