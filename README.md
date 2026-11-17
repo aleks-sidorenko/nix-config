@@ -1,4 +1,12 @@
-[![CI](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml/badge.svg)](https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml)
+<p align="center">
+  <a href="https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml"><img src="https://github.com/aleks-sidorenko/nix-config/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://nixos.org"><img src="https://img.shields.io/badge/NixOS-26.05-5277C3?logo=nixos&logoColor=white" alt="NixOS 26.05"/></a>
+  <a href="https://den.denful.dev"><img src="https://img.shields.io/badge/built_with-den-informational?logo=nixos&logoColor=white" alt="Built with den"/></a>
+  <a href="https://github.com/mightyiam/dendritic"><img src="https://img.shields.io/badge/pattern-dendritic-informational?logo=nixos&logoColor=white" alt="Dendritic pattern"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/aleks-sidorenko/nix-config" alt="License"/></a>
+  <a href="https://github.com/aleks-sidorenko/nix-config/commits/master"><img src="https://img.shields.io/github/last-commit/aleks-sidorenko/nix-config/master" alt="Last commit"/></a>
+  <a href="https://github.com/aleks-sidorenko/nix-config/stargazers"><img src="https://img.shields.io/github/stars/aleks-sidorenko/nix-config" alt="Stars"/></a>
+</p>
 
 # nix-config
 
