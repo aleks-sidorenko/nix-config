@@ -1,4 +1,4 @@
-# Facts both trees must agree on for `server`; evaluated against master and the branch.
+# Facts both trees must agree on for `server`; `_services-master.json` is this, evaluated on the snowfall tree.
 c:
 let
   inherit (builtins)

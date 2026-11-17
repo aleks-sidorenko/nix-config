@@ -1,5 +1,5 @@
-# What `server` is compared with master on. Evaluated against both trees, so
-# it reads only options that exist on both.
+# What `server` is compared with the snowfall tree (tag `snowfall`) on. Evaluated
+# against both trees, so it reads only options that exist on both.
 { lib }:
 {
   # Only the declarative fields: disko adds functions and `_`-prefixed internals.

@@ -228,7 +228,7 @@ Stage new files (`git add`) before `just check`.
 - A failed unit fails every install test. The harness allows only each
   user's home-manager unit, which every test VM fails for a reason of its
   own (`modules/flake/install-tests.nix`).
-- `server`'s disk must keep matching master's layout (parity tests); change it
+- `server`'s disk must keep matching the snowfall tree's layout (parity tests); change it
   deliberately, together with the parity fixtures.
 - Never commit secrets; respect SOPS. Move secrets files, do not re-encrypt.
 - Install tests run in CI only. On darwin `just check` evaluates them without

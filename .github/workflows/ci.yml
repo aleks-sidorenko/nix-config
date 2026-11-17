@@ -2,9 +2,9 @@ name: "CI"
 
 on:
   push:
-    branches: ["master", "refactor/den-aspects"]
+    branches: ["master"]
   pull_request:
-    branches: ["master", "refactor/den-aspects"]
+    branches: ["master"]
   workflow_dispatch:
 
 permissions:

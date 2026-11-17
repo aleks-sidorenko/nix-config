@@ -8,6 +8,7 @@
 let
   s = config.flake.nixosConfigurations.server.config;
   parityOf = import ./_parity-services.nix;
+  # "master" in these names is master before the rewrite merged: the snowfall tree.
   master = lib.importJSON ./_services-master.json;
   same = path: {
     expr = lib.getAttrFromPath path (parityOf s);
@@ -59,7 +60,7 @@ in
         unstable = "1d060086d60cb76a40cf37109f979d88a5bd6396";
       };
     };
-    # Master's daemon at c3bfac7, which the nixpkgs pin preserves.
+    # The snowfall tree's daemon at c3bfac7, which the nixpkgs pin preserves.
     server-nix-as-master = {
       expr = s.nix.package.version;
       expected = "2.35.3";
