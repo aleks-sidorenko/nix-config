@@ -2,6 +2,7 @@
 # a feature's path mirrors its file under modules/; no segment is a key den
 # reads as an instruction.
 {
+  config,
   den,
   lib,
   options,
@@ -10,7 +11,7 @@
 let
   modules = ./..;
   inherit (den.lib.aspects.fx.keyClassification) isStructuralKey;
-  isReserved = import ../_lib/reserved-key.nix { inherit den; };
+  isReserved = config.isReservedKey;
 
   hosts = lib.concatMap lib.attrValues (lib.attrValues den.hosts);
   entities = lib.unique (

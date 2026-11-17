@@ -2,7 +2,7 @@
 let
   inherit (lib) mkOption types;
 
-  skipKey = import ./reserved-key.nix { inherit den; };
+  skipKey = import ./_reserved-key.nix { inherit den; };
 
   # `settings` is either a bare attrset of options, or a module with
   # options / config / imports.
