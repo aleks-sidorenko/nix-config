@@ -24,22 +24,10 @@ let
     };
 in
 {
-  den.hosts.x86_64-linux.server-vm = {
-    users.alexander = { };
-    stateVersion = "26.05";
-    settings = {
-      system.locale = {
-        timeZone = "UTC";
-        locales = [ "en_US.UTF-8" ];
-        layouts = [ "us" ];
-      };
-      services.minecraft-server = import ../_minecraft.nix;
-      storage.disko = {
-        device = "/dev/vda";
-        encrypted = false;
-      };
-    };
-  };
+  den.hosts.x86_64-linux.server-vm = lib.mkMerge [
+    (import ../_home-server.nix)
+    { settings.storage.disko.device = "/dev/vda"; }
+  ];
 
   den.aspects.server-vm.includes = [
     den.aspects.roles.home-server

@@ -23,23 +23,13 @@ let
   inherit (import ./_parity.nix { inherit lib; }) declarative withoutHook mounts;
 in
 {
-  den.hosts.x86_64-linux.server = {
-    users.alexander = { };
-    stateVersion = "26.05";
-    deploy = { };
-    settings = {
-      system.locale = {
-        timeZone = "UTC";
-        locales = [ "en_US.UTF-8" ];
-        layouts = [ "us" ];
-      };
-      services.minecraft-server = import ../_minecraft.nix;
-      storage.disko = {
-        device = "/dev/disk/by-id/ata-SSD_2TB_004208";
-        encrypted = false;
-      };
-    };
-  };
+  den.hosts.x86_64-linux.server = lib.mkMerge [
+    (import ../_home-server.nix)
+    {
+      deploy = { };
+      settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
+    }
+  ];
 
   den.aspects.server = {
     includes = [ den.aspects.roles.home-server ];
