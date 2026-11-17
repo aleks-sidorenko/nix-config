@@ -46,9 +46,11 @@ minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
-| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it; values several hosts share in `modules/hosts/_<name>.nix`, merged with `lib.mkMerge`, e.g. `_home-server.nix`) |
+| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
+| Values several hosts share | module setting those hosts | `modules/hosts/<group>.nix`, e.g. `home-servers.nix` sets `server` and `server-vm` |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
-| Pure helpers | plain function | `modules/_lib/<name>.nix` |
+| A helper one folder uses | `_`-prefixed file | beside its readers, e.g. `modules/services/_media.nix` |
+| A helper several folders use | read-only option | declared by the module that owns it, e.g. `config.installTests` (`modules/flake/install-tests.nix`), `config.isReservedKey` (`modules/den.nix`) |
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |
 | Secrets | SOPS | `secrets/nixos.yaml`; recipients in `.sops.yaml` |
 
@@ -56,6 +58,36 @@ Hostnames, usernames, `/persist` and domains appear only in `modules/hosts/`,
 `modules/users/`, entity declarations and option defaults, never in a feature
 aspect. The persistence root is the `storage.impermanence.root` setting; read
 it, never write the path.
+
+## Designing modules
+
+Every module shares through `config` alone, so any file can move or go
+without breaking another.
+
+- **Imports stay in the folder.** Import only `_` files in your own folder
+  (`import ./_arr.nix { inherit den; }`). Never `import ../…`: when a second
+  folder needs a helper, the module that owns it publishes it as a
+  read-only option and readers take it from `config`.
+- **Pick the mechanism by what is shared** (den's
+  [choosing a mechanism](https://den.denful.dev/explanation/choosing-a-mechanism/)):
+  - NixOS or home-manager config: a class key (`nixos`, `homeManager`) on
+    the aspect.
+  - Data other aspects collect: a quirk, declared beside the aspect that
+    reads it. A value may be `{ host, ... }:` (per host) or
+    `{ config, ... }:` (from the evaluated config).
+  - A per-host tunable: a setting on the aspect that reads it. Read only
+    your own settings or those of an aspect you include, never
+    `den.schema.conf`, which reaches users and homes too.
+  - A fact about the host that any aspect reads (`stateVersion`,
+    `primaryUser`, `deploy`): a `den.schema.host` option.
+  - Config or settings several aspects build on: an aspect each of them
+    `includes` (`services.media`); den includes it once.
+- **Write each fact once.** Near-identical aspects come from one `_`
+  factory that returns the whole aspect (`_arr.nix`), not from copied
+  files. Derive what can be derived (`host.name`, `host.primaryUser`)
+  instead of repeating the literal.
+- **One owner per value.** The module that owns a value declares its
+  option, quirk or setting; consumers never redeclare or hard-code it.
 
 ## Naming
 
