@@ -22,7 +22,7 @@ Four den concepts; read den's docs, not this file, for how they work:
 - **Policies**: `den.policies` and batteries like
   `den.batteries.mutual-provider` that shape the entity topology: which
   entities provide to which (`provides.to-hosts`).
-- **Quirks**: typed collections aspects contribute to and class bodies read
+- **Quirks**: untyped collections aspects contribute to and class bodies read
   (`den.quirks`; see [quirks](https://den.denful.dev/guides/quirks/)).
 
 Hosts: `server` (real, x86_64) and `server-vm` (QEMU guest) run
@@ -37,19 +37,19 @@ minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 | A bundle of features | role aspect | `den.aspects.roles.<role>` in `modules/roles/<role>.nix`, `includes` only |
 | Applies to every host / user | schema include | `den.schema.host.includes` / `den.schema.user.includes` in `modules/den.nix` |
 | Per-host value an aspect needs | setting | `settings` on the aspect; set in `den.hosts.<system>.<host>.settings.<category>.<feature>` |
-| Per-host fact for any aspect (stateVersion, deploy) | host option | `den.schema.host.options` |
-| Shared fact with a default, overridable per entity | conf option | `den.schema.conf.options` beside its reader: `timeZone`, `locales`, `layouts` in `modules/system/locale.nix`; `lanDomain`, `tailnetDomain` in `modules/system/networkmanager.nix`; `serviceDomain` in `modules/services/nginx.nix`; `mediaRoot` in `modules/roles/media-server.nix`. Override on one entity, e.g. `den.hosts.<system>.<host>.timeZone = "UTC";` |
+| Per-host fact for any aspect (stateVersion, primaryUser, deploy) | host option | `den.schema.host.options` |
+| Config and settings several aspects build on | shared aspect | an aspect each of them `includes` (den includes it once), e.g. `services.media` (media root, group) |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
-| A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<serviceDomain>` (`modules/services/nginx.nix`) |
+| A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<domain>`, nginx's `domain` setting (`modules/services/nginx.nix`) |
 | Offsite backup paths or excludes | `backup` quirk | `backup = { paths; exclude; };` in the aspect (`modules/services/restic.nix`) |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
-| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it; values several hosts share in `modules/hosts/_<name>.nix`, e.g. `_minecraft.nix`) |
+| Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it; values several hosts share in `modules/hosts/_<name>.nix`, merged with `lib.mkMerge`, e.g. `_home-server.nix`) |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
 | Pure helpers | plain function | `modules/_lib/<name>.nix` |
-| Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks or host/user/conf options |
+| Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |
 | Secrets | SOPS | `secrets/nixos.yaml`; recipients in `.sops.yaml` |
 
 Hostnames, usernames, `/persist` and domains appear only in `modules/hosts/`,
@@ -99,7 +99,9 @@ Stage new files (`git add`) before `just check`.
    `requiresProxyAuth`, `proxyWebsockets`, `clientMaxBodySize`, `locations`).
    Offsite backup: `backup = { paths = [ … ]; exclude = [ … ]; };`, or
    `backup = { host, ... }: { … };` when it depends on the host (a quirk value
-   may be a function den calls per host; see `modules/services/calibre-web.nix`).
+   may be a function den calls per host; see `modules/services/calibre-web.nix`),
+   or `{ config, ... }:` when it depends on the host's evaluated config (see
+   `installChecks` in `modules/services/nginx.nix`).
    Excludes are absolute paths of persisted state, not globs: restic resolves
    them under the persistence root, so anything else silently matches nothing.
    An install-test assertion: `installChecks = [ ''machine.succeed("…")'' ];`.
@@ -120,8 +122,9 @@ Stage new files (`git add`) before `just check`.
    and `den.aspects.<host>.includes = [ den.aspects.roles.<role> … ];`.
 2. Hardware-specific config goes in `modules/hosts/<host>/_hardware.nix`,
    imported via the host aspect's `nixos.imports`.
-3. deploy-rs node: `deploy.sshUser = "<user>";` on the host (optional
-   `deploy.hostname`). `deploy = null` (default) means no node;
+3. deploy-rs node: `deploy = { };` on the host logs in as its `primaryUser`
+   (the only user unless set; optional `deploy.sshUser`, `deploy.hostname`).
+   `deploy = null` (default) means no node;
    `modules/flake/deploy.nix` derives `interactiveSudo` from
    `security.sudo.wheelNeedsPassword`.
 4. Add the host key to `.sops.yaml`, then `sops updatekeys secrets/nixos.yaml`.
@@ -152,15 +155,17 @@ Stage new files (`git add`) before `just check`.
 
 1. In the aspect: `settings.<name> = lib.mkOption { type; default; description; };`
    (see `settings.root` in `modules/storage/impermanence.nix`; others:
-   `services.qbittorrent.webUser`, `services.restic.bucketUrl`, minecraft's
-   `ops`, `whitelist`, `gamerules`, `serverProperties`).
+   `system.locale.timeZone`, `services.nginx.domain`, `services.media.root`,
+   `services.restic.bucketUrl`, minecraft's `ops`, `whitelist`, `gamerules`,
+   `serverProperties`). Read only your own aspect's settings, or those of an
+   aspect you include.
 2. Read in a class body: `host.settings.<category>.<feature>.<name>`.
 3. Override per host: `settings.<category>.<feature>.<name> = …;` on the
    `den.hosts.<system>.<host>` entry.
 
 ### A quirk
 
-1. `den.quirks.<name>.description = "…";` in `modules/den.nix`.
+1. `den.quirks.<name>.description = "…";` in the file of the aspect that reads it.
 2. Contribute from aspects as `<name> = [ … ];`; read it by taking `<name>` as
    a class-body argument (see `persist` in `modules/storage/impermanence.nix`).
 3. Its name is now reserved; `just check` reports any existing path segment
@@ -183,12 +188,11 @@ Stage new files (`git add`) before `just check`.
 - No hostname, username, `/persist` path or domain in a feature aspect.
 - No `._` in aspect names; helpers are `_`-prefixed on disk only.
 - `/home` is its own persistent subvolume; the only persistence quirk is
-  `persist`. `installChecks` holds install-test Python only. Two exceptions
-  write `disko.tests.extraChecks` directly: nginx's per-vhost checks
-  (`mkAfter`), generated from the `vhosts` quirk, so not static; and the
-  undeclared-state guard (`mkOrder 1600`, after nginx), which must run last
-  to see the state every earlier check made a service write, while the
-  quirk runs in include order.
+  `persist`. `installChecks` holds install-test Python only. Only the
+  undeclared-state guard writes `disko.tests.extraChecks` directly
+  (`mkOrder 1600`, after the harness's settle and failed-units checks at
+  `mkAfter`): it must run last to see the state every earlier check made a
+  service write, while the quirk runs in include order.
 - State a service writes must be persisted or ignored: the install test's
   undeclared-state guard (`modules/storage/impermanence.nix`,
   `_persist-guard.py`) fails every install test on a non-empty entry under
