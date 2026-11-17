@@ -25,9 +25,31 @@ Four den concepts; read den's docs, not this file, for how they work:
 - **Quirks**: untyped collections aspects contribute to and class bodies read
   (`den.quirks`; see [quirks](https://den.denful.dev/guides/quirks/)).
 
-Hosts: `server` (real, x86_64) and `server-vm` (QEMU guest) run
-`roles.home-server` (`roles.server` + `roles.media-server` + restic +
-minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
+What exists and why it is shaped this way is in
+[docs/architecture.md](docs/architecture.md); what `server` runs, in
+[docs/homelab.md](docs/homelab.md). This file holds the rules and recipes for
+changing it; update those docs in the same change when what they describe
+changes.
+
+## Designing modules
+
+Every module shares through `config` alone, so any file can move or go
+without breaking another.
+
+- **Imports stay in the folder.** Import only `_` files in your own folder
+  (`import ./_arr.nix { inherit den; }`). Never `import ../…`: when a second
+  folder needs a helper, the module that owns it publishes it as a
+  read-only option and readers take it from `config`. The
+  `naming-imports-stay-in-folder` eval test enforces this. Reading repo data
+  outside `modules/` by path (`identities/`, `secrets/`) is fine.
+- **Pick the mechanism by what is shared**, from the table below (den's
+  [choosing a mechanism](https://den.denful.dev/explanation/choosing-a-mechanism/)).
+- **Write each fact once.** Near-identical aspects come from one `_`
+  factory that returns the whole aspect (`_arr.nix`), not from copied
+  files. Derive what can be derived (`host.name`, `host.primaryUser`)
+  instead of repeating the literal.
+- **One owner per value.** The module that owns a value declares its
+  option, quirk or setting; consumers never redeclare or hard-code it.
 
 ## Where things go
 
@@ -36,9 +58,10 @@ minecraft); `base-vm` is a bare QEMU guest. The guests are install-tested in CI.
 | Reusable config for one concern | feature aspect | `den.aspects.<category>.<feature>` in `modules/<category>/<feature>.nix` |
 | A bundle of features | role aspect | `den.aspects.roles.<role>` in `modules/roles/<role>.nix`, `includes` only |
 | Applies to every host / user | schema include | `den.schema.host.includes` / `den.schema.user.includes` in `modules/den.nix` |
-| Per-host value an aspect needs | setting | `settings` on the aspect; set in `den.hosts.<system>.<host>.settings.<category>.<feature>` |
+| Per-host value an aspect needs | setting | `settings` on the aspect that reads it; set in `den.hosts.<system>.<host>.settings.<category>.<feature>`. Read only your own settings or an included aspect's; never `den.schema.conf`, which reaches users and homes too |
 | Per-host fact for any aspect (stateVersion, primaryUser, deploy) | host option | `den.schema.host.options` |
 | Config and settings several aspects build on | shared aspect | an aspect each of them `includes` (den includes it once), e.g. `services.media` (media root, group) |
+| Data many aspects contribute and one collects | quirk | `den.quirks.<name>` beside the collecting aspect; values may be `{ host, ... }:` or `{ config, ... }:`; the ones in use follow |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
 | A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<domain>`, nginx's `domain` setting (`modules/services/nginx.nix`) |
@@ -58,37 +81,6 @@ Hostnames, usernames, `/persist` and domains appear only in `modules/hosts/`,
 `modules/users/`, entity declarations and option defaults, never in a feature
 aspect. The persistence root is the `storage.impermanence.root` setting; read
 it, never write the path.
-
-## Designing modules
-
-Every module shares through `config` alone, so any file can move or go
-without breaking another.
-
-- **Imports stay in the folder.** Import only `_` files in your own folder
-  (`import ./_arr.nix { inherit den; }`). Never `import ../…`: when a second
-  folder needs a helper, the module that owns it publishes it as a
-  read-only option and readers take it from `config`. The
-  `naming-imports-stay-in-folder` eval test enforces this.
-- **Pick the mechanism by what is shared** (den's
-  [choosing a mechanism](https://den.denful.dev/explanation/choosing-a-mechanism/)):
-  - NixOS or home-manager config: a class key (`nixos`, `homeManager`) on
-    the aspect.
-  - Data other aspects collect: a quirk, declared beside the aspect that
-    reads it. A value may be `{ host, ... }:` (per host) or
-    `{ config, ... }:` (from the evaluated config).
-  - A per-host tunable: a setting on the aspect that reads it. Read only
-    your own settings or those of an aspect you include, never
-    `den.schema.conf`, which reaches users and homes too.
-  - A fact about the host that any aspect reads (`stateVersion`,
-    `primaryUser`, `deploy`): a `den.schema.host` option.
-  - Config or settings several aspects build on: an aspect each of them
-    `includes` (`services.media`); den includes it once.
-- **Write each fact once.** Near-identical aspects come from one `_`
-  factory that returns the whole aspect (`_arr.nix`), not from copied
-  files. Derive what can be derived (`host.name`, `host.primaryUser`)
-  instead of repeating the literal.
-- **One owner per value.** The module that owns a value declares its
-  option, quirk or setting; consumers never redeclare or hard-code it.
 
 ## Naming
 
