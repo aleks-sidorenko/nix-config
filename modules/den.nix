@@ -54,6 +54,27 @@
           description = "Per-host values for the settings aspects declare, at the aspect's path.";
         };
       };
+
+      imports = [
+        (
+          { config, ... }:
+          {
+            options.primaryUser = lib.mkOption {
+              type = lib.types.str;
+              default =
+                let
+                  users = lib.attrValues config.users;
+                in
+                if lib.length users == 1 then
+                  (lib.head users).userName
+                else
+                  throw "host ${config.name}: set primaryUser, it has ${toString (lib.length users)} users";
+              defaultText = "the host's only user";
+              description = "Account that administers the host: deploy-rs logs in as it, and web UIs with their own login use its name.";
+            };
+          }
+        )
+      ];
     };
 
     schema.user = {

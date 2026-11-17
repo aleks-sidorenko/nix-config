@@ -35,8 +35,9 @@ in
             description = "Address deploy-rs connects to; the host's name when null.";
           };
           sshUser = lib.mkOption {
-            type = lib.types.str;
-            description = "User deploy-rs logs in as.";
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "User deploy-rs logs in as; the host's `primaryUser` when null.";
           };
         };
       }
@@ -49,7 +50,7 @@ in
     map (
       host:
       lib.nameValuePair host.name {
-        inherit (host.deploy) sshUser;
+        sshUser = lib.defaultTo host.primaryUser host.deploy.sshUser;
         hostname = lib.defaultTo host.name host.deploy.hostname;
         profiles.system = {
           user = "root";

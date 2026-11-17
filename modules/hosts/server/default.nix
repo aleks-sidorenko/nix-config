@@ -26,14 +26,13 @@ in
   den.hosts.x86_64-linux.server = {
     users.alexander = { };
     stateVersion = "26.05";
-    deploy.sshUser = "alexander";
+    deploy = { };
     settings = {
       system.locale = {
         timeZone = "UTC";
         locales = [ "en_US.UTF-8" ];
         layouts = [ "us" ];
       };
-      services.qbittorrent.webUser = "alexander";
       services.minecraft-server = import ../_minecraft.nix;
       storage.disko = {
         device = "/dev/disk/by-id/ata-SSD_2TB_004208";

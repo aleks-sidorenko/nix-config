@@ -13,10 +13,6 @@ in
     includes = [ den.aspects.services.media ];
     persist.directories = [ dataDir ];
     installChecks = [ ''machine.wait_for_unit("qbittorrent.service")'' ];
-    settings.webUser = lib.mkOption {
-      type = lib.types.str;
-      description = "User the web UI authenticates as; its password is the `service-qbittorrent-<user>-password` secret.";
-    };
 
     vhosts = [
       {
@@ -41,7 +37,8 @@ in
           media.categories.series
         ];
 
-        webUser = host.settings.services.qbittorrent.webUser;
+        # Its password is the `service-qbittorrent-<user>-password` secret.
+        webUser = host.primaryUser;
         secret = "service-qbittorrent-${webUser}-password";
 
         torrentScriptParams = ''\"%N\" \"%L\" \"%G\" \"%F\" \"%R\" \"%D\" \"%C\" \"%Z\" \"%T\" \"%I\" \"%J\" \"%K\"'';
