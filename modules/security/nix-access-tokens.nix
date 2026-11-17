@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost;
+  inherit (config.installTests) perTestedHost;
 
   includesToken = system: lib.hasInfix "!include" system.config.nix.extraOptions;
 in
@@ -28,7 +28,7 @@ in
   evalTests.install-skips-access-token =
     perTestedHost den.aspects.security.nix-access-tokens
       (name: host: {
-        installed = includesToken (config.installedSystem host);
+        installed = includesToken (config.installTests.installedSystem host);
         real = includesToken config.flake.nixosConfigurations.${name};
       })
       {

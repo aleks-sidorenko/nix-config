@@ -54,7 +54,7 @@ let
     "*.class"
   ];
 
-  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost;
+  inherit (config.installTests) perTestedHost;
 
   scheduled = system: system.config.systemd.timers.restic-backups-default.enable;
 in
@@ -174,7 +174,7 @@ in
   evalTests.install-disables-backup-timer =
     perTestedHost den.aspects.services.restic
       (name: host: {
-        installed = scheduled (config.installedSystem host);
+        installed = scheduled (config.installTests.installedSystem host);
         real = scheduled config.flake.nixosConfigurations.${name};
       })
       {

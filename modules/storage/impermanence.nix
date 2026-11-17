@@ -7,7 +7,7 @@
 }:
 let
   inherit (import ./_layout.nix) label root blank;
-  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost settled;
+  inherit (config.installTests) perTestedHost settled;
 
   walk = [
     "/var/lib"
@@ -247,7 +247,7 @@ in
     persist-guard-test-only =
       perTestedHost den.aspects.storage.impermanence
         (name: host: {
-          installed = hasGuard (config.installedSystem host);
+          installed = hasGuard (config.installTests.installedSystem host);
           real = hasGuard config.flake.nixosConfigurations.${name};
         })
         {
@@ -255,7 +255,7 @@ in
           real = false;
         };
     persist-guard-runs-last = perTestedHost den.aspects.storage.impermanence (
-      _: host: lastCheck (config.installedSystem host)
+      _: host: lastCheck (config.installTests.installedSystem host)
     ) guardCheck;
     persist-dedupes-base = {
       expr = collect [ { directories = [ "/var/lib/nixos" ]; } ];

@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (import ../_lib/install-test.nix { inherit den lib; }) perTestedHost;
+  inherit (config.installTests) perTestedHost;
 
   autoconnect = system: system.config.systemd.services.tailscaled-autoconnect.enable;
 in
@@ -50,7 +50,7 @@ in
   evalTests.install-disables-autoconnect =
     perTestedHost den.aspects.services.tailscale
       (name: host: {
-        installed = autoconnect (config.installedSystem host);
+        installed = autoconnect (config.installTests.installedSystem host);
         real = autoconnect config.flake.nixosConfigurations.${name};
       })
       {

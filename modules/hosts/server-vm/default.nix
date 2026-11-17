@@ -94,7 +94,8 @@ in
       expr = {
         real = sv.services.minecraft-server.jvmOpts;
         installed =
-          (config.installedSystem den.hosts.x86_64-linux.server-vm).config.services.minecraft-server.jvmOpts;
+          (config.installTests.installedSystem den.hosts.x86_64-linux.server-vm)
+          .config.services.minecraft-server.jvmOpts;
       };
       expected = {
         real = "-Xms2G -Xmx2G";
