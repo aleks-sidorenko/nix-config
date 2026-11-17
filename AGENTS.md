@@ -67,7 +67,8 @@ without breaking another.
 - **Imports stay in the folder.** Import only `_` files in your own folder
   (`import ./_arr.nix { inherit den; }`). Never `import ../…`: when a second
   folder needs a helper, the module that owns it publishes it as a
-  read-only option and readers take it from `config`.
+  read-only option and readers take it from `config`. The
+  `naming-imports-stay-in-folder` eval test enforces this.
 - **Pick the mechanism by what is shared** (den's
   [choosing a mechanism](https://den.denful.dev/explanation/choosing-a-mechanism/)):
   - NixOS or home-manager config: a class key (`nixos`, `homeManager`) on

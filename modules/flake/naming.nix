@@ -81,6 +81,17 @@ let
     || (lib.length path == 2 && builtins.pathExists (modules + "/${file}/default.nix"));
 
   dotted = map (lib.concatStringsSep ".");
+
+  # Modules share through `config`; an import is allowed only of a `_` file in
+  # the importer's own folder, so no file depends on another's location.
+  crossImports = lib.concatMap (
+    file:
+    map (line: "${lib.removePrefix "${toString modules}/" (toString file)}: ${lib.trim line}") (
+      lib.filter (line: builtins.match ".*import \\.(\\./|/[^_]).*" line != null) (
+        lib.splitString "\n" (builtins.readFile file)
+      )
+    )
+  ) (lib.filter (lib.hasSuffix ".nix") (lib.filesystem.listFilesRecursive modules));
 in
 {
   evalTests = {
@@ -94,6 +105,10 @@ in
     # tell apart; the category's directory can.
     naming-entity-category-clash = {
       expr = lib.filter (name: builtins.pathExists (modules + "/${name}")) entities;
+      expected = [ ];
+    };
+    naming-imports-stay-in-folder = {
+      expr = crossImports;
       expected = [ ];
     };
     naming-feature-files = {
