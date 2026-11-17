@@ -39,6 +39,10 @@ in
       expr = c.system.stateVersion;
       expected = "26.05";
     };
+    base-vm-hm-backs-up-clobbered-files = {
+      expr = c.home-manager.backupFileExtension;
+      expected = "backup";
+    };
     base-vm-hm-state = {
       expr = c.home-manager.users.alexander.home.stateVersion;
       expected = "26.05";
