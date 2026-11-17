@@ -89,6 +89,8 @@ in
 {
   flake-file.inputs.impermanence.url = "github:nix-community/impermanence";
 
+  den.quirks.persist.description = "System state kept across reboots: { directories ? [ ]; files ? [ ]; ignore ? [ ]; }. `ignore` names throwaway state, which the install test's undeclared-state guard then accepts.";
+
   den.aspects.storage.impermanence = {
     settings.root = lib.mkOption {
       type = lib.types.str;

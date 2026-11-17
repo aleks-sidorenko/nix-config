@@ -40,6 +40,8 @@ in
     description = "Domain the proxied services are served under, as `<name>.<serviceDomain>`.";
   };
 
+  den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<serviceDomain>`.";
+
   den.aspects.services.nginx.nixos =
     {
       config,

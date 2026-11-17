@@ -101,6 +101,8 @@ in
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
+  den.quirks.installChecks.description = "Python snippets the install test runs on the installed, rebooted host.";
+
   den.aspects.storage.disko = {
     settings = {
       device = mkOption {

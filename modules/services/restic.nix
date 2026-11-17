@@ -59,6 +59,8 @@ let
   scheduled = system: system.config.systemd.timers.restic-backups-default.enable;
 in
 {
+  den.quirks.backup.description = "What offsite backups add to their defaults: { paths ? [ ]; exclude ? [ ]; }, as live paths. Excludes are matched under the persistence root, where backups read state.";
+
   den.aspects.services.restic = {
     settings.bucketUrl = lib.mkOption {
       type = lib.types.str;
