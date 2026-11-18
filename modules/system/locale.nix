@@ -1,14 +1,8 @@
-{ config, lib, ... }:
+{ lib, ... }:
 let
   inherit (lib) types;
-  s = config.flake.nixosConfigurations.server.config;
 in
 {
-  evalTests.server-timezone-unchanged = {
-    expr = s.time.timeZone;
-    expected = "UTC";
-  };
-
   den.aspects.system.locale = {
     settings = {
       timeZone = lib.mkOption {

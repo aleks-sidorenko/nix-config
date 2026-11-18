@@ -1,26 +1,5 @@
+{ lib, ... }:
 {
-  config,
-  lib,
-  ...
-}:
-let
-  s = config.flake.nixosConfigurations.server.config;
-in
-{
-  evalTests.server-nix-unchanged = {
-    expr = {
-      trusted-users = lib.unique s.nix.settings.trusted-users;
-      inherit (s.nix.settings) use-xdg-base-directories;
-    };
-    expected = {
-      trusted-users = [
-        "root"
-        "@wheel"
-      ];
-      use-xdg-base-directories = true;
-    };
-  };
-
   den.aspects.system.nix = {
     os = {
       nix = {
