@@ -29,6 +29,7 @@ in
     includes = [
       den.aspects.roles.workstation
       den.aspects.services.openvpn
+      den.aspects.dev.akeyless
     ];
     # darwin's own integer release, apart from the string `stateVersion` homes read.
     darwin.system.stateVersion = 5;
@@ -189,6 +190,57 @@ in
         "kaf"
       ];
       expected = [ ];
+    };
+    dev-git = {
+      expr = {
+        lfs = hm.programs.git.lfs.enable;
+        ignoresClaude = lib.elem ".claude/" hm.programs.git.ignores;
+      };
+      expected = {
+        lfs = true;
+        ignoresClaude = true;
+      };
+    };
+    dev-gh-keyring = {
+      expr = hm.home.sessionVariables ? GITHUB_TOKEN;
+      expected = false;
+    };
+    dev-direnv = {
+      expr = {
+        inherit (hm.programs.direnv) enable;
+        nix = hm.programs.direnv.nix-direnv.enable;
+      };
+      expected = {
+        enable = true;
+        nix = true;
+      };
+    };
+    dev-projects = {
+      expr = hm.home.sessionVariables ? PROJECTS_HOME;
+      expected = true;
+    };
+    dev-containers = {
+      expr = {
+        casks = lib.elem "rancher" (map (c: c.name or c) w.homebrew.casks);
+        brews = lib.subtractLists (map (b: b.name or b) w.homebrew.brews) [
+          "lima"
+          "docker"
+          "docker-compose"
+          "docker-credential-helper"
+        ];
+      };
+      expected = {
+        casks = true;
+        brews = [ ];
+      };
+    };
+    dev-xcode = {
+      expr = w.homebrew.masApps.Xcode;
+      expected = 497799835;
+    };
+    dev-akeyless = {
+      expr = lib.elem "akeyless" (map (b: b.name or b) w.homebrew.brews);
+      expected = true;
     };
     system-stylix = {
       expr = {

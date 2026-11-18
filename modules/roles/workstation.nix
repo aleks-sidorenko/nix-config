@@ -24,5 +24,14 @@
     den.aspects.cli.htop
     den.aspects.cli.utils
     den.aspects.cli.nix-index
+    den.aspects.dev.git
+    den.aspects.dev.gh
+    den.aspects.dev.direnv
+    den.aspects.dev.claude-code
+    den.aspects.dev.idea
+    den.aspects.dev.projects
+    den.aspects.dev.k8s
+    den.aspects.dev.containers
+    den.aspects.dev.xcode
   ];
 }
