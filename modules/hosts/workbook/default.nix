@@ -15,14 +15,17 @@ in
   den.hosts.aarch64-darwin.workbook = {
     users.oleksandrsy.identity = "alexander";
     stateVersion = "25.05";
-    # Work VPN, specific to this host.
-    settings.services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
-    settings.system.networking.knownNetworkServices = [
-      "Wi-Fi"
-      "USB 10/100/1000 LAN"
-      "ThinkPad TBT 3 Dock"
-      "Thunderbolt Bridge"
-    ];
+    settings = {
+      # Work VPN, specific to this host.
+      services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
+      system.networking.knownNetworkServices = [
+        "Wi-Fi"
+        "USB 10/100/1000 LAN"
+        "ThinkPad TBT 3 Dock"
+        "Thunderbolt Bridge"
+      ];
+      dev.stacks.npmRegistry = "https://npm.dev.wixpress.com/api/npm/npm-repos/";
+    };
   };
 
   den.aspects.workbook = {
@@ -30,10 +33,51 @@ in
       den.aspects.roles.workstation
       den.aspects.services.openvpn
       den.aspects.dev.akeyless
+      den.aspects.dev.stacks
     ];
     # darwin's own integer release, apart from the string `stateVersion` homes read.
     darwin.system.stateVersion = 5;
   };
+
+  perSystem =
+    { pkgs, system, ... }:
+    {
+      checks = lib.optionalAttrs (system == "aarch64-darwin") {
+        # Sources the installed library, so the check runs what direnv will.
+        stacks-script =
+          pkgs.runCommand "stacks-script"
+            {
+              nativeBuildInputs = [ pkgs.bash ];
+              script = hm.xdg.configFile."direnv/lib/stacks.sh".source;
+            }
+            ''
+              set -eu
+              PATH_add() { PATH="$1:$PATH"; }
+              source "$script"
+
+              fail() { echo "FAIL: $*" >&2; exit 1; }
+              on_path() { [[ "$(command -v "$1")" == /nix/store/* ]] || fail "$1 not on PATH"; }
+
+              (
+                use_stack jvm
+                for t in java sbt mvn gradle metals; do on_path "$t"; done
+                [ -x "$JAVA_HOME/bin/java" ] || fail "JAVA_HOME=$JAVA_HOME"
+              )
+              (
+                use_stack node
+                for t in node npm; do on_path "$t"; done
+                [ "$NPM_CONFIG_REGISTRY" = "https://npm.dev.wixpress.com/api/npm/npm-repos/" ] \
+                  || fail "NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY"
+                [ -z "''${NPM_CONFIG_PREFIX:-}" ] || fail "npm prefix set"
+              )
+              for args in nope ""; do
+                if err=$(use_stack $args 2>&1 >/dev/null); then fail "use_stack $args succeeded"; fi
+                [[ "$err" == *jvm* && "$err" == *node* ]] || fail "message: $err"
+              done
+              touch $out
+            '';
+      };
+    };
 
   evalTests = {
     cli-fish = {
@@ -228,6 +272,14 @@ in
         enable = true;
         nix = true;
       };
+    };
+    stacks-installed = {
+      expr = hm.xdg.configFile ? "direnv/lib/stacks.sh";
+      expected = true;
+    };
+    stacks-envrc-ignored = {
+      expr = lib.elem ".envrc" hm.programs.git.ignores;
+      expected = true;
     };
     dev-projects = {
       expr = hm.home.sessionVariables ? PROJECTS_HOME;
