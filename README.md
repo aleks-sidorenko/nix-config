@@ -52,9 +52,9 @@ modules/
 ├── storage/        # disko layout, impermanence and the undeclared-state guard
 ├── security/       # ssh, sops, sudo, user passwords, authorized keys
 ├── services/       # tailscale, nginx, restic, the media stack, minecraft, openvpn
-├── cli/            # terminal tools: fish, nvim, ghostty, utils
+├── cli/            # terminal tools: fish, nvim, ghostty, media, utils
 ├── dev/            # git, direnv, per-project stacks, containers, k8s
-├── gui/            # GUI apps: chrome, communication, media, raycast
+├── gui/            # GUI apps: chrome, communication, photo and video, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
 identities/         # per-person public keys (see identities/README.md)

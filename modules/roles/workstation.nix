@@ -24,6 +24,7 @@
     den.aspects.cli.htop
     den.aspects.cli.utils
     den.aspects.cli.nix-index
+    den.aspects.cli.media
     # Every host gets it, but only an aspect the host includes reaches the user's home.
     den.aspects.security.ssh
     den.aspects.security.gpg

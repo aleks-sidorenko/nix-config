@@ -610,13 +610,22 @@ in
       expr = {
         cc = lib.elem "adobe-creative-cloud" (map (c: c.name or c) w.homebrew.casks);
         vlc = lib.any (lib.hasPrefix "vlc-bin") (map lib.getName hm.home.packages);
-        tools = lib.elem "media-tools" (map lib.getName hm.home.packages);
-        home = hm.home.sessionVariables.MEDIA_HOME;
       };
       expected = {
         cc = true;
         vlc = true;
-        tools = true;
+      };
+    };
+    cli-media = {
+      expr = {
+        tools = lib.subtractLists (map lib.getName hm.home.packages) [
+          "ffmpeg"
+          "media-tools"
+        ];
+        home = hm.home.sessionVariables.MEDIA_HOME;
+      };
+      expected = {
+        tools = [ ];
         home = "/Users/oleksandrsy/Media";
       };
     };
