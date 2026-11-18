@@ -35,7 +35,14 @@ flake-check:
 
 # Build a host's system without switching
 build host:
-    nix build .#nixosConfigurations.{{ host }}.config.system.build.toplevel
+    #!/usr/bin/env bash
+    set -euo pipefail
+    kind=$(nix eval --raw .#darwinConfigurations --apply 'c: if c ? {{ host }} then "darwin" else "nixos"')
+    if [ "$kind" = darwin ]; then
+        nix build .#darwinConfigurations.{{ host }}.system
+    else
+        nix build .#nixosConfigurations.{{ host }}.config.system.build.toplevel
+    fi
 
 # Deploy a host with deploy-rs, building on the target (`--boot` to activate on next boot)
 deploy host *args:

@@ -1,8 +1,14 @@
-{ lib, ... }:
+{ config, lib, ... }:
 let
   inherit (lib) types;
+  s = config.flake.nixosConfigurations.server.config;
 in
 {
+  evalTests.server-timezone-unchanged = {
+    expr = s.time.timeZone;
+    expected = "UTC";
+  };
+
   den.aspects.system.locale = {
     settings = {
       timeZone = lib.mkOption {
@@ -30,12 +36,6 @@ in
       };
     };
 
-    os =
-      { host, ... }:
-      {
-        time.timeZone = host.settings.system.locale.timeZone;
-      };
-
     nixos =
       { host, ... }:
       let
@@ -44,6 +44,9 @@ in
         nativeLocale = lib.head (lib.tail locales ++ [ systemLocale ]);
       in
       {
+        # Managed Macs keep their own zone.
+        time.timeZone = host.settings.system.locale.timeZone;
+
         i18n = {
           defaultLocale = systemLocale;
           supportedLocales = map (locale: "${locale}/UTF-8") locales;

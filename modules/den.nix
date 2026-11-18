@@ -100,14 +100,16 @@
           { host, ... }:
           {
             system.stateVersion = host.stateVersion;
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              # A file home-manager now manages but the user already has (a
-              # shell's default config) is moved aside instead of failing activation.
-              backupFileExtension = "backup";
-            };
           };
+        os = {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            # A file home-manager now manages but the user already has (a
+            # shell's default config) is moved aside instead of failing activation.
+            backupFileExtension = "backup";
+          };
+        };
         homeManager =
           { host, ... }:
           {

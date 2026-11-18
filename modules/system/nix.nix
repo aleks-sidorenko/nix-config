@@ -1,4 +1,26 @@
 {
+  config,
+  lib,
+  ...
+}:
+let
+  s = config.flake.nixosConfigurations.server.config;
+in
+{
+  evalTests.server-nix-unchanged = {
+    expr = {
+      trusted-users = lib.unique s.nix.settings.trusted-users;
+      inherit (s.nix.settings) use-xdg-base-directories;
+    };
+    expected = {
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
+      use-xdg-base-directories = true;
+    };
+  };
+
   den.aspects.system.nix = {
     os = {
       nix = {
@@ -7,11 +29,6 @@
             "nix-command"
             "flakes"
           ];
-          trusted-users = [
-            "root"
-            "@wheel"
-          ];
-          use-xdg-base-directories = true;
           warn-dirty = false;
           substituters = [
             "https://cache.nixos.org/"
@@ -35,7 +52,14 @@
           # never downgrades the daemon over a store a newer one has used.
           package = pkgs.nixVersions.latest;
           # corrupts the store on darwin, so NixOS only
-          settings.auto-optimise-store = true;
+          settings = {
+            auto-optimise-store = true;
+            trusted-users = [
+              "root"
+              "@wheel"
+            ];
+            use-xdg-base-directories = true;
+          };
         };
 
         # nix.gc would prune by age alone; nh keeps the last generations whatever
@@ -46,6 +70,37 @@
             enable = true;
             extraArgs = "--keep-since 7d --keep 5";
           };
+        };
+      };
+
+    darwin =
+      { pkgs, ... }:
+      {
+        # Admins are `admin` on macOS; `wheel` holds only root.
+        nix.settings.trusted-users = [
+          "root"
+          "@admin"
+        ];
+
+        # nix-darwin has no programs.nh; same retention as NixOS, run weekly.
+        environment.systemPackages = [ pkgs.nh ];
+        launchd.daemons.nh-clean.serviceConfig = {
+          ProgramArguments = [
+            (lib.getExe pkgs.nh)
+            "clean"
+            "all"
+            "--keep-since"
+            "7d"
+            "--keep"
+            "5"
+          ];
+          StartCalendarInterval = [
+            {
+              Weekday = 0;
+              Hour = 3;
+              Minute = 0;
+            }
+          ];
         };
       };
   };

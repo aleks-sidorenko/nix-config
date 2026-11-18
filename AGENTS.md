@@ -85,7 +85,10 @@ it, never write the path.
 ## Naming
 
 - `den.aspects` top level holds only hosts, users and categories.
-  Categories: `system`, `storage`, `security`, `services`, `hardware`, `roles`.
+  Categories: `system`, `storage`, `security`, `services`, `hardware`,
+  `roles`, `cli` (a terminal tool), `dev` (working on code), `apps` (a GUI
+  app). A category names a concern, never a platform; a platform-only aspect
+  has only that class's body.
 - Feature: `den.aspects.<category>.<feature>` mirrors
   `modules/<category>/<feature>.nix` (or `<feature>/default.nix` when it has
   variants or helpers). Variant: `<category>.<feature>.<variant>` mirrors
@@ -166,6 +169,15 @@ Stage new files (`git add`) before `just check`.
 3. Add an eval test that `config.allSystems.x86_64-linux.checks ? install-<host>`.
 4. The install test itself runs in CI only (`just vm-test <host>` needs
    x86_64 KVM).
+
+### A darwin host
+
+1. `den.hosts.aarch64-darwin.<host>` in `modules/hosts/<host>/default.nix`,
+   with the string `stateVersion` homes read.
+2. darwin's own integer release goes in the host aspect:
+   `den.aspects.<host>.darwin.system.stateVersion = <int>;`.
+3. `just build <host>` builds `darwinConfigurations.<host>.system`; switch with
+   `nix run .#<host> -- switch`.
 
 ### A user
 
