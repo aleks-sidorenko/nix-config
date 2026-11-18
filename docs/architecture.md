@@ -72,7 +72,10 @@ Categories also sort by what the aspect configures: `cli` for a terminal tool,
 never a platform; an aspect with only a `darwin` body is fine. `roles.workstation`
 bundles what `workbook` runs: the machine aspects (`system.homebrew`, `dock`,
 `finder`, `input`, `power`, `file-limits`, `stylix`, `security.sudo.touch-id`),
-the `cli`, `dev` and `gui` aspects, and the user's `security` aspects. The host
+the `cli`, `dev` and `gui` aspects, and the user's `security` aspects. It also
+brings the system services: `security.sops` (secrets from `secrets/darwin.yaml`),
+`security.nix-access-tokens` (the GitHub token nix reads) and
+`services.tailscale`. The host
 adds only what is its own (`services.openvpn`, `dev.akeyless`, `dev.stacks`).
 
 Homebrew is declared by the aspect that owns the app: its `darwin` body adds the
