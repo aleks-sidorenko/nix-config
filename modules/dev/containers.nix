@@ -26,6 +26,13 @@
     homeManager =
       { pkgs, ... }:
       {
+        programs.fish.shellAbbrs = {
+          dk = "docker kill (docker ps -q)";
+          ds = "docker stop (docker ps -a -q)";
+          drm = "docker rm (docker ps -a -q)";
+          docker-compose = "podman-compose";
+        };
+
         home.packages = builtins.attrValues {
           inherit (pkgs)
             arion

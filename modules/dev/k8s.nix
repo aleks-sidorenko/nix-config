@@ -3,7 +3,13 @@
   den.aspects.dev.k8s.homeManager =
     { pkgs, ... }:
     {
-      programs.k9s.enable = true;
+      programs = {
+        k9s.enable = true;
+        fish.shellAbbrs = {
+          k = "kubectl";
+          kgp = "kubectl get pods";
+        };
+      };
 
       home.packages = builtins.attrValues {
         inherit (pkgs)
@@ -16,6 +22,7 @@
           kustomize
           fluxcd
           kubefwd
+          kubeshark
           ;
       };
     };

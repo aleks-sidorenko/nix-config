@@ -15,7 +15,6 @@
     den.aspects.cli.fish
     den.aspects.cli.starship
     den.aspects.cli.atuin
-    den.aspects.cli.zellij
     den.aspects.cli.yazi
     den.aspects.cli.nvim
     den.aspects.cli.ghostty

@@ -46,26 +46,11 @@
 
           shellAliases.wget = "wget --hsts-file=\"$XDG_DATA_HOME/wget-hsts\"";
 
+          # Shortcuts for a tool live in that tool's aspect.
           shellAbbrs = {
-            # abbr existing commands
             vim = "nvim";
             n = "nvim";
-            cd = "z";
-            cdi = "zi";
-            cp = "xcp";
-            grep = "rg";
-            dig = "dog";
-            cat = "bat";
-            curl = "curlie";
-            rm = "trash";
-            ping = "gping";
-            ls = "eza";
-            sl = "eza";
-            l = "eza --group --header --group-directories-first --long --git --all --binary --all --icons always";
-            tree = "eza --tree";
             sudo = "sudo -E";
-            k = "kubectl";
-            kgp = "kubectl get pods";
 
             tsu = "tailscale up";
             tsd = "tailscale down";
@@ -80,12 +65,7 @@
             weather = "curl wttr.in/Kyiv";
 
             pfile = "fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'";
-            gdub = "git fetch -p && git branch -vv | grep ': gone]' | awk '{print }' | xargs git branch -D $argv;";
             tldrf = "${pkgs.tldr}/bin/tldr --list | fzf --preview \"${pkgs.tldr}/bin/tldr {1} --color\" --preview-window=right,70% | xargs tldr";
-            dk = "docker kill (docker ps -q)";
-            ds = "docker stop (docker ps -a -q)";
-            drm = "docker rm (docker ps -a -q)";
-            docker-compose = "podman-compose";
           };
 
           functions = {
@@ -96,22 +76,6 @@
                 set item (string split -m 1 '=' $line)
                 set -gx $item[1] $item[2]
                 echo "Exported key $item[1]"
-              end
-            '';
-
-            gcrb = ''
-                set result (git branch -a --color=always | grep -v '/HEAD\s' | sort |
-                  fzf --height 50% --border --ansi --tac --preview-window right:70% \
-                    --preview 'git log --oneline --graph --date=short --pretty="format:%C(auto)%cd %h%d %s" (string sub -s 3 (string split ' ' {})[1]) | head -'$LINES |
-                  string sub -s 3 | string split ' ' -m 1)[1]
-
-                if test -n "$result"
-                  if string match -r "^remotes/.*" $result > /dev/null
-                    git checkout --track (string replace -r "^remotes/" "" $result)
-                  else
-                    git checkout $result
-                  end
-                end
               end
             '';
 

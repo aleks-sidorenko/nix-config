@@ -124,10 +124,12 @@ in
       expr = {
         inherit (hm.programs.bat) enable;
         pager = hm.home.sessionVariables.MANPAGER;
+        cat = hm.programs.fish.shellAbbrs.cat;
       };
       expected = {
         enable = true;
         pager = "batman";
+        cat = "bat";
       };
     };
     workbook-home-basics = {
@@ -146,10 +148,6 @@ in
     };
     cli-atuin = {
       expr = hm.programs.atuin.enable;
-      expected = true;
-    };
-    cli-zellij = {
-      expr = hm.programs.zellij.enable;
       expected = true;
     };
     cli-yazi = {
@@ -206,7 +204,7 @@ in
         "ghostscript"
         "wireshark-cli"
         "termshark"
-        "kubeshark"
+        "zellij"
         "broot"
         "choose"
         "curlie"
@@ -244,14 +242,40 @@ in
       ];
       expected = [ ];
     };
+    cli-utils-abbrs = {
+      expr = {
+        inherit (hm.programs.fish.shellAbbrs) cd dig ls;
+      };
+      expected = {
+        cd = "z";
+        dig = "doggo";
+        ls = "eza";
+      };
+    };
     dev-git = {
       expr = {
         lfs = hm.programs.git.lfs.enable;
         ignoresClaude = lib.elem ".claude/" hm.programs.git.ignores;
+        gdub = lib.hasInfix "awk '{print $1}'" hm.programs.fish.shellAbbrs.gdub;
+        gcrb = hm.programs.fish.functions ? gcrb;
       };
       expected = {
         lfs = true;
         ignoresClaude = true;
+        gdub = true;
+        gcrb = true;
+      };
+    };
+    dev-k8s = {
+      expr = {
+        inherit (hm.programs.k9s) enable;
+        k = hm.programs.fish.shellAbbrs.k;
+        kubeshark = lib.elem "kubeshark" (map lib.getName hm.home.packages);
+      };
+      expected = {
+        enable = true;
+        k = "kubectl";
+        kubeshark = true;
       };
     };
     dev-git-signing = {
@@ -308,6 +332,10 @@ in
         casks = true;
         brews = [ ];
       };
+    };
+    dev-containers-abbrs = {
+      expr = hm.programs.fish.shellAbbrs.docker-compose;
+      expected = "podman-compose";
     };
     dev-xcode = {
       expr = w.homebrew.masApps.Xcode;

@@ -7,9 +7,25 @@
         programs = {
           bottom.enable = true;
           eza.enable = true;
+          zellij.enable = true;
           zoxide = {
             enable = true;
             enableFishIntegration = true;
+          };
+
+          fish.shellAbbrs = {
+            cd = "z";
+            cdi = "zi";
+            cp = "xcp";
+            grep = "rg";
+            dig = "doggo";
+            curl = "curlie";
+            rm = "trash";
+            ping = "gping";
+            ls = "eza";
+            sl = "eza";
+            l = "eza --group --header --group-directories-first --long --git --all --binary --all --icons always";
+            tree = "eza --tree";
           };
         };
 
@@ -29,7 +45,6 @@
               # network
               tshark
               termshark
-              kubeshark
               # basics
               coreutils
               moreutils
