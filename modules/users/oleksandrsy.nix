@@ -2,6 +2,8 @@
 {
   den.aspects.oleksandrsy = {
     includes = [
+      # The host's roles carry the home config; host-scope `homeManager` reaches no one otherwise.
+      den.batteries.host-aspects
       den.batteries.primary-user
       (den.batteries.user-shell "fish")
     ];

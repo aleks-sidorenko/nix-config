@@ -1,0 +1,148 @@
+{ den, ... }:
+{
+  den.aspects.cli.ghostty = {
+    includes = [ den.aspects.system.stylix ];
+
+    homeManager =
+      {
+        config,
+        lib,
+        pkgs,
+        ...
+      }:
+      let
+        prefix = "ctrl+a";
+      in
+      {
+        catppuccin.ghostty.enable = true;
+
+        home.sessionVariables.TERM = "ghostty";
+
+        programs.ghostty = {
+          enable = true;
+          enableFishIntegration = true;
+          package = if pkgs.stdenv.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+          settings = {
+            command = lib.getExe config.programs.fish.package;
+            gtk-titlebar = false;
+            gtk-tabs-location = "bottom";
+            gtk-single-instance = true;
+            macos-titlebar-style = "tabs";
+            window-padding-x = 6;
+            window-padding-y = 6;
+            window-save-state = "always";
+            copy-on-select = "clipboard";
+            cursor-style = "block";
+            confirm-close-surface = false;
+
+            keybind = [
+              "clear"
+
+              # Navigate and resize (Alt), mirroring Neovim's hjkl and arrows.
+              # Alt rather than Ctrl keeps bare Ctrl free for Neovim.
+              "alt+h=goto_split:left"
+              "alt+j=goto_split:down"
+              "alt+k=goto_split:up"
+              "alt+l=goto_split:right"
+              "alt+arrow_up=resize_split:up,10"
+              "alt+arrow_down=resize_split:down,10"
+              "alt+arrow_left=resize_split:left,10"
+              "alt+arrow_right=resize_split:right,10"
+              # Tabs 1-8 direct, 9 is the last
+              "alt+1=goto_tab:1"
+              "alt+2=goto_tab:2"
+              "alt+3=goto_tab:3"
+              "alt+4=goto_tab:4"
+              "alt+5=goto_tab:5"
+              "alt+6=goto_tab:6"
+              "alt+7=goto_tab:7"
+              "alt+8=goto_tab:8"
+              "alt+9=last_tab"
+              "alt+[=previous_tab"
+              "alt+]=next_tab"
+              "alt+page_up=jump_to_prompt:-1"
+              "alt+page_down=jump_to_prompt:1"
+
+              # Structure (Alt+Shift). Option+Shift+\ yields "»" on macOS, so
+              # "|" would never match: bind the physical key.
+              "alt+shift+backslash=new_split:right"
+              "alt+shift+-=new_split:down"
+              "alt+shift+t=new_tab"
+              "alt+shift+q=close_tab:this"
+              "alt+shift+w=new_window"
+              "alt+shift+x=close_window"
+
+              "alt+ctrl+enter=toggle_split_zoom"
+
+              # Prefix mode
+              "${prefix}>h=goto_split:left"
+              "${prefix}>j=goto_split:down"
+              "${prefix}>k=goto_split:up"
+              "${prefix}>l=goto_split:right"
+              "${prefix}>[=goto_split:previous"
+              "${prefix}>]=goto_split:next"
+              "${prefix}>t>n=new_tab"
+              "${prefix}>t>q=close_tab:this"
+              "${prefix}>t>[=previous_tab"
+              "${prefix}>t>]=next_tab"
+              # A pinned name overrides per-split titles, which otherwise follow focus.
+              "${prefix}>t>r=prompt_tab_title"
+              "${prefix}>w>n=new_window"
+              "${prefix}>w>q=close_window"
+              "${prefix}>|=new_split:right"
+              "${prefix}>-=new_split:down"
+
+              "ctrl+shift+c=copy_to_clipboard"
+              "ctrl+shift+v=paste_from_clipboard"
+              "ctrl+shift+a=select_all"
+              "shift+insert=paste_from_selection"
+              "ctrl+insert=copy_to_clipboard"
+
+              "alt+equal=increase_font_size:1"
+              "alt+-=decrease_font_size:1"
+              "alt+0=reset_font_size"
+              "alt+enter=toggle_fullscreen"
+
+              # Rare, so behind the prefix; keeps C-; free for Neovim.
+              "${prefix}>c=open_config"
+              "${prefix}>r=reload_config"
+              "ctrl+shift+q=quit"
+              "ctrl+shift+p=toggle_command_palette"
+              "ctrl+shift+i=inspector:toggle"
+
+              "shift+page_up=scroll_page_up"
+              "shift+page_down=scroll_page_down"
+              "shift+home=scroll_to_top"
+              "shift+end=scroll_to_bottom"
+              "shift+arrow_up=adjust_selection:up"
+              "shift+arrow_down=adjust_selection:down"
+              "shift+arrow_left=adjust_selection:left"
+              "shift+arrow_right=adjust_selection:right"
+
+              # Write to file: key pastes, shift+key opens, ctrl+key copies.
+              "${prefix}>s=write_screen_file:paste"
+              "${prefix}>shift+s=write_screen_file:open"
+              "${prefix}>ctrl+s=write_screen_file:copy"
+              "${prefix}>b=write_scrollback_file:paste"
+              "${prefix}>shift+b=write_scrollback_file:open"
+              "${prefix}>ctrl+b=write_scrollback_file:copy"
+              "${prefix}>e=write_selection_file:paste"
+              "${prefix}>shift+e=write_selection_file:open"
+              "${prefix}>ctrl+e=write_selection_file:copy"
+
+              # Newline in Claude Code
+              "shift+enter=text:\u001b[13;2u"
+            ];
+          };
+        };
+      };
+
+    darwin =
+      { config, host, ... }:
+      {
+        system.defaults.dock.persistent-apps = [
+          "${config.users.users.${host.primaryUser}.home}/Applications/Home Manager Apps/Ghostty.app"
+        ];
+      };
+  };
+}

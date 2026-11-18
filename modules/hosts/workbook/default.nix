@@ -35,6 +35,83 @@ in
   };
 
   evalTests = {
+    cli-fish = {
+      expr = hm.programs.fish.enable;
+      expected = true;
+    };
+    cli-starship = {
+      expr = hm.programs.starship.enable;
+      expected = true;
+    };
+    cli-atuin = {
+      expr = hm.programs.atuin.enable;
+      expected = true;
+    };
+    cli-zellij = {
+      expr = hm.programs.zellij.enable;
+      expected = true;
+    };
+    cli-yazi = {
+      expr = hm.programs.yazi.enable;
+      expected = true;
+    };
+    cli-ghostty = {
+      expr = lib.getName hm.programs.ghostty.package;
+      expected = "ghostty-bin";
+    };
+    cli-ghostty-dock = {
+      expr = map (a: a.tile-data.file-data._CFURLString) w.system.defaults.dock.persistent-apps;
+      expected = [ "${hm.home.homeDirectory}/Applications/Home Manager Apps/Ghostty.app" ];
+    };
+    cli-nvim = {
+      expr = {
+        on = hm.programs.nix-nvim.enable;
+        haskell = hm.programs.nix-nvim.development.haskell.enable;
+        typescript = hm.programs.nix-nvim.development.typescript.enable;
+      };
+      expected = {
+        on = true;
+        haskell = false;
+        typescript = true;
+      };
+    };
+    cli-nix-index = {
+      expr = {
+        inherit (hm.programs.nix-index) enable;
+        comma = hm.programs.nix-index-database.comma.enable;
+      };
+      expected = {
+        enable = true;
+        comma = true;
+      };
+    };
+    cli-utils = {
+      expr = lib.subtractLists (map lib.getName hm.home.packages) [
+        "bat"
+        "eza"
+        "fzf"
+        "zoxide"
+        "htop"
+        "bottom"
+        "moreutils"
+        "coreutils"
+        "nix-output-monitor"
+        "nvd"
+        "nix-tree"
+        "disk-report"
+      ];
+      expected = [ ];
+    };
+    system-stylix = {
+      expr = {
+        home = hm.stylix.enable;
+        dark = w.system.defaults.NSGlobalDomain.AppleInterfaceStyle;
+      };
+      expected = {
+        home = true;
+        dark = "Dark";
+      };
+    };
     workbook-homebrew = {
       expr = {
         inherit (w.homebrew) enable;
