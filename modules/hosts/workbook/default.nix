@@ -13,10 +13,15 @@ in
   den.hosts.aarch64-darwin.workbook = {
     users.oleksandrsy.identity = "alexander";
     stateVersion = "25.05";
+    # Work VPN, specific to this host.
+    settings.services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
   };
 
   den.aspects.workbook = {
-    includes = [ den.aspects.roles.workstation ];
+    includes = [
+      den.aspects.roles.workstation
+      den.aspects.services.openvpn
+    ];
     # darwin's own integer release, apart from the string `stateVersion` homes read.
     darwin.system.stateVersion = 5;
   };
@@ -80,6 +85,56 @@ in
         lib.concatStringsSep " " w.launchd.daemons.nh-clean.serviceConfig.ProgramArguments
       );
       expected = true;
+    };
+    workbook-sops = {
+      expr = {
+        file = w.sops.defaultSopsFile;
+        keys = w.sops.age.sshKeyPaths;
+      };
+      expected = {
+        file = ../../../secrets/darwin.yaml;
+        keys = [ "/etc/ssh/ssh_host_ed25519_key" ];
+      };
+    };
+    workbook-access-token = {
+      expr = lib.hasInfix "!include" w.nix.extraOptions;
+      expected = true;
+    };
+    workbook-remote-login = {
+      expr = w.services.openssh.enable;
+      expected = true;
+    };
+    workbook-tailscale = {
+      expr = {
+        on = w.services.tailscale.enable;
+        secrets = w.sops.secrets ? system-tailscale-auth-key;
+      };
+      expected = {
+        on = true;
+        secrets = false;
+      };
+    };
+    openvpn-kpi-daemon = {
+      expr =
+        let
+          c = w.launchd.daemons.openvpn-kpi.serviceConfig;
+        in
+        {
+          reads = lib.elem w.sops.secrets.system-vpn-kpi-profile.path c.ProgramArguments;
+          inherit (c) KeepAlive RunAtLoad;
+        };
+      expected = {
+        reads = true;
+        KeepAlive = false;
+        RunAtLoad = false;
+      };
+    };
+    workbook-secrets = {
+      expr = lib.sort lib.lessThan (lib.attrNames w.sops.secrets);
+      expected = [
+        "system-github-token"
+        "system-vpn-kpi-profile"
+      ];
     };
   };
 }

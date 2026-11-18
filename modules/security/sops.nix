@@ -5,8 +5,18 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  den.aspects.security.sops.nixos = {
-    imports = [ inputs.sops-nix.nixosModules.sops ];
-    sops.defaultSopsFile = ../../secrets/nixos.yaml;
+  den.aspects.security.sops = {
+    nixos = {
+      imports = [ inputs.sops-nix.nixosModules.sops ];
+      sops.defaultSopsFile = ../../secrets/nixos.yaml;
+    };
+
+    darwin = {
+      imports = [ inputs.sops-nix.darwinModules.sops ];
+      sops = {
+        defaultSopsFile = ../../secrets/darwin.yaml;
+        age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+      };
+    };
   };
 }

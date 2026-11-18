@@ -24,6 +24,8 @@ in
       ];
     };
 
+    darwin.services.openssh.enable = true;
+
     persist.files = [
       hostKey
       "${hostKey}.pub"

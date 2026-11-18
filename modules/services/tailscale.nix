@@ -46,6 +46,9 @@ in
       };
   };
 
+  # Joins and tags belong to bootstrap and the ACL, not to this host.
+  den.aspects.services.tailscale.darwin.services.tailscale.enable = true;
+
   evalTests.install-disables-autoconnect =
     perTestedHost den.aspects.services.tailscale
       (name: host: {
