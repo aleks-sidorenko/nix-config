@@ -121,10 +121,14 @@ in
         in
         {
           reads = lib.elem w.sops.secrets.system-vpn-kpi-profile.path c.ProgramArguments;
+          ignoresDns = lib.hasInfix "--pull-filter ignore dhcp-option DNS" (
+            lib.concatStringsSep " " c.ProgramArguments
+          );
           inherit (c) KeepAlive RunAtLoad;
         };
       expected = {
         reads = true;
+        ignoresDns = true;
         KeepAlive = false;
         RunAtLoad = false;
       };

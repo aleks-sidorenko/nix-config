@@ -78,6 +78,10 @@
                 "${pkgs.openvpn}/sbin/openvpn"
                 "--config"
                 config.sops.secrets.${conn.profileSecret}.path
+                # The host resolver (and tailnet DNS) must keep winning.
+                "--pull-filter"
+                "ignore"
+                "dhcp-option DNS"
               ];
               RunAtLoad = conn.autoStart;
               # openvpn reconnects on its own; launchd restarting it would defeat `vpn down`.
