@@ -36,8 +36,55 @@ in
 
   evalTests = {
     cli-fish = {
-      expr = hm.programs.fish.enable;
-      expected = true;
+      expr = {
+        # The user-shell battery enables fish alone; these only cli.fish sets.
+        abbr = hm.programs.fish.shellAbbrs ? nrs;
+        plugins = map (p: p.name) hm.programs.fish.plugins;
+      };
+      expected = {
+        abbr = true;
+        plugins = [
+          "bass"
+          "fzf-fish"
+          "fifc"
+          "git-abbr"
+        ];
+      };
+    };
+    cli-fzf = {
+      expr = {
+        inherit (hm.programs.fzf) enable enableFishIntegration;
+        bg = hm.programs.fzf.colors.bg;
+      };
+      expected = {
+        enable = true;
+        enableFishIntegration = false;
+        bg = "#${hm.lib.stylix.colors.base00}";
+      };
+    };
+    cli-htop = {
+      expr = hm.programs.htop.settings.hide_userland_threads;
+      expected = 1;
+    };
+    cli-bat = {
+      expr = {
+        inherit (hm.programs.bat) enable;
+        pager = hm.home.sessionVariables.MANPAGER;
+      };
+      expected = {
+        enable = true;
+        pager = "batman";
+      };
+    };
+    workbook-home-basics = {
+      expr = {
+        hmSelf = hm.programs.home-manager.enable;
+        path = lib.elem "$HOME/.local/bin" hm.home.sessionPath;
+      };
+      expected = {
+        hmSelf = true;
+        path = true;
+      };
     };
     cli-starship = {
       expr = hm.programs.starship.enable;
@@ -60,8 +107,10 @@ in
       expected = "ghostty-bin";
     };
     cli-ghostty-dock = {
-      expr = map (a: a.tile-data.file-data._CFURLString) w.system.defaults.dock.persistent-apps;
-      expected = [ "${hm.home.homeDirectory}/Applications/Home Manager Apps/Ghostty.app" ];
+      expr = lib.elem "${hm.home.homeDirectory}/Applications/Home Manager Apps/Ghostty.app" (
+        map (a: a.tile-data.file-data._CFURLString) w.system.defaults.dock.persistent-apps
+      );
+      expected = true;
     };
     cli-nvim = {
       expr = {
@@ -87,11 +136,8 @@ in
     };
     cli-utils = {
       expr = lib.subtractLists (map lib.getName hm.home.packages) [
-        "bat"
         "eza"
-        "fzf"
         "zoxide"
-        "htop"
         "bottom"
         "moreutils"
         "coreutils"
@@ -99,6 +145,48 @@ in
         "nvd"
         "nix-tree"
         "disk-report"
+        "zip"
+        "unzip"
+        "xz"
+        "pdfcpu"
+        "ghostscript"
+        "wireshark-cli"
+        "termshark"
+        "kubeshark"
+        "broot"
+        "choose"
+        "curlie"
+        "chafa"
+        "doggo"
+        "duf"
+        "delta"
+        "du-dust"
+        "dysk"
+        "entr"
+        "erdtree"
+        "fd"
+        "gdu"
+        "gping"
+        "grex"
+        "hyperfine"
+        "hexyl"
+        "jq"
+        "jqp"
+        "jnv"
+        "ouch"
+        "silver-searcher"
+        "procs"
+        "tokei"
+        "trash-cli"
+        "tailspin"
+        "gtrash"
+        "ripgrep"
+        "gnused"
+        "sd"
+        "xcp"
+        "yq-go"
+        "viddy"
+        "kaf"
       ];
       expected = [ ];
     };

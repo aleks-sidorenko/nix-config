@@ -8,6 +8,12 @@
       (den.batteries.user-shell "fish")
     ];
 
+    homeManager = {
+      # Manages the home on its own; harmless beside the system integration.
+      programs.home-manager.enable = true;
+      home.sessionPath = [ "$HOME/.local/bin" ];
+    };
+
     # The account is org-managed: darwin cannot create it, only manage it,
     # and needs its uid to know which one it is.
     provides.to-hosts =

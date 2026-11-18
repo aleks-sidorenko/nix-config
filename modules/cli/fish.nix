@@ -12,8 +12,6 @@
       {
         catppuccin.fish.enable = true;
 
-        home.sessionPath = [ "$HOME/.local/bin" ];
-
         programs.fish = {
           enable = true;
           interactiveShellInit = ''

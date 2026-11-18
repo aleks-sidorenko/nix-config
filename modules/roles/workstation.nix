@@ -19,6 +19,9 @@
     den.aspects.cli.yazi
     den.aspects.cli.nvim
     den.aspects.cli.ghostty
+    den.aspects.cli.bat
+    den.aspects.cli.fzf
+    den.aspects.cli.htop
     den.aspects.cli.utils
     den.aspects.cli.nix-index
   ];
