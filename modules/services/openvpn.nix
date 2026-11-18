@@ -9,11 +9,6 @@
               type = lib.types.str;
               description = "Name of the SOPS secret holding the whole .ovpn profile.";
             };
-            autoStart = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = "Connect at boot rather than on demand.";
-            };
           };
         }
       );
@@ -83,7 +78,8 @@
                 "ignore"
                 "dhcp-option DNS"
               ];
-              RunAtLoad = conn.autoStart;
+              # On demand only: at load it would race the secret being written.
+              RunAtLoad = false;
               # openvpn reconnects on its own; launchd restarting it would defeat `vpn down`.
               KeepAlive = false;
               StandardOutPath = "/var/log/openvpn-${name}.log";
