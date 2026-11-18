@@ -514,8 +514,16 @@ in
       };
     };
     workbook-access-token = {
-      expr = lib.hasInfix "!include" w.nix.extraOptions;
-      expected = true;
+      expr = {
+        included = lib.hasInfix "!include" w.nix.extraOptions;
+        inherit (w.sops.secrets.system-github-token) mode owner group;
+      };
+      expected = {
+        included = true;
+        mode = "0440";
+        owner = "root";
+        group = "staff";
+      };
     };
     workbook-remote-login = {
       expr = w.services.openssh.enable;

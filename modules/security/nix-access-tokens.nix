@@ -22,6 +22,10 @@ in
         '';
       };
 
+    # The client reads nix.conf as the user here, and `!include` silently
+    # skips a file it cannot read; the secret's group is the users' one.
+    darwin.sops.secrets."system-github-token".mode = "0440";
+
     # The install test's placeholder secret is no nix.conf line, and nix
     # refuses to run with it included.
     nixos.installTest.extraConfig.nix.extraOptions = lib.mkForce "";
