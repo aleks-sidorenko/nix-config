@@ -393,7 +393,13 @@ in
       };
     };
     workbook-dock-defaults = {
-      expr = set (removeAttrs w.system.defaults.dock [ "persistent-apps" ]);
+      # `expose-group-by-app` is a renamed alias; reading it traces a warning.
+      expr = set (
+        removeAttrs w.system.defaults.dock [
+          "persistent-apps"
+          "expose-group-by-app"
+        ]
+      );
       expected = {
         autohide = true;
         mru-spaces = false;
