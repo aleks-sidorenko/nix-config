@@ -70,6 +70,12 @@ in
                   || fail "NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY"
                 [ -z "''${NPM_CONFIG_PREFIX:-}" ] || fail "npm prefix set"
               )
+              (
+                use_stack jvm node
+                for t in java sbt node npm; do on_path "$t"; done
+                [ -x "$JAVA_HOME/bin/java" ] || fail "JAVA_HOME=$JAVA_HOME"
+                [ -n "''${NPM_CONFIG_REGISTRY:-}" ] || fail "no npm registry"
+              )
               for args in nope ""; do
                 if err=$(use_stack $args 2>&1 >/dev/null); then fail "use_stack $args succeeded"; fi
                 [[ "$err" == *jvm* && "$err" == *node* ]] || fail "message: $err"
@@ -408,13 +414,19 @@ in
       };
     };
     workbook-finder-defaults = {
-      expr = set w.system.defaults.finder;
+      expr = {
+        finder = set w.system.defaults.finder;
+        global = w.system.defaults.NSGlobalDomain.AppleShowAllExtensions;
+      };
       expected = {
-        AppleShowAllExtensions = true;
-        ShowPathbar = true;
-        ShowStatusBar = true;
-        FXEnableExtensionChangeWarning = false;
-        _FXShowPosixPathInTitle = true;
+        finder = {
+          AppleShowAllExtensions = true;
+          ShowPathbar = true;
+          ShowStatusBar = true;
+          FXEnableExtensionChangeWarning = false;
+          _FXShowPosixPathInTitle = true;
+        };
+        global = true;
       };
     };
     workbook-input-defaults = {
@@ -476,8 +488,13 @@ in
       };
     };
     workbook-hostname = {
-      expr = w.networking.hostName;
-      expected = "workbook";
+      # The org manages ComputerName; only the network names are set.
+      expr = { inherit (w.networking) hostName localHostName computerName; };
+      expected = {
+        hostName = "workbook";
+        localHostName = "workbook";
+        computerName = null;
+      };
     };
     workbook-nix = {
       expr = {
