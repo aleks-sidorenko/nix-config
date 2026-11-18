@@ -1,6 +1,7 @@
 {
   config,
   den,
+  lib,
   ...
 }:
 let
@@ -13,8 +14,15 @@ in
     persist.directories = [ "/var/lib/tailscale" ];
     installChecks = [ ''machine.succeed("systemctl is-active tailscaled.service")'' ];
 
+    # No default: the join key is an OAuth client secret, which registers only
+    # a tagged node.
+    settings.tags = lib.mkOption {
+      type = lib.types.nonEmptyListOf lib.types.str;
+      description = "ACL tags the host advertises when it joins the tailnet.";
+    };
+
     nixos =
-      { config, lib, ... }:
+      { config, host, ... }:
       {
         # Joining is unattended: a host that can't decrypt the key fails
         # activation, so every host importing this must be a recipient of its
@@ -28,6 +36,9 @@ in
           # Required for OAuth client secrets used as auth keys; a plain,
           # already-approved key ignores it.
           authKeyParameters.preauthorized = true;
+          extraUpFlags = [
+            "--advertise-tags=${lib.concatStringsSep "," host.settings.services.tailscale.tags}"
+          ];
         };
 
         # The install test VM has no network, so joining would only fail and retry.
