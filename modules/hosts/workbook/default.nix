@@ -322,14 +322,27 @@ in
       expr = {
         inherit (w.homebrew) enable;
         inherit (w.homebrew.onActivation) cleanup autoUpdate upgrade;
-        path = lib.hasInfix "/opt/homebrew/bin" w.environment.systemPath;
       };
       expected = {
         enable = true;
         cleanup = "none";
         autoUpdate = false;
         upgrade = false;
-        path = true;
+      };
+    };
+    workbook-homebrew-after-nix = {
+      expr =
+        let
+          dirs = lib.splitString ":" w.environment.systemPath;
+          at = d: lib.lists.findFirstIndex (x: x == d) null dirs;
+        in
+        {
+          afterNix = at "/opt/homebrew/bin" > at "/run/current-system/sw/bin";
+          beforeSystem = at "/opt/homebrew/bin" < at "/usr/bin";
+        };
+      expected = {
+        afterNix = true;
+        beforeSystem = true;
       };
     };
     workbook-no-sleep = {

@@ -1,3 +1,4 @@
+{ lib, ... }:
 {
   den.aspects.system.homebrew.darwin = {
     homebrew = {
@@ -11,6 +12,8 @@
       };
     };
 
-    environment.systemPath = [ "/opt/homebrew/bin" ];
+    # After the nix profiles (default order), before the system dirs (1200):
+    # a leftover formula must never shadow the nix package of the same name.
+    environment.systemPath = lib.mkOrder 1100 [ "/opt/homebrew/bin" ];
   };
 }
