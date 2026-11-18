@@ -53,7 +53,7 @@
     };
 
     darwin =
-      { pkgs, ... }:
+      { config, pkgs, ... }:
       {
         # Admins are `admin` on macOS; `wheel` holds only root.
         nix.settings.trusted-users = [
@@ -63,17 +63,12 @@
 
         # nix-darwin has no programs.nh; same retention as NixOS, run weekly.
         environment.systemPackages = [ pkgs.nh ];
-        launchd.daemons.nh-clean.serviceConfig = {
-          ProgramArguments = [
-            (lib.getExe pkgs.nh)
-            "clean"
-            "all"
-            "--keep-since"
-            "7d"
-            "--keep"
-            "5"
-          ];
-          StartCalendarInterval = [
+        launchd.daemons.nh-clean = {
+          # `command` waits for the store volume; nh shells out to `nix`,
+          # which launchd's default PATH lacks.
+          command = "${lib.getExe pkgs.nh} clean all --keep-since 7d --keep 5";
+          path = [ config.nix.package ];
+          serviceConfig.StartCalendarInterval = [
             {
               Weekday = 0;
               Hour = 3;

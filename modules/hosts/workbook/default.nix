@@ -498,10 +498,23 @@ in
       };
     };
     workbook-nh-clean = {
-      expr = lib.hasInfix "--keep-since 7d --keep 5" (
-        lib.concatStringsSep " " w.launchd.daemons.nh-clean.serviceConfig.ProgramArguments
-      );
-      expected = true;
+      expr =
+        let
+          c = w.launchd.daemons.nh-clean.serviceConfig;
+          args = lib.concatStringsSep " " c.ProgramArguments;
+        in
+        {
+          retention = lib.hasInfix "--keep-since 7d --keep 5" args;
+          waitsForStore = lib.hasInfix "/bin/wait4path /nix/store" args;
+          nixOnPath =
+            c.EnvironmentVariables != null
+            && lib.elem "${w.nix.package}/bin" (lib.splitString ":" c.EnvironmentVariables.PATH);
+        };
+      expected = {
+        retention = true;
+        waitsForStore = true;
+        nixOnPath = true;
+      };
     };
     workbook-sops = {
       expr = {
