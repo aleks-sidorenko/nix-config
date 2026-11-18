@@ -449,7 +449,7 @@ in
         inherit (w.system) primaryUser stateVersion;
         # nix-darwin adds its build users.
         known = lib.filter (u: !lib.hasInfix "nixbld" u) w.users.knownUsers;
-        inherit (w.users.users.oleksandrsy) uid home;
+        inherit (w.users.users.oleksandrsy) uid home isHidden;
         shell = lib.getName w.users.users.oleksandrsy.shell;
         homeState = hm.home.stateVersion;
         key = w.users.users.oleksandrsy.openssh.authorizedKeys.keys;
@@ -460,6 +460,7 @@ in
         known = [ "oleksandrsy" ];
         uid = 501;
         home = "/Users/oleksandrsy";
+        isHidden = false;
         shell = "fish";
         homeState = "25.05";
         key = [ (lib.trim (builtins.readFile ../../../identities/alexander/ssh.pub)) ];

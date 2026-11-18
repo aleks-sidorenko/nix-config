@@ -21,7 +21,11 @@
       {
         darwin.users = {
           knownUsers = [ user.userName ];
-          users.${user.userName}.uid = 501;
+          users.${user.userName} = {
+            uid = 501;
+            # nix-darwin hides the users it manages; this one logs in at the window.
+            isHidden = false;
+          };
         };
       };
   };
