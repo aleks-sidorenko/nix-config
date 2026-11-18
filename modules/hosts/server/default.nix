@@ -317,6 +317,11 @@ in
         "/etc/NetworkManager/system-connections"
       ];
     };
+    # The join key is an OAuth client secret, which registers only a tagged node.
+    server-tailscale-tags = {
+      expr = s.services.tailscale.extraUpFlags;
+      expected = [ "--advertise-tags=tag:server" ];
+    };
     server-vm-disk-like-server = {
       expr = withoutDevice (declarative sv.disko.devices);
       expected = withoutDevice (declarative s.disko.devices);
