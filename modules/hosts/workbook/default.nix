@@ -537,6 +537,83 @@ in
         RunAtLoad = false;
       };
     };
+    apps-communication = {
+      expr = lib.subtractLists (map (c: c.name or c) w.homebrew.casks) [
+        "slack"
+        "telegram"
+        "viber"
+        "zoom"
+      ];
+      expected = [ ];
+    };
+    apps-media = {
+      expr = {
+        cc = lib.elem "adobe-creative-cloud" (map (c: c.name or c) w.homebrew.casks);
+        vlc = lib.any (lib.hasPrefix "vlc-bin") (map lib.getName hm.home.packages);
+        tools = lib.elem "media-tools" (map lib.getName hm.home.packages);
+        home = hm.home.sessionVariables.MEDIA_HOME;
+      };
+      expected = {
+        cc = true;
+        vlc = true;
+        tools = true;
+        home = "/Users/oleksandrsy/Media";
+      };
+    };
+    apps-raycast = {
+      expr = lib.elem "raycast" (map (c: c.name or c) w.homebrew.casks);
+      expected = true;
+    };
+    apps-chrome = {
+      expr = {
+        inherit (hm.programs.google-chrome) enable;
+        bp = hm.programs.browserpass.enable;
+      };
+      expected = {
+        enable = true;
+        bp = true;
+      };
+    };
+    workbook-dock = {
+      expr = map (a: a.tile-data.file-data._CFURLString) w.system.defaults.dock.persistent-apps;
+      expected = [
+        "/Users/oleksandrsy/Applications/Home Manager Apps/Ghostty.app"
+        "/Users/oleksandrsy/Applications/Home Manager Apps/Google Chrome.app"
+        "/Applications/Slack.app"
+      ];
+    };
+    security-gpg = {
+      expr = {
+        inherit (hm.programs.gpg) enable;
+        ssh = hm.services.gpg-agent.enableSshSupport;
+        keys = hm.services.gpg-agent.sshKeys;
+        sock = hm.home.sessionVariables.SSH_AUTH_SOCK;
+      };
+      expected = {
+        enable = true;
+        ssh = true;
+        keys = [ (lib.trim (builtins.readFile ../../../identities/alexander/gpg.key-id)) ];
+        sock = "$(gpgconf --list-dirs agent-ssh-socket)";
+      };
+    };
+    security-pass = {
+      expr = hm.programs.password-store.enable;
+      expected = true;
+    };
+    security-ssh-client = {
+      expr = {
+        inherit (hm.programs.ssh) enable;
+        user = hm.programs.ssh.matchBlocks."*".data.user;
+        agent = hm.programs.ssh.matchBlocks."*".data.addKeysToAgent;
+        pub = hm.home.file.".ssh/id_ed25519.pub".source;
+      };
+      expected = {
+        enable = true;
+        user = "alexander";
+        agent = "no";
+        pub = ../../../identities/alexander/ssh.pub;
+      };
+    };
     workbook-secrets = {
       expr = lib.sort lib.lessThan (lib.attrNames w.sops.secrets);
       expected = [

@@ -24,6 +24,14 @@
     den.aspects.cli.htop
     den.aspects.cli.utils
     den.aspects.cli.nix-index
+    # Every host gets it, but only an aspect the host includes reaches the user's home.
+    den.aspects.security.ssh
+    den.aspects.security.gpg
+    den.aspects.security.pass
+    den.aspects.gui.chrome
+    den.aspects.gui.communication
+    den.aspects.gui.raycast
+    den.aspects.gui.media
     den.aspects.dev.git
     den.aspects.dev.gh
     den.aspects.dev.direnv

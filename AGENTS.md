@@ -86,7 +86,7 @@ it, never write the path.
 
 - `den.aspects` top level holds only hosts, users and categories.
   Categories: `system`, `storage`, `security`, `services`, `hardware`,
-  `roles`, `cli` (a terminal tool), `dev` (working on code), `apps` (a GUI
+  `roles`, `cli` (a terminal tool), `dev` (working on code), `gui` (a GUI
   app). A category names a concern, never a platform; a platform-only aspect
   has only that class's body.
 - Feature: `den.aspects.<category>.<feature>` mirrors
