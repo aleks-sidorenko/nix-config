@@ -3,7 +3,7 @@
   den.aspects.gui.media = {
     includes = [ den.aspects.system.homebrew ];
 
-    # Lightroom has no cask of its own; it is installed from inside Creative Cloud.
+    # The photo editor has no cask of its own; this suite's app installs it.
     darwin.homebrew.casks = [ "adobe-creative-cloud" ];
 
     homeManager =
