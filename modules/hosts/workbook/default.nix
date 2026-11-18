@@ -84,10 +84,13 @@ in
       expr = {
         # The user-shell battery enables fish alone; these only cli.fish sets.
         abbr = hm.programs.fish.shellAbbrs ? nrs;
+        # No NH_FLAKE on this host, so nh needs the flake and host spelled out.
+        nho = hm.programs.fish.shellAbbrs.nho;
         plugins = map (p: p.name) hm.programs.fish.plugins;
       };
       expected = {
         abbr = true;
+        nho = "nh darwin switch ~/.nix-config -H workbook";
         plugins = [
           "bass"
           "fzf-fish"

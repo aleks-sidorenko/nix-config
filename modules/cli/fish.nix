@@ -73,7 +73,7 @@
             # nix
             nd = "nix develop";
             nfu = "nix flake update";
-            nho = "nh darwin switch";
+            nho = "nh darwin switch ~/.nix-config -H ${host.name}";
             nrs = "darwin-rebuild switch --flake ~/.nix-config#${host.name}";
 
             # new commands
