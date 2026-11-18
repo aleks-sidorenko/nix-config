@@ -1,14 +1,14 @@
-{ den, ... }:
 {
   den.aspects.dev.projects = {
-    # Reads the git identity's accounts, so "who am I on GitHub" stays in one place.
-    includes = [ den.aspects.dev.git ];
-
     homeManager =
-      { config, host, ... }:
+      { config, user, ... }:
       let
         projectsHome = "${config.home.homeDirectory}/Projects";
-        selfOwnersFish = builtins.concatStringsSep " " host.settings.dev.git.accounts;
+        # "Who am I on GitHub" lives with the person's identity.
+        inherit (builtins.fromJSON (builtins.readFile ../../identities/${user.identity}/git.json))
+          githubAccounts
+          ;
+        selfOwnersFish = builtins.concatStringsSep " " githubAccounts;
       in
       {
         # Full path (not ~) so it resolves the same in scripts and non-interactive shells.

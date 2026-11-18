@@ -201,6 +201,20 @@ in
         ignoresClaude = true;
       };
     };
+    dev-git-signing = {
+      expr = {
+        key = lib.hasPrefix "key::" hm.programs.git.signing.key;
+        inherit (hm.programs.git.signing) signByDefault;
+        signer =
+          lib.hasPrefix (builtins.fromJSON (builtins.readFile ../../../identities/alexander/git.json)).email
+            hm.home.file.".ssh/allowed_signers".text;
+      };
+      expected = {
+        key = true;
+        signByDefault = true;
+        signer = true;
+      };
+    };
     dev-gh-keyring = {
       expr = hm.home.sessionVariables ? GITHUB_TOKEN;
       expected = false;

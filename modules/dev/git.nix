@@ -1,29 +1,12 @@
 { lib, ... }:
 {
   den.aspects.dev.git = {
-    settings = {
-      name = lib.mkOption {
-        type = lib.types.str;
-        default = "Alexander Sidorenko";
-        description = "Name on commits.";
-      };
-      email = lib.mkOption {
-        type = lib.types.str;
-        default = "aleks.sidorenko@gmail.com";
-        description = "Email on commits, and the signer allowed to verify them.";
-      };
-      accounts = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ "aleks-sidorenko" ];
-        description = "GitHub handles that belong to this identity; their repos alias to `self/` in the projects layout.";
-      };
-    };
-
     homeManager =
-      { host, user, ... }:
+      { user, ... }:
       let
-        inherit (host.settings.dev.git) name email;
-        signingKey = lib.trim (builtins.readFile ../../identities/${user.identity}/ssh.pub);
+        identity = ../../identities/${user.identity};
+        inherit (builtins.fromJSON (builtins.readFile (identity + "/git.json"))) name email;
+        signingKey = lib.trim (builtins.readFile (identity + "/ssh.pub"));
       in
       {
         # Git verifies signatures against this file; without it `log --show-signature` cannot.
