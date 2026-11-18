@@ -23,15 +23,17 @@
           jvm = {
             env = pkgs.buildEnv {
               name = "stack-jvm";
-              paths = with pkgs; [
-                jdk21
-                sbt
-                maven
-                gradle
-                metals
-                coursier
-                scalafmt
-              ];
+              paths = builtins.attrValues {
+                inherit (pkgs)
+                  jdk21
+                  sbt
+                  maven
+                  gradle
+                  metals
+                  coursier
+                  scalafmt
+                  ;
+              };
             };
             vars.JAVA_HOME = "${pkgs.jdk21.home}";
           };
