@@ -2,7 +2,7 @@
 # Self-contained test runner for media-tools.
 # Run inside a nix shell that provides exiftool + coreutils + findutils:
 #   nix shell nixpkgs#exiftool nixpkgs#coreutils nixpkgs#findutils \
-#     --command bash packages/media-tools/test/run-tests.sh
+#     --command bash modules/gui/_media-tools/test/run-tests.sh
 set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

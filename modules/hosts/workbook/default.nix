@@ -537,16 +537,15 @@ in
         RunAtLoad = false;
       };
     };
-    apps-communication = {
+    gui-communication = {
       expr = lib.subtractLists (map (c: c.name or c) w.homebrew.casks) [
         "slack"
         "telegram"
-        "viber"
         "zoom"
       ];
       expected = [ ];
     };
-    apps-media = {
+    gui-media = {
       expr = {
         cc = lib.elem "adobe-creative-cloud" (map (c: c.name or c) w.homebrew.casks);
         vlc = lib.any (lib.hasPrefix "vlc-bin") (map lib.getName hm.home.packages);
@@ -560,11 +559,11 @@ in
         home = "/Users/oleksandrsy/Media";
       };
     };
-    apps-raycast = {
+    gui-raycast = {
       expr = lib.elem "raycast" (map (c: c.name or c) w.homebrew.casks);
       expected = true;
     };
-    apps-chrome = {
+    gui-chrome = {
       expr = {
         inherit (hm.programs.google-chrome) enable;
         bp = hm.programs.browserpass.enable;

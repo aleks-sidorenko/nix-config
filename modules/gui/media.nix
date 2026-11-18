@@ -12,7 +12,7 @@
         home = {
           packages = [
             pkgs.ffmpeg
-            # nixpkgs' `vlc` is the Linux Qt build; darwin only has the upstream app bundle.
+            # darwin has no source build of vlc, only the upstream app bundle.
             pkgs.vlc-bin
             (import ./_media-tools.nix { inherit pkgs; })
           ];

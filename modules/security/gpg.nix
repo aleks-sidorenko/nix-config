@@ -49,7 +49,7 @@ in
           ];
         };
         # The agent holds the keys; ssh adding its own would shadow it.
-        ssh.matchBlocks."*".addKeysToAgent = lib.mkForce "no";
+        ssh.matchBlocks."*".addKeysToAgent = "no";
         keychain.enable = lib.mkForce false;
         # A shell started later must hand the agent its own tty for pinentry.
         fish.interactiveShellInit = "gpg-connect-agent updatestartuptty /bye >/dev/null";

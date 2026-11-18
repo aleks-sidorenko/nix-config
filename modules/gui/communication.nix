@@ -7,10 +7,9 @@
       homebrew.casks = [
         "slack"
         "telegram"
-        "viber"
         "zoom"
       ];
-      # After the apps the role pins first, so the order is stable.
+      # mkAfter keeps Slack last whatever order aspects merge in.
       system.defaults.dock.persistent-apps = lib.mkAfter [ "/Applications/Slack.app" ];
     };
   };
