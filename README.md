@@ -90,6 +90,8 @@ secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 - Each host's age key comes from its SSH host key, kept under `/persist/etc/ssh`.
 - Edit with `sops secrets/nixos.yaml`; after adding a host's key, run
   `sops updatekeys secrets/nixos.yaml`.
+- `workbook`'s key is `/etc/ssh/ssh_host_ed25519_key` and its file is
+  `secrets/darwin.yaml` (`sops updatekeys secrets/darwin.yaml`).
 
 ## Testing
 

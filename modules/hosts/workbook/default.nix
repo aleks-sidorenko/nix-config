@@ -621,35 +621,42 @@ in
       ];
     };
     workbook-no-global-toolchains = {
-      expr = lib.intersectLists (map lib.getName (w.environment.systemPackages ++ hm.home.packages)) [
-        "openjdk"
-        "zulu"
-        "jdk"
-        "nodejs"
-        "scala"
-        "sbt"
-        "maven"
-        "gradle"
-        "metals"
-        "coursier"
-      ];
+      expr = lib.filter (
+        n:
+        lib.any (p: lib.hasPrefix p n) [
+          "zulu"
+          "openjdk"
+          "jdk"
+          "temurin"
+          "graalvm"
+          "nodejs"
+          "scala"
+          "sbt"
+          "maven"
+          "gradle"
+          "metals"
+          "coursier"
+        ]
+      ) (map lib.getName (w.environment.systemPackages ++ hm.home.packages));
       expected = [ ];
     };
     workbook-no-global-toolchain-vars = {
-      expr = lib.filter (n: hm.home.sessionVariables ? ${n}) [
-        "JAVA_HOME"
-        "NPM_CONFIG_PREFIX"
-        "NPM_CONFIG_REGISTRY"
-      ];
+      expr = lib.filter (n: n == "JAVA_HOME" || lib.hasPrefix "NPM_CONFIG_" n) (
+        lib.attrNames hm.home.sessionVariables ++ lib.attrNames w.environment.variables
+      );
       expected = [ ];
     };
     workbook-dropped = {
-      expr = lib.intersectLists (map (c: c.name or c) w.homebrew.casks) [
+      expr = lib.intersectLists (map (c: lib.last (lib.splitString "/" (c.name or c))) w.homebrew.casks) [
         "viber"
         "teamviewer"
         "aerospace"
       ];
       expected = [ ];
+    };
+    workbook-nix-latest = {
+      expr = lib.versionAtLeast w.nix.package.version "2.35";
+      expected = true;
     };
   };
 }
