@@ -640,8 +640,8 @@ in
     security-ssh-client = {
       expr = {
         inherit (hm.programs.ssh) enable;
-        user = hm.programs.ssh.matchBlocks."*".data.user;
-        agent = hm.programs.ssh.matchBlocks."*".data.addKeysToAgent;
+        user = hm.programs.ssh.settings."*".data.User;
+        agent = hm.programs.ssh.settings."*".data.AddKeysToAgent;
         pub = hm.home.file.".ssh/id_ed25519.pub".source;
       };
       expected = {

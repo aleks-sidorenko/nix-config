@@ -42,7 +42,7 @@ in
           includes = [ "config.local" ];
 
           # The agent that holds the keys is set by `security.gpg`.
-          matchBlocks."*".user = user.identity;
+          settings."*".User = user.identity;
 
           extraConfig = ''
             IdentityAgent "$SSH_AUTH_SOCK"
