@@ -8,6 +8,8 @@
 let
   w = config.flake.darwinConfigurations.workbook.config;
   hm = w.home-manager.users.oleksandrsy;
+  # nix-darwin lists every defaults key, null when unset.
+  set = lib.filterAttrs (_: v: v != null);
 in
 {
   den.hosts.aarch64-darwin.workbook = {
@@ -15,6 +17,12 @@ in
     stateVersion = "25.05";
     # Work VPN, specific to this host.
     settings.services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
+    settings.system.networking.knownNetworkServices = [
+      "Wi-Fi"
+      "USB 10/100/1000 LAN"
+      "ThinkPad TBT 3 Dock"
+      "Thunderbolt Bridge"
+    ];
   };
 
   den.aspects.workbook = {
@@ -27,6 +35,119 @@ in
   };
 
   evalTests = {
+    workbook-homebrew = {
+      expr = {
+        inherit (w.homebrew) enable;
+        inherit (w.homebrew.onActivation) cleanup autoUpdate upgrade;
+        path = lib.hasInfix "/opt/homebrew/bin" w.environment.systemPath;
+      };
+      expected = {
+        enable = true;
+        cleanup = "none";
+        autoUpdate = false;
+        upgrade = false;
+        path = true;
+      };
+    };
+    workbook-no-sleep = {
+      expr = w.power.sleep.computer;
+      expected = "never";
+    };
+    workbook-file-limits = {
+      expr = map (d: w.launchd.daemons.${d}.serviceConfig.RunAtLoad) [
+        "sysctl-fs-limits"
+        "launchctl-maxfiles"
+      ];
+      expected = [
+        true
+        true
+      ];
+    };
+    workbook-touch-id = {
+      expr = {
+        inherit (w.security.pam.services.sudo_local) touchIdAuth reattach;
+      };
+      expected = {
+        touchIdAuth = true;
+        reattach = true;
+      };
+    };
+    workbook-dns = {
+      expr = {
+        inherit (w.networking) dns search knownNetworkServices;
+      };
+      expected = {
+        dns = [
+          "1.1.1.1"
+          "8.8.8.8"
+        ];
+        search = [
+          "colobus-bramble.ts.net"
+          "lan"
+        ];
+        knownNetworkServices = [
+          "Wi-Fi"
+          "USB 10/100/1000 LAN"
+          "ThinkPad TBT 3 Dock"
+          "Thunderbolt Bridge"
+        ];
+      };
+    };
+    workbook-dock-defaults = {
+      expr = set (removeAttrs w.system.defaults.dock [ "persistent-apps" ]);
+      expected = {
+        autohide = true;
+        mru-spaces = false;
+        show-recents = false;
+        tilesize = 48;
+      };
+    };
+    workbook-finder-defaults = {
+      expr = set w.system.defaults.finder;
+      expected = {
+        AppleShowAllExtensions = true;
+        ShowPathbar = true;
+        ShowStatusBar = true;
+        FXEnableExtensionChangeWarning = false;
+        _FXShowPosixPathInTitle = true;
+      };
+    };
+    workbook-input-defaults = {
+      expr = {
+        trackpad = set w.system.defaults.trackpad;
+        global = {
+          inherit (w.system.defaults.NSGlobalDomain)
+            InitialKeyRepeat
+            KeyRepeat
+            NSAutomaticCapitalizationEnabled
+            NSAutomaticSpellingCorrectionEnabled
+            ;
+          fnState = w.system.defaults.NSGlobalDomain."com.apple.keyboard.fnState";
+        };
+        hotkeys = lib.mapAttrs (
+          _: k: k.enabled
+        ) w.system.defaults.CustomUserPreferences."com.apple.symbolichotkeys".AppleSymbolicHotKeys;
+      };
+      expected = {
+        trackpad = {
+          Clicking = true;
+          TrackpadThreeFingerDrag = true;
+        };
+        global = {
+          InitialKeyRepeat = 15;
+          KeyRepeat = 2;
+          NSAutomaticCapitalizationEnabled = false;
+          NSAutomaticSpellingCorrectionEnabled = false;
+          fnState = true;
+        };
+        hotkeys = {
+          "32" = false;
+          "36" = false;
+          "79" = false;
+          "81" = false;
+        };
+      };
+    };
     workbook-user = {
       expr = {
         inherit (w.system) primaryUser stateVersion;

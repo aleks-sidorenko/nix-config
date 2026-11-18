@@ -64,6 +64,14 @@ in
       };
     };
 
+    server-search-unchanged = {
+      expr = s.networking.search;
+      expected = [
+        "colobus-bramble.ts.net"
+        "lan"
+      ];
+    };
+
     server-timezone-unchanged = {
       expr = s.time.timeZone;
       expected = "UTC";

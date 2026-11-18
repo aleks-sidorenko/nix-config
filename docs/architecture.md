@@ -70,7 +70,7 @@ whole aspect.
 
 Per-host tunables are settings of the aspect that reads them:
 `system.locale.{timeZone,locales,layouts}`,
-`system.networkmanager.{lanDomain,tailnetDomain}`, `services.nginx.domain`,
+`system.networking.{lanDomain,tailnetDomain,knownNetworkServices}`, `services.nginx.domain`,
 `services.media.root`, `services.restic.bucketUrl`,
 `storage.disko.{device,encrypted,swapSize}`, `storage.impermanence.root` and
 minecraft's players and rules. Hosts set only the ones that differ from the
