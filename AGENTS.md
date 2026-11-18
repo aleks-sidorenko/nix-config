@@ -50,6 +50,15 @@ without breaking another.
   instead of repeating the literal.
 - **One owner per value.** The module that owns a value declares its
   option, quirk or setting; consumers never redeclare or hard-code it.
+- **Size an aspect by what a host includes or drops alone.** A tool gets
+  its own aspect when it has configuration, an input, settings, a
+  platform body or a test of its own (`cli.htop`, `cli.nix-index`).
+  Group by coupling, never by label: one aspect when the parts only work
+  together (`cli.media`: the scripts need ffmpeg and `MEDIA_HOME`), one
+  bucket for plain unconfigured packages (`cli.utils`). No
+  `cli.monitoring`-style buckets of unrelated configured tools; a role is
+  the grouping view, and a crowded folder takes variants
+  (`<category>.<feature>.<variant>`), not merged aspects.
 
 ## Where things go
 
