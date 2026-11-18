@@ -620,5 +620,36 @@ in
         "system-vpn-kpi-profile"
       ];
     };
+    workbook-no-global-toolchains = {
+      expr = lib.intersectLists (map lib.getName (w.environment.systemPackages ++ hm.home.packages)) [
+        "openjdk"
+        "zulu"
+        "jdk"
+        "nodejs"
+        "scala"
+        "sbt"
+        "maven"
+        "gradle"
+        "metals"
+        "coursier"
+      ];
+      expected = [ ];
+    };
+    workbook-no-global-toolchain-vars = {
+      expr = lib.filter (n: hm.home.sessionVariables ? ${n}) [
+        "JAVA_HOME"
+        "NPM_CONFIG_PREFIX"
+        "NPM_CONFIG_REGISTRY"
+      ];
+      expected = [ ];
+    };
+    workbook-dropped = {
+      expr = lib.intersectLists (map (c: c.name or c) w.homebrew.casks) [
+        "viber"
+        "teamviewer"
+        "aerospace"
+      ];
+      expected = [ ];
+    };
   };
 }
