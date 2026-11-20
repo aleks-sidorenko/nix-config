@@ -36,60 +36,77 @@
         home = {
           packages = builtins.attrValues {
             inherit (pkgs)
-              disk-report
-              # archivers
-              zip
+              # archives
+              ouch
               unzip
               xz
-              # pdf; pdfcpu cannot downsample images, so shrinking needs gs
-              pdfcpu
-              ghostscript
-              # network
-              tshark
-              termshark
+              zip
+
               # basics
               coreutils
+              gnused
               moreutils
-              # nix
-              nix-output-monitor
-              nvd
-              nix-tree
-              # modern unix
-              broot
-              choose
-              curlie
-              chafa
-              doggo
+
+              # data: json, yaml
+              jnv
+              jq
+              jqp
+              yq-go
+
+              # dev
+              entr
+              hyperfine
+              kaf
+              tokei
+
+              # disk
+              disk-report
               duf
-              delta
               dust
               dysk
               fclones
-              entr
+              gdu
+
+              # files
+              broot
               erdtree
               fd
-              gdu
-              gping
-              grex
-              hyperfine
-              hexyl
-              jq
-              jqp
-              jnv
-              ouch
-              silver-searcher
-              procs
-              tokei
-              trash-cli
-              tailspin
               gtrash
-              ripgrep
-              gnused
-              sd
+              trash-cli
               xcp
-              yq-go
+
+              # network
+              curlie
+              doggo
+              gping
+              termshark
+              tshark
+
+              # nix
+              nix-output-monitor
+              nix-tree
+              nvd
+
+              # pdf; pdfcpu cannot downsample images, so shrinking needs gs
+              ghostscript
+              pdfcpu
+
+              # processes
+              procs
               viddy
-              kaf
+
+              # text search and edit
+              choose
+              grex
+              ripgrep
+              sd
+              silver-searcher
+
+              # viewers
+              chafa
+              delta
+              hexyl
+              tailspin
               ;
           };
         };
