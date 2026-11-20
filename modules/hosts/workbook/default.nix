@@ -212,17 +212,14 @@ in
         "chafa"
         "doggo"
         "duf"
-        "delta"
         "du-dust"
         "dysk"
         "fclones"
-        "entr"
         "erdtree"
         "fd"
         "gdu"
         "gping"
         "grex"
-        "hyperfine"
         "hexyl"
         "jq"
         "jqp"
@@ -230,7 +227,6 @@ in
         "ouch"
         "silver-searcher"
         "procs"
-        "tokei"
         "trash-cli"
         "tailspin"
         "gtrash"
@@ -240,7 +236,6 @@ in
         "xcp"
         "yq-go"
         "viddy"
-        "kaf"
       ];
       expected = [ ];
     };

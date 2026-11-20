@@ -53,12 +53,6 @@
               jqp
               yq-go
 
-              # dev
-              entr
-              hyperfine
-              kaf
-              tokei
-
               # disk
               disk-report
               duf
@@ -104,7 +98,6 @@
 
               # viewers
               chafa
-              delta
               hexyl
               tailspin
               ;
