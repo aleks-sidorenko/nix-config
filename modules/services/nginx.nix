@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ den, lib, ... }:
 let
   withDefaults =
     vhost:
@@ -34,6 +34,12 @@ in
   den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<domain>`, the nginx `domain` setting.";
 
   den.aspects.services.nginx = {
+    # Ingress is scoped to the tailnet interface.
+    includes = [
+      den.aspects.security.sops
+      den.aspects.services.tailscale
+    ];
+
     settings.domain = lib.mkOption {
       type = types.str;
       default = "home.sidorenko.me";

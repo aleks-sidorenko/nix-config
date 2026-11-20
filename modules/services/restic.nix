@@ -62,6 +62,8 @@ in
   den.quirks.backup.description = "What offsite backups add to their defaults: { paths ? [ ]; exclude ? [ ]; }, as live paths. Excludes are matched under the persistence root, where backups read state.";
 
   den.aspects.services.restic = {
+    includes = [ den.aspects.security.sops ];
+
     settings.bucketUrl = lib.mkOption {
       type = lib.types.str;
       default = "s3:https://4e18ae7a3707f53f8d7cd82fb8e6abad.r2.cloudflarestorage.com/backups";

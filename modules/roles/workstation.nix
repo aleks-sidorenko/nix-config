@@ -1,0 +1,45 @@
+{ den, ... }:
+{
+  den.aspects.roles.workstation.includes = [
+    den.aspects.security.nix-access-tokens
+    den.aspects.services.tailscale
+    den.aspects.system.dock
+    den.aspects.system.finder
+    den.aspects.system.input
+    den.aspects.system.power
+    den.aspects.system.file-limits
+    den.aspects.system.stylix
+    den.aspects.security.sudo.touch-id
+    den.aspects.cli.fish
+    den.aspects.cli.starship
+    den.aspects.cli.atuin
+    den.aspects.cli.yazi
+    den.aspects.cli.nvim
+    den.aspects.cli.ghostty
+    den.aspects.cli.bat
+    den.aspects.cli.fzf
+    den.aspects.cli.htop
+    den.aspects.cli.utils
+    den.aspects.cli.nix-index
+    den.aspects.cli.media
+    # Every host gets it, but only an aspect the host includes reaches the user's home.
+    den.aspects.security.ssh
+    den.aspects.security.gpg
+    den.aspects.security.pass
+    den.aspects.gui.chrome
+    den.aspects.gui.communication
+    den.aspects.gui.raycast
+    den.aspects.gui.media
+    den.aspects.gui.minecraft
+    den.aspects.dev.git
+    den.aspects.dev.gh
+    den.aspects.dev.direnv
+    den.aspects.dev.claude-code
+    den.aspects.dev.idea
+    den.aspects.dev.projects
+    den.aspects.dev.k8s
+    den.aspects.dev.containers
+    den.aspects.dev.xcode
+    den.aspects.dev.bazel
+  ];
+}

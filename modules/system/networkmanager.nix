@@ -1,21 +1,7 @@
-{ lib, ... }:
-let
-  inherit (lib) types;
-in
+{ den, lib, ... }:
 {
   den.aspects.system.networkmanager = {
-    settings = {
-      lanDomain = lib.mkOption {
-        type = types.str;
-        default = "lan";
-        description = "Local network domain.";
-      };
-      tailnetDomain = lib.mkOption {
-        type = types.str;
-        default = "colobus-bramble.ts.net";
-        description = "Tailnet MagicDNS domain.";
-      };
-    };
+    includes = [ den.aspects.system.networking ];
 
     persist.directories = [
       "/etc/NetworkManager/system-connections"
@@ -26,7 +12,7 @@ in
     nixos =
       { host, ... }:
       let
-        inherit (host.settings.system.networkmanager) lanDomain tailnetDomain;
+        inherit (host.settings.system.networking) lanDomain tailnetDomain;
       in
       {
         networking = {

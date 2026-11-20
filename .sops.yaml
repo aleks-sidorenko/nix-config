@@ -42,7 +42,7 @@ creation_rules:
           - *server-vm
           - *server
 
-  - path_regex: modules/darwin/secrets.ya?ml$
+  - path_regex: secrets/darwin.ya?ml$
     key_groups:
       - pgp:
           - *alexander

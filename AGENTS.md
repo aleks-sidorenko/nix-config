@@ -50,6 +50,17 @@ without breaking another.
   instead of repeating the literal.
 - **One owner per value.** The module that owns a value declares its
   option, quirk or setting; consumers never redeclare or hard-code it.
+- **Size an aspect by what a host includes or drops alone.** A tool gets
+  its own aspect when it has configuration, an input, settings, a
+  platform body or a test of its own (`cli.htop`, `cli.nix-index`); a
+  bare `programs.<x>.enable` counts as a package, not configuration.
+  Group by coupling, never by label: one aspect when the parts only work
+  together (`cli.media`: the scripts need ffmpeg and `MEDIA_HOME`), one
+  bucket for plain unconfigured packages (`cli.utils`). A tool's shell
+  shortcuts live in its aspect, not the shell's. No
+  `cli.monitoring`-style buckets of unrelated configured tools; a role is
+  the grouping view, and a crowded folder takes variants
+  (`<category>.<feature>.<variant>`), not merged aspects.
 
 ## Where things go
 
@@ -72,10 +83,19 @@ without breaking another.
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Values several hosts share | module setting those hosts | `modules/hosts/<group>.nix`, e.g. `home-servers.nix` sets `server` and `server-vm` |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
+| A program of our own (scripts, a derivation with no host data) | package | `packages/<name>/package.nix` in callPackage form, with its tests as `checkPhase`; `modules/flake/packages.nix` exposes every folder as `packages.<system>.<name>`, `checks.<system>.package-<name>` and `overlays.default`. The aspect that installs it adds the overlay (`modules/cli/media.nix`) |
 | A helper one folder uses | `_`-prefixed file | beside its readers, e.g. `modules/services/_media.nix` |
 | A helper several folders use | read-only option | declared by the module that owns it, e.g. `config.installTests` (`modules/flake/install-tests.nix`), `config.isReservedKey` (`modules/den.nix`) |
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |
-| Secrets | SOPS | `secrets/nixos.yaml`; recipients in `.sops.yaml` |
+| A homebrew cask or brew | the app aspect's `darwin` body | `homebrew.casks` / `homebrew.brews` in the aspect that owns the app (`modules/gui/raycast.nix`); `system.homebrew` only sets the policy |
+| A per-project toolchain | stack | an entry in `dev.stacks` (`modules/dev/stacks.nix`), used from a project's `.envrc` with `use_stack <name>`; never a global package or variable. A launcher that runs the version the project pins (bazelisk, `dev.bazel`) may be global |
+| A per-person fact (name, email, GitHub accounts) | identity data | `identities/<id>/git.json`, read by path; the user module names the identity |
+| Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts); recipients in `.sops.yaml` |
+
+An aspect in `den.schema.<kind>.includes` reaches the host, but its
+`homeManager` body does not reach users: only aspects in the host's include
+tree are routed to them (`den.batteries.host-aspects`). Include such an aspect
+from a role as well, as `security.ssh` is in `roles.workstation`.
 
 Hostnames, usernames, `/persist` and domains appear only in `modules/hosts/`,
 `modules/users/`, entity declarations and option defaults, never in a feature
@@ -85,12 +105,19 @@ it, never write the path.
 ## Naming
 
 - `den.aspects` top level holds only hosts, users and categories.
-  Categories: `system`, `storage`, `security`, `services`, `hardware`, `roles`.
+  Categories: `system`, `storage`, `security`, `services`, `hardware`,
+  `roles`, `cli` (a terminal tool), `dev` (working on code), `gui` (a GUI
+  app). A category names a concern, never a platform; a platform-only aspect
+  has only that class's body.
 - Feature: `den.aspects.<category>.<feature>` mirrors
   `modules/<category>/<feature>.nix` (or `<feature>/default.nix` when it has
   variants or helpers). Variant: `<category>.<feature>.<variant>` mirrors
   `modules/<category>/<feature>/<variant>.nix`.
 - A category holds nothing itself and is never included. No namespace.
+- A category past ~15 features splits into sub-groups by concern
+  (`dev.editors.*`, `dev.build.*` in `modules/dev/editors/`), never by
+  platform; a sub-group, like a category, holds nothing itself and is
+  never included.
 - Hosts and users are never named after a category.
 - No path segment may be a den reserved key: `name description meta includes
   excludes admits policyEnforcement provides policies into classes _module _`,
@@ -166,6 +193,15 @@ Stage new files (`git add`) before `just check`.
 3. Add an eval test that `config.allSystems.x86_64-linux.checks ? install-<host>`.
 4. The install test itself runs in CI only (`just vm-test <host>` needs
    x86_64 KVM).
+
+### A darwin host
+
+1. `den.hosts.aarch64-darwin.<host>` in `modules/hosts/<host>/default.nix`,
+   with the string `stateVersion` homes read.
+2. darwin's own integer release goes in the host aspect:
+   `den.aspects.<host>.darwin.system.stateVersion = <int>;`.
+3. `just build <host>` builds `darwinConfigurations.<host>.system`; switch with
+   `nix run .#<host> -- switch`.
 
 ### A user
 

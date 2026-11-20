@@ -50,6 +50,33 @@ in
   };
 
   evalTests = {
+    server-nix-unchanged = {
+      expr = {
+        trusted-users = lib.unique s.nix.settings.trusted-users;
+        inherit (s.nix.settings) use-xdg-base-directories;
+      };
+      expected = {
+        trusted-users = [
+          "root"
+          "@wheel"
+        ];
+        use-xdg-base-directories = true;
+      };
+    };
+
+    server-search-unchanged = {
+      expr = s.networking.search;
+      expected = [
+        "colobus-bramble.ts.net"
+        "lan"
+      ];
+    };
+
+    server-timezone-unchanged = {
+      expr = s.time.timeZone;
+      expected = "UTC";
+    };
+
     nixpkgs-pinned-to-master = {
       expr = {
         stable = inputs.nixpkgs.rev;
