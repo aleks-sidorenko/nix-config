@@ -214,6 +214,7 @@ in
         "delta"
         "du-dust"
         "dysk"
+        "fclones"
         "entr"
         "erdtree"
         "fd"
@@ -244,11 +245,19 @@ in
     };
     cli-utils-abbrs = {
       expr = {
-        inherit (hm.programs.fish.shellAbbrs) cd dig ls;
+        inherit (hm.programs.fish.shellAbbrs)
+          cd
+          df
+          dig
+          du
+          ls
+          ;
       };
       expected = {
         cd = "z";
+        df = "duf";
         dig = "doggo";
+        du = "dust";
         ls = "eza";
       };
     };

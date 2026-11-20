@@ -21,6 +21,8 @@
             cp = "xcp";
             grep = "rg";
             dig = "doggo";
+            du = "dust";
+            df = "duf";
             curl = "curlie";
             rm = "trash";
             ping = "gping";
@@ -62,6 +64,7 @@
               delta
               dust
               dysk
+              fclones
               entr
               erdtree
               fd
