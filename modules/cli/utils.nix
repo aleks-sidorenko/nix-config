@@ -1,6 +1,8 @@
+{ config, ... }:
 {
-
   den.aspects.cli.utils = {
+    os.nixpkgs.overlays = [ config.flake.overlays.default ];
+
     homeManager =
       { pkgs, ... }:
       {
@@ -30,11 +32,9 @@
         };
 
         home = {
-          packages = [
-            (import ./_disk-report.nix { inherit pkgs; })
-          ]
-          ++ builtins.attrValues {
+          packages = builtins.attrValues {
             inherit (pkgs)
+              disk-report
               # archivers
               zip
               unzip

@@ -83,6 +83,7 @@ without breaking another.
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Values several hosts share | module setting those hosts | `modules/hosts/<group>.nix`, e.g. `home-servers.nix` sets `server` and `server-vm` |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
+| A program of our own (scripts, a derivation with no host data) | package | `packages/<name>/package.nix` in callPackage form, with its tests as `checkPhase`; `modules/flake/packages.nix` exposes every folder as `packages.<system>.<name>`, `checks.<system>.package-<name>` and `overlays.default`. The aspect that installs it adds the overlay (`modules/cli/media.nix`) |
 | A helper one folder uses | `_`-prefixed file | beside its readers, e.g. `modules/services/_media.nix` |
 | A helper several folders use | read-only option | declared by the module that owns it, e.g. `config.installTests` (`modules/flake/install-tests.nix`), `config.isReservedKey` (`modules/den.nix`) |
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |

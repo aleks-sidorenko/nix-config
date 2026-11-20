@@ -164,6 +164,8 @@ SSH key, and with it its SOPS identity, is one of those files.
   the live box's state.
 - **Darwin**: `checks.aarch64-darwin` holds the eval tests and `stacks-script`, which
   sources the installed direnv library. `just build <host>` builds the system.
+- **Packages**: each `packages/<name>` runs its tests in `checkPhase`;
+  `checks.<system>.package-<name>` builds it.
 - **Install tests**: `modules/flake/install-tests.nix` installs every host
   that includes `hardware.qemu-guest` into disko's test VM, with throwaway
   secrets. The test checks the boot, accounts and passwords, then

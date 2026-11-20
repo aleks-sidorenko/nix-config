@@ -1,10 +1,32 @@
-{ pkgs }:
-pkgs.stdenvNoCC.mkDerivation {
+{
+  lib,
+  stdenvNoCC,
+  makeWrapper,
+  exiftool,
+  coreutils,
+  findutils,
+}:
+let
+  runtimeInputs = [
+    exiftool
+    coreutils
+    findutils
+  ];
+in
+stdenvNoCC.mkDerivation {
   pname = "media-tools";
   version = "1.0.0";
-  src = ./_media-tools;
+  src = ./.;
 
-  nativeBuildInputs = [ pkgs.makeWrapper ];
+  nativeBuildInputs = [ makeWrapper ];
+
+  doCheck = true;
+  nativeCheckInputs = runtimeInputs;
+  checkPhase = ''
+    runHook preCheck
+    bash test/run-tests.sh
+    runHook postCheck
+  '';
 
   installPhase = ''
     mkdir -p $out/bin $out/lib/media-tools
@@ -20,19 +42,12 @@ pkgs.stdenvNoCC.mkDerivation {
         --replace-fail 'SCRIPT_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"' \
         'SCRIPT_DIR="${placeholder "out"}/lib/media-tools"'
 
-      wrapProgram "$out/bin/$script" \
-        --prefix PATH : ${
-          pkgs.lib.makeBinPath (
-            builtins.attrValues {
-              inherit (pkgs) exiftool coreutils findutils;
-            }
-          )
-        }
+      wrapProgram "$out/bin/$script" --prefix PATH : ${lib.makeBinPath runtimeInputs}
     done
   '';
 
   meta = {
     description = "CLI tools for managing personal media files";
-    platforms = pkgs.lib.platforms.all;
+    platforms = lib.platforms.all;
   };
 }

@@ -57,6 +57,7 @@ modules/
 ├── gui/            # GUI apps: chrome, communication, photo and video, minecraft, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
+packages/           # our own programs, plain callPackage files: disk-report, media-tools
 identities/         # per-person public keys (see identities/README.md)
 secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 ```

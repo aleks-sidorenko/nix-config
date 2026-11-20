@@ -1,13 +1,18 @@
+{ config, ... }:
 {
-  den.aspects.cli.media.homeManager =
-    { config, pkgs, ... }:
-    {
-      home = {
-        packages = [
-          pkgs.ffmpeg
-          (import ./_media-tools.nix { inherit pkgs; })
-        ];
-        sessionVariables.MEDIA_HOME = "${config.home.homeDirectory}/Media";
+  den.aspects.cli.media = {
+    os.nixpkgs.overlays = [ config.flake.overlays.default ];
+
+    homeManager =
+      { config, pkgs, ... }:
+      {
+        home = {
+          packages = [
+            pkgs.ffmpeg
+            pkgs.media-tools
+          ];
+          sessionVariables.MEDIA_HOME = "${config.home.homeDirectory}/Media";
+        };
       };
-    };
+  };
 }
