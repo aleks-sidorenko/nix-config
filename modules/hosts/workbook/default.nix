@@ -337,6 +337,14 @@ in
       expr = hm.programs.fish.shellAbbrs.docker-compose;
       expected = "podman-compose";
     };
+    dev-bazel = {
+      expr = lib.subtractLists (map lib.getName hm.home.packages) [
+        "bazel"
+        "bazelisk"
+        "bazel-buildtools"
+      ];
+      expected = [ ];
+    };
     dev-xcode = {
       expr = w.homebrew.masApps.Xcode;
       expected = 497799835;
@@ -630,9 +638,14 @@ in
       expr = lib.subtractLists (map (c: c.name or c) w.homebrew.casks) [
         "slack"
         "telegram"
+        "viber"
         "zoom"
       ];
       expected = [ ];
+    };
+    gui-minecraft = {
+      expr = lib.elem "prismlauncher" (map lib.getName hm.home.packages);
+      expected = true;
     };
     gui-media = {
       expr = {
@@ -746,7 +759,6 @@ in
     };
     workbook-dropped = {
       expr = lib.intersectLists (map (c: lib.last (lib.splitString "/" (c.name or c))) w.homebrew.casks) [
-        "viber"
         "teamviewer"
         "aerospace"
       ];

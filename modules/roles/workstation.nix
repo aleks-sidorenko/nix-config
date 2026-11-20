@@ -32,6 +32,7 @@
     den.aspects.gui.communication
     den.aspects.gui.raycast
     den.aspects.gui.media
+    den.aspects.gui.minecraft
     den.aspects.dev.git
     den.aspects.dev.gh
     den.aspects.dev.direnv
@@ -41,5 +42,6 @@
     den.aspects.dev.k8s
     den.aspects.dev.containers
     den.aspects.dev.xcode
+    den.aspects.dev.bazel
   ];
 }

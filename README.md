@@ -53,8 +53,8 @@ modules/
 ├── security/       # ssh, sops, sudo, user passwords, authorized keys
 ├── services/       # tailscale, nginx, restic, the media stack, minecraft, openvpn
 ├── cli/            # terminal tools: fish, nvim, ghostty, media, utils
-├── dev/            # git, direnv, per-project stacks, containers, k8s
-├── gui/            # GUI apps: chrome, communication, photo and video, raycast
+├── dev/            # git, direnv, per-project stacks, bazel, containers, k8s
+├── gui/            # GUI apps: chrome, communication, photo and video, minecraft, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
 identities/         # per-person public keys (see identities/README.md)

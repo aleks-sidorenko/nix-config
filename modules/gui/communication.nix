@@ -7,6 +7,7 @@
       homebrew.casks = [
         "slack"
         "telegram"
+        "viber"
         "zoom"
       ];
       # mkAfter keeps Slack last whatever order aspects merge in.
