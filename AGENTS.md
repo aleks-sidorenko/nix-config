@@ -113,6 +113,10 @@ it, never write the path.
   variants or helpers). Variant: `<category>.<feature>.<variant>` mirrors
   `modules/<category>/<feature>/<variant>.nix`.
 - A category holds nothing itself and is never included. No namespace.
+- A category past ~15 features splits into sub-groups by concern
+  (`dev.editors.*`, `dev.build.*` in `modules/dev/editors/`), never by
+  platform; a sub-group, like a category, holds nothing itself and is
+  never included.
 - Hosts and users are never named after a category.
 - No path segment may be a den reserved key: `name description meta includes
   excludes admits policyEnforcement provides policies into classes _module _`,
