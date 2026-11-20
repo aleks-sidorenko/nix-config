@@ -30,6 +30,7 @@
           mob_griefing = true;
         };
       };
+      services.tailscale.tags = [ "tag:server" ];
       storage.disko.encrypted = false;
     };
   });

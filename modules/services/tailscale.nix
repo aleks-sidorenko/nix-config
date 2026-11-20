@@ -15,21 +15,19 @@ let
   # already-approved key ignores it.
   authKeyParameters.preauthorized = true;
 
-  # An OAuth client secret only joins with tags it owns.
-  tagFlags =
-    host:
-    lib.optional (
-      host.settings.services.tailscale.advertiseTags != [ ]
-    ) "--advertise-tags=${lib.concatStringsSep "," host.settings.services.tailscale.advertiseTags}";
+  tagFlags = host: [
+    "--advertise-tags=${lib.concatStringsSep "," host.settings.services.tailscale.tags}"
+  ];
 in
 {
   den.aspects.services.tailscale = {
     includes = [ den.aspects.security.sops ];
 
-    settings.advertiseTags = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "ACL tags the host joins with; an OAuth client secret needs one it owns.";
+    # No default: the join key is an OAuth client secret, which registers only
+    # a tagged node.
+    settings.tags = lib.mkOption {
+      type = lib.types.nonEmptyListOf lib.types.str;
+      description = "ACL tags the host advertises when it joins the tailnet.";
     };
 
     persist.directories = [ "/var/lib/tailscale" ];

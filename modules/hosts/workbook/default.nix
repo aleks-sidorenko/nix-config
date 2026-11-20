@@ -18,6 +18,7 @@ in
     settings = {
       # Work VPN, specific to this host.
       services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
+      services.tailscale.tags = [ "tag:workstation" ];
       system.networking.knownNetworkServices = [
         "Wi-Fi"
         "USB 10/100/1000 LAN"
@@ -626,8 +627,7 @@ in
           retries = serviceConfig.KeepAlive.SuccessfulExit;
           readsKey = lib.hasInfix w.sops.secrets.system-tailscale-auth-key.path script;
           preauthorized = lib.hasInfix "preauthorized=true" script;
-          # Tags arrive with the ACL; until then the host joins with none.
-          tags = lib.hasInfix "--advertise-tags" script;
+          tags = lib.hasInfix "--advertise-tags=tag:workstation" script;
         };
       expected = {
         on = true;
@@ -636,7 +636,7 @@ in
         retries = false;
         readsKey = true;
         preauthorized = true;
-        tags = false;
+        tags = true;
       };
     };
     openvpn-kpi-daemon = {
