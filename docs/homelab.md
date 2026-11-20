@@ -72,8 +72,10 @@ this config: losing it takes the box off the network. The LAN domain is
 `lan`, and the tailnet's MagicDNS domain comes first in the search list.
 
 Tailscale joins unattended with the `system-tailscale-auth-key` secret and
-retries until it succeeds. **Do not run `tailscale logout`**: this config
-advertises no tags, so rejoining with that key would be refused.
+retries until it succeeds; darwin hosts do the same through a launchd daemon.
+**Do not run `tailscale logout`**: no host sets
+`services.tailscale.advertiseTags` yet, so rejoining with an OAuth client
+secret would be refused.
 
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale

@@ -606,13 +606,28 @@ in
       expected = true;
     };
     workbook-tailscale = {
-      expr = {
-        on = w.services.tailscale.enable;
-        secrets = w.sops.secrets ? system-tailscale-auth-key;
-      };
+      expr =
+        let
+          inherit (w.launchd.daemons.tailscale-autoconnect) script serviceConfig;
+        in
+        {
+          on = w.services.tailscale.enable;
+          secret = w.sops.secrets ? system-tailscale-auth-key;
+          inherit (serviceConfig) RunAtLoad;
+          retries = serviceConfig.KeepAlive.SuccessfulExit;
+          readsKey = lib.hasInfix w.sops.secrets.system-tailscale-auth-key.path script;
+          preauthorized = lib.hasInfix "preauthorized=true" script;
+          # Tags arrive with the ACL; until then the host joins with none.
+          tags = lib.hasInfix "--advertise-tags" script;
+        };
       expected = {
         on = true;
-        secrets = false;
+        secret = true;
+        RunAtLoad = true;
+        retries = false;
+        readsKey = true;
+        preauthorized = true;
+        tags = false;
       };
     };
     openvpn-kpi-daemon = {
@@ -728,6 +743,7 @@ in
       expr = lib.sort lib.lessThan (lib.attrNames w.sops.secrets);
       expected = [
         "system-github-token"
+        "system-tailscale-auth-key"
         "system-vpn-kpi-profile"
       ];
     };
