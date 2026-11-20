@@ -4,7 +4,6 @@
     den.aspects.security.sops
     den.aspects.security.nix-access-tokens
     den.aspects.services.tailscale
-    den.aspects.system.homebrew
     den.aspects.system.dock
     den.aspects.system.finder
     den.aspects.system.input
