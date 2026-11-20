@@ -1,6 +1,8 @@
-{ lib, ... }:
+{ den, lib, ... }:
 {
   den.aspects.services.openvpn = {
+    includes = [ den.aspects.security.sops ];
+
     settings.connections = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {

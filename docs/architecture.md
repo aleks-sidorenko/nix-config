@@ -91,7 +91,11 @@ as `security.ssh` is in `roles.workstation`.
 
 Aspects that build on the same thing include a shared aspect, which den
 includes once: every media aspect includes `services.media`, which owns the
-media root and the `media` group. Near-identical aspects come from one
+media root and the `media` group, and every aspect that reads a secret
+includes `security.sops`. An aspect that only adapts to another one is a
+conditional variant: `security.sops` includes `security.sops.impermanent`
+(the host key read from the persistence root) through `den.lib.policy.when`,
+only where `storage.impermanence` is present. Near-identical aspects come from one
 factory: `services/_arr.nix` builds sonarr, radarr and prowlarr, each a
 whole aspect.
 

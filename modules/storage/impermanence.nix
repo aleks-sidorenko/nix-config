@@ -102,7 +102,6 @@ in
       {
         config,
         host,
-        options,
         persist,
         pkgs,
         ...
@@ -165,12 +164,6 @@ in
               persisted = map (d: d.dirPath) persisted.directories ++ map (f: f.filePath) persisted.files;
             };
           };
-        }
-        # Secrets decrypt before the bind mounts exist, so read the key where it really lives.
-        // lib.optionalAttrs (options ? sops) {
-          sops.age.sshKeyPaths = map (key: persistRoot + key.path) (
-            lib.filter (key: key.type == "ed25519") config.services.openssh.hostKeys
-          );
         };
       };
   };

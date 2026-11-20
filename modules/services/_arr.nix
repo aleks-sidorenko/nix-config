@@ -79,7 +79,10 @@ let
       nixos,
     }:
     {
-      includes = [ den.aspects.services.media ];
+      includes = [
+        den.aspects.services.media
+        den.aspects.security.sops
+      ];
       persist.directories = [ dataDir ];
       installChecks = [ ''machine.wait_for_unit("${name}.service")'' ] ++ checks;
       vhosts = [ (vhost name port) ];

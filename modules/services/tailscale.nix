@@ -24,6 +24,8 @@ let
 in
 {
   den.aspects.services.tailscale = {
+    includes = [ den.aspects.security.sops ];
+
     settings.advertiseTags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];

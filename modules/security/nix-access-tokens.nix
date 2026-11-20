@@ -11,6 +11,8 @@ let
 in
 {
   den.aspects.security.nix-access-tokens = {
+    includes = [ den.aspects.security.sops ];
+
     os =
       { config, ... }:
       {
