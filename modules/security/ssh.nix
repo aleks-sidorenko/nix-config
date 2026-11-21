@@ -28,9 +28,6 @@ in
 
     homeManager =
       { user, ... }:
-      let
-        identity = ../../identities/${user.identity};
-      in
       {
         programs.ssh = {
           enable = true;
@@ -42,7 +39,7 @@ in
           includes = [ "config.local" ];
 
           # The agent that holds the keys is set by `security.gpg`.
-          settings."*".User = user.identity;
+          settings."*".User = user.identity.name;
 
           extraConfig = ''
             IdentityAgent "$SSH_AUTH_SOCK"
@@ -52,7 +49,7 @@ in
           '';
         };
 
-        home.file.".ssh/id_ed25519.pub".source = identity + "/ssh.pub";
+        home.file.".ssh/id_ed25519.pub".source = user.identity.sshKeyFile;
       };
 
     persist.files = [

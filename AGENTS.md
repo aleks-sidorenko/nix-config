@@ -89,7 +89,7 @@ without breaking another.
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |
 | A homebrew cask or brew | the app aspect's `darwin` body | `homebrew.casks` / `homebrew.brews` in the aspect that owns the app (`modules/gui/raycast.nix`); `system.homebrew` only sets the policy |
 | A per-project toolchain | stack | an entry in `dev.stacks` (`modules/dev/stacks.nix`), used from a project's `.envrc` with `use_stack <name>`; never a global package or variable. A launcher that runs the version the project pins (bazelisk, `dev.bazel`) may be global |
-| A per-person fact (name, email, GitHub accounts) | identity data | `identities/<id>/git.json`, read by path; the user module names the identity |
+| A per-person fact (keys, name, email, GitHub accounts) | identity data | files in `identities/<id>/`, loaded once by the `identity` user option (`modules/den.nix`, defaults to the user's name); aspects read `user.identity.sshKey`, `.git.email`, … and never the folder |
 | Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts); recipients in `.sops.yaml` |
 
 An aspect in `den.schema.<kind>.includes` reaches the host, but its

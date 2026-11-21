@@ -1,12 +1,10 @@
-{ lib, ... }:
 {
   den.aspects.dev.git = {
     homeManager =
       { user, ... }:
       let
-        identity = ../../identities/${user.identity};
-        inherit (builtins.fromJSON (builtins.readFile (identity + "/git.json"))) name email;
-        signingKey = lib.trim (builtins.readFile (identity + "/ssh.pub"));
+        inherit (user.identity.git) name email;
+        signingKey = user.identity.sshKey;
       in
       {
         # Git verifies signatures against this file; without it `log --show-signature` cannot.

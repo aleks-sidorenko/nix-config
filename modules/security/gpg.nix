@@ -6,9 +6,6 @@ in
 {
   den.aspects.security.gpg.homeManager =
     { pkgs, user, ... }:
-    let
-      identity = ../../identities/${user.identity};
-    in
     {
       # gpg-agent is the ssh agent: the identity's authentication subkey is
       # exposed through it, so ssh and git's ssh signing find the key there.
@@ -16,7 +13,7 @@ in
         enable = true;
         enableSshSupport = true;
         enableExtraSocket = true;
-        sshKeys = [ (lib.trim (builtins.readFile (identity + "/gpg.key-id"))) ];
+        sshKeys = [ user.identity.gpgKeyId ];
         defaultCacheTtl = cacheTtl;
         defaultCacheTtlSsh = cacheTtl;
         maxCacheTtl = cacheTtl;
@@ -43,7 +40,7 @@ in
           # A path, not a string: it must be copied into the store to exist after a remote deploy.
           publicKeys = [
             {
-              source = identity + "/gpg.pub.asc";
+              source = user.identity.gpgKeyFile;
               trust = "ultimate";
             }
           ];

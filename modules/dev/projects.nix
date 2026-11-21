@@ -5,9 +5,7 @@
       let
         projectsHome = "${config.home.homeDirectory}/Projects";
         # "Who am I on GitHub" lives with the person's identity.
-        inherit (builtins.fromJSON (builtins.readFile ../../identities/${user.identity}/git.json))
-          githubAccounts
-          ;
+        inherit (user.identity.git) githubAccounts;
         selfOwnersFish = builtins.concatStringsSep " " githubAccounts;
       in
       {

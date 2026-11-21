@@ -93,6 +93,36 @@
           den.aspects.security.user-password
         ];
         classes = lib.mkDefault [ "homeManager" ];
+
+        imports = [
+          (
+            { config, ... }:
+            {
+              # The only place that knows where identities live. Files are read
+              # on first use, so a user without a key never needs that file.
+              options.identity = lib.mkOption {
+                type = lib.types.coercedTo lib.types.str (
+                  name:
+                  let
+                    dir = ../identities + "/${name}";
+                    read = file: lib.trim (builtins.readFile (dir + "/${file}"));
+                  in
+                  {
+                    inherit name;
+                    sshKeyFile = dir + "/ssh.pub";
+                    sshKey = read "ssh.pub";
+                    gpgKeyFile = dir + "/gpg.pub.asc";
+                    gpgKeyId = read "gpg.key-id";
+                    git = builtins.fromJSON (read "git.json");
+                  }
+                ) lib.types.raw;
+                default = config.name;
+                defaultText = "the user's name";
+                description = "The person behind the account: a folder under identities/, loaded into its keys and git data.";
+              };
+            }
+          )
+        ];
       };
 
       default = {
