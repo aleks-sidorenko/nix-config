@@ -362,10 +362,16 @@ in
       expr = {
         home = hm.stylix.enable;
         dark = w.system.defaults.NSGlobalDomain.AppleInterfaceStyle;
+        inherit (hm.catppuccin) flavor;
+        scheme = baseNameOf hm.stylix.base16Scheme;
+        wallpaper = toString hm.stylix.image;
       };
       expected = {
         home = true;
         dark = "Dark";
+        flavor = "mocha";
+        scheme = "catppuccin-mocha.yaml";
+        wallpaper = toString inputs.nix-wallpapers.packages.aarch64-darwin.default.earth;
       };
     };
     workbook-homebrew = {

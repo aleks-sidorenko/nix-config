@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 {
   flake-file.inputs = {
     stylix = {
@@ -16,13 +16,37 @@
   };
 
   den.aspects.system.stylix = {
+    settings = {
+      flavor = lib.mkOption {
+        type = lib.types.enum [
+          "latte"
+          "frappe"
+          "macchiato"
+          "mocha"
+        ];
+        default = "mocha";
+        description = "Catppuccin flavor; the base16 scheme follows it.";
+      };
+      wallpaper = lib.mkOption {
+        type = lib.types.str;
+        default = "earth";
+        description = "Name of a wallpaper in the nix-wallpapers set.";
+      };
+    };
+
     # Dark mode is part of the theme.
     darwin.system.defaults.NSGlobalDomain.AppleInterfaceStyle = "Dark";
 
     homeManager =
-      { config, pkgs, ... }:
+      {
+        config,
+        host,
+        pkgs,
+        ...
+      }:
       let
-        wallpaper = inputs.nix-wallpapers.packages.${pkgs.stdenv.hostPlatform.system}.default.earth;
+        inherit (host.settings.system.stylix) flavor wallpaper;
+        wallpapers = inputs.nix-wallpapers.packages.${pkgs.stdenv.hostPlatform.system}.default;
       in
       {
         imports = [
@@ -31,7 +55,7 @@
         ];
 
         catppuccin = {
-          flavor = "mocha";
+          inherit flavor;
           enable = true;
           # Only the ports an aspect enables explicitly.
           autoEnable = false;
@@ -41,8 +65,8 @@
           enable = true;
           # autoEnable pulls in Linux-only dependencies; targets are opted in below.
           autoEnable = false;
-          base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
-          image = wallpaper;
+          base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-${flavor}.yaml";
+          image = wallpapers.${wallpaper};
           # Homes reuse the system's pkgs (useGlobalPkgs), which ignores a home's overlays.
           overlays.enable = false;
 
