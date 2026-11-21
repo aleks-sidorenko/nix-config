@@ -1,4 +1,5 @@
 {
+  config,
   den,
   inputs,
   lib,
@@ -11,15 +12,24 @@
     inputs.flake-file.flakeModules.auto-follow
   ];
 
-  # Published for the naming check; `_settings-type.nix` beside this file imports it directly.
-  options.isReservedKey = lib.mkOption {
-    type = lib.types.functionTo lib.types.bool;
-    readOnly = true;
-    description = "Whether den reads a key inside an aspect as pipeline machinery, class content or quirk data, never as a child aspect.";
+  options = {
+    # Published for the naming check; `_settings-type.nix` beside this file imports it directly.
+    isReservedKey = lib.mkOption {
+      type = lib.types.functionTo lib.types.bool;
+      readOnly = true;
+      description = "Whether den reads a key inside an aspect as pipeline machinery, class content or quirk data, never as a child aspect.";
+    };
+    # Published for entity kinds declared elsewhere that take settings too.
+    settingsType = lib.mkOption {
+      type = lib.types.optionType;
+      readOnly = true;
+      description = "Type of an entity's `settings`: the settings every aspect declares, at the aspect's path.";
+    };
   };
 
   config = {
     isReservedKey = import ./_reserved-key.nix { inherit den; };
+    settingsType = import ./_settings-type.nix { inherit den lib; };
 
     systems = [
       "x86_64-linux"
@@ -59,7 +69,7 @@
             description = "Release the host's and its users' stateful data was first created with.";
           };
           settings = lib.mkOption {
-            type = import ./_settings-type.nix { inherit den lib; };
+            type = config.settingsType;
             default = { };
             description = "Per-host values for the settings aspects declare, at the aspect's path.";
           };

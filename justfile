@@ -60,3 +60,36 @@ flake-write:
 # Update flake inputs (all, or the named ones)
 update *input:
     nix flake update {{ input }}
+
+# Print a stack's rendered OpenTofu config
+infra-show stack:
+    {{ run }} jq . "$(nix build --no-link --print-out-paths .#{{ stack }}.config)"
+
+# Validate a stack's config against its providers (every stack when omitted); needs its secrets
+infra-validate stack="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    stacks="{{ stack }}"
+    if [ -z "$stacks" ]; then
+        stacks=$(nix eval --raw .#terranixModules --apply 'm: toString (builtins.attrNames m)')
+    fi
+    for s in $stacks; do
+        nix run .#"$s".init -- -input=false
+        nix run .#"$s".terraform -- validate
+    done
+
+# Plan a stack's changes
+infra-plan stack *args:
+    nix run .#{{ stack }}.plan -- {{ args }}
+
+# Apply a stack's changes
+infra-apply stack *args:
+    nix run .#{{ stack }}.apply -- {{ args }}
+
+# Destroy a stack's resources (prevent_destroy still guards adopted ones)
+infra-destroy stack *args:
+    nix run .#{{ stack }}.destroy -- {{ args }}
+
+# Edit a stack's secrets, or the provider credentials stacks share when omitted
+infra-secrets-edit stack="":
+    {{ run }} sops infra/{{ if stack == "" { "" } else { stack + "/" } }}secrets.yaml

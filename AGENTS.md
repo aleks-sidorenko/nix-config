@@ -90,6 +90,8 @@ without breaking another.
 | A homebrew cask or brew | the app aspect's `darwin` body | `homebrew.casks` / `homebrew.brews` in the aspect that owns the app (`modules/gui/raycast.nix`); `system.homebrew` only sets the policy |
 | A per-project toolchain | stack | an entry in `dev.stacks` (`modules/dev/stacks.nix`), used from a project's `.envrc` with `use_stack <name>`; never a global package or variable. A launcher that runs the version the project pins (bazelisk, `dev.bazel`) may be global |
 | A per-person fact (keys, name, email, GitHub accounts) | identity data | files in `identities/<id>/`, loaded once by the `identity` user option (`modules/den.nix`, defaults to the user's name); aspects read `user.identity.sshKey`, `.git.email`, … and never the folder |
+| Cloud/API resources | stack | `den.stacks.<name>` + `den.aspects.infra.<name>` in `modules/infra/<name>.nix` |
+| A stack's credentials | `_meta.secrets` | in the provider's `terranix` body, e.g. `modules/infra/cloudflare.nix` |
 | Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts); recipients in `.sops.yaml` |
 
 An aspect in `den.schema.<kind>.includes` reaches the host, but its
@@ -108,7 +110,7 @@ it, never write the path.
   host's account) and categories.
   Categories: `system`, `storage`, `security`, `services`, `hardware`,
   `roles`, `cli` (a terminal tool), `dev` (working on code), `gui` (a GUI
-  app). A category names a concern, never a platform; a platform-only aspect
+  app), `infra` (a stack's aspects and the providers they include). A category names a concern, never a platform; a platform-only aspect
   has only that class's body.
 - Feature: `den.aspects.<category>.<feature>` mirrors
   `modules/<category>/<feature>.nix` (or `<feature>/default.nix` when it has
@@ -122,8 +124,8 @@ it, never write the path.
 - Hosts and users are never named after a category.
 - No path segment may be a den reserved key: `name description meta includes
   excludes admits policyEnforcement provides policies into classes _module _`,
-  anything starting `__`, `settings`, any class (`nixos darwin homeManager os
-  user hjem maid wsl`), any quirk
+  anything starting `__`, `settings`, `stack`, any class (`nixos darwin
+  homeManager os user hjem maid wsl terranix`), any quirk
   (`persist installChecks vhosts backup`). Declaring a new
   quirk or class reserves its name too.
 - Include named aspects (`den.aspects.system.nix`), never inline modules in
@@ -238,6 +240,22 @@ Stage new files (`git add`) before `just check`.
 3. Its name is now reserved; `just check` reports any existing path segment
    that clashes.
 
+### A stack
+
+1. `modules/infra/<stack>.nix`: `den.stacks.<stack> = { };` and
+   `den.aspects.infra.<stack>` with a `terranix` body (`{ stack, ... }:` to
+   read `stack.name` or `stack.settings`), including the provider aspects it
+   uses. A stack name is never a host name: both are `packages` names.
+2. A new provider is an aspect `modules/infra/<provider>.nix` with the
+   provider block, its variables and each credential as
+   `_meta.secrets.TF_VAR_<var> = { file = "infra/secrets.yaml"; key = "…"; };`.
+3. Create `infra/<stack>/secrets.yaml` with a `state-passphrase`
+   (`just infra-secrets-edit <stack>`), then `just infra-validate <stack>`
+   and commit `.terraform.lock.hcl`, `secrets.yaml` and, after the first
+   apply, `terraform.tfstate`.
+4. Extend the `infra-stacks` eval test (`modules/infra/storage.nix`), and add
+   eval tests on `config.infraStacks.<stack>.config` beside the stack.
+
 ### An input
 
 1. Declare `flake-file.inputs.<name>.url = "…";` in the module that uses it,
@@ -303,12 +321,18 @@ just build <host>     # build a host's toplevel
 just deploy <host> [args]  # deploy-rs, built on the target; `--boot` activates on next boot
 just vm-test <host>   # install test; x86_64 Linux with KVM only (exits 1 elsewhere)
 just update [input]   # nix flake update
+just infra-show <stack>          # rendered config.tf.json
+just infra-validate [stack]      # tofu validate; every stack when omitted (needs secrets)
+just infra-plan <stack> [args]   # also infra-apply, infra-destroy
+just infra-secrets-edit [stack]  # sops on infra/<stack>/secrets.yaml, or infra/secrets.yaml
 nix run .#<host> -- switch   # nh wrapper per host
 ```
 
 Recipes are `<group>-<suffix>`; within a group every suffix is the same kind
 (verbs for resource groups: `format-check`, `lint-fix`). Rename old recipes
-instead of aliasing.
+instead of aliasing. A verb every stack has is `infra-<verb> <stack>`, running
+`nix run .#<stack>.<verb>`, so a new stack needs no recipe; an action only one
+stack has is `<stack>-<verb>`.
 
 Updating den: `just update den`, read den's
 [whats-changed](https://den.denful.dev/whats-changed/), fix what it names,

@@ -1,0 +1,36 @@
+{
+  "provider": {
+    "cloudflare": {
+      "api_token": "${var.cloudflare_api_token}"
+    }
+  },
+  "resource": {
+    "cloudflare_r2_bucket": {
+      "backups": {
+        "account_id": "4e18ae7a3707f53f8d7cd82fb8e6abad",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "name": "backups"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "cloudflare": {
+        "source": "cloudflare/cloudflare",
+        "version": "~> 5.20"
+      }
+    }
+  },
+  "variable": {
+    "cloudflare_api_token": {
+      "sensitive": true,
+      "type": "string"
+    },
+    "state_passphrase": {
+      "sensitive": true,
+      "type": "string"
+    }
+  }
+}
