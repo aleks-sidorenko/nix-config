@@ -15,6 +15,7 @@ identities/
     gpg.pub.asc   # GPG public key (ASCII-armored)
     gpg.key-id    # GPG key ID exposed as the SSH key (gpg-agent acts as ssh-agent)
     ssh.pub       # SSH public key (the GPG authentication subkey, OpenSSH format)
+    git.json      # { name, email, githubAccounts }; read by the dev aspects, only needed by users that include them
 ```
 
 ## Adding a person

@@ -1,8 +1,10 @@
+{ den, ... }:
 {
   # A user's own `nixos` content stays in the user scope; the account lives on the host.
   den.aspects.security.user-password.provides.to-hosts =
     { user, ... }:
     {
+      includes = [ den.aspects.security.sops ];
       nixos =
         { config, ... }:
         let

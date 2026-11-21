@@ -10,6 +10,7 @@ in
       den.aspects.services.media
       den.aspects.services.sonarr
       den.aspects.services.radarr
+      den.aspects.security.sops
     ];
     persist.directories = [ dataDir ];
     # The sync itself needs network the install test VM lacks.

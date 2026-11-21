@@ -12,7 +12,7 @@
 
 Personal NixOS configuration built on [den](https://den.denful.dev), the
 aspect-oriented framework for the [dendritic pattern](https://github.com/mightyiam/dendritic).
-It runs a home server and the VMs that test it in CI.
+It runs a home server, the VMs that test it in CI, and a Mac workstation.
 
 ## Highlights
 
@@ -35,9 +35,10 @@ It runs a home server and the VMs that test it in CI.
 | --- | --- | --- | --- |
 | `server` | x86_64-linux | Mini PC (Intel Core i3-7020U, 8 GB RAM, 2 TB SATA SSD), Wi-Fi only | `roles.home-server` |
 | `server-vm` | x86_64-linux | QEMU guest standing in for `server`, install-tested in CI | `roles.home-server` |
+| `workbook` | aarch64-darwin | Work MacBook with its user's home | `roles.workstation` |
 | `base-vm` | x86_64-linux | Bare QEMU guest with an encrypted disk, install-tested in CI | `roles.base` |
 
-Only `server` is a deploy target.
+Only `server` is a deploy target. Switch `workbook` on the Mac with `nix run .#workbook -- switch`.
 
 ## Layout
 
@@ -46,15 +47,19 @@ modules/
 ├── den.nix         # den and flake setup: host/user schema, defaults, inputs
 ├── flake/          # outputs and tooling: deploy-rs, nh, install tests, eval tests, devshell, naming check
 ├── hosts/          # one folder per host, plus home-servers.nix (what server and server-vm share)
-├── roles/          # bundles of aspects: base, server, media-server, home-server
+├── roles/          # bundles of aspects: base, server, media-server, home-server, workstation
 ├── system/         # boot, nix, nixpkgs, locale, networking, NetworkManager, headless
 ├── storage/        # disko layout, impermanence and the undeclared-state guard
 ├── security/       # ssh, sops, sudo, user passwords, authorized keys
-├── services/       # tailscale, nginx, restic, the media stack, minecraft
+├── services/       # tailscale, nginx, restic, the media stack, minecraft, openvpn
+├── cli/            # terminal tools: fish, nvim, ghostty, media, utils
+├── dev/            # git, direnv, per-project stacks, bazel, containers, k8s
+├── gui/            # GUI apps: chrome, communication, photo and video, minecraft, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
+packages/           # our own programs, plain callPackage files: disk-report, media-tools
 identities/         # per-person public keys (see identities/README.md)
-secrets/nixos.yaml  # SOPS-encrypted system secrets
+secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 ```
 
 - The aspect path mirrors the file path: `modules/services/nginx.nix` defines
@@ -81,11 +86,13 @@ secrets/nixos.yaml  # SOPS-encrypted system secrets
 
 ## Secrets
 
-- System secrets live in `secrets/nixos.yaml`, encrypted with
+- System secrets live in `secrets/nixos.yaml` and `secrets/darwin.yaml`, encrypted with
   [SOPS](https://github.com/getsops/sops) to the age keys in `.sops.yaml`.
 - Each host's age key comes from its SSH host key, kept under `/persist/etc/ssh`.
 - Edit with `sops secrets/nixos.yaml`; after adding a host's key, run
   `sops updatekeys secrets/nixos.yaml`.
+- `workbook`'s key is `/etc/ssh/ssh_host_ed25519_key` and its file is
+  `secrets/darwin.yaml` (`sops updatekeys secrets/darwin.yaml`).
 
 ## Testing
 
@@ -119,10 +126,9 @@ available at the [`v1`](https://github.com/aleks-sidorenko/nix-config/tree/v1)
 tag. The rewrite lands in slices, tracked in
 [#272](https://github.com/aleks-sidorenko/nix-config/issues/272).
 
-- **Ported:** the base system, the server role, and everything `server` runs.
+- **Ported:** the base system, the server role, everything `server` runs, and
+  the macOS `workbook` with its home.
 - **Not yet ported:**
-  - the macOS workbook;
-  - home-manager modules beyond the user's shell;
   - the installer ISO and bootstrap scripts;
   - the infrastructure stacks (router, DNS, storage bucket, tailnet policy).
 

@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ den, lib, ... }:
 let
   withDefaults =
     vhost:
@@ -27,18 +27,17 @@ let
 
   duplicateNames =
     vhosts: lib.attrNames (lib.filterAttrs (_: vs: lib.length vs > 1) (lib.groupBy (v: v.name) vhosts));
-
-  inherit (lib) types;
 in
 {
-  den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<domain>`, the nginx `domain` setting.";
+  den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<public>`, the `system.networking.domains.public` setting.";
 
   den.aspects.services.nginx = {
-    settings.domain = lib.mkOption {
-      type = types.str;
-      default = "home.sidorenko.me";
-      description = "Domain the proxied services are served under, as `<name>.<domain>`.";
-    };
+    # Ingress is scoped to the tailnet interface.
+    includes = [
+      den.aspects.security.sops
+      den.aspects.services.tailscale
+      den.aspects.system.networking
+    ];
 
     # Read back from the rendered vhosts, so each check tests what nginx serves.
     installChecks =
@@ -94,7 +93,7 @@ in
                 vhost:
                 lib.nameValuePair vhost.name (
                   {
-                    serverName = "${vhost.name}.${host.settings.services.nginx.domain}";
+                    serverName = "${vhost.name}.${host.settings.system.networking.domains.public}";
                     extraConfig = ''
                       client_max_body_size ${vhost.clientMaxBodySize};
                     '';

@@ -39,6 +39,13 @@ Two host options any aspect may read:
 `server` and `server-vm` share everything but their disk through
 `modules/hosts/home-servers.nix`, which sets both entities.
 
+A darwin host (`den.hosts.aarch64-darwin.<name>`) is an entity like any
+other. Its darwin release is an integer, set in the host aspect
+(`darwin.system.stateVersion`), apart from the string `stateVersion` homes
+read. Its secrets are in `secrets/darwin.yaml`, decrypted with the host's SSH
+key. Per-person facts (name, email, GitHub accounts) are in
+`identities/<id>/git.json`; the user module names the identity.
+
 ## Aspects and roles
 
 A feature is an aspect at `den.aspects.<category>.<feature>`, in
@@ -60,9 +67,35 @@ roles.home-server
 └── services.minecraft-server
 ```
 
+Categories also sort by what the aspect configures: `cli` for a terminal tool,
+`dev` for working on code, `gui` for a GUI app. A category names a concern,
+never a platform; an aspect with only a `darwin` body is fine. `roles.workstation`
+bundles what `workbook` runs: the machine aspects (`system.homebrew`, `dock`,
+`finder`, `input`, `power`, `file-limits`, `stylix`, `security.sudo.touch-id`),
+the `cli`, `dev` and `gui` aspects, and the user's `security` aspects. It also
+brings the system services: `security.sops` (secrets from `secrets/darwin.yaml`),
+`security.nix-access-tokens` (the GitHub token nix reads) and
+`services.tailscale`. The host
+adds only what is its own (`services.openvpn`, `dev.akeyless`, `dev.stacks`).
+
+Homebrew is declared by the aspect that owns the app: its `darwin` body adds the
+cask or brew, and `system.homebrew` sets the policy (no cleanup, no auto-update).
+Toolchains are never global: `dev.stacks` installs a direnv library, and a
+project's `.envrc` calls `use_stack jvm` or `use_stack node`. A test pins that no
+JDK, node or their variables reach `environment.systemPackages` or the home.
+
+An aspect in `den.schema.<kind>.includes` reaches the host, but its `homeManager`
+body does not reach users: only aspects in the host's include tree are routed to
+them (`den.batteries.host-aspects`). Such an aspect is also included from a role,
+as `security.ssh` is in `roles.workstation`.
+
 Aspects that build on the same thing include a shared aspect, which den
 includes once: every media aspect includes `services.media`, which owns the
-media root and the `media` group. Near-identical aspects come from one
+media root and the `media` group, and every aspect that reads a secret
+includes `security.sops`. An aspect that only adapts to another one is a
+conditional variant: `security.sops` includes `security.sops.impermanent`
+(the host key read from the persistence root) through `den.lib.policy.when`,
+only where `storage.impermanence` is present. Near-identical aspects come from one
 factory: `services/_arr.nix` builds sonarr, radarr and prowlarr, each a
 whole aspect.
 
@@ -70,7 +103,8 @@ whole aspect.
 
 Per-host tunables are settings of the aspect that reads them:
 `system.locale.{timeZone,locales,layouts}`,
-`system.networkmanager.{lanDomain,tailnetDomain}`, `services.nginx.domain`,
+`system.networking.{domains.{lan,tailnet,public},knownNetworkServices}`, `dev.stacks.node.npmRegistry`,
+`services.openvpn.connections`,
 `services.media.root`, `services.restic.bucketUrl`,
 `storage.disko.{device,encrypted,swapSize}`, `storage.impermanence.root` and
 minecraft's players and rules. Hosts set only the ones that differ from the
@@ -128,6 +162,12 @@ SSH key, and with it its SOPS identity, is one of those files.
   groups, firewall, virtual hosts, backups, secrets, networking, locale,
   service units and the disk layout with them, and the persisted paths with
   the live box's state.
+- **Darwin**: `checks.aarch64-darwin` holds the eval tests. `just build <host>` builds the system.
+- **Stacks**: `checks.<system>.stacks-<host>`, for every host including
+  `dev.stacks`, sources the library that host installs and checks its
+  registry setting.
+- **Packages**: each `packages/<name>` runs its tests in `checkPhase`;
+  `checks.<system>.package-<name>` builds it.
 - **Install tests**: `modules/flake/install-tests.nix` installs every host
   that includes `hardware.qemu-guest` into disko's test VM, with throwaway
   secrets. The test checks the boot, accounts and passwords, then

@@ -14,8 +14,16 @@ let
   isReserved = config.isReservedKey;
 
   hosts = lib.concatMap lib.attrValues (lib.attrValues den.hosts);
+  # `<user>@<host>` is den's aspect for a user on one host only.
   entities = lib.unique (
-    map (host: host.name) hosts ++ lib.concatMap (host: lib.attrNames host.users) hosts
+    map (host: host.name) hosts
+    ++ lib.concatMap (
+      host:
+      lib.concatMap (user: [
+        user
+        "${user}@${host.name}"
+      ]) (lib.attrNames host.users)
+    ) hosts
   );
 
   # Only names this flake declares; den's batteries add top-level aspects too.
