@@ -86,6 +86,12 @@ every tag. Removing a tag from den drops it from the ACL, so first re-advertise
 the live node without it (`tailscale up --advertise-tags=…`), then apply: no
 device may hold a tag the ACL no longer owns.
 
+A reinstalled guest registers a new node and leaves the old one behind, which
+trips the dns stack's ambiguous-hostname guard. `just tailnet-revoke <host>`
+lists the devices with that hostname (a dry run); add `--apply` to delete them
+after typing the hostname. It reads `infra/secrets.yaml`, and the OAuth client
+needs the `devices:core` write scope.
+
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
 (41641/UDP), and on the tailnet for 80 and 443.
