@@ -162,8 +162,10 @@ SSH key, and with it its SOPS identity, is one of those files.
   groups, firewall, virtual hosts, backups, secrets, networking, locale,
   service units and the disk layout with them, and the persisted paths with
   the live box's state.
-- **Darwin**: `checks.aarch64-darwin` holds the eval tests and `stacks-script`, which
-  sources the installed direnv library. `just build <host>` builds the system.
+- **Darwin**: `checks.aarch64-darwin` holds the eval tests. `just build <host>` builds the system.
+- **Stacks**: `checks.<system>.stacks-<host>`, for every host including
+  `dev.stacks`, sources the library that host installs and checks its
+  registry setting.
 - **Packages**: each `packages/<name>` runs its tests in `checkPhase`;
   `checks.<system>.package-<name>` builds it.
 - **Install tests**: `modules/flake/install-tests.nix` installs every host

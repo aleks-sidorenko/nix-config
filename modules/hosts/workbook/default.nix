@@ -40,52 +40,6 @@ in
     darwin.system.stateVersion = 5;
   };
 
-  perSystem =
-    { pkgs, system, ... }:
-    {
-      checks = lib.optionalAttrs (system == "aarch64-darwin") {
-        # Sources the installed library, so the check runs what direnv will.
-        stacks-script =
-          pkgs.runCommand "stacks-script"
-            {
-              nativeBuildInputs = [ pkgs.bash ];
-              script = hm.xdg.configFile."direnv/lib/stacks.sh".source;
-            }
-            ''
-              set -eu
-              PATH_add() { PATH="$1:$PATH"; }
-              source "$script"
-
-              fail() { echo "FAIL: $*" >&2; exit 1; }
-              on_path() { [[ "$(command -v "$1")" == /nix/store/* ]] || fail "$1 not on PATH"; }
-
-              (
-                use_stack jvm
-                for t in java sbt mvn gradle metals; do on_path "$t"; done
-                [ -x "$JAVA_HOME/bin/java" ] || fail "JAVA_HOME=$JAVA_HOME"
-              )
-              (
-                use_stack node
-                for t in node npm; do on_path "$t"; done
-                [ "$NPM_CONFIG_REGISTRY" = "https://npm.dev.wixpress.com/api/npm/npm-repos/" ] \
-                  || fail "NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY"
-                [ -z "''${NPM_CONFIG_PREFIX:-}" ] || fail "npm prefix set"
-              )
-              (
-                use_stack jvm node
-                for t in java sbt node npm; do on_path "$t"; done
-                [ -x "$JAVA_HOME/bin/java" ] || fail "JAVA_HOME=$JAVA_HOME"
-                [ -n "''${NPM_CONFIG_REGISTRY:-}" ] || fail "no npm registry"
-              )
-              for args in nope ""; do
-                if err=$(use_stack $args 2>&1 >/dev/null); then fail "use_stack $args succeeded"; fi
-                [[ "$err" == *jvm* && "$err" == *node* ]] || fail "message: $err"
-              done
-              touch $out
-            '';
-      };
-    };
-
   evalTests = {
     cli-fish = {
       expr = {
