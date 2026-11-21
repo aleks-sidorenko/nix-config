@@ -197,7 +197,7 @@ root like hosts. A stack takes `settings` like a host, and aspects take it as
 
 Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
 and `infra.state`. Their `terranix` bodies, and those of the provider aspects
-they include (`infra.cloudflare`), are collected per stack into
+they include (`infra.cloudflare`, `infra.tailscale`), are collected per stack into
 `flake.terranixModules.<name>` and rendered by terranix's flake module:
 `packages.<system>.<name>` runs `tofu apply`, with `.plan`, `.destroy`,
 `.init`, `.config` (the rendered `config.tf.json`) and `.terraform` (the
@@ -212,6 +212,11 @@ decrypts every secret the stack's bodies declare in `_meta.secrets`
 block (pbkdf2 + aes_gcm) that JSON can't express. `infra.state` declares the
 passphrase variable and secret. `checks.<system>.infra-<name>` fails on an
 `import` whose target is not a resource of the stack.
+
+A stack learns about hosts through quirks, never by reading evaluated host
+configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
+contributes from each host's `tags` setting, with a `pipe.collectAll` policy
+on the stack entity (included from the stack aspect it would not fire).
 
 ## Deploys
 

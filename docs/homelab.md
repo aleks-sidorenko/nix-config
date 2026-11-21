@@ -77,6 +77,15 @@ tagged node, so the host advertises its `services.tailscale.tags` setting
 (`tag:server`); a node removed from the tailnet rejoins at the next boot.
 Darwin hosts join the same way through a launchd daemon.
 
+The tailnet ACL is the `tailnet` stack (`modules/infra/tailnet.nix`,
+`just infra-apply tailnet`). Its tags are every host's
+`services.tailscale.tags`, each owned by `tag:registrar`, the OAuth client's
+tag. Servers (`tag:server`) are reachable from the other tags on 22, 80, 443
+and 25565 only; the other tags reach each other on every port, and SSH reaches
+every tag. Removing a tag from den drops it from the ACL, so first re-advertise
+the live node without it (`tailscale up --advertise-tags=…`), then apply: no
+device may hold a tag the ACL no longer owns.
+
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
 (41641/UDP), and on the tailnet for 80 and 443.

@@ -1,0 +1,37 @@
+{
+  "provider": {
+    "tailscale": {
+      "oauth_client_id": "${var.tailscale_oauth_client_id}",
+      "oauth_client_secret": "${var.tailscale_oauth_client_secret}",
+      "tailnet": "colobus-bramble.ts.net"
+    }
+  },
+  "resource": {
+    "tailscale_acl": {
+      "this": {
+        "acl": "{\"acls\":[{\"action\":\"accept\",\"dst\":[\"tag:server:22\",\"tag:server:80\",\"tag:server:443\",\"tag:server:25565\"],\"src\":[\"tag:work\",\"autogroup:member\"]},{\"action\":\"accept\",\"dst\":[\"tag:work:*\"],\"src\":[\"tag:work\",\"autogroup:member\"]}],\"ssh\":[{\"action\":\"accept\",\"dst\":[\"tag:server\",\"tag:work\"],\"src\":[\"tag:work\",\"autogroup:member\"],\"users\":[\"autogroup:nonroot\",\"root\"]}],\"tagOwners\":{\"tag:registrar\":[\"autogroup:admin\"],\"tag:server\":[\"autogroup:admin\",\"tag:registrar\"],\"tag:work\":[\"autogroup:admin\",\"tag:registrar\"]}}"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "tailscale": {
+        "source": "tailscale/tailscale",
+        "version": "~> 0.17"
+      }
+    }
+  },
+  "variable": {
+    "state_passphrase": {
+      "sensitive": true,
+      "type": "string"
+    },
+    "tailscale_oauth_client_id": {
+      "type": "string"
+    },
+    "tailscale_oauth_client_secret": {
+      "sensitive": true,
+      "type": "string"
+    }
+  }
+}

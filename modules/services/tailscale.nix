@@ -30,6 +30,8 @@ in
       description = "ACL tags the host advertises when it joins the tailnet.";
     };
 
+    tailnet-tags = { host, ... }: host.settings.services.tailscale.tags;
+
     persist.directories = [ "/var/lib/tailscale" ];
     installChecks = [ ''machine.succeed("systemctl is-active tailscaled.service")'' ];
 

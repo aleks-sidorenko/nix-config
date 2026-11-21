@@ -126,7 +126,7 @@ it, never write the path.
   excludes admits policyEnforcement provides policies into classes _module _`,
   anything starting `__`, `settings`, `stack`, any class (`nixos darwin
   homeManager os user hjem maid wsl terranix`), any quirk
-  (`persist installChecks vhosts backup`). Declaring a new
+  (`persist installChecks vhosts backup tailnet-tags`). Declaring a new
   quirk or class reserves its name too.
 - Include named aspects (`den.aspects.system.nix`), never inline modules in
   `includes`.
@@ -246,6 +246,9 @@ Stage new files (`git add`) before `just check`.
    `den.aspects.infra.<stack>` with a `terranix` body (`{ stack, ... }:` to
    read `stack.name` or `stack.settings`), including the provider aspects it
    uses. A stack name is never a host name: both are `packages` names.
+   A stack reading host facts collects a quirk with a pipe policy in
+   `den.stacks.<stack>.includes`, not the stack aspect's: there it never
+   fires (`tailnet-tags` in `modules/infra/tailnet.nix`).
 2. A new provider is an aspect `modules/infra/<provider>.nix` with the
    provider block, its variables and each credential as
    `_meta.secrets.TF_VAR_<var> = { file = "infra/secrets.yaml"; key = "…"; };`.

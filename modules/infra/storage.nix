@@ -29,7 +29,10 @@
   evalTests = {
     infra-stacks = {
       expr = lib.attrNames config.den.stacks;
-      expected = [ "storage" ];
+      expected = [
+        "storage"
+        "tailnet"
+      ];
     };
     infra-storage-parity = {
       expr = config.infraStacks.storage.config;
