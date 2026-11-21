@@ -32,9 +32,9 @@ in
   den.aspects.workbook = {
     includes = [
       den.aspects.roles.workstation
+      # The employer's: its VPN and secrets CLI, not every workstation's.
       den.aspects.services.openvpn
       den.aspects.dev.akeyless
-      den.aspects.dev.stacks
     ];
     # darwin's own integer release, apart from the string `stateVersion` homes read.
     darwin.system.stateVersion = 5;

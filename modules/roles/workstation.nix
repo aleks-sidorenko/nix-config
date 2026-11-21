@@ -37,6 +37,7 @@
     den.aspects.dev.claude-code
     den.aspects.dev.idea
     den.aspects.dev.projects
+    den.aspects.dev.stacks
     den.aspects.dev.k8s
     den.aspects.dev.containers
     den.aspects.dev.xcode
