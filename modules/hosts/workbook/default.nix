@@ -8,12 +8,14 @@
 let
   w = config.flake.darwinConfigurations.workbook.config;
   hm = w.home-manager.users.oleksandrsy;
+  me = den.hosts.aarch64-darwin.workbook.users.alexander.identity;
   # nix-darwin lists every defaults key, null when unset.
   set = lib.filterAttrs (_: v: v != null);
 in
 {
   den.hosts.aarch64-darwin.workbook = {
-    users.oleksandrsy.identity = "alexander";
+    # The org names the account; the person is the same.
+    users.alexander.userName = "oleksandrsy";
     stateVersion = "25.05";
     settings = {
       # Work VPN, specific to this host.
@@ -241,9 +243,7 @@ in
       expr = {
         key = lib.hasPrefix "key::" hm.programs.git.signing.key;
         inherit (hm.programs.git.signing) signByDefault;
-        signer =
-          lib.hasPrefix (builtins.fromJSON (builtins.readFile ../../../identities/alexander/git.json)).email
-            hm.home.file.".ssh/allowed_signers".text;
+        signer = lib.hasPrefix me.git.email hm.home.file.".ssh/allowed_signers".text;
       };
       expected = {
         key = true;
@@ -485,7 +485,7 @@ in
         isHidden = false;
         shell = "fish";
         homeState = "25.05";
-        key = [ (lib.trim (builtins.readFile ../../../identities/alexander/ssh.pub)) ];
+        key = [ me.sshKey ];
       };
     };
     workbook-hostname = {
@@ -681,7 +681,7 @@ in
       expected = {
         enable = true;
         ssh = true;
-        keys = [ (lib.trim (builtins.readFile ../../../identities/alexander/gpg.key-id)) ];
+        keys = [ me.gpgKeyId ];
         sock = "$(gpgconf --list-dirs agent-ssh-socket)";
       };
     };
@@ -700,7 +700,7 @@ in
         enable = true;
         user = "alexander";
         agent = "no";
-        pub = ../../../identities/alexander/ssh.pub;
+        pub = me.sshKeyFile;
       };
     };
     workbook-secrets = {

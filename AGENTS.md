@@ -104,7 +104,8 @@ it, never write the path.
 
 ## Naming
 
-- `den.aspects` top level holds only hosts, users and categories.
+- `den.aspects` top level holds only hosts, users (`<user>@<host>` for one
+  host's account) and categories.
   Categories: `system`, `storage`, `security`, `services`, `hardware`,
   `roles`, `cli` (a terminal tool), `dev` (working on code), `gui` (a GUI
   app). A category names a concern, never a platform; a platform-only aspect
@@ -208,6 +209,10 @@ Stage new files (`git add`) before `just check`.
 1. `den.hosts.<system>.<host>.users.<user> = { };` in the host module.
 2. `modules/users/<user>.nix`: `den.aspects.<user>.includes = [ … ];`
    (`den.batteries.primary-user`, `den.batteries.user-shell "fish"`, …).
+   A user is a person: the same person under another account name on one
+   host is `users.<user>.userName = "…"` there, not a second user, and what
+   only that host's account needs goes in `den.aspects."<user>@<host>"` in
+   the same file (`modules/users/alexander.nix`).
 3. Public keys in `identities/<user>/`; the password hash as
    `user-<user>-password` in `secrets/nixos.yaml` (`sops secrets/nixos.yaml`).
 4. Eval test beside the user (groups, shell, key).
