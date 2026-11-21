@@ -124,8 +124,8 @@ in
     cli-nvim = {
       expr = {
         on = hm.programs.nix-nvim.enable;
-        haskell = hm.programs.nix-nvim.development.haskell.enable;
-        typescript = hm.programs.nix-nvim.development.typescript.enable;
+        haskell = hm.programs.nix-nvim.dev.haskell.enable;
+        typescript = hm.programs.nix-nvim.dev.typescript.enable;
       };
       expected = {
         on = true;

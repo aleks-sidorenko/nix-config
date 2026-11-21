@@ -418,11 +418,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793875060,
-        "narHash": "sha256-VuXKDR7gIC3an84+kb92ZIrVnvlsZmwlNASCVxLYXxw=",
+        "lastModified": 1795295357,
+        "narHash": "sha256-pCmPhbWsRSye3JHFH0+y4KoINr38tlPZBuqZxhIYQGI=",
         "owner": "aleks-sidorenko",
         "repo": "nix-nvim",
-        "rev": "ec2a141b6ad2cb51c1e033f6b6debe122d94972e",
+        "rev": "49023f4b62546be168ea726d661790a65855fb29",
         "type": "github"
       },
       "original": {

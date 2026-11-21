@@ -20,7 +20,7 @@
       programs.nix-nvim = {
         enable = true;
         theme = "catppuccin";
-        development.typescript.enable = true;
+        dev.typescript.enable = true;
         ai.claude-code.enable = true;
         # The CLI is installed separately; nixvim would otherwise build its own copy.
         extraConfig.dependencies.claude-code.enable = false;
