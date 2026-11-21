@@ -9,7 +9,7 @@ let
   stacksCheck =
     pkgs: name: host:
     let
-      inherit (host.settings.dev.stacks) npmRegistry;
+      inherit (host.settings.dev.stacks.node) npmRegistry;
       home =
         config.flake."${host.class}Configurations".${name}.config.home-manager.users.${host.primaryUser};
       registry =
@@ -73,7 +73,7 @@ in
       den.aspects.dev.git
     ];
 
-    settings.npmRegistry = lib.mkOption {
+    settings.node.npmRegistry = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = "npm registry the node stack exports; null keeps the public one.";
@@ -82,7 +82,7 @@ in
     homeManager =
       { host, pkgs, ... }:
       let
-        inherit (host.settings.dev.stacks) npmRegistry;
+        inherit (host.settings.dev.stacks.node) npmRegistry;
 
         stacks = {
           jvm = {

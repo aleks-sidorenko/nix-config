@@ -5,15 +5,28 @@ in
 {
   den.aspects.system.networking = {
     settings = {
-      lanDomain = lib.mkOption {
-        type = types.str;
-        default = "lan";
-        description = "Local network domain.";
-      };
-      tailnetDomain = lib.mkOption {
-        type = types.str;
-        default = "colobus-bramble.ts.net";
-        description = "Tailnet MagicDNS domain.";
+      domains = lib.mkOption {
+        type = types.submodule {
+          options = {
+            lan = lib.mkOption {
+              type = types.str;
+              default = "lan";
+              description = "Local network domain.";
+            };
+            tailnet = lib.mkOption {
+              type = types.str;
+              default = "colobus-bramble.ts.net";
+              description = "Tailnet MagicDNS domain.";
+            };
+            public = lib.mkOption {
+              type = types.str;
+              default = "home.sidorenko.me";
+              description = "Public DNS zone the proxied services are named under, as `<name>.<public>`.";
+            };
+          };
+        };
+        default = { };
+        description = "The networks' DNS domains.";
       };
       knownNetworkServices = lib.mkOption {
         type = types.listOf types.str;
@@ -30,7 +43,7 @@ in
     darwin =
       { host, ... }:
       let
-        inherit (host.settings.system.networking) lanDomain tailnetDomain knownNetworkServices;
+        inherit (host.settings.system.networking) domains knownNetworkServices;
       in
       {
         networking = {
@@ -40,8 +53,8 @@ in
             "8.8.8.8"
           ];
           search = [
-            tailnetDomain
-            lanDomain
+            domains.tailnet
+            domains.lan
           ];
         };
       };

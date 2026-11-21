@@ -27,7 +27,7 @@ in
         "ThinkPad TBT 3 Dock"
         "Thunderbolt Bridge"
       ];
-      dev.stacks.npmRegistry = "https://npm.dev.wixpress.com/api/npm/npm-repos/";
+      dev.stacks.node.npmRegistry = "https://npm.dev.wixpress.com/api/npm/npm-repos/";
     };
   };
 

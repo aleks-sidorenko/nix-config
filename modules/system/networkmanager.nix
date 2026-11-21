@@ -12,15 +12,15 @@
     nixos =
       { host, ... }:
       let
-        inherit (host.settings.system.networking) lanDomain tailnetDomain;
+        inherit (host.settings.system.networking) domains;
       in
       {
         networking = {
           networkmanager.enable = true;
-          domain = lanDomain;
+          domain = domains.lan;
           search = [
-            tailnetDomain
-            lanDomain
+            domains.tailnet
+            domains.lan
           ];
         };
 
