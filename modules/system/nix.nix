@@ -1,4 +1,9 @@
 { lib, ... }:
+let
+  # nix.gc would prune by age alone; nh keeps the last generations whatever
+  # their age, so a fallback generation survives.
+  cleanArgs = "--keep-since 7d --keep 5";
+in
 {
   den.aspects.system.nix = {
     os =
@@ -14,6 +19,8 @@
               "flakes"
             ];
             warn-dirty = false;
+            # Plus each platform's admin group.
+            trusted-users = lib.mkBefore [ "root" ];
             substituters = [
               "https://cache.nixos.org/"
               "https://nix-community.cachix.org"
@@ -33,21 +40,16 @@
         # corrupts the store on darwin, so NixOS only
         settings = {
           auto-optimise-store = true;
-          trusted-users = [
-            "root"
-            "@wheel"
-          ];
+          trusted-users = [ "@wheel" ];
           use-xdg-base-directories = true;
         };
       };
 
-      # nix.gc would prune by age alone; nh keeps the last generations whatever
-      # their age, so a fallback generation survives.
       programs.nh = {
         enable = true;
         clean = {
           enable = true;
-          extraArgs = "--keep-since 7d --keep 5";
+          extraArgs = cleanArgs;
         };
       };
     };
@@ -56,17 +58,14 @@
       { config, pkgs, ... }:
       {
         # Admins are `admin` on macOS; `wheel` holds only root.
-        nix.settings.trusted-users = [
-          "root"
-          "@admin"
-        ];
+        nix.settings.trusted-users = [ "@admin" ];
 
-        # nix-darwin has no programs.nh; same retention as NixOS, run weekly.
+        # nix-darwin has no programs.nh; run weekly like NixOS.
         environment.systemPackages = [ pkgs.nh ];
         launchd.daemons.nh-clean = {
           # `command` waits for the store volume; nh shells out to `nix`,
           # which launchd's default PATH lacks.
-          command = "${lib.getExe pkgs.nh} clean all --keep-since 7d --keep 5";
+          command = "${lib.getExe pkgs.nh} clean all ${cleanArgs}";
           path = [ config.nix.package ];
           serviceConfig.StartCalendarInterval = [
             {
