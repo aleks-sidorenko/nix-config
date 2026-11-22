@@ -92,6 +92,7 @@ without breaking another.
 | A per-project toolchain | stack | an entry in `dev.stacks` (`modules/dev/stacks.nix`), used from a project's `.envrc` with `use_stack <name>`; never a global package or variable. A launcher that runs the version the project pins (bazelisk, `dev.bazel`) may be global |
 | A per-person fact (keys, name, email, GitHub accounts) | identity data | files in `identities/<id>/`, loaded once by the `identity` user option (`modules/den.nix`, defaults to the user's name); aspects read `user.identity.sshKey`, `.git.email`, … and never the folder |
 | Cloud/API resources | infra stack | `den.stacks.<name>` + `den.aspects.infra.<name>` in `modules/infra/<name>.nix` |
+| A stack's state, provider lock and own secrets | stack data | `infra/<stack>/` (`terraform.tfstate`, `.terraform.lock.hcl`, `secrets.yaml`; shared provider secrets in `infra/secrets.yaml`), written by OpenTofu or sops, never config: like `secrets/`, it is repo data the stack reads by path |
 | A stack's credentials | `_meta.secrets` | in the provider's `terranix` body, e.g. `modules/infra/cloudflare.nix` |
 | Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts); recipients in `.sops.yaml` |
 
