@@ -113,8 +113,9 @@ The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 ## Backups
 
 restic backs each `home-server` host up every night at 03:00 (with up to
-30 minutes' random delay) to its own repository in the R2 bucket `backups` (managed by the `storage` stack,
-`just infra-plan storage`), at `backups/<host>`. A night the host is off is skipped, not run at boot.
+30 minutes' random delay) to its own repository in the R2 bucket `backups`
+(managed by the `storage` stack, `just infra-plan storage`), at
+`backups/<host>`. A night the host is off is skipped, not run at boot.
 
 - **What**: `/home`, `/root`, the whole `/persist`, and the Calibre library.
   The rest of `/data` can be fetched again and is not backed up. Jellyfin's
