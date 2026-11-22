@@ -40,8 +40,12 @@ without breaking another.
   (`import ./_arr.nix { inherit den; }`). Never `import ../…`: when a second
   folder needs a helper, the module that owns it publishes it as a
   read-only option and readers take it from `config`. The
-  `naming-imports-stay-in-folder` eval test enforces this. Reading repo data
-  outside `modules/` by path (`identities/`, `secrets/`) is fine.
+  `naming-imports-stay-in-folder` eval test enforces this.
+- **Config in `modules/`, data outside it.** Top-level folders hold data
+  that modules read by path and that tools write, never Nix config:
+  `identities/` (per-person facts), `secrets/` (host secrets, sops),
+  `infra/` (stack state, provider locks and stack secrets, written by
+  OpenTofu and sops).
 - **Pick the mechanism by what is shared**, from the table below (den's
   [choosing a mechanism](https://den.denful.dev/explanation/choosing-a-mechanism/)).
 - **Write each fact once.** Near-identical aspects come from one `_`
@@ -92,9 +96,9 @@ without breaking another.
 | A per-project toolchain | stack | an entry in `dev.stacks` (`modules/dev/stacks.nix`), used from a project's `.envrc` with `use_stack <name>`; never a global package or variable. A launcher that runs the version the project pins (bazelisk, `dev.bazel`) may be global |
 | A per-person fact (keys, name, email, GitHub accounts) | identity data | files in `identities/<id>/`, loaded once by the `identity` user option (`modules/den.nix`, defaults to the user's name); aspects read `user.identity.sshKey`, `.git.email`, … and never the folder |
 | Cloud/API resources | infra stack | `den.stacks.<name>` + `den.aspects.infra.<name>` in `modules/infra/<name>.nix` |
-| A stack's state, provider lock and own secrets | stack data | `infra/<stack>/` (`terraform.tfstate`, `.terraform.lock.hcl`, `secrets.yaml`; shared provider secrets in `infra/secrets.yaml`), written by OpenTofu or sops, never config: like `secrets/`, it is repo data the stack reads by path |
+| A stack's state and provider lock | stack data | `infra/<stack>/terraform.tfstate`, `.terraform.lock.hcl`; written by OpenTofu, committed |
 | A stack's credentials | `_meta.secrets` | in the provider's `terranix` body, e.g. `modules/infra/cloudflare.nix` |
-| Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts); recipients in `.sops.yaml` |
+| Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts), `infra/secrets.yaml` (shared provider credentials), `infra/<stack>/secrets.yaml` (a stack's own); recipients in `.sops.yaml` |
 
 An aspect in `den.schema.<kind>.includes` reaches the host, but its
 `homeManager` body does not reach users: only aspects in the host's include
