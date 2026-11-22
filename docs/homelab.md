@@ -60,8 +60,8 @@ publishes nothing, since it would claim every name `server` does.
 
 Evaluation fails when two hosts publish the same name (DNS would round-robin
 between them) or one host publishes a name twice. The plan fails when two
-tailnet devices share a hostname (remove the stale one with
-`just tailnet-revoke`) or a publishing host is not on the tailnet, rather
+tailnet devices share a hostname (remove the stale one in the admin
+console) or a publishing host is not on the tailnet, rather
 than planning its records away.
 
 ## Storage
@@ -101,10 +101,9 @@ the live node without it (`tailscale up --advertise-tags=…`), then apply: no
 device may hold a tag the ACL no longer owns.
 
 A reinstalled guest registers a new node and leaves the old one behind, which
-trips the dns stack's ambiguous-hostname guard. `just tailnet-revoke <host>`
-lists the devices with that hostname (a dry run); add `--apply` to delete them
-after typing the hostname. It reads `infra/secrets.yaml`, and the OAuth client
-needs the `devices:core` write scope.
+trips the dns stack's ambiguous-hostname guard. Remove the old node in the
+Tailscale admin console (Machines): the stacks' OAuth client deliberately has
+no `devices:core` write scope, so nothing here can delete devices.
 
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale

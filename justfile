@@ -93,7 +93,3 @@ infra-destroy stack *args:
 # Edit a stack's secrets, or the provider credentials stacks share when omitted
 infra-secrets-edit stack="":
     {{ run }} sops infra/{{ if stack == "" { "" } else { stack + "/" } }}secrets.yaml
-
-# Delete a host's stale devices from the tailnet (dry run unless `--apply` is passed); needs infra secrets
-tailnet-revoke host *args:
-    nix run .#tailnet-revoke -- {{ host }} {{ args }}

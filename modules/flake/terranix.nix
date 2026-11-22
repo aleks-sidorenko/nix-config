@@ -91,13 +91,6 @@ in
       readOnly = true;
       description = "Each stack's evaluated terranix configuration, as `{ config; meta; }`.";
     };
-
-    # Published for scripts outside the wrapper that use a stack's credentials.
-    infraSecretsScript = lib.mkOption {
-      type = lib.types.functionTo lib.types.str;
-      readOnly = true;
-      description = "Shell that exports each `_meta.secrets` entry (`{ <ENV> = { file; key; }; }`), decrypted from the repo root; needs git and sops.";
-    };
   };
 
   config = {
@@ -159,8 +152,6 @@ in
 
       schema.flake.includes = [ den.policies.to-stacks ];
     };
-
-    infraSecretsScript = secretsScript;
 
     infraStacks = lib.mapAttrs (
       name: _:

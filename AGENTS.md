@@ -338,7 +338,6 @@ just infra-show <stack>          # rendered config.tf.json
 just infra-validate [stack]      # tofu validate; every stack when omitted (needs secrets)
 just infra-plan <stack> [args]   # also infra-apply, infra-destroy
 just infra-secrets-edit [stack]  # sops on infra/<stack>/secrets.yaml, or infra/secrets.yaml
-just tailnet-revoke <host> [--apply]  # delete a host's stale tailnet node; dry run without --apply
 nix run .#<host> -- switch   # nh wrapper per host
 ```
 

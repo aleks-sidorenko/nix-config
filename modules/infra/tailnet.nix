@@ -13,12 +13,6 @@ let
   registrarTag = "tag:registrar";
   serverTag = "tag:server";
 
-  revokeSecrets = config.infraSecretsScript (
-    lib.filterAttrs (
-      var: _: lib.hasPrefix "TF_VAR_tailscale_" var
-    ) config.infraStacks.tailnet.meta.secrets
-  );
-
   # A server is reached on the ports it serves and nothing else. This is the
   # layer that actually constrains tailnet peers: the daemon accepts its
   # interface's traffic in INPUT ahead of the host firewall's own chain, so a
@@ -127,27 +121,6 @@ in
         };
     };
   };
-
-  # Defined with the stack, not under packages/: it runs on the tailscale
-  # provider's credentials, decrypted the same way the wrapper does.
-  perSystem =
-    { config, pkgs, ... }:
-    {
-      # Builds it, so shellcheck runs in `just check`.
-      checks.infra-tailnet-revoke = config.packages.tailnet-revoke;
-      packages.tailnet-revoke = pkgs.writeShellApplication {
-        name = "tailnet-revoke";
-        runtimeInputs = [
-          pkgs.coreutils
-          pkgs.curl
-          pkgs.git
-          pkgs.jq
-          pkgs.sops
-        ];
-        text = revokeSecrets + builtins.readFile ./_tailnet-revoke.sh;
-        meta.description = "Delete a host's stale devices from the tailnet";
-      };
-    };
 
   evalTests = {
     infra-tailnet-parity = {
