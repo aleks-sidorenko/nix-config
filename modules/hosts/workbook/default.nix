@@ -20,7 +20,7 @@ in
     settings = {
       # Work VPN, specific to this host.
       services.openvpn.connections.kpi.profileSecret = "system-vpn-kpi-profile";
-      services.tailscale.tags = [ "tag:work" ];
+      services.tailscale.tags = [ "tag:workstation" ];
       system.networking.knownNetworkServices = [
         "Wi-Fi"
         "USB 10/100/1000 LAN"
@@ -582,7 +582,7 @@ in
           retries = serviceConfig.KeepAlive.SuccessfulExit;
           readsKey = lib.hasInfix w.sops.secrets.system-tailscale-auth-key.path script;
           preauthorized = lib.hasInfix "preauthorized=true" script;
-          tags = lib.hasInfix "'--advertise-tags=tag:work'" script;
+          tags = lib.hasInfix "'--advertise-tags=tag:workstation'" script;
         };
       expected = {
         on = true;

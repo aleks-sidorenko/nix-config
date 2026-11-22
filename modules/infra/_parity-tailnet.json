@@ -9,7 +9,7 @@
   "resource": {
     "tailscale_acl": {
       "this": {
-        "acl": "{\"acls\":[{\"action\":\"accept\",\"dst\":[\"tag:server:22\",\"tag:server:80\",\"tag:server:443\",\"tag:server:25565\"],\"src\":[\"tag:work\",\"autogroup:member\"]},{\"action\":\"accept\",\"dst\":[\"tag:work:*\"],\"src\":[\"tag:work\",\"autogroup:member\"]}],\"ssh\":[{\"action\":\"accept\",\"dst\":[\"tag:server\",\"tag:work\"],\"src\":[\"tag:work\",\"autogroup:member\"],\"users\":[\"autogroup:nonroot\",\"root\"]}],\"tagOwners\":{\"tag:registrar\":[\"autogroup:admin\"],\"tag:server\":[\"autogroup:admin\",\"tag:registrar\"],\"tag:work\":[\"autogroup:admin\",\"tag:registrar\"]}}"
+        "acl": "{\"acls\":[{\"action\":\"accept\",\"dst\":[\"tag:server:22\",\"tag:server:80\",\"tag:server:443\",\"tag:server:25565\"],\"src\":[\"tag:workstation\",\"autogroup:member\"]},{\"action\":\"accept\",\"dst\":[\"tag:workstation:*\"],\"src\":[\"tag:workstation\",\"autogroup:member\"]}],\"ssh\":[{\"action\":\"accept\",\"dst\":[\"tag:server\",\"tag:workstation\"],\"src\":[\"tag:workstation\",\"autogroup:member\"],\"users\":[\"autogroup:nonroot\",\"root\"]}],\"tagOwners\":{\"tag:registrar\":[\"autogroup:admin\"],\"tag:server\":[\"autogroup:admin\",\"tag:registrar\"],\"tag:workstation\":[\"autogroup:admin\",\"tag:registrar\"]}}"
       }
     }
   },

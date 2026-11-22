@@ -137,7 +137,7 @@ in
       expected = [
         "tag:registrar"
         "tag:server"
-        "tag:work"
+        "tag:workstation"
       ];
     };
     infra-tailnet-secrets = {
