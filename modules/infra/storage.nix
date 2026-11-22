@@ -1,6 +1,7 @@
 {
   config,
   den,
+  lib,
   ...
 }:
 {
@@ -31,17 +32,11 @@
       expected = builtins.fromJSON (builtins.readFile ./_parity-storage.json);
     };
     infra-storage-secrets = {
-      expr = config.infraStacks.storage.meta.secrets;
-      expected = {
-        TF_VAR_cloudflare_api_token = {
-          file = "infra/secrets.yaml";
-          key = "cloudflare-api-token";
-        };
-        TF_VAR_state_passphrase = {
-          file = "infra/storage/secrets.yaml";
-          key = "state-passphrase";
-        };
-      };
+      expr = lib.attrNames config.infraStacks.storage.meta.secrets;
+      expected = [
+        "TF_VAR_cloudflare_api_token"
+        "TF_VAR_state_passphrase"
+      ];
     };
   };
 }

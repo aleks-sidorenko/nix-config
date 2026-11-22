@@ -1,4 +1,10 @@
-{ lib, ... }:
+{ config, lib, ... }:
+let
+  secrets.TF_VAR_cloudflare_api_token = {
+    file = import ./_secrets.nix;
+    key = "cloudflare-api-token";
+  };
+in
 {
   den.aspects.infra.cloudflare = {
     settings.accountId = lib.mkOption {
@@ -21,10 +27,23 @@
       provider.cloudflare.api_token = "\${var.cloudflare_api_token}";
 
       # Shared by every stack that manages the account, so stored once.
-      _meta.secrets.TF_VAR_cloudflare_api_token = {
-        file = "infra/secrets.yaml";
-        key = "cloudflare-api-token";
-      };
+      _meta = { inherit secrets; };
     };
+  };
+
+  evalTests.infra-cloudflare-secrets = {
+    expr = lib.unique (
+      lib.mapAttrsToList (_: stack: lib.intersectAttrs secrets stack.meta.secrets) (
+        lib.filterAttrs (_: stack: stack.meta.secrets ? TF_VAR_cloudflare_api_token) config.infraStacks
+      )
+    );
+    expected = [
+      {
+        TF_VAR_cloudflare_api_token = {
+          file = "infra/secrets.yaml";
+          key = "cloudflare-api-token";
+        };
+      }
+    ];
   };
 }

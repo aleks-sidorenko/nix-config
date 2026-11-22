@@ -1,9 +1,9 @@
 # Delete a host's devices from the tailnet.
 # Usage: tailnet-revoke <host> [--dry-run|--apply]
 #
-# Authenticates with the OAuth client the infra stacks share (infra/secrets.yaml,
-# read relative to the cwd). Deleting needs its devices:core write scope; a 403
-# means the client lacks it.
+# Authenticates with the tailscale provider's OAuth client, exported by the
+# prelude the package prepends. Deleting needs its devices:core write scope; a
+# 403 means the client lacks it.
 
 log_info() { echo "[INFO] $1" >&2; }
 log_success() { echo "[SUCCESS] $1" >&2; }
@@ -27,7 +27,6 @@ fi
 
 host="$1"
 mode="${2:---dry-run}"
-secrets="infra/secrets.yaml"
 api="https://api.tailscale.com/api/v2"
 
 case "$mode" in
@@ -38,12 +37,8 @@ case "$mode" in
     ;;
 esac
 
-secret() {
-    sops --decrypt --extract "[\"$1\"]" "$secrets"
-}
-
 # Pass credentials via stdin and headers to keep them out of argv/ps
-token=$(printf 'client_id=%s&client_secret=%s' "$(secret tailscale-oauth-client-id)" "$(secret tailscale-oauth-client-secret)" |
+token=$(printf 'client_id=%s&client_secret=%s' "$TF_VAR_tailscale_oauth_client_id" "$TF_VAR_tailscale_oauth_client_secret" |
     curl -fsS "$api/oauth/token" --data @- | jq -er .access_token)
 
 auth_header() {
@@ -77,7 +72,7 @@ for id in $(jq -r '.[].id' <<<"$devices"); do
     case "$status" in
     200) log_success "Deleted device $id" ;;
     403)
-        log_error "Forbidden deleting $id: the OAuth client in $secrets lacks the devices:core write scope"
+        log_error "Forbidden deleting $id: the OAuth client lacks the devices:core write scope"
         exit 1
         ;;
     *)

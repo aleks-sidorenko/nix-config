@@ -30,10 +30,10 @@ let
       }
     '';
 
-  # Runs inside the wrapper, after it has cd'd into the workdir; secrets files
-  # resolve against the repo root, not the directory the wrapper was started from.
-  prefixText =
-    pkgs: name:
+  # Secrets files resolve against the repo root, not the directory the script
+  # was started from (the wrapper has already cd'd into the workdir).
+  secretsScript =
+    secrets:
     ''
       root=$(git rev-parse --show-toplevel 2>/dev/null) || {
         echo "infra: run from inside the repository" >&2
@@ -48,8 +48,12 @@ let
         ''
           ${var}=$(sops -d --extract '["${secret.key}"]' "$root/${secret.file}")
           export ${var}
-        '') config.infraStacks.${name}.meta.secrets
-    )
+        '') secrets
+    );
+
+  prefixText =
+    pkgs: name:
+    secretsScript config.infraStacks.${name}.meta.secrets
     + ''
       cp -f ${encryptionTf pkgs} encryption.tf
     '';
@@ -87,6 +91,13 @@ in
       readOnly = true;
       description = "Each stack's evaluated terranix configuration, as `{ config; meta; }`.";
     };
+
+    # Published for scripts outside the wrapper that use a stack's credentials.
+    infraSecretsScript = lib.mkOption {
+      type = lib.types.functionTo lib.types.str;
+      readOnly = true;
+      description = "Shell that exports each `_meta.secrets` entry (`{ <ENV> = { file; key; }; }`), decrypted from the repo root; needs git and sops.";
+    };
   };
 
   config = {
@@ -111,6 +122,19 @@ in
           default = { };
           description = "Per-stack values for the settings aspects declare, at the aspect's path.";
         };
+        imports = [
+          (
+            { config, ... }:
+            {
+              options.dir = lib.mkOption {
+                type = lib.types.str;
+                default = "infra/${config.name}";
+                readOnly = true;
+                description = "Repo-relative directory holding the stack's state, provider lock and own secrets.";
+              };
+            }
+          )
+        ];
       };
 
       policies = {
@@ -136,6 +160,8 @@ in
       schema.flake.includes = [ den.policies.to-stacks ];
     };
 
+    infraSecretsScript = secretsScript;
+
     infraStacks = lib.mapAttrs (
       name: _:
       let
@@ -158,9 +184,9 @@ in
       {
         terranix = {
           exportDevShells = false;
-          terranixConfigurations = lib.mapAttrs (name: _: {
+          terranixConfigurations = lib.mapAttrs (name: stack: {
             modules = modulesOf name;
-            workdir = "infra/${name}";
+            workdir = stack.dir;
             terraformWrapper = {
               package = pkgs.opentofu;
               extraRuntimeInputs = [

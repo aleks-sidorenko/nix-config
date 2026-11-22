@@ -349,6 +349,11 @@ in
       expr = s.services.tailscale.extraUpFlags;
       expected = [ "--advertise-tags=tag:server" ];
     };
+    # server-vm mirrors server's services; only the deployed host is published.
+    server-publishes-dns-names = {
+      expr = lib.unique (map (r: r.hostname) config.infraStacks.dns.config.locals.service_records);
+      expected = [ "server" ];
+    };
     server-vm-disk-like-server = {
       expr = withoutDevice (declarative sv.disko.devices);
       expected = withoutDevice (declarative s.disko.devices);

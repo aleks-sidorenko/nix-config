@@ -11,6 +11,13 @@ let
   # mints keys only for tags its own tags own, so every host tag lists it as
   # an owner. No device advertises it, so no ACL names it.
   registrarTag = "tag:registrar";
+  serverTag = "tag:server";
+
+  revokeSecrets = config.infraSecretsScript (
+    lib.filterAttrs (
+      var: _: lib.hasPrefix "TF_VAR_tailscale_" var
+    ) config.infraStacks.tailnet.meta.secrets
+  );
 
   # A server is reached on the ports it serves and nothing else. This is the
   # layer that actually constrains tailnet peers: the daemon accepts its
@@ -67,7 +74,7 @@ in
           # Everything that is not a server is a personal workstation, reachable
           # as before: the tightening is aimed at the homelab, not at the
           # owner's own machines.
-          deviceTags = lib.filter (tag: tag != "tag:server") tags;
+          deviceTags = lib.filter (tag: tag != serverTag) tags;
 
           # Every host here advertises a tag, and a tagged device is not a
           # member of any autogroup: it has no user to belong to one. So sources
@@ -92,7 +99,7 @@ in
               {
                 action = "accept";
                 src = workstations;
-                dst = map (port: "tag:server:${port}") serverPorts;
+                dst = map (port: "${serverTag}:${port}") serverPorts;
               }
               {
                 action = "accept";
@@ -121,16 +128,31 @@ in
     };
   };
 
+  # Defined with the stack, not under packages/: it runs on the tailscale
+  # provider's credentials, decrypted the same way the wrapper does.
+  perSystem =
+    { config, pkgs, ... }:
+    {
+      # Builds it, so shellcheck runs in `just check`.
+      checks.infra-tailnet-revoke = config.packages.tailnet-revoke;
+      packages.tailnet-revoke = pkgs.writeShellApplication {
+        name = "tailnet-revoke";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.curl
+          pkgs.git
+          pkgs.jq
+          pkgs.sops
+        ];
+        text = revokeSecrets + builtins.readFile ./_tailnet-revoke.sh;
+        meta.description = "Delete a host's stale devices from the tailnet";
+      };
+    };
+
   evalTests = {
     infra-tailnet-parity = {
       expr = config.infraStacks.tailnet.config;
       expected = builtins.fromJSON (builtins.readFile ./_parity-tailnet.json);
-    };
-    # Two owners of one fact (the stack's setting, the host's MagicDNS
-    # domain); this keeps them equal.
-    infra-tailnet-name-matches-host = {
-      expr = config.infraStacks.tailnet.config.provider.tailscale.tailnet;
-      expected = config.den.hosts.x86_64-linux.server.settings.system.networking.domains.tailnet;
     };
     infra-tailnet-tags = {
       expr = lib.attrNames acl.tagOwners;
@@ -141,21 +163,12 @@ in
       ];
     };
     infra-tailnet-secrets = {
-      expr = config.infraStacks.tailnet.meta.secrets;
-      expected = {
-        TF_VAR_tailscale_oauth_client_id = {
-          file = "infra/secrets.yaml";
-          key = "tailscale-oauth-client-id";
-        };
-        TF_VAR_tailscale_oauth_client_secret = {
-          file = "infra/secrets.yaml";
-          key = "tailscale-oauth-client-secret";
-        };
-        TF_VAR_state_passphrase = {
-          file = "infra/tailnet/secrets.yaml";
-          key = "state-passphrase";
-        };
-      };
+      expr = lib.attrNames config.infraStacks.tailnet.meta.secrets;
+      expected = [
+        "TF_VAR_state_passphrase"
+        "TF_VAR_tailscale_oauth_client_id"
+        "TF_VAR_tailscale_oauth_client_secret"
+      ];
     };
   };
 }

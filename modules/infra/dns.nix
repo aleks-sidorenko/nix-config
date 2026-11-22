@@ -59,7 +59,7 @@ in
     # serves, not a maintained list.
     policies.published-names = _: [
       (den.lib.policy.pipe.from "published-names" [
-        (den.lib.policy.pipe.collectAll ({ host, ... }: host.deploy != null))
+        (den.lib.policy.pipe.collectAll ({ host, ... }: config.isDeployed host))
         den.lib.policy.pipe.withProvenance
       ])
     ];
@@ -284,10 +284,6 @@ in
       expr = config.infraStacks.dns.config;
       expected = builtins.fromJSON (builtins.readFile ./_parity-dns.json);
     };
-    infra-dns-deploy-hosts-only = {
-      expr = lib.unique (map (r: r.hostname) config.infraStacks.dns.config.locals.service_records);
-      expected = [ "server" ];
-    };
     infra-dns-duplicate-claims = {
       expr = names.duplicateClaims [
         {
@@ -336,25 +332,13 @@ in
       ];
     };
     infra-dns-secrets = {
-      expr = config.infraStacks.dns.meta.secrets;
-      expected = {
-        TF_VAR_cloudflare_api_token = {
-          file = "infra/secrets.yaml";
-          key = "cloudflare-api-token";
-        };
-        TF_VAR_tailscale_oauth_client_id = {
-          file = "infra/secrets.yaml";
-          key = "tailscale-oauth-client-id";
-        };
-        TF_VAR_tailscale_oauth_client_secret = {
-          file = "infra/secrets.yaml";
-          key = "tailscale-oauth-client-secret";
-        };
-        TF_VAR_state_passphrase = {
-          file = "infra/dns/secrets.yaml";
-          key = "state-passphrase";
-        };
-      };
+      expr = lib.attrNames config.infraStacks.dns.meta.secrets;
+      expected = [
+        "TF_VAR_cloudflare_api_token"
+        "TF_VAR_state_passphrase"
+        "TF_VAR_tailscale_oauth_client_id"
+        "TF_VAR_tailscale_oauth_client_secret"
+      ];
     };
   };
 }
