@@ -39,6 +39,14 @@ in
       den.aspects.system.networking
     ];
 
+    # Read back from the rendered vhosts, so a record exists for each name
+    # nginx serves and for no other.
+    published-names =
+      { config, ... }:
+      lib.mapAttrsToList (_: vhost: vhost.serverName) (
+        removeAttrs config.services.nginx.virtualHosts [ "_" ]
+      );
+
     # Read back from the rendered vhosts, so each check tests what nginx serves.
     installChecks =
       { config, ... }:

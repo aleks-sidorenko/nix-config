@@ -30,6 +30,7 @@
     infra-stacks = {
       expr = lib.attrNames config.den.stacks;
       expected = [
+        "dns"
         "storage"
         "tailnet"
       ];

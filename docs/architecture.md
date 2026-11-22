@@ -217,6 +217,8 @@ A stack learns about hosts through quirks, never by reading evaluated host
 configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
 contributes from each host's `tags` setting, with a `pipe.collectAll` policy
 on the stack entity (included from the stack aspect it would not fire).
+`dns` collects `published-names`, the FQDNs nginx and Minecraft contribute,
+from hosts with `deploy` only, with provenance for each name's hostname.
 
 ## Deploys
 

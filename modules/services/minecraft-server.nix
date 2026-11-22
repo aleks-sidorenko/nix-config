@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ den, lib, ... }:
 let
   user = "minecraft";
   group = "gaming";
@@ -35,7 +35,11 @@ let
 in
 {
   den.aspects.services.minecraft-server = {
+    # The public domain is a networking setting.
+    includes = [ den.aspects.system.networking ];
+
     persist.directories = [ dataDir ];
+    published-names = { host, ... }: [ "minecraft.${host.settings.system.networking.domains.public}" ];
     installChecks = [ ''machine.wait_for_unit("minecraft-server.service")'' ];
 
     settings = {

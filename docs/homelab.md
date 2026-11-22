@@ -50,6 +50,20 @@ Sites marked "proxy auth" need HTTP basic auth from the `service-ingress-htpassw
 secret: those apps trust every request that reaches them. An unknown `Host`
 gets connection closed (444) instead of the first site.
 
+The records are the `dns` stack (`modules/infra/dns.nix`,
+`just infra-apply dns`), in the `sidorenko.me` zone beside the static site's
+apex, `www` and the mail records. A service gets a record by being included
+on a host with `deploy`: nginx publishes each of its vhosts' names, Minecraft
+publishes `minecraft.<public>`. Each name is an unproxied A record at the
+host's tailnet address, read from the tailnet at plan time. `server-vm`
+publishes nothing, since it would claim every name `server` does.
+
+Evaluation fails when two hosts publish the same name (DNS would round-robin
+between them) or one host publishes a name twice. The plan fails when two
+tailnet devices share a hostname (remove the stale one with
+`just tailnet-revoke`) or a publishing host is not on the tailnet, rather
+than planning its records away.
+
 ## Storage
 
 ```
