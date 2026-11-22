@@ -10,6 +10,11 @@
       lib.mapAttrs (_: map (r: r.hostname)) (lib.groupBy (r: r.name) records)
     );
 
+  # A name outside the zone would be created in the zone as a mangled
+  # record (or rejected by the provider at apply time); the suffix check
+  # includes the dot so `example.com.evil.net` is not mistaken for a member.
+  outsideZone = zone: names: lib.filter (n: !(lib.hasSuffix ".${zone}" n)) names;
+
   # Same shape of bug, one host over: a name declared twice on ONE host slips
   # past duplicateClaims (only one hostname per group, so `unique` collapses
   # it) and reaches the plan as two identical service_records entries, which

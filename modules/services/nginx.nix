@@ -27,6 +27,9 @@ let
 
   duplicateNames =
     vhosts: lib.attrNames (lib.filterAttrs (_: vs: lib.length vs > 1) (lib.groupBy (v: v.name) vhosts));
+
+  # Without the catch-all, which serves no name.
+  served = config: removeAttrs config.services.nginx.virtualHosts [ "_" ];
 in
 {
   den.quirks.vhosts.description = "Services nginx proxies to: { name; port; requiresProxyAuth ? false; proxyWebsockets ? true; clientMaxBodySize ? \"10m\"; locations ? { }; }, served at `<name>.<public>`, the `system.networking.domains.public` setting.";
@@ -43,15 +46,13 @@ in
     # nginx serves and for no other.
     published-names =
       { config, ... }:
-      lib.mapAttrsToList (_: vhost: vhost.serverName) (
-        removeAttrs config.services.nginx.virtualHosts [ "_" ]
-      );
+      lib.mapAttrsToList (_: vhost: vhost.serverName) (served config);
 
     # Read back from the rendered vhosts, so each check tests what nginx serves.
     installChecks =
       { config, ... }:
       lib.mapAttrsToList (_: vhost: checkFor vhost.serverName (vhost.basicAuthFile != null)) (
-        removeAttrs config.services.nginx.virtualHosts [ "_" ]
+        served config
       );
 
     nixos =

@@ -126,6 +126,12 @@ in
       expr = config.infraStacks.tailnet.config;
       expected = builtins.fromJSON (builtins.readFile ./_parity-tailnet.json);
     };
+    # Two owners of one fact (the stack's setting, the host's MagicDNS
+    # domain); this keeps them equal.
+    infra-tailnet-name-matches-host = {
+      expr = config.infraStacks.tailnet.config.provider.tailscale.tailnet;
+      expected = config.den.hosts.x86_64-linux.server.settings.system.networking.domains.tailnet;
+    };
     infra-tailnet-tags = {
       expr = lib.attrNames acl.tagOwners;
       expected = [

@@ -17,9 +17,10 @@ let
   protected = r: r // { lifecycle.prevent_destroy = true; };
 
   guarded =
-    records: result:
+    zone: records: result:
     let
       duplicateClaims = names.duplicateClaims records;
+      outsideZone = names.outsideZone zone (map (r: r.name) records);
       intraHostDuplicates = names.intraHostDuplicates (
         lib.mapAttrsToList (hostname: rs: {
           inherit hostname;
@@ -41,6 +42,8 @@ let
           map (h: "${h.hostname} (${lib.concatStringsSep ", " h.duplicates})") intraHostDuplicates
         )
       }"
+    else if outsideZone != [ ] then
+      throw "infra/dns: published name(s) outside zone ${zone}: ${lib.concatStringsSep ", " outsideZone}"
     else
       result;
 in
@@ -118,7 +121,7 @@ in
         in
         # Checked against every declared (host, name) pair, before the plan's
         # tailnet filter drops hosts that haven't joined yet.
-        guarded serviceRecords {
+        guarded zone serviceRecords {
           # One call listing every device, not one lookup per host: per-host
           # lookups would fail the plan on the provider's terms, with no say in
           # which absences are tolerable. Listing puts that decision in the
@@ -302,6 +305,17 @@ in
           "b"
         ];
       };
+    };
+    infra-dns-outside-zone = {
+      expr = names.outsideZone "example.com" [
+        "a.example.com"
+        "b.other.org"
+        "example.com.evil.net"
+      ];
+      expected = [
+        "b.other.org"
+        "example.com.evil.net"
+      ];
     };
     infra-dns-intra-host-duplicates = {
       expr = names.intraHostDuplicates [

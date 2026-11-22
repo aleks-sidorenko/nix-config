@@ -30,17 +30,23 @@ let
       }
     '';
 
-  # Runs inside the wrapper, after it has cd'd into the workdir, so secrets
-  # files resolve against the directory it was started from.
+  # Runs inside the wrapper, after it has cd'd into the workdir; secrets files
+  # resolve against the repo root, not the directory the wrapper was started from.
   prefixText =
     pkgs: name:
-    lib.concatStrings (
+    ''
+      root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+        echo "infra: run from inside the repository" >&2
+        exit 1
+      }
+    ''
+    + lib.concatStrings (
       lib.mapAttrsToList (
         var: secret:
         # A bare assignment honours `set -e`; `export VAR=$(…)` would export
         # an empty secret when the decrypt fails.
         ''
-          ${var}=$(sops -d --extract '["${secret.key}"]' "$OLDPWD/${secret.file}")
+          ${var}=$(sops -d --extract '["${secret.key}"]' "$root/${secret.file}")
           export ${var}
         '') config.infraStacks.${name}.meta.secrets
     )
@@ -157,7 +163,10 @@ in
             workdir = "infra/${name}";
             terraformWrapper = {
               package = pkgs.opentofu;
-              extraRuntimeInputs = [ pkgs.sops ];
+              extraRuntimeInputs = [
+                pkgs.git
+                pkgs.sops
+              ];
               prefixText = prefixText pkgs name;
             };
           }) stacks;
@@ -167,6 +176,15 @@ in
           name: tf: lib.nameValuePair "infra-${name}" (importCheck pkgs name tf.result.terraformConfiguration)
         ) config.terranix.terranixConfigurations;
       };
+
+    evalTests.infra-stacks = {
+      expr = lib.attrNames stacks;
+      expected = [
+        "dns"
+        "storage"
+        "tailnet"
+      ];
+    };
 
     evalTests.infra-wrapper-fails-on-decrypt =
       let

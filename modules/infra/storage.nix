@@ -1,7 +1,6 @@
 {
   config,
   den,
-  lib,
   ...
 }:
 {
@@ -27,14 +26,6 @@
   };
 
   evalTests = {
-    infra-stacks = {
-      expr = lib.attrNames config.den.stacks;
-      expected = [
-        "dns"
-        "storage"
-        "tailnet"
-      ];
-    };
     infra-storage-parity = {
       expr = config.infraStacks.storage.config;
       expected = builtins.fromJSON (builtins.readFile ./_parity-storage.json);

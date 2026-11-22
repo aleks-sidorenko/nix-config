@@ -216,7 +216,8 @@ passphrase variable and secret. `checks.<system>.infra-<name>` fails on an
 A stack learns about hosts through quirks, never by reading evaluated host
 configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
 contributes from each host's `tags` setting, with a `pipe.collectAll` policy
-on the stack entity (included from the stack aspect it would not fire).
+on the stack entity: collect policies go in `den.stacks.<stack>.includes`;
+included from the stack aspect they do not fire.
 `dns` collects `published-names`, the FQDNs nginx and Minecraft contribute,
 from hosts with `deploy` only, with provenance for each name's hostname.
 
