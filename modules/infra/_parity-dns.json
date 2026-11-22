@@ -1,0 +1,216 @@
+{
+  "data": {
+    "tailscale_devices": {
+      "all": {}
+    }
+  },
+  "import": [
+    {
+      "id": "27e396c48515c243d8545764038b72e2/78ee415e7ac67b2e6d0f65cab4b074d7",
+      "to": "cloudflare_dns_record.apex_a_109"
+    },
+    {
+      "id": "27e396c48515c243d8545764038b72e2/7b01a6de0ced102f13ce90fb745e5afe",
+      "to": "cloudflare_dns_record.www"
+    },
+    {
+      "id": "27e396c48515c243d8545764038b72e2/24a749afbbdb66f7e92d56671e8bd0ea",
+      "to": "cloudflare_dns_record.mx_1"
+    },
+    {
+      "id": "27e396c48515c243d8545764038b72e2/16bb80e482202f260082854f237612f4",
+      "to": "cloudflare_dns_record.mx_2"
+    },
+    {
+      "id": "27e396c48515c243d8545764038b72e2/207b0a514f01808e74cb9a4109a4c7c4",
+      "to": "cloudflare_dns_record.txt_forward_email"
+    }
+  ],
+  "locals": {
+    "ambiguous_hostnames": "${ [for hostname, addrs in local.tailnet_device_addresses : hostname if length(addrs) > 1] }",
+    "service_records": [
+      {
+        "hostname": "server",
+        "name": "calibre.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "jellyfin.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "minidlna.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "prowlarr.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "qbittorrent.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "radarr.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "sonarr.home.sidorenko.me"
+      },
+      {
+        "hostname": "server",
+        "name": "minecraft.home.sidorenko.me"
+      }
+    ],
+    "service_records_by_device": "${ { for r in local.service_records : \"${r.hostname}:${r.name}\" => r if contains(keys(local.tailnet_addresses), r.hostname) } }",
+    "tailnet_addresses": "${ { for hostname, addrs in local.tailnet_device_addresses : hostname => addrs[0] } }",
+    "tailnet_device_addresses": "${ { for d in data.tailscale_devices.all.devices : d.hostname => [for a in d.addresses : a if length(regexall(\"^[0-9.]+$\", a)) > 0][0]... } }",
+    "unresolved_hosts": "${ distinct([for r in local.service_records : r.hostname if !contains(keys(local.tailnet_addresses), r.hostname)]) }"
+  },
+  "provider": {
+    "cloudflare": {
+      "api_token": "${var.cloudflare_api_token}"
+    },
+    "tailscale": {
+      "oauth_client_id": "${var.tailscale_oauth_client_id}",
+      "oauth_client_secret": "${var.tailscale_oauth_client_secret}",
+      "tailnet": "colobus-bramble.ts.net"
+    }
+  },
+  "resource": {
+    "cloudflare_dns_record": {
+      "apex_a_108": {
+        "content": "185.199.108.153",
+        "name": "sidorenko.me",
+        "proxied": true,
+        "ttl": 1,
+        "type": "A",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "apex_a_109": {
+        "content": "185.199.109.153",
+        "name": "sidorenko.me",
+        "proxied": true,
+        "ttl": 1,
+        "type": "A",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "apex_a_110": {
+        "content": "185.199.110.153",
+        "name": "sidorenko.me",
+        "proxied": true,
+        "ttl": 1,
+        "type": "A",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "apex_a_111": {
+        "content": "185.199.111.153",
+        "name": "sidorenko.me",
+        "proxied": true,
+        "ttl": 1,
+        "type": "A",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "mx_1": {
+        "content": "mx1.forwardemail.net",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "name": "sidorenko.me",
+        "priority": 10,
+        "proxied": false,
+        "ttl": 1,
+        "type": "MX",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "mx_2": {
+        "content": "mx2.forwardemail.net",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "name": "sidorenko.me",
+        "priority": 10,
+        "proxied": false,
+        "ttl": 1,
+        "type": "MX",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "svc": {
+        "content": "${local.tailnet_addresses[each.value.hostname]}",
+        "for_each": "${local.service_records_by_device}",
+        "name": "${each.value.name}",
+        "proxied": false,
+        "ttl": 1,
+        "type": "A",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "txt_forward_email": {
+        "content": "\"forward-email=aleks.sidorenko@gmail.com\"",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "name": "sidorenko.me",
+        "proxied": false,
+        "ttl": 1,
+        "type": "TXT",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      },
+      "www": {
+        "content": "aleks-sidorenko.github.io",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "name": "www.sidorenko.me",
+        "proxied": true,
+        "ttl": 1,
+        "type": "CNAME",
+        "zone_id": "27e396c48515c243d8545764038b72e2"
+      }
+    },
+    "terraform_data": {
+      "guard": {
+        "lifecycle": {
+          "precondition": [
+            {
+              "condition": "${length(local.ambiguous_hostnames) == 0}",
+              "error_message": "tailnet hostname claimed by more than one device (delete the stale node): ${join(\", \", local.ambiguous_hostnames)}"
+            },
+            {
+              "condition": "${length(local.unresolved_hosts) == 0}",
+              "error_message": "host declares service names but is not on the tailnet (join it, or disable the services): ${join(\", \", local.unresolved_hosts)}"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "cloudflare": {
+        "source": "cloudflare/cloudflare",
+        "version": "~> 5.20"
+      },
+      "tailscale": {
+        "source": "tailscale/tailscale",
+        "version": "~> 0.17"
+      }
+    }
+  },
+  "variable": {
+    "cloudflare_api_token": {
+      "sensitive": true,
+      "type": "string"
+    },
+    "state_passphrase": {
+      "sensitive": true,
+      "type": "string"
+    },
+    "tailscale_oauth_client_id": {
+      "type": "string"
+    },
+    "tailscale_oauth_client_secret": {
+      "sensitive": true,
+      "type": "string"
+    }
+  }
+}

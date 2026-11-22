@@ -582,7 +582,7 @@ in
           retries = serviceConfig.KeepAlive.SuccessfulExit;
           readsKey = lib.hasInfix w.sops.secrets.system-tailscale-auth-key.path script;
           preauthorized = lib.hasInfix "preauthorized=true" script;
-          tags = lib.hasInfix "--advertise-tags=tag:workstation" script;
+          tags = lib.hasInfix "'--advertise-tags=tag:workstation'" script;
         };
       expected = {
         on = true;

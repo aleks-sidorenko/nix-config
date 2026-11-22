@@ -50,6 +50,20 @@ Sites marked "proxy auth" need HTTP basic auth from the `service-ingress-htpassw
 secret: those apps trust every request that reaches them. An unknown `Host`
 gets connection closed (444) instead of the first site.
 
+The records are the `dns` stack (`modules/infra/dns.nix`,
+`just infra-apply dns`), in the `sidorenko.me` zone beside the static site's
+apex, `www` and the mail records. A service gets a record by being included
+on a host with `deploy`: nginx publishes each of its vhosts' names, Minecraft
+publishes `minecraft.<public>`. Each name is an unproxied A record at the
+host's tailnet address, read from the tailnet at plan time. `server-vm`
+publishes nothing, since it would claim every name `server` does.
+
+Evaluation fails when two hosts publish the same name (DNS would round-robin
+between them) or one host publishes a name twice. The plan fails when two
+tailnet devices share a hostname (remove the stale one in the admin
+console) or a publishing host is not on the tailnet, rather
+than planning its records away.
+
 ## Storage
 
 ```
@@ -77,6 +91,20 @@ tagged node, so the host advertises its `services.tailscale.tags` setting
 (`tag:server`); a node removed from the tailnet rejoins at the next boot.
 Darwin hosts join the same way through a launchd daemon.
 
+The tailnet ACL is the `tailnet` stack (`modules/infra/tailnet.nix`,
+`just infra-apply tailnet`). Its tags are every host's
+`services.tailscale.tags`, each owned by `tag:registrar`, the OAuth client's
+tag. Servers (`tag:server`) are reachable from the other tags on 22, 80, 443
+and 25565 only; the other tags reach each other on every port, and SSH reaches
+every tag. Removing a tag from den drops it from the ACL, so first re-advertise
+the live node without it (`tailscale up --advertise-tags=…`), then apply: no
+device may hold a tag the ACL no longer owns.
+
+A reinstalled guest registers a new node and leaves the old one behind, which
+trips the dns stack's ambiguous-hostname guard. Remove the old node in the
+Tailscale admin console (Machines): the stacks' OAuth client deliberately has
+no `devices:core` write scope, so nothing here can delete devices.
+
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
 (41641/UDP), and on the tailnet for 80 and 443.
@@ -84,8 +112,9 @@ The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 ## Backups
 
 restic backs each `home-server` host up every night at 03:00 (with up to
-30 minutes' random delay) to its own repository in the R2 bucket `backups`,
-at `backups/<host>`. A night the host is off is skipped, not run at boot.
+30 minutes' random delay) to its own repository in the R2 bucket `backups`
+(managed by the `storage` stack, `just infra-plan storage`), at
+`backups/<host>`. A night the host is off is skipped, not run at boot.
 
 - **What**: `/home`, `/root`, the whole `/persist`, and the Calibre library.
   The rest of `/data` can be fetched again and is not backed up. Jellyfin's

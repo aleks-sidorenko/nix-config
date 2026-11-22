@@ -8,6 +8,7 @@
           pkgs.statix
           pkgs.deadnix
           pkgs.sops
+          pkgs.jq
           pkgs.age
           pkgs.nixfmt-tree
           pkgs.nvd

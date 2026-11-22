@@ -21,6 +21,8 @@ are read-only options their owners declare:
 | --- | --- | --- |
 | `config.installTests` | `modules/flake/install-tests.nix` | `installedSystem`, `perTestedHost`, `settled`, for aspects' eval tests and checks |
 | `config.isReservedKey` | `modules/den.nix` | Whether den reads a key inside an aspect as machinery rather than a child aspect |
+| `config.settingsType` | `modules/den.nix` | The type of an entity's `settings`, shared by hosts and stacks |
+| `config.infraStacks` | `modules/flake/terranix.nix` | Each stack's evaluated terranix config and `_meta`, for eval tests |
 
 ## Entities
 
@@ -166,6 +168,11 @@ SSH key, and with it its SOPS identity, is one of those files.
 - **Stacks**: `checks.<system>.stacks-<host>`, for every host including
   `dev.stacks`, sources the library that host installs and checks its
   registry setting.
+- **Infra stacks**: each stack's rendered config is compared with the one
+  snowfall last applied (`modules/infra/_parity-<stack>.json`), and its
+  declared secrets are pinned; `checks.<system>.infra-<stack>` runs the
+  import-target check. `just infra-validate` needs the secrets, so it is not
+  part of `just check`.
 - **Packages**: each `packages/<name>` runs its tests in `checkPhase`;
   `checks.<system>.package-<name>` builds it.
 - **Install tests**: `modules/flake/install-tests.nix` installs every host
@@ -179,6 +186,40 @@ SSH key, and with it its SOPS identity, is one of those files.
 - **Naming**: `modules/flake/naming.nix` checks that aspect paths mirror
   file paths, that no path segment is a key den reserves, and that imports
   stay in their folder.
+
+## Infra stacks
+
+Cloud and API resources are OpenTofu stacks, a den entity kind of their own
+declared in `modules/flake/terranix.nix`: `den.stacks.<name>` (kind
+`den.schema.stack`, inheriting `den.schema.conf`), resolved from the flake
+root like hosts. A stack takes `settings` like a host, and aspects take it as
+`stack`.
+
+Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
+and `infra.state`. Their `terranix` bodies, and those of the provider aspects
+they include (`infra.cloudflare`, `infra.tailscale`), are collected per stack into
+`flake.terranixModules.<name>` and rendered by terranix's flake module:
+`packages.<system>.<name>` runs `tofu apply`, with `.plan`, `.destroy`,
+`.init`, `.config` (the rendered `config.tf.json`) and `.terraform` (the
+wrapper) beside it.
+
+The wrapper runs from the repo root and works in `infra/<name>`, where the
+encrypted `terraform.tfstate`, `.terraform.lock.hcl` and the stack's
+`secrets.yaml` (`state-passphrase`) are committed. Before each `tofu` call it
+decrypts every secret the stack's bodies declare in `_meta.secrets`
+(`TF_VAR_<var> = { file; key; }`; provider credentials live once in
+`infra/secrets.yaml`) and writes `encryption.tf`, the HCL state-encryption
+block (pbkdf2 + aes_gcm) that JSON can't express. `infra.state` declares the
+passphrase variable and secret. `checks.<system>.infra-<name>` fails on an
+`import` whose target is not a resource of the stack.
+
+A stack learns about hosts through quirks, never by reading evaluated host
+configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
+contributes from each host's `tags` setting, with a `pipe.collectAll` policy
+on the stack entity: collect policies go in `den.stacks.<stack>.includes`;
+included from the stack aspect they do not fire.
+`dns` collects `published-names`, the FQDNs nginx and Minecraft contribute,
+from hosts with `deploy` only, with provenance for each name's hostname.
 
 ## Deploys
 

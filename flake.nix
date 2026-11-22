@@ -94,5 +94,13 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        import-tree.follows = "import-tree";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 }
