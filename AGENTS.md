@@ -350,7 +350,7 @@ just infra-show <stack>          # rendered config.tf.json
 just infra-validate [stack]      # tofu validate; every stack when omitted (needs secrets)
 just infra-plan <stack> [args]   # also infra-apply, infra-destroy
 just infra-secrets-edit [stack]  # sops on infra/<stack>/secrets.yaml, or infra/secrets.yaml
-just iso-build <host>         # build an ISO host's image (x86_64 Linux)
+just iso-build [host]         # build an ISO host's image (Linux); no host lists them
 just iso-fetch <host>         # download the image CI built
 just iso-write <host> <device>  # write it to a whole USB or removable disk
 nix run .#<host> -- switch   # nh wrapper per host

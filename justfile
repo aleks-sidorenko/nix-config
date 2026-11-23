@@ -53,29 +53,40 @@ vm-test host:
     @if [ "$(uname -sm)" != "Linux x86_64" ]; then echo "install tests run in CI (x86_64 KVM)" >&2; exit 1; fi
     nix build .#checks.x86_64-linux.install-{{ host }} -L
 
+# Print the hosts that build an image, one per line
+_iso-hosts:
+    @nix eval --raw .#nixosConfigurations --apply 'cs: builtins.concatStringsSep "\n" (builtins.filter (n: cs.${n}.config ? isoImage) (builtins.attrNames cs)) + "\n"'
+
 # Print an ISO host's image filename; fails for a host that builds no image.
 # Asked of the flake, never globbed: one image name can prefix another's.
 _iso-resolve host:
     #!/usr/bin/env bash
     set -euo pipefail
-    known=$(nix eval --raw .#nixosConfigurations --apply 'cs: toString (builtins.filter (n: cs.${n}.config ? isoImage) (builtins.attrNames cs))')
-    if [[ " $known " != *" {{ host }} "* ]]; then
-        echo "Unknown ISO host: {{ host }} (known: $known)" >&2
+    known=$(just _iso-hosts)
+    if ! grep -qx -- "{{ host }}" <<<"$known"; then
+        echo "Unknown ISO host: {{ host }} (known: $(paste -sd ' ' <<<"$known"))" >&2
         exit 1
     fi
     nix eval --raw .#nixosConfigurations.{{ host }}.config.image.fileName
 
-# Build an ISO host's image into result-iso/iso/ (x86_64 Linux; use iso-fetch elsewhere)
-iso-build host:
-    @just _iso-resolve {{ host }} >/dev/null
-    @if [ "$(uname -s)" != Linux ]; then echo "images build on Linux; use: just iso-fetch {{ host }}" >&2; exit 1; fi
+# Build an ISO host's image into result-iso/iso/ (Linux; use iso-fetch elsewhere); lists hosts without one
+iso-build host="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{ host }}" ]; then just _iso-hosts; exit 0; fi
+    just _iso-resolve {{ host }} >/dev/null
+    if [ "$(uname -s)" != Linux ]; then
+        echo "images build on Linux; use: just iso-fetch {{ host }}" >&2
+        exit 1
+    fi
     rm -rf result-iso
     nix build .#nixosConfigurations.{{ host }}.config.system.build.isoImage --out-link result-iso
 
-# Download the image CI last built for an ISO host into result-iso/iso/
-iso-fetch host:
+# Download the image CI last built for an ISO host into result-iso/iso/; lists hosts without one
+iso-fetch host="":
     #!/usr/bin/env bash
     set -euo pipefail
+    if [ -z "{{ host }}" ]; then just _iso-hosts; exit 0; fi
     just _iso-resolve {{ host }} >/dev/null
     # Only master's builds: without a run id gh takes the newest artifact from any branch.
     run=$(gh run list -w iso.yml -b master -s success -L 1 --json databaseId,headSha -q '.[0] | "\(.databaseId) \(.headSha)"')
@@ -89,10 +100,12 @@ iso-fetch host:
     # A download cut short would leave a truncated image for iso-write.
     gh run download "$id" -n "{{ host }}" -D result-iso/iso || { rm -rf result-iso; exit 1; }
 
-# Write an ISO host's built or fetched image to a whole removable disk (destroys it)
-iso-write host device:
+# Write an ISO host's built or fetched image to a whole USB or removable disk (destroys it); lists hosts without one
+iso-write host="" device="":
     #!/usr/bin/env bash
     set -euo pipefail
+    if [ -z "{{ host }}" ]; then just _iso-hosts; exit 0; fi
+    if [ -z "{{ device }}" ]; then echo "Usage: just iso-write {{ host }} <device>" >&2; exit 1; fi
     file=$(just _iso-resolve {{ host }})
     nix run .#iso-write -- "result-iso/iso/$file" {{ device }}
 
