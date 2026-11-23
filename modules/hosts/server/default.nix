@@ -72,6 +72,12 @@ in
       ];
     };
 
+    # Only installer images accept root over SSH.
+    server-sshd-no-root = {
+      expr = s.services.openssh.settings.PermitRootLogin;
+      expected = "no";
+    };
+
     server-timezone-unchanged = {
       expr = s.time.timeZone;
       expected = "UTC";
