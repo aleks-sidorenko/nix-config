@@ -1,6 +1,6 @@
 {
   den.aspects.system.headless.nixos =
-    { lib, pkgs, ... }:
+    { lib, ... }:
     {
       documentation = {
         enable = false;
@@ -15,7 +15,6 @@
       environment = {
         stub-ld.enable = false;
         variables.BROWSER = "echo";
-        systemPackages = [ pkgs.dnsutils ];
       };
       systemd = {
         # Root is locked and no one is at the console, so the emergency shell is

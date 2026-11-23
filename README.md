@@ -37,8 +37,11 @@ It runs a home server, the VMs that test it in CI, and a Mac workstation.
 | `server-vm` | x86_64-linux | QEMU guest standing in for `server`, install-tested in CI | `roles.home-server` |
 | `workbook` | aarch64-darwin | Work MacBook with its user's home | `roles.workstation` |
 | `base-vm` | x86_64-linux | Bare QEMU guest with an encrypted disk, install-tested in CI | `roles.base` |
+| `iso-x86_64` | x86_64-linux | Bootable USB image: the user autologins with core tools, root takes the owner's key | `roles.core` |
 
 Only `server` is a deploy target. Switch `workbook` on the Mac with `nix run .#workbook -- switch`.
+Write the image to a USB stick with `just iso-fetch iso-x86_64` (CI builds it)
+and `just iso-write iso-x86_64 /dev/diskN`.
 
 ## Layout
 
@@ -47,17 +50,17 @@ modules/
 ├── den.nix         # den and flake setup: host/user schema, defaults, inputs
 ├── flake/          # outputs and tooling: deploy-rs, nh, install tests, eval tests, devshell, naming check
 ├── hosts/          # one folder per host, plus home-servers.nix (what server and server-vm share)
-├── roles/          # bundles of aspects: base, server, media-server, home-server, workstation
-├── system/         # boot, nix, nixpkgs, locale, networking, NetworkManager, headless
+├── roles/          # bundles of aspects: core, base, server, media-server, home-server, workstation
+├── system/         # boot, iso, nix, nixpkgs, locale, networking, NetworkManager, headless
 ├── storage/        # disko layout, impermanence and the undeclared-state guard
 ├── security/       # ssh, sops, sudo, user passwords, authorized keys
 ├── services/       # tailscale, nginx, restic, the media stack, minecraft, openvpn
-├── cli/            # terminal tools: fish, nvim, ghostty, media, utils
+├── cli/            # terminal tools: core, fish, nvim, ghostty, media, utils
 ├── dev/            # git, direnv, per-project stacks, bazel, containers, k8s
 ├── gui/            # GUI apps: chrome, communication, photo and video, minecraft, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
-packages/           # our own programs, plain callPackage files: disk-report, media-tools
+packages/           # our own programs, plain callPackage files: disk-report, iso-write, media-tools
 identities/         # per-person public keys (see identities/README.md)
 secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 ```
@@ -126,11 +129,12 @@ available at the [`v1`](https://github.com/aleks-sidorenko/nix-config/tree/v1)
 tag. The rewrite lands in slices, tracked in
 [#272](https://github.com/aleks-sidorenko/nix-config/issues/272).
 
-- **Ported:** the base system, the server role, everything `server` runs, and
-  the macOS `workbook` with its home.
+- **Ported:** the base system, the server role, everything `server` runs, the
+  macOS `workbook` with its home, the DNS, storage and tailnet stacks, and the
+  installer ISO.
 - **Not yet ported:**
-  - the installer ISO and bootstrap scripts;
-  - the infrastructure stacks (router, DNS, storage bucket, tailnet policy).
+  - bootstrapping a new host;
+  - the router stack.
 
 ## License
 

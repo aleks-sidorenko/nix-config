@@ -14,24 +14,8 @@ let
     aspect:
     lib.filterAttrs (_: host: isInstallTested host && host.hasAspect aspect) den.hosts.x86_64-linux;
 
-  # An eval test that `probe name host` is `expected` on every host whose
-  # install test boots `aspect`; with no such host it fails instead of
-  # passing vacuously.
-  perTestedHost =
-    aspect: probe: expected:
-    let
-      hosts = testing aspect;
-    in
-    {
-      expr = {
-        tested = hosts != { };
-        hosts = lib.mapAttrs probe hosts;
-      };
-      expected = {
-        tested = true;
-        hosts = lib.mapAttrs (_: _: expected) hosts;
-      };
-    };
+  # An eval test of every host whose install test boots `aspect`.
+  perTestedHost = aspect: config.perHost (testing aspect);
 
   # Every unit has started or failed, and every service has written its state.
   # The state is matched, not piped: the driver's pipefail would take

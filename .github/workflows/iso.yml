@@ -1,0 +1,59 @@
+name: "ISO"
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - "modules/**"
+      - "identities/**"
+      - "packages/**"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/iso.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  iso:
+    name: "Build ${{ matrix.host }}"
+    strategy:
+      matrix:
+        include:
+          # Each image builds natively on a runner of its architecture.
+          - host: iso-x86_64
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      - name: Setup Nix Magic Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v15
+
+      - name: Build image
+        run: nix develop -c just iso-build ${{ matrix.host }}
+
+      # The image is already compressed squashfs.
+      - name: Upload image
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.host }}
+          path: result-iso/iso/*.iso
+          if-no-files-found: error
+          compression-level: 0

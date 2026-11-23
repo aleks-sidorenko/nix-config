@@ -25,11 +25,19 @@
       readOnly = true;
       description = "Type of an entity's `settings`: the settings every aspect declares, at the aspect's path.";
     };
+    hostsWith = lib.mkOption {
+      type = lib.types.functionTo lib.types.raw;
+      readOnly = true;
+      description = "The hosts of every system whose include tree holds the given aspect, by name.";
+    };
   };
 
   config = {
     isReservedKey = import ./_reserved-key.nix { inherit den; };
     settingsType = import ./_settings-type.nix { inherit den lib; };
+    hostsWith =
+      aspect:
+      lib.filterAttrs (_: host: host.hasAspect aspect) (lib.mergeAttrsList (lib.attrValues den.hosts));
 
     systems = [
       "x86_64-linux"

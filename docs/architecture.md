@@ -22,6 +22,8 @@ are read-only options their owners declare:
 | `config.installTests` | `modules/flake/install-tests.nix` | `installedSystem`, `perTestedHost`, `settled`, for aspects' eval tests and checks |
 | `config.isReservedKey` | `modules/den.nix` | Whether den reads a key inside an aspect as machinery rather than a child aspect |
 | `config.settingsType` | `modules/den.nix` | The type of an entity's `settings`, shared by hosts and stacks |
+| `config.hostsWith` | `modules/den.nix` | The hosts of every system that include an aspect |
+| `config.perHost` | `modules/flake/eval-tests.nix` | An eval test of a probe on each of a set of hosts, failing when the set is empty |
 | `config.infraStacks` | `modules/flake/terranix.nix` | Each stack's evaluated terranix config and `_meta`, for eval tests |
 
 ## Entities
@@ -57,8 +59,9 @@ directly or through a role. Roles hold `includes` only:
 ```
 roles.home-server
 ├── roles.server
-│   ├── roles.base: system.boot, storage.disko, storage.impermanence,
-│   │               security.sops, security.sudo, security.nix-access-tokens
+│   ├── roles.base: roles.core (security.sudo, cli.core), system.boot,
+│   │               storage.disko, storage.impermanence, security.sops,
+│   │               security.nix-access-tokens
 │   ├── system.headless, system.networkmanager, system.nix-ld
 │   ├── services.tailscale
 │   └── security.sudo.passwordless
@@ -228,3 +231,28 @@ node. It logs in as the host's `primaryUser`, and `interactiveSudo` follows
 whether sudo needs a password. `just deploy <host>` builds on the target;
 `just deploy <host> --boot` installs the generation for the next boot
 without switching to it.
+
+## Installer image
+
+`iso-x86_64` is a host like any other, built as a bootable image instead of
+installed. It includes `roles.core`, the part of `roles.base` that needs no
+disk layout or secrets (sudo and `cli.core`'s rescue tools), and
+`system.iso`, which imports nixpkgs' minimal installer profile. On the image
+the primary user autologins with passwordless sudo, NetworkManager drives
+Wi-Fi, and root accepts the users' identity keys over SSH so nixos-anywhere
+can install from it. It is the only host where root may log in; every other
+host keeps `PermitRootLogin = "no"` (`sshd-no-root-off-images`). It carries
+no secrets: with no host key it could decrypt nothing, so `system.iso`
+excludes `security.user-password`, and the account has no password. Its eval
+tests run over every host that includes it, and `nix run .#<host>` wrappers
+skip image hosts, since switching a running machine to one would replace its
+system.
+
+CI's `iso.yml` builds the image and uploads it as an artifact named after
+the host; `just iso-build` builds it on Linux, `just iso-fetch` downloads
+master's latest, and `just iso-write` writes either through
+`packages/iso-write`. That writes only to a whole USB or removable disk: it
+refuses partitions, internal disks (built-in SD slots too) and macOS virtual
+disks, and requires the device to be typed back. An aarch64 image is one more host,
+`iso-aarch64` under `den.hosts.aarch64-linux`, plus `aarch64-linux` in
+`systems` and a matrix row on an arm runner.

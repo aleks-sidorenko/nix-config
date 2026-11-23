@@ -16,7 +16,24 @@ in
     description = "Evaluation-time assertions, collected into the eval-tests check.";
   };
 
+  options.perHost = lib.mkOption {
+    type = lib.types.raw;
+    readOnly = true;
+    description = "An eval test that `probe name host` is `expected` on each of `hosts`; with none it fails instead of passing vacuously.";
+  };
+
   config = {
+    perHost = hosts: probe: expected: {
+      expr = {
+        any = hosts != { };
+        hosts = lib.mapAttrs probe hosts;
+      };
+      expected = {
+        any = true;
+        hosts = lib.mapAttrs (_: _: expected) hosts;
+      };
+    };
+
     perSystem =
       { pkgs, ... }:
       let
