@@ -6,9 +6,7 @@
   ...
 }:
 let
-  images = lib.attrNames (
-    lib.filterAttrs (_: system: system.config ? isoImage) config.flake.nixosConfigurations
-  );
+  images = lib.attrNames (config.hostsWith den.aspects.system.iso);
 in
 {
   perSystem =

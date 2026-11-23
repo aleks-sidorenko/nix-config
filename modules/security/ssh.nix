@@ -67,8 +67,9 @@ in
   evalTests.sshd-no-root-off-images = {
     expr = lib.attrNames (
       lib.filterAttrs (
-        _: system:
-        !(system.config ? isoImage) && system.config.services.openssh.settings.PermitRootLogin != "no"
+        name: system:
+        !(config.hostsWith den.aspects.system.iso ? ${name})
+        && system.config.services.openssh.settings.PermitRootLogin != "no"
       ) config.flake.nixosConfigurations
     );
     expected = [ ];

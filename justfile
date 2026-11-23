@@ -93,7 +93,7 @@ iso-build host="":
         exit 1
     fi
     rm -rf result-iso
-    nix build .#nixosConfigurations.{{ host }}.config.system.build.isoImage --out-link result-iso
+    nix build .#nixosConfigurations.{{ host }}.config.system.build.isoImage --out-link result-iso -L
 
 # Download the image CI last built for an ISO host into result-iso/iso/; lists hosts without one
 [group('iso')]

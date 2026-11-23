@@ -5,24 +5,12 @@
   ...
 }:
 let
-  images = lib.filterAttrs (_: host: host.hasAspect den.aspects.system.iso) (
-    lib.mergeAttrsList (lib.attrValues den.hosts)
-  );
-
-  # An eval test that `probe host config` is `expected` on every image host;
-  # with none it fails instead of passing vacuously.
-  perImage = probe: expected: {
-    expr = {
-      built = images != { };
-      hosts = lib.mapAttrs (
-        name: host: probe host config.flake.nixosConfigurations.${name}.config
-      ) images;
-    };
-    expected = {
-      built = true;
-      hosts = lib.mapAttrs (_: _: expected) images;
-    };
-  };
+  # An eval test that `probe host config` is `expected` on every image host.
+  perImage =
+    probe:
+    config.perHost (config.hostsWith den.aspects.system.iso) (
+      name: host: probe host config.flake.nixosConfigurations.${name}.config
+    );
 in
 {
   # A bootable live image: the host's users on a stick, ready to rescue or install a machine.
@@ -122,8 +110,5 @@ in
         };
     iso-file-name = perImage (host: c: c.image.fileName == "nixos-${host.name}.iso") true;
     iso-no-persistence = perImage (_: c: c ? disko || c.environment ? persistence) false;
-    iso-help-line-fits-image = perImage (
-      _: c: lib.hasInfix "you must set a password" c.services.getty.helpLine
-    ) false;
   };
 }

@@ -46,9 +46,8 @@ jobs:
       - name: Setup Nix Magic Cache
         uses: DeterminateSystems/magic-nix-cache-action@v15
 
-      # The same path `just iso-build` writes, so `just iso-fetch` mirrors it.
       - name: Build image
-        run: nix build .#nixosConfigurations.${{ matrix.host }}.config.system.build.isoImage --out-link result-iso -L
+        run: nix develop -c just iso-build ${{ matrix.host }}
 
       # The image is already compressed squashfs.
       - name: Upload image

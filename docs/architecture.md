@@ -22,6 +22,8 @@ are read-only options their owners declare:
 | `config.installTests` | `modules/flake/install-tests.nix` | `installedSystem`, `perTestedHost`, `settled`, for aspects' eval tests and checks |
 | `config.isReservedKey` | `modules/den.nix` | Whether den reads a key inside an aspect as machinery rather than a child aspect |
 | `config.settingsType` | `modules/den.nix` | The type of an entity's `settings`, shared by hosts and stacks |
+| `config.hostsWith` | `modules/den.nix` | The hosts of every system that include an aspect |
+| `config.perHost` | `modules/flake/eval-tests.nix` | An eval test of a probe on each of a set of hosts, failing when the set is empty |
 | `config.infraStacks` | `modules/flake/terranix.nix` | Each stack's evaluated terranix config and `_meta`, for eval tests |
 
 ## Entities

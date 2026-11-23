@@ -12,7 +12,7 @@ writeShellApplication {
     coreutils
     gnugrep
   ]
-  ++ lib.optional stdenv.isLinux util-linux;
+  ++ lib.optional stdenv.hostPlatform.isLinux util-linux;
   text = builtins.readFile ./iso-write.sh;
 
   # Every refusal must fire before anything touches a disk, so each runs here.
