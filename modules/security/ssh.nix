@@ -1,4 +1,9 @@
-{ den, lib, ... }:
+{
+  config,
+  den,
+  lib,
+  ...
+}:
 let
   hostKey = "/etc/ssh/ssh_host_ed25519_key";
 in
@@ -56,5 +61,16 @@ in
       hostKey
       "${hostKey}.pub"
     ];
+  };
+
+  # Installer images are the one exception: nixos-anywhere logs in as root.
+  evalTests.sshd-no-root-off-images = {
+    expr = lib.attrNames (
+      lib.filterAttrs (
+        _: system:
+        !(system.config ? isoImage) && system.config.services.openssh.settings.PermitRootLogin != "no"
+      ) config.flake.nixosConfigurations
+    );
+    expected = [ ];
   };
 }

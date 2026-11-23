@@ -210,12 +210,10 @@ Stage new files (`git add`) before `just check`.
 
 1. `den.hosts.<system>.iso-<arch> = { users.<user> = { }; stateVersion = "…"; };`
    in `modules/hosts/iso-<arch>/default.nix`, the aspect including
-   `den.aspects.roles.core` and `den.aspects.system.iso`, and
-   `excludes = [ den.aspects.security.user-password ];` (an image has no
-   host key to decrypt with).
+   `den.aspects.roles.core` and `den.aspects.system.iso`.
 2. Add `<system>` to `systems` in `modules/den.nix` if it is new, and a row
    to the matrix in `.github/workflows/iso.yml` on a runner of that arch.
-3. Copy the eval tests from `modules/hosts/iso-x86_64/default.nix`.
+3. Nothing else: `system.iso`'s eval tests cover every host that includes it.
 
 ### A darwin host
 
@@ -354,7 +352,7 @@ just infra-plan <stack> [args]   # also infra-apply, infra-destroy
 just infra-secrets-edit [stack]  # sops on infra/<stack>/secrets.yaml, or infra/secrets.yaml
 just iso-build <host>         # build an ISO host's image (x86_64 Linux)
 just iso-fetch <host>         # download the image CI built
-just iso-write <host> <device>  # write it to a whole removable disk
+just iso-write <host> <device>  # write it to a whole USB or removable disk
 nix run .#<host> -- switch   # nh wrapper per host
 ```
 

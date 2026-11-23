@@ -7,6 +7,9 @@ die() {
 image="$1"
 device="$2"
 
+# The raw node is what dd writes to below; the checks need the disk itself.
+[ "$(uname -s)" = Darwin ] && device="${device/\/dev\/rdisk//dev/disk}"
+
 [ -f "$image" ] || die "$image is not a file; build or fetch the image first"
 [ -b "$device" ] || die "$device is not a whole disk (not a block device)"
 

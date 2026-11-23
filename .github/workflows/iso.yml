@@ -54,7 +54,7 @@ jobs:
       - name: Upload image
         uses: actions/upload-artifact@v7
         with:
-          name: iso-${{ matrix.host }}
+          name: ${{ matrix.host }}
           path: result-iso/iso/*.iso
           if-no-files-found: error
           compression-level: 0

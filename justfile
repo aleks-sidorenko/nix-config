@@ -84,10 +84,10 @@ iso-fetch host:
         exit 1
     fi
     read -r id sha <<<"$run"
-    echo "Fetching iso-{{ host }} from run $id (master at ${sha:0:7})" >&2
+    echo "Fetching {{ host }} from run $id (master at ${sha:0:7})" >&2
     rm -rf result-iso
     # A download cut short would leave a truncated image for iso-write.
-    gh run download "$id" -n "iso-{{ host }}" -D result-iso/iso || { rm -rf result-iso; exit 1; }
+    gh run download "$id" -n "{{ host }}" -D result-iso/iso || { rm -rf result-iso; exit 1; }
 
 # Write an ISO host's built or fetched image to a whole removable disk (destroys it)
 iso-write host device:
