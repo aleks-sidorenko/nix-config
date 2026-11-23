@@ -53,6 +53,42 @@ vm-test host:
     @if [ "$(uname -sm)" != "Linux x86_64" ]; then echo "install tests run in CI (x86_64 KVM)" >&2; exit 1; fi
     nix build .#checks.x86_64-linux.install-{{ host }} -L
 
+# Print an ISO host's image filename; fails for a host that builds no image.
+# Asked of the flake, never globbed: one image name can prefix another's.
+_iso-resolve host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    known=$(nix eval --raw .#nixosConfigurations --apply 'cs: toString (builtins.filter (n: cs.${n}.config ? isoImage) (builtins.attrNames cs))')
+    if [[ " $known " != *" {{ host }} "* ]]; then
+        echo "Unknown ISO host: {{ host }} (known: $known)" >&2
+        exit 1
+    fi
+    nix eval --raw .#nixosConfigurations.{{ host }}.config.image.fileName
+
+# Build an ISO host's image into result-iso/iso/ (x86_64 Linux; use iso-fetch elsewhere)
+iso-build host:
+    @just _iso-resolve {{ host }} >/dev/null
+    rm -rf result-iso
+    nix build .#nixosConfigurations.{{ host }}.config.system.build.isoImage --out-link result-iso
+
+# Download the image CI last built for an ISO host into result-iso/iso/
+iso-fetch host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _iso-resolve {{ host }} >/dev/null
+    rm -rf result-iso
+    if ! gh run download -n "iso-{{ host }}" -D result-iso/iso; then
+        echo "No CI artifact iso-{{ host }}; run: gh workflow run iso.yml" >&2
+        exit 1
+    fi
+
+# Write an ISO host's built or fetched image to a whole removable disk (destroys it)
+iso-write host device:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    file=$(just _iso-resolve {{ host }})
+    nix run .#iso-write -- "result-iso/iso/$file" {{ device }}
+
 # Regenerate flake.nix from the flake-file.inputs declarations
 flake-write:
     nix run .#write-flake
