@@ -68,6 +68,7 @@ _iso-resolve host:
 # Build an ISO host's image into result-iso/iso/ (x86_64 Linux; use iso-fetch elsewhere)
 iso-build host:
     @just _iso-resolve {{ host }} >/dev/null
+    @if [ "$(uname -s)" != Linux ]; then echo "images build on Linux; use: just iso-fetch {{ host }}" >&2; exit 1; fi
     rm -rf result-iso
     nix build .#nixosConfigurations.{{ host }}.config.system.build.isoImage --out-link result-iso
 
@@ -76,11 +77,17 @@ iso-fetch host:
     #!/usr/bin/env bash
     set -euo pipefail
     just _iso-resolve {{ host }} >/dev/null
-    rm -rf result-iso
-    if ! gh run download -n "iso-{{ host }}" -D result-iso/iso; then
-        echo "No CI artifact iso-{{ host }}; run: gh workflow run iso.yml" >&2
+    # Only master's builds: without a run id gh takes the newest artifact from any branch.
+    run=$(gh run list -w iso.yml -b master -s success -L 1 --json databaseId,headSha -q '.[0] | "\(.databaseId) \(.headSha)"')
+    if [ -z "$run" ]; then
+        echo "No successful iso.yml run on master; run: gh workflow run iso.yml" >&2
         exit 1
     fi
+    read -r id sha <<<"$run"
+    echo "Fetching iso-{{ host }} from run $id (master at ${sha:0:7})" >&2
+    rm -rf result-iso
+    # A download cut short would leave a truncated image for iso-write.
+    gh run download "$id" -n "iso-{{ host }}" -D result-iso/iso || { rm -rf result-iso; exit 1; }
 
 # Write an ISO host's built or fetched image to a whole removable disk (destroys it)
 iso-write host device:

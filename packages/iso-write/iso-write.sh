@@ -18,6 +18,11 @@ if [ "$(uname -s)" = Darwin ]; then
     if grep -qE '^ *(Device Location: +Internal|Internal: +Yes)' <<<"$info"; then
         die "$device is an internal disk; refusing"
     fi
+    # APFS containers and disk images report as whole disks too, but live
+    # inside another disk's partition.
+    if grep -qE '^ *Virtual: +Yes' <<<"$info"; then
+        die "$device is a virtual disk (APFS container or image); write to the physical disk"
+    fi
 else
     [ "$(lsblk -ndo TYPE "$device")" = disk ] || die "$device is a partition, not a whole disk"
     read -r removable transport < <(lsblk -ndo RM,TRAN "$device")

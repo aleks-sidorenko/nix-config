@@ -5,6 +5,9 @@ on:
     branches: ["master"]
     paths:
       - "modules/**"
+      - "identities/**"
+      - "packages/**"
+      - "flake.nix"
       - "flake.lock"
       - ".github/workflows/iso.yml"
   workflow_dispatch:
