@@ -85,6 +85,7 @@ without breaking another.
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
 | User-owned system config (password secret) | `provides.to-hosts` | user-side aspect, `modules/security/user-password.nix` |
+| A bootable USB image | ISO host | `modules/hosts/iso-<arch>/default.nix` including `roles.core` and `system.iso`; built by `iso.yml` |
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Values several hosts share | module setting those hosts | `modules/hosts/<group>.nix`, e.g. `home-servers.nix` sets `server` and `server-vm` |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
@@ -205,6 +206,17 @@ Stage new files (`git add`) before `just check`.
 4. The install test itself runs in CI only (`just vm-test <host>` needs
    x86_64 KVM).
 
+### An installer image
+
+1. `den.hosts.<system>.iso-<arch> = { users.<user> = { }; stateVersion = "…"; };`
+   in `modules/hosts/iso-<arch>/default.nix`, the aspect including
+   `den.aspects.roles.core` and `den.aspects.system.iso`, and
+   `excludes = [ den.aspects.security.user-password ];` (an image has no
+   host key to decrypt with).
+2. Add `<system>` to `systems` in `modules/den.nix` if it is new, and a row
+   to the matrix in `.github/workflows/iso.yml` on a runner of that arch.
+3. Copy the eval tests from `modules/hosts/iso-x86_64/default.nix`.
+
 ### A darwin host
 
 1. `den.hosts.aarch64-darwin.<host>` in `modules/hosts/<host>/default.nix`,
@@ -284,6 +296,8 @@ Stage new files (`git add`) before `just check`.
   cross-entity keys like `provides.to-hosts`, `den.ctx`, `den.lib.parametric`,
   `den.base`).
 - No hostname, username, `/persist` path or domain in a feature aspect.
+- Root logs in over SSH only on ISO hosts (`system.iso`); every other host
+  keeps `PermitRootLogin = "no"`.
 - No `._` in aspect names; helpers are `_`-prefixed on disk only.
 - `/home` is its own persistent subvolume; the only persistence quirk is
   `persist`. `installChecks` holds install-test Python only. Only the
@@ -338,6 +352,9 @@ just infra-show <stack>          # rendered config.tf.json
 just infra-validate [stack]      # tofu validate; every stack when omitted (needs secrets)
 just infra-plan <stack> [args]   # also infra-apply, infra-destroy
 just infra-secrets-edit [stack]  # sops on infra/<stack>/secrets.yaml, or infra/secrets.yaml
+just iso-build <host>         # build an ISO host's image (x86_64 Linux)
+just iso-fetch <host>         # download the image CI built
+just iso-write <host> <device>  # write it to a whole removable disk
 nix run .#<host> -- switch   # nh wrapper per host
 ```
 

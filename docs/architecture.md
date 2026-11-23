@@ -57,8 +57,9 @@ directly or through a role. Roles hold `includes` only:
 ```
 roles.home-server
 ├── roles.server
-│   ├── roles.base: system.boot, storage.disko, storage.impermanence,
-│   │               security.sops, security.sudo, security.nix-access-tokens
+│   ├── roles.base: roles.core (security.sudo, cli.core), system.boot,
+│   │               storage.disko, storage.impermanence, security.sops,
+│   │               security.nix-access-tokens
 │   ├── system.headless, system.networkmanager, system.nix-ld
 │   ├── services.tailscale
 │   └── security.sudo.passwordless
@@ -228,3 +229,24 @@ node. It logs in as the host's `primaryUser`, and `interactiveSudo` follows
 whether sudo needs a password. `just deploy <host>` builds on the target;
 `just deploy <host> --boot` installs the generation for the next boot
 without switching to it.
+
+## Installer image
+
+`iso-x86_64` is a host like any other, built as a bootable image instead of
+installed. It includes `roles.core`, the part of `roles.base` that needs no
+disk layout or secrets (sudo and `cli.core`'s rescue tools), and
+`system.iso`, which imports nixpkgs' minimal installer profile. On the image
+the host's users autologin with passwordless sudo, NetworkManager drives
+Wi-Fi, and root accepts the users' identity keys over SSH so nixos-anywhere
+can install from it. It is the only host where root may log in; every other
+host keeps `PermitRootLogin = "no"`. It carries no secrets: with no host key
+it could decrypt nothing, so the host excludes `security.user-password`, and
+the account has no password.
+
+CI's `iso.yml` builds the image and uploads it as `iso-<host>`; `just
+iso-build` builds it on x86_64 Linux, `just iso-fetch` downloads CI's, and
+`just iso-write` writes either to a whole removable disk through
+`packages/iso-write`, which refuses partitions and internal disks and
+requires the device to be typed back. An aarch64 image is one more host,
+`iso-aarch64` under `den.hosts.aarch64-linux`, plus `aarch64-linux` in
+`systems` and a matrix row on an arm runner.
