@@ -131,6 +131,7 @@
     "service-sonarr-api-key",
     "system-github-token",
     "system-tailscale-auth-key",
+    "system-wifi-password",
     "user-alexander-password"
   ],
   "sudo": {

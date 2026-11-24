@@ -126,6 +126,10 @@ A MikroTik hAP ax³ is the LAN's router, DHCP and DNS server, managed by the
 The router has no cables: its only uplink is a Wi-Fi station on `wifi2`
 joining the upstream network, and every LAN device, `server` included, joins
 the `SWEET-HOME` access point. Every ethernet port is a LAN bridge port, unused.
+The SSID is the `system.networking.wifi.ssid` setting and the password
+`system-wifi-password` in `secrets/nixos.yaml`; the router broadcasts them and
+hosts including `system.wifi` (`server`) join with a NetworkManager profile
+that outranks any made by hand.
 The library makes `wifi2` the station master, so the access point on that
 radio is a virtual interface following the station: it shares the upstream's
 channel and likely does not broadcast while the station has no upstream.
@@ -160,7 +164,8 @@ that the first apply adopts them. It also adds a temporary NAT rule, tagged
 init` first, which needs the internet: the router must stay online throughout.
 
 1. Write `bootstrap.rsc`, filling the secrets from
-   `just infra-secrets-edit router` (`wifi-password`, `router-api-password`)
+   `sops secrets/nixos.yaml` (`system-wifi-password`) and
+   `just infra-secrets-edit router` (`router-api-password`)
    and the upstream's SSID and passphrase; `<apiUser>` is the `apiUser`
    setting:
 

@@ -243,7 +243,7 @@ Stage new files (`git add`) before `just check`.
 1. In the aspect: `settings.<name> = lib.mkOption { type; default; description; };`
    (see `settings.root` in `modules/storage/impermanence.nix`; others:
    `system.locale.timeZone`, `system.stylix.flavor` and `wallpaper`,
-   `system.networking.domains`, `services.media.root`,
+   `system.networking.domains` and `wifi.ssid`, `services.media.root`,
    `services.restic.bucketUrl`, minecraft's `ops`, `whitelist`, `gamerules`,
    `serverProperties`). Read only your own aspect's settings, or those of an
    aspect you include.

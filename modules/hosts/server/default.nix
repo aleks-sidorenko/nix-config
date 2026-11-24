@@ -50,11 +50,33 @@ in
   };
 
   den.aspects.server = {
-    includes = [ den.aspects.roles.home-server ];
+    includes = [
+      den.aspects.roles.home-server
+      den.aspects.system.wifi
+    ];
     nixos.imports = [ ./_hardware.nix ];
   };
 
   evalTests = {
+    server-wifi = {
+      expr =
+        let
+          inherit (s.networking.networkmanager.ensureProfiles) profiles environmentFiles;
+        in
+        {
+          # The router's access point, so the two cannot drift.
+          sameSsid =
+            profiles.home-wifi.wifi.ssid
+            == config.infraStacks.router.config.resource.routeros_wifi_configuration.home.ssid;
+          readsSecret = environmentFiles == [ s.sops.templates."wifi.env".path ];
+          secret = s.sops.secrets ? system-wifi-password;
+        };
+      expected = {
+        sameSsid = true;
+        readsSecret = true;
+        secret = true;
+      };
+    };
     server-lan = {
       expr = config.den.hosts.x86_64-linux.server.lan;
       expected = {

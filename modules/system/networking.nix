@@ -28,6 +28,11 @@ in
         default = { };
         description = "The networks' DNS domains.";
       };
+      wifi.ssid = lib.mkOption {
+        type = types.str;
+        default = "SWEET-HOME";
+        description = "SSID of the home LAN's Wi-Fi: the router broadcasts it, hosts on Wi-Fi join it.";
+      };
       knownNetworkServices = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];

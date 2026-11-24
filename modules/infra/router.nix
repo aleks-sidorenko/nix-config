@@ -102,8 +102,8 @@ in
             };
 
             _meta.secrets.TF_VAR_wifi_password = {
-              file = "${stack.dir}/secrets.yaml";
-              key = "wifi-password";
+              file = "secrets/nixos.yaml";
+              key = "system-wifi-password";
             };
 
             routeros = {
@@ -133,7 +133,7 @@ in
               wifi = {
                 inherit (router) country;
                 networks.home = {
-                  ssid = "SWEET-HOME";
+                  inherit (stack.settings.system.networking.wifi) ssid;
                   primary = true;
                   passphraseVariable = "wifi_password";
                 };
