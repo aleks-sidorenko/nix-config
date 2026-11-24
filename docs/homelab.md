@@ -153,10 +153,10 @@ state, since `infra/router/secrets.yaml` is not encrypted to `server`.
 The stack applies onto a device with no default configuration, over the API,
 from a laptop on the router's own Wi-Fi. A reset with `no-defaults` leaves no
 access point to join, so the reset itself runs a script that brings up
-`SWEET-HOME` on `wifi1`, the bridge, the address and the API user, with exactly
-the values the stack renders so that adopting them changes nothing. It also
-joins the upstream and adds a temporary DHCP client and NAT, tagged `bringup`,
-so the laptop stays online until the apply.
+`SWEET-HOME` on `wifi1`, the bridge, the address, the LAN's DHCP server and the
+API user, with the values the stack renders so that the first apply adopts
+them. It also joins the upstream and adds a temporary DHCP client and NAT,
+tagged `bringup`, so the laptop stays online until the apply.
 
 1. Write `bringup.rsc`, filling the secrets from
    `just infra-secrets-edit router` (`wifi-password`, `router-api-password`)
@@ -172,6 +172,9 @@ so the laptop stays online until the apply.
    /interface wifi set wifi2 configuration.mode=station configuration.ssid="<upstream>" security.authentication-types=wpa2-psk,wpa3-psk security.passphrase="<passphrase>" disabled=no
    /interface bridge port add bridge=bridge interface=wifi1
    /ip address add address=10.0.0.1/24 interface=bridge
+   /ip pool add name=lan ranges=10.0.0.100-10.0.0.250
+   /ip dhcp-server add name=lan interface=bridge address-pool=lan lease-time=1d
+   /ip dhcp-server network add address=10.0.0.0/24 gateway=10.0.0.1 dns-server=1.1.1.1
    /ip dhcp-client add interface=wifi2 comment=bringup
    /ip firewall nat add chain=srcnat out-interface=wifi2 action=masquerade comment=bringup
    /user add name=<apiUser> group=full password="<router-api-password>"
@@ -186,9 +189,8 @@ so the laptop stays online until the apply.
    /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=bringup.rsc
    ```
 
-3. After the reboot, join `SWEET-HOME` with a static address: `10.0.0.2/24`,
-   router `10.0.0.1`, DNS `1.1.1.1`; there is no DHCP server yet. Connect
-   WinBox to `10.0.0.1` as `<apiUser>` and remove the script, it holds
+3. After the reboot, join `SWEET-HOME`; the laptop gets an address by DHCP
+   and reaches the internet through the router. Connect WinBox to `10.0.0.1` as `<apiUser>` and remove the script, it holds
    secrets: `/file remove bringup.rsc`. Check the uplink:
 
    ```
@@ -196,11 +198,13 @@ so the laptop stays online until the apply.
    /ping 1.1.1.1 count=3
    ```
 
-   `connected-to-ess` and replies mean the laptop is online too.
+   `connected-to-ess` and replies mean the laptop is online too. The DHCP
+   server hands out `1.1.1.1` for DNS until the apply turns on the router's
+   resolver behind its firewall.
 4. Read the ids:
 
    ```
-   /interface bridge print show-ids proplist=name; /interface bridge port print show-ids proplist=interface; /ip address print show-ids proplist=address; /interface wifi print show-ids proplist=name; /interface wifi configuration print show-ids proplist=name; /interface wifi security print show-ids proplist=name
+   /interface bridge print show-ids proplist=name; /interface bridge port print show-ids proplist=interface; /ip address print show-ids proplist=address; /interface wifi print show-ids proplist=name; /interface wifi configuration print show-ids proplist=name; /interface wifi security print show-ids proplist=name; /ip pool print show-ids proplist=name; /ip dhcp-server print show-ids proplist=name; /ip dhcp-server network print show-ids proplist=address
    ```
 
    and set them in `modules/infra/router.nix`:
@@ -210,6 +214,9 @@ so the laptop stays online until the apply.
      "routeros_interface_bridge.bridge" = "*…";
      "routeros_interface_bridge_port.wifi1" = "*…";
      "routeros_ip_address.lan" = "*…";
+     "routeros_ip_dhcp_server.lan" = "*…";
+     "routeros_ip_dhcp_server_network.lan" = "*…";
+     "routeros_ip_pool.lan" = "*…";
      "routeros_wifi.wifi1" = "*…";
      "routeros_wifi.wifi2" = "*…";
      "routeros_wifi_configuration.home" = "*…";
@@ -228,7 +235,7 @@ so the laptop stays online until the apply.
    ```
 
    Then `just infra-apply router`. The apply restricts SSH and WinBox to the
-   LAN and starts DHCP; switch the laptop back to DHCP.
+   LAN; the laptop's next lease points DNS at the router.
 6. Re-plan: no changes. Commit `infra/router/terraform.tfstate`.
 
 Once the state holds them, the ids may stay: an import of an

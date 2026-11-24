@@ -15,6 +15,18 @@ in
       settings.infra.router = {
         country = "Ukraine";
         apiUser = "alexander";
+        bringUpIds = {
+          "routeros_interface_bridge.bridge" = "*9";
+          "routeros_interface_bridge_port.wifi1" = "*0";
+          "routeros_ip_address.lan" = "*1";
+          "routeros_ip_dhcp_server.lan" = "*1";
+          "routeros_ip_dhcp_server_network.lan" = "*1";
+          "routeros_ip_pool.lan" = "*1";
+          "routeros_wifi.wifi1" = "*2";
+          "routeros_wifi.wifi2" = "*3";
+          "routeros_wifi_configuration.home" = "*1";
+          "routeros_wifi_security.home" = "*1";
+        };
       };
       includes = [
         den.policies.lan-leases
@@ -213,9 +225,20 @@ in
       );
       expected = true;
     };
-    infra-router-no-imports-by-default = {
-      expr = config.infraStacks.router.config ? import;
-      expected = false;
+    infra-router-adopts-bring-up = {
+      expr = map (i: i.to) config.infraStacks.router.config.import;
+      expected = [
+        "routeros_interface_bridge.bridge"
+        "routeros_interface_bridge_port.wifi1"
+        "routeros_ip_address.lan"
+        "routeros_ip_dhcp_server.lan"
+        "routeros_ip_dhcp_server_network.lan"
+        "routeros_ip_pool.lan"
+        "routeros_wifi.wifi1"
+        "routeros_wifi.wifi2"
+        "routeros_wifi_configuration.home"
+        "routeros_wifi_security.home"
+      ];
     };
     infra-router-bring-up-imports = {
       expr = lan.bringUpImports {
