@@ -9,5 +9,5 @@
     in
     lib.filter (n: !(lib.elem n.host leased)) names;
 
-  bringUpImports = lib.mapAttrsToList (to: id: { inherit to id; });
+  importBlocks = lib.mapAttrsToList (to: id: { inherit to id; });
 }

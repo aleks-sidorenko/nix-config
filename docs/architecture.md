@@ -230,7 +230,7 @@ through the nix-routeros library over the RouterOS API. It collects
 `lan-leases` (any deployed host that sets `lan` gets a lease automatically) and
 `published-names`, so the router's DNS answers each published name with its
 host's LAN address (split-horizon). Its settings are `country`, `apiUser` and
-`bringUpIds`, the ids of the hand-made objects the first apply adopts with
+`importIds`, the ids of the hand-made objects the first apply adopts with
 `import` blocks (see [homelab](homelab.md#router)). A published name whose
 host has no `lan` address fails evaluation.
 

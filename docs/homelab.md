@@ -131,7 +131,7 @@ radio is a virtual interface following the station: it shares the upstream's
 channel and likely does not broadcast while the station has no upstream.
 `server` must associate on `wifi1`'s band. `runtimeManaged` makes the stack
 ignore the station's configuration and security: the upstream's SSID and
-passphrase live only on the device, set by the bring-up script and changed by
+passphrase live only on the device, set by the bootstrap script and changed by
 hand:
 
 ```
@@ -148,7 +148,7 @@ the LAN, SSH to `server` and run the recipe there; that needs the owner's PGP
 key usable on `server` (gpg-agent forwarding) and a checkout with the committed
 state, since `infra/router/secrets.yaml` is not encrypted to `server`.
 
-### Bring-up
+### Bootstrap
 
 The stack applies onto a device with no default configuration, over the API,
 from a laptop on the router's own Wi-Fi. A reset with `no-defaults` leaves no
@@ -156,9 +156,9 @@ access point to join, so the reset itself runs a script that brings up
 `SWEET-HOME` on `wifi1`, the bridge, the address, the LAN's DHCP server and the
 API user, with the values the stack renders so that the first apply adopts
 them. It also joins the upstream and adds a temporary DHCP client and NAT,
-tagged `bringup`, so the laptop stays online until the apply.
+tagged `bootstrap`, so the laptop stays online until the apply.
 
-1. Write `bringup.rsc`, filling the secrets from
+1. Write `bootstrap.rsc`, filling the secrets from
    `just infra-secrets-edit router` (`wifi-password`, `router-api-password`)
    and the upstream's SSID and passphrase; `<apiUser>` is the `apiUser`
    setting:
@@ -175,23 +175,23 @@ tagged `bringup`, so the laptop stays online until the apply.
    /ip pool add name=lan ranges=10.0.0.100-10.0.0.250
    /ip dhcp-server add name=lan interface=bridge address-pool=lan lease-time=1d
    /ip dhcp-server network add address=10.0.0.0/24 gateway=10.0.0.1 dns-server=1.1.1.1
-   /ip dhcp-client add interface=wifi2 comment=bringup
-   /ip firewall nat add chain=srcnat out-interface=wifi2 action=masquerade comment=bringup
+   /ip dhcp-client add interface=wifi2 comment=bootstrap
+   /ip firewall nat add chain=srcnat out-interface=wifi2 action=masquerade comment=bootstrap
    /user add name=<apiUser> group=full password="<router-api-password>"
    /ip service set api address=10.0.0.0/24
    ```
 
 2. Join the factory Wi-Fi (SSID and password on the device's label), open
-   WinBox at `192.168.88.1`, upload `bringup.rsc` under Files, then in a
+   WinBox at `192.168.88.1`, upload `bootstrap.rsc` under Files, then in a
    terminal:
 
    ```
-   /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=bringup.rsc
+   /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=bootstrap.rsc
    ```
 
 3. After the reboot, join `SWEET-HOME`; the laptop gets an address by DHCP
    and reaches the internet through the router. Connect WinBox to `10.0.0.1` as `<apiUser>` and remove the script, it holds
-   secrets: `/file remove bringup.rsc`. Check the uplink:
+   secrets: `/file remove bootstrap.rsc`. Check the uplink:
 
    ```
    /interface wifi monitor wifi2 once
@@ -210,7 +210,7 @@ tagged `bringup`, so the laptop stays online until the apply.
    and set them in `modules/infra/router.nix`:
 
    ```nix
-   den.stacks.router.settings.infra.router.bringUpIds = {
+   den.stacks.router.settings.infra.router.importIds = {
      "routeros_interface_bridge.bridge" = "*…";
      "routeros_interface_bridge_port.wifi1" = "*…";
      "routeros_ip_address.lan" = "*…";
@@ -230,8 +230,8 @@ tagged `bringup`, so the laptop stays online until the apply.
    laptop is offline until the apply finishes:
 
    ```
-   /ip dhcp-client remove [find comment=bringup]
-   /ip firewall nat remove [find comment=bringup]
+   /ip dhcp-client remove [find comment=bootstrap]
+   /ip firewall nat remove [find comment=bootstrap]
    ```
 
    Then `just infra-apply router`. The apply restricts SSH and WinBox to the

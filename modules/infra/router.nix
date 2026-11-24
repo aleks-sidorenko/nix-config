@@ -15,7 +15,7 @@ in
       settings.infra.router = {
         country = "Ukraine";
         apiUser = "alexander";
-        bringUpIds = {
+        importIds = {
           "routeros_interface_bridge.bridge" = "*9";
           "routeros_interface_bridge_port.wifi1" = "*0";
           "routeros_ip_address.lan" = "*1";
@@ -57,7 +57,7 @@ in
           type = lib.types.str;
           description = "RouterOS API user the provider logs in as.";
         };
-        bringUpIds = lib.mkOption {
+        importIds = lib.mkOption {
           type = lib.types.attrsOf lib.types.str;
           default = { };
           example = {
@@ -91,8 +91,8 @@ in
             lib.concatStringsSep ", " (map (n: "${n.host} (${n.name})") unleased)
           }"
         else
-          lib.optionalAttrs (router.bringUpIds != { }) {
-            import = lan.bringUpImports router.bringUpIds;
+          lib.optionalAttrs (router.importIds != { }) {
+            import = lan.importBlocks router.importIds;
           }
           // {
             variable.wifi_password = {
@@ -225,7 +225,7 @@ in
       );
       expected = true;
     };
-    infra-router-adopts-bring-up = {
+    infra-router-imports = {
       expr = map (i: i.to) config.infraStacks.router.config.import;
       expected = [
         "routeros_interface_bridge.bridge"
@@ -240,8 +240,8 @@ in
         "routeros_wifi_security.home"
       ];
     };
-    infra-router-bring-up-imports = {
-      expr = lan.bringUpImports {
+    infra-router-import-blocks = {
+      expr = lan.importBlocks {
         "routeros_interface_bridge.bridge" = "*1";
         "routeros_ip_address.lan" = "*2";
       };
