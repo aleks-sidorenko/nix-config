@@ -130,8 +130,8 @@ tag. The rewrite lands in slices, tracked in
 [#272](https://github.com/aleks-sidorenko/nix-config/issues/272).
 
 - **Ported:** the base system, the server role, everything `server` runs, the
-  macOS `workbook` with its home, the DNS, storage and tailnet stacks, and the
-  installer ISO, and the router stack.
+  macOS `workbook` with its home, the DNS, router, storage and tailnet stacks, and the
+  installer ISO.
 - **Not yet ported:** bootstrapping a new host.
 
 ## License

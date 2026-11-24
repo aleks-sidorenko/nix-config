@@ -64,6 +64,7 @@ in
         }:
         let
           inherit (stack.settings.infra) router;
+          address = "10.0.0.1";
           unleased = lan.unleasedNames {
             leases = lan-leases;
             names = map (e: {
@@ -95,15 +96,15 @@ in
             routeros = {
               device = "hap-ax3";
               connection = {
-                address = "10.0.0.1";
+                inherit address;
                 username = router.apiUser;
               };
               system = {
-                identity = "router";
+                identity = stack.name;
                 timezone = stack.settings.system.locale.timeZone;
               };
               lan = {
-                address = "10.0.0.1/24";
+                address = "${address}/24";
                 dhcp.pool = "10.0.0.100-10.0.0.250";
                 leases = lib.listToAttrs (
                   map (l: lib.nameValuePair l.name { inherit (l) address mac; }) lan-leases

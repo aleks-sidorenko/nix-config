@@ -51,13 +51,6 @@ in
 
   den.aspects.server = {
     includes = [ den.aspects.roles.home-server ];
-    # Not in `system.networking`: the router stack includes that aspect and has no host to call this with.
-    lan-leases =
-      { host, ... }:
-      {
-        inherit (host) name;
-        inherit (host.lan) address mac;
-      };
     nixos.imports = [ ./_hardware.nix ];
   };
 
@@ -154,10 +147,7 @@ in
       "vhosts"
       "_"
     ];
-    server-parity-tailnet-ingress = same [
-      "firewall"
-      "interfaces"
-    ];
+    server-parity-firewall = same [ "firewall" ];
     server-has-htpasswd = {
       expr = s.sops.secrets ? service-ingress-htpasswd;
       expected = true;

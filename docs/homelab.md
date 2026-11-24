@@ -47,9 +47,10 @@ address; on the LAN the router's DNS answers them with the server's LAN address
 reachable. Traffic is plain HTTP; 443 is open so an upgraded request is
 refused instead of hanging.
 
-Sites marked "proxy auth" need HTTP basic auth from the `service-ingress-htpasswd`
-secret: those apps trust every request that reaches them, on the LAN as on the tailnet. An unknown `Host`
-gets connection closed (444) instead of the first site.
+Sites marked "proxy auth" need HTTP basic auth from the
+`service-ingress-htpasswd` secret: those apps trust every request that reaches
+them, on the LAN as on the tailnet. An unknown `Host` gets connection closed
+(444) instead of the first site.
 
 The records are the `dns` stack (`modules/infra/dns.nix`,
 `just infra-apply dns`), in the `sidorenko.me` zone beside the static site's
@@ -107,9 +108,9 @@ trips the dns stack's ambiguous-hostname guard. Remove the old node in the
 Tailscale admin console (Machines): the stacks' OAuth client deliberately has
 no `devices:core` write scope, so nothing here can delete devices.
 
-The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
-1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
-(41641/UDP), and on the tailnet for 80 and 443.
+The firewall is open on all interfaces for SSH (22), HTTP and HTTPS (80, 443),
+MiniDLNA (8200/TCP, 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and
+Tailscale (41641/UDP).
 
 ## Router
 
@@ -123,6 +124,18 @@ A MikroTik hAP ax³ is the LAN's router, DHCP and DNS server, managed by the
 | DHCP pool | `10.0.0.100`-`10.0.0.250` |
 
 `ether2` is the ISP uplink, a Wi-Fi station on `wifi2` the hotspot fallback.
+The library makes `wifi2` the station master, so the `SWEET-HOME` access point
+on that radio is a virtual interface following the station and likely does not
+broadcast while the station has no upstream. Clients only on that band depend
+on the station; `server`'s Wi-Fi NIC must associate on the other radio's band
+before cut-over. `runtimeManaged` makes the stack ignore the station's
+configuration and security, so set its mode, SSID and passphrase by hand once
+after import:
+
+```
+/interface wifi set wifi2 configuration.mode=station configuration.ssid=<upstream> security.passphrase=<passphrase>
+```
+
 Verify the port and radio names on the device before the first plan: which
 `wifiN` is 2.4 GHz and which 5 GHz, and which `etherN` is the 2.5G port, are
 read from `/interface print` and `/interface wifi print`. The Wi-Fi country is
@@ -130,7 +143,10 @@ the `country` setting, in the string form RouterOS expects (`Ukraine`).
 
 The API is reachable from the LAN only (`/ip service set api
 address=10.0.0.0/24`), so plan and apply from a LAN machine. Off the LAN,
-SSH to `server` and run the recipe there.
+SSH to `server` and run the recipe there; that needs the owner's PGP key
+usable on `server` (gpg-agent forwarding) and a checkout with the committed
+state, since `infra/router/secrets.yaml` is not encrypted to `server`.
+Otherwise plan and apply from a machine on the LAN.
 
 ### Bring-up
 
@@ -138,8 +154,12 @@ Apply onto a device with no default configuration. Plug the admin machine
 into a LAN port (`ether1`, `ether3`, `ether4` or `ether5`, never the ISP
 uplink `ether2`); that is `<port>` below. The library bridges every ethernet
 port except the uplinks. A reset device has no DHCP server, so give the admin
-machine a static address in `10.0.0.0/24` (e.g. `10.0.0.2/24`) for the
-bring-up. Run the console steps over the console or WinBox (which connects by
+machine a static address in `10.0.0.0/24` (e.g. `10.0.0.2/24`, no gateway)
+for the bring-up. The device has no uplink, NAT or DHCP yet, so that
+interface has no internet: warm the caches while still online
+(`just infra-validate router`, or `nix build .#router.config`), and keep
+internet on another interface, since `just infra-plan router` runs `tofu init`.
+The reset reboots the device, so reconnect afterwards. Run the console steps over the console or WinBox (which connects by
 MAC); once the address is set the API answers on `10.0.0.1`, port 8728:
 
 ```
@@ -160,7 +180,7 @@ adopt with `print show-ids`, in `/interface bridge`, `/interface bridge port`,
 settings in `modules/infra/router.nix`:
 
 ```nix
-bringUpIds = {
+den.stacks.router.settings.infra.router.bringUpIds = {
   "routeros_interface_bridge.bridge" = "*1";
   "routeros_interface_bridge_port.<port>" = "*1";
   "routeros_ip_address.lan" = "*1";
@@ -170,11 +190,11 @@ bringUpIds = {
 ```
 
 The bridge port key is `routeros_interface_bridge_port.<port>`, with the name
-of the port you plugged into; the radios are those carrying a
-network or station. Then `just infra-plan router` and apply, and switch the
-admin machine back to DHCP. Once the state
-holds them, the ids may stay: an import of an already-managed resource is a
-no-op.
+of the port you plugged into; the radios are those carrying a network or
+station. Then `just infra-plan router` and apply, and switch the admin machine
+back to DHCP. The first apply restricts SSH and WinBox to the LAN. Once the
+state holds them, the ids may stay: an import of an already-managed resource
+is a no-op.
 
 ## Backups
 
