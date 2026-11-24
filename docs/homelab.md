@@ -147,7 +147,7 @@ WinBox, with `<port>` the port you are connected through:
 ```
 
 `<apiUser>` is the `apiUser` setting; its password is the
-`routeros_password` secret in `infra/secrets.yaml`. The user is not a
+`router-api-password` secret in `infra/router/secrets.yaml`. The user is not a
 managed resource, and the library adopts the built-in `ip_service` entries by
 their numbers, so neither needs an import. Read the ids of what the stack must
 adopt with `print show-ids`, in `/interface bridge`, `/interface bridge port`,
