@@ -11,9 +11,14 @@ let
 
   secret = "system-tailscale-auth-key";
 
-  # Required for OAuth client secrets used as auth keys; a plain,
-  # already-approved key ignores it.
-  authKeyParameters.preauthorized = true;
+  # Required for OAuth client secrets used as auth keys, which otherwise
+  # register an unapproved, ephemeral node: the tailnet deletes it whenever the
+  # host goes offline, and a cached netmap can then report it running while it
+  # is logged out, so autoconnect never sends the key. A plain key ignores both.
+  authKeyParameters = {
+    ephemeral = false;
+    preauthorized = true;
+  };
 
   tagFlags = host: [
     "--advertise-tags=${lib.concatStringsSep "," host.settings.services.tailscale.tags}"
@@ -125,6 +130,18 @@ in
         };
       };
   };
+
+  evalTests.tailscale-joins-persistent =
+    config.perHost
+      (lib.filterAttrs (name: _: config.flake.nixosConfigurations ? ${name}) (
+        config.hostsWith den.aspects.services.tailscale
+      ))
+      (
+        name: _:
+        lib.hasInfix "ephemeral=false"
+          config.flake.nixosConfigurations.${name}.config.systemd.services.tailscaled-autoconnect.script
+      )
+      true;
 
   evalTests.install-disables-autoconnect =
     perTestedHost den.aspects.services.tailscale
