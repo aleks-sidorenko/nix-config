@@ -41,15 +41,35 @@ in
   # Shared with server-vm in ../home-servers.nix.
   den.hosts.x86_64-linux.server = {
     deploy = { };
+    # Read from the wireless NIC; the wired one is 34:e3:da:d9:c1:f1, for when the box is cabled.
+    lan = {
+      address = "10.0.0.10";
+      mac = "80:30:49:13:75:41";
+    };
     settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
   };
 
   den.aspects.server = {
     includes = [ den.aspects.roles.home-server ];
+    # Not in `system.networking`: the router stack includes that aspect and has no host to call this with.
+    lan-leases =
+      { host, ... }:
+      {
+        inherit (host) name;
+        inherit (host.lan) address mac;
+      };
     nixos.imports = [ ./_hardware.nix ];
   };
 
   evalTests = {
+    server-lan = {
+      expr = config.den.hosts.x86_64-linux.server.lan;
+      expected = {
+        address = "10.0.0.10";
+        mac = "80:30:49:13:75:41";
+      };
+    };
+
     server-nix-unchanged = {
       expr = {
         trusted-users = lib.unique s.nix.settings.trusted-users;
