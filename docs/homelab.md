@@ -130,16 +130,17 @@ The library makes `wifi2` the station master, so the access point on that
 radio is a virtual interface following the station: it shares the upstream's
 channel and likely does not broadcast while the station has no upstream.
 `server` must associate on `wifi1`'s band. `runtimeManaged` makes the stack
-ignore the station's configuration and security, so its SSID and passphrase
-are set by hand once after the first apply:
+ignore the station's configuration and security: the upstream's SSID and
+passphrase live only on the device, set by the bring-up script and changed by
+hand:
 
 ```
-/interface wifi set wifi2 configuration.mode=station configuration.ssid=<upstream> security.passphrase=<passphrase>
+/interface wifi set wifi2 configuration.mode=station configuration.ssid="<upstream>" security.authentication-types=wpa2-psk,wpa3-psk security.passphrase="<passphrase>" disabled=no
 ```
 
-Verify on the device which `wifiN` is 2.4 GHz and which 5 GHz
-(`/interface wifi print`); the station takes `wifi2`'s band. The Wi-Fi country
-is the `country` setting, in the string form RouterOS expects (`Ukraine`).
+`wifi1` is 5 GHz and `wifi2` 2.4 GHz, so the upstream must broadcast on
+2.4 GHz (`/interface wifi scan wifi2`). The Wi-Fi country is the `country`
+setting, in the string form RouterOS expects (`Ukraine`).
 
 The API is reachable from the LAN only (`/ip service set api
 address=10.0.0.0/24`), so plan and apply from a machine on `SWEET-HOME`. Off
@@ -153,14 +154,14 @@ The stack applies onto a device with no default configuration, over the API,
 from a laptop on the router's own Wi-Fi. A reset with `no-defaults` leaves no
 access point to join, so the reset itself runs a script that brings up
 `SWEET-HOME` on `wifi1`, the bridge, the address and the API user, with exactly
-the values the stack renders so that adopting them changes nothing.
+the values the stack renders so that adopting them changes nothing. It also
+joins the upstream and adds a temporary DHCP client and NAT, tagged `bringup`,
+so the laptop stays online until the apply.
 
-1. While online, warm every cache the plan needs: run `just infra-plan router`
-   once; it builds the wrapper and runs `tofu init`, then fails to reach the
-   router. During bring-up the laptop has no internet.
-2. Write `bringup.rsc`, filling the secrets from
-   `just infra-secrets-edit router` (`wifi-password`, `router-api-password`);
-   `<apiUser>` is the `apiUser` setting:
+1. Write `bringup.rsc`, filling the secrets from
+   `just infra-secrets-edit router` (`wifi-password`, `router-api-password`)
+   and the upstream's SSID and passphrase; `<apiUser>` is the `apiUser`
+   setting:
 
    ```
    :delay 15s
@@ -168,27 +169,41 @@ the values the stack renders so that adopting them changes nothing.
    /interface wifi security add name=home authentication-types=wpa2-psk,wpa3-psk passphrase="<wifi-password>"
    /interface wifi configuration add name=home mode=ap ssid=SWEET-HOME country=Ukraine security=home
    /interface wifi set wifi1 configuration=home disabled=no
+   /interface wifi set wifi2 configuration.mode=station configuration.ssid="<upstream>" security.authentication-types=wpa2-psk,wpa3-psk security.passphrase="<passphrase>" disabled=no
    /interface bridge port add bridge=bridge interface=wifi1
    /ip address add address=10.0.0.1/24 interface=bridge
+   /ip dhcp-client add interface=wifi2 comment=bringup
+   /ip firewall nat add chain=srcnat out-interface=wifi2 action=masquerade comment=bringup
    /user add name=<apiUser> group=full password="<router-api-password>"
    /ip service set api address=10.0.0.0/24
    ```
 
-3. Join the factory Wi-Fi (SSID and password on the device's label), open
-   WinBox or WebFig at `192.168.88.1`, upload `bringup.rsc` under Files, then
-   in a terminal:
+2. Join the factory Wi-Fi (SSID and password on the device's label), open
+   WinBox at `192.168.88.1`, upload `bringup.rsc` under Files, then in a
+   terminal:
 
    ```
    /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=bringup.rsc
    ```
 
-4. After the reboot, join `SWEET-HOME` and give the laptop a static
-   `10.0.0.2/24` (no gateway): there is no DHCP server yet. WinBox by MAC also
-   works. Remove the script, it holds secrets: `/file remove bringup.rsc`.
-5. Read the ids with `print show-ids` in `/interface bridge`,
-   `/interface bridge port`, `/ip address`, `/interface wifi`,
-   `/interface wifi configuration` and `/interface wifi security`, and set them
-   in `modules/infra/router.nix`:
+3. After the reboot, join `SWEET-HOME` with a static address: `10.0.0.2/24`,
+   router `10.0.0.1`, DNS `1.1.1.1`; there is no DHCP server yet. Connect
+   WinBox to `10.0.0.1` as `<apiUser>` and remove the script, it holds
+   secrets: `/file remove bringup.rsc`. Check the uplink:
+
+   ```
+   /interface wifi monitor wifi2 once
+   /ping 1.1.1.1 count=3
+   ```
+
+   `connected-to-ess` and replies mean the laptop is online too.
+4. Read the ids:
+
+   ```
+   /interface bridge print show-ids proplist=name; /interface bridge port print show-ids proplist=interface; /ip address print show-ids proplist=address; /interface wifi print show-ids proplist=name; /interface wifi configuration print show-ids proplist=name; /interface wifi security print show-ids proplist=name
+   ```
+
+   and set them in `modules/infra/router.nix`:
 
    ```nix
    den.stacks.router.settings.infra.router.bringUpIds = {
@@ -202,12 +217,19 @@ the values the stack renders so that adopting them changes nothing.
    };
    ```
 
-6. `just infra-plan router`: the adopted objects should show only in-place
-   updates, nothing replaced. Then `just infra-apply router`. The apply
-   restricts SSH and WinBox to the LAN and starts DHCP; switch the laptop back
-   to DHCP.
-7. Set the station's SSID and passphrase (above). Once the router reaches the
-   upstream, re-plan: no changes. Commit `infra/router/terraform.tfstate`.
+5. `just infra-plan router`: the adopted objects should show only in-place
+   updates, nothing replaced. The stack creates its own DHCP client on `wifi2`,
+   which RouterOS refuses beside another, so remove the temporary ones; the
+   laptop is offline until the apply finishes:
+
+   ```
+   /ip dhcp-client remove [find comment=bringup]
+   /ip firewall nat remove [find comment=bringup]
+   ```
+
+   Then `just infra-apply router`. The apply restricts SSH and WinBox to the
+   LAN and starts DHCP; switch the laptop back to DHCP.
+6. Re-plan: no changes. Commit `infra/router/terraform.tfstate`.
 
 Once the state holds them, the ids may stay: an import of an
 already-managed resource is a no-op.
