@@ -25,6 +25,12 @@
       readOnly = true;
       description = "Type of an entity's `settings`: the settings every aspect declares, at the aspect's path.";
     };
+    # Published for entity kinds declared elsewhere that belong to a person too.
+    identityType = lib.mkOption {
+      type = lib.types.optionType;
+      readOnly = true;
+      description = "Type of an entity's `identity`: a folder under identities/, loaded into its keys and git data.";
+    };
     hostsWith = lib.mkOption {
       type = lib.types.functionTo lib.types.raw;
       readOnly = true;
@@ -35,6 +41,23 @@
   config = {
     isReservedKey = import ./_reserved-key.nix { inherit den; };
     settingsType = import ./_settings-type.nix { inherit den lib; };
+    # The only place that knows where identities live. Files are read on
+    # first use, so a user without a key never needs that file.
+    identityType = lib.types.coercedTo lib.types.str (
+      name:
+      let
+        dir = ../identities + "/${name}";
+        read = file: lib.trim (builtins.readFile (dir + "/${file}"));
+      in
+      {
+        inherit name;
+        sshKeyFile = dir + "/ssh.pub";
+        sshKey = read "ssh.pub";
+        gpgKeyFile = dir + "/gpg.pub.asc";
+        gpgKeyId = read "gpg.key-id";
+        git = builtins.fromJSON (read "git.json");
+      }
+    ) lib.types.raw;
     hostsWith =
       aspect:
       lib.filterAttrs (_: host: host.hasAspect aspect) (lib.mergeAttrsList (lib.attrValues den.hosts));
@@ -113,33 +136,14 @@
         classes = lib.mkDefault [ "homeManager" ];
 
         imports = [
-          (
-            { config, ... }:
-            {
-              # The only place that knows where identities live. Files are read
-              # on first use, so a user without a key never needs that file.
-              options.identity = lib.mkOption {
-                type = lib.types.coercedTo lib.types.str (
-                  name:
-                  let
-                    dir = ../identities + "/${name}";
-                    read = file: lib.trim (builtins.readFile (dir + "/${file}"));
-                  in
-                  {
-                    inherit name;
-                    sshKeyFile = dir + "/ssh.pub";
-                    sshKey = read "ssh.pub";
-                    gpgKeyFile = dir + "/gpg.pub.asc";
-                    gpgKeyId = read "gpg.key-id";
-                    git = builtins.fromJSON (read "git.json");
-                  }
-                ) lib.types.raw;
-                default = config.name;
-                defaultText = "the user's name";
-                description = "The person behind the account: a folder under identities/, loaded into its keys and git data.";
-              };
-            }
-          )
+          (user: {
+            options.identity = lib.mkOption {
+              type = config.identityType;
+              default = user.config.name;
+              defaultText = "the user's name";
+              description = "The person behind the account.";
+            };
+          })
         ];
       };
 

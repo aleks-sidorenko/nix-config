@@ -270,7 +270,7 @@ Stage new files (`git add`) before `just check`.
 2. A new provider is an aspect `modules/infra/<provider>.nix` with the
    provider block, its variables and each credential as
    `_meta.secrets.TF_VAR_<var> = { file = "infra/secrets.yaml"; key = "…"; };`.
-3. Create `infra/<stack>/` and add a `.sops.yaml` creation rule for
+3. Add a `.sops.yaml` creation rule for
    `infra/<stack>/secrets.yaml` (same recipients as the other infra rules).
    Create the file with a `state-passphrase`
    (`just infra-secrets-edit <stack>`), then `just infra-validate <stack>`

@@ -83,3 +83,10 @@ creation_rules:
           - *alexander
         age:
           - *workbook
+
+  - path_regex: infra/repos/secrets.ya?ml$
+    key_groups:
+      - pgp:
+          - *alexander
+        age:
+          - *workbook

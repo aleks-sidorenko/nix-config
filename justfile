@@ -170,4 +170,5 @@ infra-destroy stack *args:
 # Edit a stack's secrets, or the provider credentials stacks share when omitted
 [group('infra')]
 infra-secrets-edit stack="":
+    mkdir -p infra/{{ stack }}
     {{ run }} sops infra/{{ if stack == "" { "" } else { stack + "/" } }}secrets.yaml
