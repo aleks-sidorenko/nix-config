@@ -6,6 +6,7 @@ let
     "Build package"
   ];
   ruleset = config.infraStacks.github.config.resource.github_repository_ruleset;
+  repos = config.den.stacks.github.settings.infra.github.repos;
 in
 {
   den.stacks.github.identity = "alexander";
@@ -24,7 +25,7 @@ in
           nix-wallpapers = flakeChecks;
           nix-nvim = flakeChecks;
         };
-        description = "Public repositories sharing the default-branch ruleset, each with the status checks a merge requires.";
+        description = "Public repositories sharing the default-branch ruleset, each with the status checks a merge requires: their CI job names, so renaming a job blocks merging until it is renamed here too.";
       };
     };
 
@@ -45,6 +46,7 @@ in
         };
 
         provider.github = {
+          # The identity's first account is the one that owns repositories.
           owner = lib.head stack.identity.git.githubAccounts;
           token = "\${var.github_token}";
         };
@@ -115,17 +117,24 @@ in
       expr = config.infraStacks.github.config.provider.github.owner;
       expected = "aleks-sidorenko";
     };
-    infra-github-squash-only = {
+    infra-github-rules-every-repo = {
       expr = lib.mapAttrs (_: r: {
         inherit (r.rules) required_linear_history;
         inherit (r.rules.pull_request) allowed_merge_methods;
         inherit (r.conditions.ref_name) include;
       }) ruleset;
-      expected = lib.genAttrs [ "nix-config" "nix-nvim" "nix-routeros" "nix-wallpapers" ] (_: {
+      expected = lib.mapAttrs (_: _: {
         required_linear_history = true;
         allowed_merge_methods = [ "squash" ];
         include = [ "~DEFAULT_BRANCH" ];
-      });
+      }) repos;
+    };
+    # A required check no job reports blocks every merge, unnoticed until one.
+    infra-github-checks-match-ci = {
+      expr = lib.filter (
+        check: !(lib.hasInfix ''name: "${check}"'' (builtins.readFile ../../.github/workflows/ci.yml))
+      ) repos.nix-config;
+      expected = [ ];
     };
   };
 }

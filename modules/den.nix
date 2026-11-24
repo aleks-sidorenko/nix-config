@@ -141,7 +141,7 @@
               type = config.identityType;
               default = user.config.name;
               defaultText = "the user's name";
-              description = "The person behind the account: a folder under identities/, loaded into its keys and git data.";
+              description = "The person behind the account.";
             };
           })
         ];
