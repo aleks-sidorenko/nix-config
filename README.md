@@ -131,10 +131,8 @@ tag. The rewrite lands in slices, tracked in
 
 - **Ported:** the base system, the server role, everything `server` runs, the
   macOS `workbook` with its home, the DNS, storage and tailnet stacks, and the
-  installer ISO.
-- **Not yet ported:**
-  - bootstrapping a new host;
-  - the router stack.
+  installer ISO, and the router stack.
+- **Not yet ported:** bootstrapping a new host.
 
 ## License
 

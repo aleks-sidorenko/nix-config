@@ -45,6 +45,14 @@ in
           type = lib.types.str;
           description = "RouterOS API user the provider logs in as.";
         };
+        bringUpIds = lib.mkOption {
+          type = lib.types.attrsOf lib.types.str;
+          default = { };
+          example = {
+            "routeros_interface_bridge.bridge" = "*1";
+          };
+          description = "RouterOS `.id` of each hand-made resource the first apply adopts, by resource address.";
+        };
       };
 
       terranix =
@@ -70,7 +78,10 @@ in
             lib.concatStringsSep ", " (map (n: "${n.host} (${n.name})") unleased)
           }"
         else
-          {
+          lib.optionalAttrs (router.bringUpIds != { }) {
+            import = lan.bringUpImports router.bringUpIds;
+          }
+          // {
             variable.wifi_password = {
               type = "string";
               sensitive = true;
@@ -208,6 +219,26 @@ in
         lib.attrValues config.infraStacks.router.config.resource.routeros_ip_dns_record
       );
       expected = true;
+    };
+    infra-router-no-imports-by-default = {
+      expr = config.infraStacks.router.config ? import;
+      expected = false;
+    };
+    infra-router-bring-up-imports = {
+      expr = lan.bringUpImports {
+        "routeros_interface_bridge.bridge" = "*1";
+        "routeros_ip_address.lan" = "*2";
+      };
+      expected = [
+        {
+          to = "routeros_interface_bridge.bridge";
+          id = "*1";
+        }
+        {
+          to = "routeros_ip_address.lan";
+          id = "*2";
+        }
+      ];
     };
     infra-router-secrets = {
       expr = lib.attrNames config.infraStacks.router.meta.secrets;

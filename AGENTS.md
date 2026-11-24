@@ -81,6 +81,7 @@ without breaking another.
 | Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
 | A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<public>`, the `system.networking.domains.public` setting (`modules/system/networking.nix`) |
 | A public DNS name for a service | `published-names` quirk | FQDNs in the aspect; the `dns` stack points them at the host's tailnet address on deployed hosts (`modules/infra/dns.nix`) |
+| A host's fixed LAN address and MAC | `lan` host option | `lan = { address; mac; };` on the host (`modules/den.nix`); deployed hosts' values reach the `router` stack as `lan-leases` (static DHCP lease, split-horizon records) |
 | Offsite backup paths or excludes | `backup` quirk | `backup = { paths; exclude; };` in the aspect (`modules/services/restic.nix`) |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
@@ -135,7 +136,7 @@ it, never write the path.
   anything starting `__`, `settings`, `stack`, any class (`nixos darwin
   homeManager os user hjem maid wsl terranix`), any quirk
   (`persist installChecks vhosts backup tailnet-tags
-  published-names`). Declaring a new
+  published-names lan-leases`). Declaring a new
   quirk or class reserves its name too.
 - Include named aspects (`den.aspects.system.nix`), never inline modules in
   `includes`.

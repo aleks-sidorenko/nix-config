@@ -123,6 +123,7 @@ Data that many aspects contribute and one collects travels as quirks:
 | `persist` | every aspect with state | `storage.impermanence` | `environment.persistence`, and the guard's list of accepted paths |
 | `vhosts` | each proxied service | `services.nginx` | one virtual host per entry at `<name>.<domain>` |
 | `backup` | jellyfin (excludes its cache), calibre-web (adds the book library) | `services.restic` | extra backup paths and excludes |
+| `lan-leases` | each deployed host with a `lan` option, from its host aspect | the `router` stack | a static DHCP lease per host, and the address its published names answer with on the LAN |
 | `installChecks` | most aspects; nginx derives its own from the rendered vhosts | `storage.disko` | the install test's checks |
 
 A quirk value may be a function of the host (`{ host, ... }:`, as calibre-web's
@@ -223,6 +224,14 @@ configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
 contributes from each host's `tags` setting, with a `pipe.collectAll` policy
 on the stack entity: collect policies go in `den.stacks.<stack>.includes`;
 included from the stack aspect they do not fire.
+The `router` stack (`modules/infra/router.nix`) configures the MikroTik router
+through the nix-routeros library over the RouterOS API. It collects
+`lan-leases` (from the `lan` host option, deployed hosts only) and
+`published-names`, so the router's DNS answers each published name with its
+host's LAN address (split-horizon). Its settings are `country`, `apiUser` and
+`bringUpIds`, the ids of the hand-made objects the first apply adopts with
+`import` blocks (see [homelab](homelab.md#router)). A published name whose
+host has no `lan` address fails evaluation.
 `dns` collects `published-names`, the FQDNs nginx and Minecraft contribute,
 from hosts with `deploy` only, with provenance for each name's hostname.
 

@@ -81,7 +81,8 @@ Service state lives under `/var/lib` (or `/var/cache`), bind-mounted from
 
 ## Network
 
-The box has only Wi-Fi. NetworkManager manages it, and the saved connection
+The box has only Wi-Fi; its address on the LAN is reserved by the router
+(see [Router](#router)). NetworkManager manages it, and the saved connection
 is persisted state (`/etc/NetworkManager/system-connections`), not part of
 this config: losing it takes the box off the network. The LAN domain is
 `lan`, and the tailnet's MagicDNS domain comes first in the search list.
@@ -109,6 +110,64 @@ no `devices:core` write scope, so nothing here can delete devices.
 The firewall is open on all interfaces for SSH (22), MiniDLNA (8200/TCP,
 1900/UDP), qBittorrent peers (17348), Minecraft (25565) and Tailscale
 (41641/UDP), and on the tailnet for 80 and 443.
+
+## Router
+
+A MikroTik hAP ax³ is the LAN's router, DHCP and DNS server, managed by the
+`router` stack (`modules/infra/router.nix`, `just infra-plan router`).
+
+| Device | Address |
+| --- | --- |
+| router | `10.0.0.1` |
+| `server` | `10.0.0.10`, static lease from its `lan` option |
+| DHCP pool | `10.0.0.100`-`10.0.0.250` |
+
+`ether2` is the ISP uplink, a Wi-Fi station on `wifi2` the hotspot fallback.
+Verify the port and radio names on the device before the first plan: which
+`wifiN` is 2.4 GHz and which 5 GHz, and which `etherN` is the 2.5G port, are
+read from `/interface print` and `/interface wifi print`. The Wi-Fi country is
+the `country` setting, in the string form RouterOS expects (`Ukraine`).
+
+The API is reachable from the LAN only (`/ip service set api
+address=10.0.0.0/24`), so plan and apply from a LAN machine. Off the LAN,
+SSH to `server` and run the recipe there.
+
+### Bring-up
+
+Apply onto a device with no default configuration. Over the console or
+WinBox, with `<port>` the port you are connected through:
+
+```
+/system reset-configuration no-defaults=yes
+/interface bridge add name=bridge
+/interface bridge port add bridge=bridge interface=<port>
+/ip address add address=10.0.0.1/24 interface=bridge
+/user add name=<apiUser> group=full password=…
+/ip service set api address=10.0.0.0/24
+```
+
+`<apiUser>` is the `apiUser` setting; its password is the
+`routeros_password` secret in `infra/secrets.yaml`. The user is not a
+managed resource, and the library adopts the built-in `ip_service` entries by
+their numbers, so neither needs an import. Read the ids of what the stack must
+adopt with `print show-ids`, in `/interface bridge`, `/interface bridge port`,
+`/ip address` and `/interface wifi`, and set them in the router stack's
+settings in `modules/infra/router.nix`:
+
+```nix
+bringUpIds = {
+  "routeros_interface_bridge.bridge" = "*1";
+  "routeros_interface_bridge_port.<port>" = "*1";
+  "routeros_ip_address.lan" = "*1";
+  "routeros_wifi.wifi1" = "*1";
+  "routeros_wifi.wifi2" = "*2";
+};
+```
+
+The bridge port key is the port's name; the radios are those carrying a
+network or station. Then `just infra-plan router` and apply. Once the state
+holds them, the ids may stay: an import of an already-managed resource is a
+no-op.
 
 ## Backups
 
