@@ -200,6 +200,7 @@ in
       expected = [
         "dns"
         "repos"
+        "router"
         "storage"
         "tailnet"
       ];
