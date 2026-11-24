@@ -198,11 +198,11 @@ declared in `modules/flake/terranix.nix`: `den.stacks.<name>` (kind
 `den.schema.stack`, inheriting `den.schema.conf`), resolved from the flake
 root like hosts. A stack takes `settings` like a host, and aspects take it as
 `stack`. A stack managing a person's accounts declares whose with `identity`,
-as a user does (`github` derives the repository owner from it).
+as a user does (`infra.github` derives the repository owner from it).
 
 Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
 and `infra.state`. Their `terranix` bodies, and those of the provider aspects
-they include (`infra.cloudflare`, `infra.tailscale`), are collected per stack into
+they include (`infra.cloudflare`, `infra.tailscale`, `infra.github`), are collected per stack into
 `flake.terranixModules.<name>` and rendered by terranix's flake module:
 `packages.<system>.<name>` runs `tofu apply`, with `.plan`, `.destroy`,
 `.init`, `.config` (the rendered `config.tf.json`) and `.terraform` (the

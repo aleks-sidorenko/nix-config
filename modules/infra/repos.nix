@@ -1,0 +1,120 @@
+{
+  config,
+  den,
+  lib,
+  ...
+}:
+let
+  flakeChecks = [
+    "Flake Check"
+    "Check Formatting"
+    "Build package"
+  ];
+  ruleset = config.infraStacks.repos.config.resource.github_repository_ruleset;
+  repos = config.den.stacks.repos.settings.infra.repos.repos;
+in
+{
+  den.stacks.repos.identity = "alexander";
+
+  den.aspects.infra.repos = {
+    includes = [ den.aspects.infra.github ];
+
+    settings = {
+      repos = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = {
+          nix-config = [ "Check, install tests and server build" ];
+          nix-routeros = [
+            "Flake check"
+            "Format"
+            "Build example"
+          ];
+          nix-wallpapers = flakeChecks;
+          nix-nvim = flakeChecks;
+        };
+        description = "Public repositories sharing the default-branch ruleset, each with the status checks a merge requires: their CI job names, so renaming a job blocks merging until it is renamed here too.";
+      };
+    };
+
+    terranix =
+      { stack, ... }:
+      let
+        inherit (stack.settings.infra.repos) repos;
+      in
+      {
+        # Repository rulesets, not an account-wide one: those need a paid
+        # plan, these are free on public repositories.
+        resource.github_repository_ruleset = lib.mapAttrs (repository: checks: {
+          inherit repository;
+          name = "default-branch";
+          target = "branch";
+          enforcement = "active";
+
+          conditions.ref_name = {
+            include = [ "~DEFAULT_BRANCH" ];
+            exclude = [ ];
+          };
+
+          rules = {
+            non_fast_forward = true;
+            deletion = true;
+            required_linear_history = true;
+
+            # A sole owner cannot approve their own pull request, so none is
+            # required; the rule still forces every change through one.
+            pull_request = {
+              required_approving_review_count = 0;
+              required_review_thread_resolution = true;
+              allowed_merge_methods = [ "squash" ];
+            };
+
+            required_status_checks = {
+              strict_required_status_checks_policy = false;
+              required_check = map (context: { inherit context; }) checks;
+            };
+          };
+        }) repos;
+
+        # Adopted from a hand-made ruleset that targeted no branch.
+        import = [
+          {
+            to = "github_repository_ruleset.nix-config";
+            id = "nix-config:3313674";
+          }
+        ];
+      };
+  };
+
+  evalTests = {
+    infra-repos-secrets = {
+      expr = lib.attrNames config.infraStacks.repos.meta.secrets;
+      expected = [
+        "TF_VAR_github_token"
+        "TF_VAR_state_passphrase"
+      ];
+    };
+    infra-repos-owner = {
+      expr = config.infraStacks.repos.config.provider.github.owner;
+      expected = "aleks-sidorenko";
+    };
+    infra-repos-rules-every-repo = {
+      expr = lib.mapAttrs (_: r: {
+        inherit (r.rules) required_linear_history;
+        inherit (r.rules.pull_request) allowed_merge_methods;
+        inherit (r.conditions.ref_name) include;
+      }) ruleset;
+      expected = lib.mapAttrs (_: _: {
+        required_linear_history = true;
+        allowed_merge_methods = [ "squash" ];
+        include = [ "~DEFAULT_BRANCH" ];
+      }) repos;
+    };
+    # A required check no job reports blocks every merge, unnoticed until one.
+    infra-repos-checks-match-ci = {
+      expr = lib.filter (
+        check: !(lib.hasInfix ''name: "${check}"'' (builtins.readFile ../../.github/workflows/ci.yml))
+      ) repos.nix-config;
+      expected = [ ];
+    };
+  };
+}

@@ -199,7 +199,7 @@ in
       expr = lib.attrNames stacks;
       expected = [
         "dns"
-        "github"
+        "repos"
         "storage"
         "tailnet"
       ];
