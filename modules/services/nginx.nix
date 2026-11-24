@@ -132,11 +132,12 @@ in
             };
         };
 
-        # Service names resolve to tailnet addresses, so ingress is scoped to
-        # the tailnet: a device on the same LAN can't skip it. 443 is open
-        # before anything terminates TLS so an upgraded scheme is refused, not
-        # left waiting.
-        networking.firewall.interfaces.${config.services.tailscale.interfaceName}.allowedTCPPorts = [
+        # Split-horizon LAN DNS points the service names at this host's LAN
+        # address, so the LAN reaches nginx directly and the ports are open on
+        # every interface. Proxy-auth sites rely on basic auth there too. 443
+        # is open before anything terminates TLS so an upgraded scheme is
+        # refused, not left waiting.
+        networking.firewall.allowedTCPPorts = [
           80
           443
         ];

@@ -41,13 +41,14 @@ test guest; CI install-tests it in place of `server`.
 ## Ingress
 
 nginx serves each proxied service at `<site>.home.sidorenko.me`, the nginx
-`domain` setting. Those names resolve to the server's tailnet address, and
-ports 80 and 443 are open only on `tailscale0`, so the sites are reachable
-from the tailnet and not from the LAN. Traffic is plain HTTP inside the
-tailnet; 443 is open so an upgraded request is refused instead of hanging.
+`domain` setting. On the tailnet those names resolve to the server's tailnet
+address; on the LAN the router's DNS answers them with the server's LAN address
+(split-horizon). Ports 80 and 443 are open on every interface, so both are
+reachable. Traffic is plain HTTP; 443 is open so an upgraded request is
+refused instead of hanging.
 
 Sites marked "proxy auth" need HTTP basic auth from the `service-ingress-htpasswd`
-secret: those apps trust every request that reaches them. An unknown `Host`
+secret: those apps trust every request that reaches them, on the LAN as on the tailnet. An unknown `Host`
 gets connection closed (444) instead of the first site.
 
 The records are the `dns` stack (`modules/infra/dns.nix`,
