@@ -22,6 +22,7 @@ are read-only options their owners declare:
 | `config.installTests` | `modules/flake/install-tests.nix` | `installedSystem`, `perTestedHost`, `settled`, for aspects' eval tests and checks |
 | `config.isReservedKey` | `modules/den.nix` | Whether den reads a key inside an aspect as machinery rather than a child aspect |
 | `config.settingsType` | `modules/den.nix` | The type of an entity's `settings`, shared by hosts and stacks |
+| `config.identityType` | `modules/den.nix` | The type of an entity's `identity` (an `identities/` folder, loaded), shared by users and stacks |
 | `config.hostsWith` | `modules/den.nix` | The hosts of every system that include an aspect |
 | `config.perHost` | `modules/flake/eval-tests.nix` | An eval test of a probe on each of a set of hosts, failing when the set is empty |
 | `config.infraStacks` | `modules/flake/terranix.nix` | Each stack's evaluated terranix config and `_meta`, for eval tests |
@@ -196,7 +197,8 @@ Cloud and API resources are OpenTofu stacks, a den entity kind of their own
 declared in `modules/flake/terranix.nix`: `den.stacks.<name>` (kind
 `den.schema.stack`, inheriting `den.schema.conf`), resolved from the flake
 root like hosts. A stack takes `settings` like a host, and aspects take it as
-`stack`.
+`stack`. A stack managing a person's accounts declares whose with `identity`,
+as a user does (`github` derives the repository owner from it).
 
 Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
 and `infra.state`. Their `terranix` bodies, and those of the provider aspects

@@ -116,17 +116,18 @@ in
           description = "Per-stack values for the settings aspects declare, at the aspect's path.";
         };
         imports = [
-          (
-            { config, ... }:
-            {
-              options.dir = lib.mkOption {
-                type = lib.types.str;
-                default = "infra/${config.name}";
-                readOnly = true;
-                description = "Repo-relative directory holding the stack's state, provider lock and own secrets.";
-              };
-            }
-          )
+          (stack: {
+            options.dir = lib.mkOption {
+              type = lib.types.str;
+              default = "infra/${stack.config.name}";
+              readOnly = true;
+              description = "Repo-relative directory holding the stack's state, provider lock and own secrets.";
+            };
+            options.identity = lib.mkOption {
+              type = config.identityType;
+              description = "The person whose accounts the stack manages, as a user's `identity`; only stacks whose aspects read it set it.";
+            };
+          })
         ];
       };
 
@@ -198,6 +199,7 @@ in
       expr = lib.attrNames stacks;
       expected = [
         "dns"
+        "github"
         "storage"
         "tailnet"
       ];
