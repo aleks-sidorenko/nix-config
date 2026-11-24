@@ -50,6 +50,17 @@ in
           target = "branch";
           enforcement = "active";
 
+          # The owner may merge a pull request the rules would hold back, but
+          # never push to the branch directly: the bypass is pull-request only.
+          bypass_actors = [
+            {
+              actor_type = "RepositoryRole";
+              # The built-in admin role, which a personal repository's owner holds.
+              actor_id = 5;
+              bypass_mode = "pull_request";
+            }
+          ];
+
           conditions.ref_name = {
             include = [ "~DEFAULT_BRANCH" ];
             exclude = [ ];
@@ -102,11 +113,13 @@ in
         inherit (r.rules) required_linear_history;
         inherit (r.rules.pull_request) allowed_merge_methods;
         inherit (r.conditions.ref_name) include;
+        bypass = map (a: a.bypass_mode) r.bypass_actors;
       }) ruleset;
       expected = lib.mapAttrs (_: _: {
         required_linear_history = true;
         allowed_merge_methods = [ "squash" ];
         include = [ "~DEFAULT_BRANCH" ];
+        bypass = [ "pull_request" ];
       }) repos;
     };
     # A required check no job reports blocks every merge, unnoticed until one.
