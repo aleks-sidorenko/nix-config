@@ -48,10 +48,6 @@ in
       {
         networking = {
           inherit knownNetworkServices;
-          dns = [
-            "1.1.1.1"
-            "8.8.8.8"
-          ];
           search = [
             domains.tailnet
             domains.lan
