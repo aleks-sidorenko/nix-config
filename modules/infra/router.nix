@@ -110,20 +110,12 @@ in
                   map (l: lib.nameValuePair l.name { inherit (l) address mac; }) lan-leases
                 );
               };
-              uplinks = {
-                isp = {
-                  kind = "ethernet";
-                  interface = "ether2";
-                  distance = 1;
-                  check.host = "1.0.0.1";
-                };
-                hotspot = {
-                  kind = "wifi-station";
-                  runtimeManaged = true;
-                  station.radio = "wifi2";
-                  distance = 2;
-                  check.host = "9.9.9.9";
-                };
+              uplinks.upstream = {
+                kind = "wifi-station";
+                runtimeManaged = true;
+                station.radio = "wifi2";
+                distance = 1;
+                check.host = "9.9.9.9";
               };
               wifi = {
                 inherit (router) country;

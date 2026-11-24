@@ -123,78 +123,94 @@ A MikroTik hAP ax³ is the LAN's router, DHCP and DNS server, managed by the
 | `server` | `10.0.0.10`, static lease from its `lan` option |
 | DHCP pool | `10.0.0.100`-`10.0.0.250` |
 
-`ether2` is the ISP uplink, a Wi-Fi station on `wifi2` the hotspot fallback.
-The library makes `wifi2` the station master, so the `SWEET-HOME` access point
-on that radio is a virtual interface following the station and likely does not
-broadcast while the station has no upstream. Clients only on that band depend
-on the station; `server`'s Wi-Fi NIC must associate on the other radio's band
-before cut-over. `runtimeManaged` makes the stack ignore the station's
-configuration and security, so set its mode, SSID and passphrase by hand once
-after import:
+The router has no cables: its only uplink is a Wi-Fi station on `wifi2`
+joining the upstream network, and every LAN device, `server` included, joins
+the `SWEET-HOME` access point. Every ethernet port is a LAN bridge port, unused.
+The library makes `wifi2` the station master, so the access point on that
+radio is a virtual interface following the station: it shares the upstream's
+channel and likely does not broadcast while the station has no upstream.
+`server` must associate on `wifi1`'s band. `runtimeManaged` makes the stack
+ignore the station's configuration and security, so its SSID and passphrase
+are set by hand once after the first apply:
 
 ```
 /interface wifi set wifi2 configuration.mode=station configuration.ssid=<upstream> security.passphrase=<passphrase>
 ```
 
-Verify the port and radio names on the device before the first plan: which
-`wifiN` is 2.4 GHz and which 5 GHz, and which `etherN` is the 2.5G port, are
-read from `/interface print` and `/interface wifi print`. The Wi-Fi country is
-the `country` setting, in the string form RouterOS expects (`Ukraine`).
+Verify on the device which `wifiN` is 2.4 GHz and which 5 GHz
+(`/interface wifi print`); the station takes `wifi2`'s band. The Wi-Fi country
+is the `country` setting, in the string form RouterOS expects (`Ukraine`).
 
 The API is reachable from the LAN only (`/ip service set api
-address=10.0.0.0/24`), so plan and apply from a LAN machine. Off the LAN,
-SSH to `server` and run the recipe there; that needs the owner's PGP key
-usable on `server` (gpg-agent forwarding) and a checkout with the committed
+address=10.0.0.0/24`), so plan and apply from a machine on `SWEET-HOME`. Off
+the LAN, SSH to `server` and run the recipe there; that needs the owner's PGP
+key usable on `server` (gpg-agent forwarding) and a checkout with the committed
 state, since `infra/router/secrets.yaml` is not encrypted to `server`.
-Otherwise plan and apply from a machine on the LAN.
 
 ### Bring-up
 
-Apply onto a device with no default configuration. Plug the admin machine
-into a LAN port (`ether1`, `ether3`, `ether4` or `ether5`, never the ISP
-uplink `ether2`); that is `<port>` below. The library bridges every ethernet
-port except the uplinks. A reset device has no DHCP server, so give the admin
-machine a static address in `10.0.0.0/24` (e.g. `10.0.0.2/24`, no gateway)
-for the bring-up. The device has no uplink, NAT or DHCP yet, so that
-interface has no internet: warm the caches while still online
-(`just infra-validate router`, or `nix build .#router.config`), and keep
-internet on another interface, since `just infra-plan router` runs `tofu init`.
-The reset reboots the device, so reconnect afterwards. Run the console steps over the console or WinBox (which connects by
-MAC); once the address is set the API answers on `10.0.0.1`, port 8728:
+The stack applies onto a device with no default configuration, over the API,
+from a laptop on the router's own Wi-Fi. A reset with `no-defaults` leaves no
+access point to join, so the reset itself runs a script that brings up
+`SWEET-HOME` on `wifi1`, the bridge, the address and the API user, with exactly
+the values the stack renders so that adopting them changes nothing.
 
-```
-/system reset-configuration no-defaults=yes
-/interface bridge add name=bridge
-/interface bridge port add bridge=bridge interface=<port>
-/ip address add address=10.0.0.1/24 interface=bridge
-/user add name=<apiUser> group=full password=…
-/ip service set api address=10.0.0.0/24
-```
+1. While online, warm every cache the plan needs: run `just infra-plan router`
+   once; it builds the wrapper and runs `tofu init`, then fails to reach the
+   router. During bring-up the laptop has no internet.
+2. Write `bringup.rsc`, filling the secrets from
+   `just infra-secrets-edit router` (`wifi-password`, `router-api-password`);
+   `<apiUser>` is the `apiUser` setting:
 
-`<apiUser>` is the `apiUser` setting; its password is the
-`router-api-password` secret in `infra/router/secrets.yaml`. The user is not a
-managed resource, and the library adopts the built-in `ip_service` entries by
-their numbers, so neither needs an import. Read the ids of what the stack must
-adopt with `print show-ids`, in `/interface bridge`, `/interface bridge port`,
-`/ip address` and `/interface wifi`, and set them in the router stack's
-settings in `modules/infra/router.nix`:
+   ```
+   :delay 15s
+   /interface bridge add name=bridge
+   /interface wifi security add name=home authentication-types=wpa2-psk,wpa3-psk passphrase="<wifi-password>"
+   /interface wifi configuration add name=home mode=ap ssid=SWEET-HOME country=Ukraine security=home
+   /interface wifi set wifi1 configuration=home disabled=no
+   /interface bridge port add bridge=bridge interface=wifi1
+   /ip address add address=10.0.0.1/24 interface=bridge
+   /user add name=<apiUser> group=full password="<router-api-password>"
+   /ip service set api address=10.0.0.0/24
+   ```
 
-```nix
-den.stacks.router.settings.infra.router.bringUpIds = {
-  "routeros_interface_bridge.bridge" = "*1";
-  "routeros_interface_bridge_port.<port>" = "*1";
-  "routeros_ip_address.lan" = "*1";
-  "routeros_wifi.wifi1" = "*1";
-  "routeros_wifi.wifi2" = "*2";
-};
-```
+3. Join the factory Wi-Fi (SSID and password on the device's label), open
+   WinBox or WebFig at `192.168.88.1`, upload `bringup.rsc` under Files, then
+   in a terminal:
 
-The bridge port key is `routeros_interface_bridge_port.<port>`, with the name
-of the port you plugged into; the radios are those carrying a network or
-station. Then `just infra-plan router` and apply, and switch the admin machine
-back to DHCP. The first apply restricts SSH and WinBox to the LAN. Once the
-state holds them, the ids may stay: an import of an already-managed resource
-is a no-op.
+   ```
+   /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=bringup.rsc
+   ```
+
+4. After the reboot, join `SWEET-HOME` and give the laptop a static
+   `10.0.0.2/24` (no gateway): there is no DHCP server yet. WinBox by MAC also
+   works. Remove the script, it holds secrets: `/file remove bringup.rsc`.
+5. Read the ids with `print show-ids` in `/interface bridge`,
+   `/interface bridge port`, `/ip address`, `/interface wifi`,
+   `/interface wifi configuration` and `/interface wifi security`, and set them
+   in `modules/infra/router.nix`:
+
+   ```nix
+   den.stacks.router.settings.infra.router.bringUpIds = {
+     "routeros_interface_bridge.bridge" = "*…";
+     "routeros_interface_bridge_port.wifi1" = "*…";
+     "routeros_ip_address.lan" = "*…";
+     "routeros_wifi.wifi1" = "*…";
+     "routeros_wifi.wifi2" = "*…";
+     "routeros_wifi_configuration.home" = "*…";
+     "routeros_wifi_security.home" = "*…";
+   };
+   ```
+
+6. `just infra-plan router`: the adopted objects should show only in-place
+   updates, nothing replaced. Then `just infra-apply router`. The apply
+   restricts SSH and WinBox to the LAN and starts DHCP; switch the laptop back
+   to DHCP.
+7. Set the station's SSID and passphrase (above). Once the router reaches the
+   upstream, re-plan: no changes. Commit `infra/router/terraform.tfstate`.
+
+Once the state holds them, the ids may stay: an import of an
+already-managed resource is a no-op.
 
 ## Backups
 
