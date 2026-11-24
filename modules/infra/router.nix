@@ -19,6 +19,7 @@ in
           "routeros_interface_bridge.bridge" = "*9";
           "routeros_interface_bridge_port.wifi1" = "*0";
           "routeros_ip_address.lan" = "*1";
+          "routeros_ip_dhcp_client.upstream" = "*1";
           "routeros_ip_dhcp_server.lan" = "*1";
           "routeros_ip_dhcp_server_network.lan" = "*1";
           "routeros_ip_pool.lan" = "*1";
@@ -231,6 +232,7 @@ in
         "routeros_interface_bridge.bridge"
         "routeros_interface_bridge_port.wifi1"
         "routeros_ip_address.lan"
+        "routeros_ip_dhcp_client.upstream"
         "routeros_ip_dhcp_server.lan"
         "routeros_ip_dhcp_server_network.lan"
         "routeros_ip_pool.lan"

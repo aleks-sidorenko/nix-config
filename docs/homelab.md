@@ -153,10 +153,11 @@ state, since `infra/router/secrets.yaml` is not encrypted to `server`.
 The stack applies onto a device with no default configuration, over the API,
 from a laptop on the router's own Wi-Fi. A reset with `no-defaults` leaves no
 access point to join, so the reset itself runs a script that brings up
-`SWEET-HOME` on `wifi1`, the bridge, the address, the LAN's DHCP server and the
-API user, with the values the stack renders so that the first apply adopts
-them. It also joins the upstream and adds a temporary DHCP client and NAT,
-tagged `bootstrap`, so the laptop stays online until the apply.
+`SWEET-HOME` on `wifi1`, the bridge, the address, the LAN's DHCP server, the
+upstream's DHCP client and the API user, with the values the stack renders so
+that the first apply adopts them. It also adds a temporary NAT rule, tagged
+`bootstrap`, so the laptop is online from the start. The apply runs `tofu
+init` first, which needs the internet: the router must stay online throughout.
 
 1. Write `bootstrap.rsc`, filling the secrets from
    `just infra-secrets-edit router` (`wifi-password`, `router-api-password`)
@@ -171,7 +172,7 @@ tagged `bootstrap`, so the laptop stays online until the apply.
    /interface wifi set wifi1 configuration=home disabled=no
    /interface wifi set wifi2 configuration.mode=station configuration.ssid="<upstream>" security.authentication-types=wpa2-psk,wpa3-psk security.passphrase="<passphrase>" disabled=no
    /interface bridge port add bridge=bridge interface=wifi1
-   /ip address add address=10.0.0.1/24 interface=bridge
+   /ip address add address=10.0.0.1/24 interface=bridge comment=defconf
    /ip pool add name=lan ranges=10.0.0.100-10.0.0.250
    /ip dhcp-server add name=lan interface=bridge address-pool=lan lease-time=1d
    /ip dhcp-server network add address=10.0.0.0/24 gateway=10.0.0.1 dns-server=1.1.1.1
@@ -190,8 +191,8 @@ tagged `bootstrap`, so the laptop stays online until the apply.
    ```
 
 3. After the reboot, join `SWEET-HOME`; the laptop gets an address by DHCP
-   and reaches the internet through the router. Connect WinBox to `10.0.0.1` as `<apiUser>` and remove the script, it holds
-   secrets: `/file remove bootstrap.rsc`. Check the uplink:
+   and reaches the internet through the router. Connect WinBox to `10.0.0.1`
+   as `<apiUser>` and remove the script, it holds secrets: `/file remove bootstrap.rsc`. Check the uplink:
 
    ```
    /interface wifi monitor wifi2 once
@@ -204,7 +205,7 @@ tagged `bootstrap`, so the laptop stays online until the apply.
 4. Read the ids:
 
    ```
-   /interface bridge print show-ids proplist=name; /interface bridge port print show-ids proplist=interface; /ip address print show-ids proplist=address; /interface wifi print show-ids proplist=name; /interface wifi configuration print show-ids proplist=name; /interface wifi security print show-ids proplist=name; /ip pool print show-ids proplist=name; /ip dhcp-server print show-ids proplist=name; /ip dhcp-server network print show-ids proplist=address
+   /interface bridge print show-ids proplist=name; /interface bridge port print show-ids proplist=interface; /ip address print show-ids proplist=address; /interface wifi print show-ids proplist=name; /interface wifi configuration print show-ids proplist=name; /interface wifi security print show-ids proplist=name; /ip pool print show-ids proplist=name; /ip dhcp-server print show-ids proplist=name; /ip dhcp-server network print show-ids proplist=address; /ip dhcp-client print show-ids proplist=interface
    ```
 
    and set them in `modules/infra/router.nix`:
@@ -214,6 +215,7 @@ tagged `bootstrap`, so the laptop stays online until the apply.
      "routeros_interface_bridge.bridge" = "*…";
      "routeros_interface_bridge_port.wifi1" = "*…";
      "routeros_ip_address.lan" = "*…";
+     "routeros_ip_dhcp_client.upstream" = "*…";
      "routeros_ip_dhcp_server.lan" = "*…";
      "routeros_ip_dhcp_server_network.lan" = "*…";
      "routeros_ip_pool.lan" = "*…";
@@ -225,17 +227,20 @@ tagged `bootstrap`, so the laptop stays online until the apply.
    ```
 
 5. `just infra-plan router`: the adopted objects should show only in-place
-   updates, nothing replaced. The stack creates its own DHCP client on `wifi2`,
-   which RouterOS refuses beside another, so remove the temporary ones; the
-   laptop is offline until the apply finishes:
+   updates, nothing replaced. Then `just infra-apply router`. The apply
+   restricts SSH and WinBox to the LAN and turns off the DHCP client's own
+   default route: the stack's route goes through the probe host instead, which
+   the client's script routes only when a lease binds. Bind it again, then drop
+   the temporary NAT:
 
    ```
-   /ip dhcp-client remove [find comment=bootstrap]
+   /ip dhcp-client release [find comment=upstream]
    /ip firewall nat remove [find comment=bootstrap]
+   /ip route print where dst-address=0.0.0.0/0
    ```
 
-   Then `just infra-apply router`. The apply restricts SSH and WinBox to the
-   LAN; the laptop's next lease points DNS at the router.
+   The default route via `9.9.9.9` should be active. The laptop's next lease
+   points DNS at the router.
 6. Re-plan: no changes. Commit `infra/router/terraform.tfstate`.
 
 Once the state holds them, the ids may stay: an import of an
