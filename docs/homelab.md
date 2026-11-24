@@ -134,8 +134,13 @@ SSH to `server` and run the recipe there.
 
 ### Bring-up
 
-Apply onto a device with no default configuration. Over the console or
-WinBox, with `<port>` the port you are connected through:
+Apply onto a device with no default configuration. Plug the admin machine
+into a LAN port (`ether1`, `ether3`, `ether4` or `ether5`, never the ISP
+uplink `ether2`); that is `<port>` below. The library bridges every ethernet
+port except the uplinks. A reset device has no DHCP server, so give the admin
+machine a static address in `10.0.0.0/24` (e.g. `10.0.0.2/24`) for the
+bring-up. Run the console steps over the console or WinBox (which connects by
+MAC); once the address is set the API answers on `10.0.0.1`, port 8728:
 
 ```
 /system reset-configuration no-defaults=yes
@@ -164,8 +169,10 @@ bringUpIds = {
 };
 ```
 
-The bridge port key is the port's name; the radios are those carrying a
-network or station. Then `just infra-plan router` and apply. Once the state
+The bridge port key is `routeros_interface_bridge_port.<port>`, with the name
+of the port you plugged into; the radios are those carrying a
+network or station. Then `just infra-plan router` and apply, and switch the
+admin machine back to DHCP. Once the state
 holds them, the ids may stay: an import of an already-managed resource is a
 no-op.
 
