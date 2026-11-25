@@ -129,6 +129,11 @@ iso-write host="" device="":
 flake-write:
     nix run .#write-flake
 
+# Regenerate .sops.yaml from the hosts and their keys under secrets/hosts
+[group('flake')]
+sops-write:
+    nix run .#write-sops
+
 # Update flake inputs (all, or the named ones)
 [group('flake')]
 update *input:
