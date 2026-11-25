@@ -41,15 +41,52 @@ in
   # Shared with server-vm in ../home-servers.nix.
   den.hosts.x86_64-linux.server = {
     deploy = { };
-    settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
+    settings = {
+      # Read from the wireless NIC; the wired one is 34:e3:da:d9:c1:f1, for when the box is cabled.
+      system.networking.lan = {
+        address = "10.0.0.10";
+        mac = "80:30:49:13:75:41";
+      };
+      storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
+    };
   };
 
   den.aspects.server = {
-    includes = [ den.aspects.roles.home-server ];
+    includes = [
+      den.aspects.roles.home-server
+      den.aspects.system.networking.wifi
+    ];
     nixos.imports = [ ./_hardware.nix ];
   };
 
   evalTests = {
+    server-wifi = {
+      expr =
+        let
+          inherit (s.networking.networkmanager.ensureProfiles) profiles environmentFiles;
+        in
+        {
+          # The router's access point, so the two cannot drift.
+          sameSsid =
+            profiles.home-wifi.wifi.ssid
+            == config.infraStacks.router.config.resource.routeros_wifi_configuration.home.ssid;
+          readsSecret = environmentFiles == [ s.sops.templates."wifi.env".path ];
+          secret = s.sops.secrets ? system-wifi-password;
+        };
+      expected = {
+        sameSsid = true;
+        readsSecret = true;
+        secret = true;
+      };
+    };
+    server-lan = {
+      expr = config.den.hosts.x86_64-linux.server.settings.system.networking.lan;
+      expected = {
+        address = "10.0.0.10";
+        mac = "80:30:49:13:75:41";
+      };
+    };
+
     server-nix-unchanged = {
       expr = {
         trusted-users = lib.unique s.nix.settings.trusted-users;
@@ -134,10 +171,7 @@ in
       "vhosts"
       "_"
     ];
-    server-parity-tailnet-ingress = same [
-      "firewall"
-      "interfaces"
-    ];
+    server-parity-firewall = same [ "firewall" ];
     server-has-htpasswd = {
       expr = s.sops.secrets ? service-ingress-htpasswd;
       expected = true;

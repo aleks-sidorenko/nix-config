@@ -1,16 +1,10 @@
 {
   "firewall": {
-    "interfaces": {
-      "tailscale0": {
-        "tcp": [
-          80,
-          443
-        ],
-        "udp": []
-      }
-    },
+    "interfaces": {},
     "tcp": [
       22,
+      80,
+      443,
       8200,
       17348,
       25565
@@ -137,6 +131,7 @@
     "service-sonarr-api-key",
     "system-github-token",
     "system-tailscale-auth-key",
+    "system-wifi-password",
     "user-alexander-password"
   ],
   "sudo": {

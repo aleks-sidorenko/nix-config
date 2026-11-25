@@ -43,6 +43,18 @@ in
   };
 
   evalTests = {
+    networking-darwin-dns = {
+      expr = {
+        inherit (w.networking) dns search;
+      };
+      expected = {
+        dns = [ ];
+        search = [
+          "colobus-bramble.ts.net"
+          "lan"
+        ];
+      };
+    };
     cli-fish = {
       expr = {
         # The user-shell battery enables fish alone; these only cli.fish sets.
@@ -378,26 +390,14 @@ in
         reattach = true;
       };
     };
-    workbook-dns = {
-      expr = {
-        inherit (w.networking) dns search knownNetworkServices;
-      };
-      expected = {
-        dns = [
-          "1.1.1.1"
-          "8.8.8.8"
-        ];
-        search = [
-          "colobus-bramble.ts.net"
-          "lan"
-        ];
-        knownNetworkServices = [
-          "Wi-Fi"
-          "USB 10/100/1000 LAN"
-          "ThinkPad TBT 3 Dock"
-          "Thunderbolt Bridge"
-        ];
-      };
+    workbook-network-services = {
+      expr = w.networking.knownNetworkServices;
+      expected = [
+        "Wi-Fi"
+        "USB 10/100/1000 LAN"
+        "ThinkPad TBT 3 Dock"
+        "Thunderbolt Bridge"
+      ];
     };
     workbook-dock-defaults = {
       # `expose-group-by-app` is a renamed alias; reading it traces a warning.

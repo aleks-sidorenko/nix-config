@@ -431,6 +431,30 @@
         "type": "github"
       }
     },
+    "nix-routeros": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "terranix": [
+          "terranix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795537174,
+        "narHash": "sha256-xSIkjC2/TwCAgckdcjaqK5wkP4RH5fAENXLbmFQJzPg=",
+        "owner": "aleks-sidorenko",
+        "repo": "nix-routeros",
+        "rev": "7ff247e5f63150135fba4400f57fe1203b92de25",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aleks-sidorenko",
+        "ref": "v2.0.0",
+        "repo": "nix-routeros",
+        "type": "github"
+      }
+    },
     "nix-wallpapers": {
       "inputs": {
         "flake-parts": [
@@ -551,6 +575,7 @@
         "llm-agents": "llm-agents",
         "nix-index-database": "nix-index-database",
         "nix-nvim": "nix-nvim",
+        "nix-routeros": "nix-routeros",
         "nix-wallpapers": "nix-wallpapers",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",

@@ -91,6 +91,7 @@
           den.aspects.system.nixpkgs
           den.aspects.system.locale
           den.aspects.system.networking
+          den.aspects.system.networking.lan
           den.aspects.security.ssh
         ];
 

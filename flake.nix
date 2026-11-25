@@ -63,6 +63,13 @@
         nixvim.follows = "nixvim";
       };
     };
+    nix-routeros = {
+      url = "github:aleks-sidorenko/nix-routeros/v2.0.0";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        terranix.follows = "terranix";
+      };
+    };
     nix-wallpapers = {
       url = "github:aleks-sidorenko/nix-wallpapers";
       inputs = {

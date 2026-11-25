@@ -14,7 +14,7 @@ let
   repos = config.den.stacks.repos.settings.infra.repos.repos;
 in
 {
-  den.stacks.repos.identity = "alexander";
+  den.stacks.repos = { };
 
   den.aspects.infra.repos = {
     includes = [ den.aspects.infra.github ];

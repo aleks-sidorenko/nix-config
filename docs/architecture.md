@@ -109,7 +109,9 @@ whole aspect.
 
 Per-host tunables are settings of the aspect that reads them:
 `system.locale.{timeZone,locales,layouts}`,
-`system.networking.{domains.{lan,tailnet,public},knownNetworkServices}`, `dev.stacks.node.npmRegistry`,
+`system.networking.{domains.{lan,tailnet,public},knownNetworkServices}`,
+`system.networking.lan.{address,mac}`, `system.networking.wifi.ssid`,
+`dev.stacks.node.npmRegistry`,
 `services.openvpn.connections`,
 `services.media.root`, `services.restic.bucketUrl`,
 `storage.disko.{device,encrypted,swapSize}`, `storage.impermanence.root` and
@@ -123,6 +125,7 @@ Data that many aspects contribute and one collects travels as quirks:
 | `persist` | every aspect with state | `storage.impermanence` | `environment.persistence`, and the guard's list of accepted paths |
 | `vhosts` | each proxied service | `services.nginx` | one virtual host per entry at `<name>.<domain>` |
 | `backup` | jellyfin (excludes its cache), calibre-web (adds the book library) | `services.restic` | extra backup paths and excludes |
+| `lan-leases` | every deployed host that sets `system.networking.lan.address`, from `system.networking.lan` | the `router` stack | a static DHCP lease per host, and the address its published names answer with on the LAN |
 | `installChecks` | most aspects; nginx derives its own from the rendered vhosts | `storage.disko` | the install test's checks |
 
 A quirk value may be a function of the host (`{ host, ... }:`, as calibre-web's
@@ -197,8 +200,9 @@ Cloud and API resources are OpenTofu stacks, a den entity kind of their own
 declared in `modules/flake/terranix.nix`: `den.stacks.<name>` (kind
 `den.schema.stack`, inheriting `den.schema.conf`), resolved from the flake
 root like hosts. A stack takes `settings` like a host, and aspects take it as
-`stack`. A stack managing a person's accounts declares whose with `identity`,
-as a user does (`infra.github` derives the repository owner from it).
+`stack`. A stack's `identity` is the person whose accounts it manages, as a
+user's is, defaulting to the repo's one person (`infra.github` derives the
+repository owner from it, `infra.router` the device's login and SSH key).
 
 Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
 and `infra.state`. Their `terranix` bodies, and those of the provider aspects
@@ -223,6 +227,16 @@ configs: `tailnet` collects `tailnet-tags`, which `services.tailscale`
 contributes from each host's `tags` setting, with a `pipe.collectAll` policy
 on the stack entity: collect policies go in `den.stacks.<stack>.includes`;
 included from the stack aspect they do not fire.
+
+The `router` stack (`modules/infra/router.nix`) configures the MikroTik router
+through the nix-routeros library over the RouterOS API. It collects
+`lan-leases` (any deployed host that sets `system.networking.lan` gets a lease) and
+`published-names`, so the router's DNS answers each published name with its
+host's LAN address (split-horizon). Its settings are `country` and
+`importIds`, the ids of the hand-made objects the first apply adopts with
+`import` blocks (see [homelab](homelab.md#router)). A published name whose
+host has no LAN address fails evaluation.
+
 `dns` collects `published-names`, the FQDNs nginx and Minecraft contribute,
 from hosts with `deploy` only, with provenance for each name's hostname.
 
