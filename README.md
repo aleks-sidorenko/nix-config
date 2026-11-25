@@ -62,13 +62,13 @@ modules/
 └── users/          # alexander
 packages/           # our own programs, plain callPackage files: disk-report, iso-write, media-tools
 identities/         # per-person public keys (see identities/README.md)
-secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
+secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml; hosts/ holds each host's SSH identity
 ```
 
 - The aspect path mirrors the file path: `modules/services/nginx.nix` defines
   `den.aspects.services.nginx`.
 - `flake.nix` is generated: run `just flake-write` after changing an input, and
-  never edit it by hand.
+  never edit it by hand. `.sops.yaml` is generated too (`just sops-write`).
 
 ## Usage
 
@@ -83,19 +83,26 @@ secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 | `just lint-fix` | Apply statix and deadnix fixes |
 | `just build <host>` | Build a host's system without switching |
 | `just deploy <host> [args]` | Deploy with deploy-rs, building on the target; `--boot` activates on the next boot |
+| `just bootstrap-nixos <host> <address>` | Install a NixOS host from the installer image, keeping its identity in the repo |
+| `just bootstrap-darwin <host>` | Give the Mac it runs on its identity from the repo, or adopt its own |
 | `just vm-test <host>` | Run a VM host's install test (x86_64 Linux with KVM only; otherwise CI runs it) |
 | `just flake-write` | Regenerate `flake.nix` |
+| `just sops-write` | Regenerate `.sops.yaml` from the hosts and their keys |
 | `just update [input]` | Update flake inputs |
 
 ## Secrets
 
 - System secrets live in `secrets/nixos.yaml` and `secrets/darwin.yaml`, encrypted with
-  [SOPS](https://github.com/getsops/sops) to the age keys in `.sops.yaml`.
-- Each host's age key comes from its SSH host key, kept under `/persist/etc/ssh`.
-- Edit with `sops secrets/nixos.yaml`; after adding a host's key, run
-  `sops updatekeys secrets/nixos.yaml`.
-- `workbook`'s key is `/etc/ssh/ssh_host_ed25519_key` and its file is
-  `secrets/darwin.yaml` (`sops updatekeys secrets/darwin.yaml`).
+  [SOPS](https://github.com/getsops/sops) to the owner's PGP key and the age
+  key of every host that reads them.
+- A host's age key comes from its SSH host key. The key is kept in the repo:
+  `secrets/hosts/<host>.pub` in plaintext, the private key in
+  `secrets/hosts/<host>.yaml`, encrypted to the owner only, so a reinstall
+  keeps the identity.
+- `.sops.yaml` is generated from the hosts' configs and those keys
+  (`just sops-write`); `just check` fails when it is stale.
+- Edit with `sops secrets/nixos.yaml`. New hosts get their key and recipients
+  from `just bootstrap-nixos` / `just bootstrap-darwin`.
 
 ## Testing
 
@@ -118,6 +125,7 @@ requests to `master`, then builds `server`.
 | Document | What it covers |
 | --- | --- |
 | [docs/architecture.md](docs/architecture.md) | How the den layout fits together: entities, aspects, roles, settings, quirks, storage, tests, deploys |
+| [docs/bootstrap.md](docs/bootstrap.md) | First-time setup, in order: operator, credentials, tailnet, router, NixOS hosts, Macs, reinstalling and retiring |
 | [docs/homelab.md](docs/homelab.md) | What `server` runs, where its state lives, ingress, backups and restore, deploys and rollback |
 | [AGENTS.md](AGENTS.md) | Conventions and step-by-step recipes for adding features, hosts, users, settings and quirks |
 | [identities/README.md](identities/README.md) | Public key material per person |
@@ -131,8 +139,7 @@ tag. The rewrite lands in slices, tracked in
 
 - **Ported:** the base system, the server role, everything `server` runs, the
   macOS `workbook` with its home, the DNS, router, storage and tailnet stacks, and the
-  installer ISO.
-- **Not yet ported:** bootstrapping a new host.
+  installer ISO, and bootstrapping new hosts.
 
 ## License
 
