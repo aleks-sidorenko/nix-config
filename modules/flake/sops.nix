@@ -8,11 +8,7 @@ let
   systemOf =
     name: config.flake.nixosConfigurations.${name} or config.flake.darwinConfigurations.${name} or null;
 
-  # Hosts with an identity in the repo that decrypt anything at all.
-  hosts = lib.filterAttrs (
-    name: _:
-    builtins.pathExists (hostKey name) && systemOf name != null && (systemOf name).config ? sops
-  ) (lib.mergeAttrsList (lib.attrValues config.den.hosts));
+  allHosts = lib.mergeAttrsList (lib.attrValues config.den.hosts);
 
   # Whoever administers a host can read its secrets, and every host key.
   owners = lib.unique (
@@ -21,7 +17,7 @@ let
       map (user: user.identity.gpgKeyFile) (
         lib.filter (user: user.userName == host.primaryUser) (lib.attrValues host.users)
       )
-    ) (lib.attrValues hosts)
+    ) (lib.attrValues allHosts)
   );
 
   hostFiles = lib.attrNames (
@@ -30,32 +26,44 @@ let
     )
   );
 
-  # Both sides are paths in the flake's source, so equal strings mean the same file.
-  readers =
-    file:
-    lib.attrNames (
-      lib.filterAttrs (
-        name: _: toString (secrets + "/${file}") == toString (systemOf name).config.sops.defaultSopsFile
-      ) hosts
-    );
-
   rule = path_regex: readers: {
     inherit path_regex;
     pgp = owners;
     hosts = readers;
   };
 
-  rules = [
-    (rule "secrets/hosts/[^/]+\\.yaml$" [ ])
-  ]
-  ++ lib.concatMap (
-    file:
-    lib.optional (readers file != [ ]) (
-      rule "secrets/${lib.removeSuffix ".yaml" file}\\.ya?ml$" (readers file)
-    )
-  ) hostFiles
-  ++ [ (rule "infra/secrets\\.ya?ml$" [ ]) ]
-  ++ map (stack: rule "infra/${stack}/secrets\\.ya?ml$" [ ]) (lib.attrNames config.den.stacks);
+  # The rules, given which hosts have an identity in the repo.
+  rulesFor =
+    hasKey:
+    let
+      # Hosts that decrypt anything at all.
+      keyed = lib.filterAttrs (
+        name: _: hasKey name && systemOf name != null && (systemOf name).config ? sops
+      ) allHosts;
+      # Both sides are paths in the flake's source, so equal strings mean the same file.
+      readers =
+        file:
+        lib.attrNames (
+          lib.filterAttrs (
+            name: _: toString (secrets + "/${file}") == toString (systemOf name).config.sops.defaultSopsFile
+          ) keyed
+        );
+    in
+    [
+      (rule "secrets/hosts/[^/]+\\.yaml$" [ ])
+    ]
+    ++ lib.concatMap (
+      file:
+      lib.optional (readers file != [ ]) (
+        rule "secrets/${lib.removeSuffix ".yaml" file}\\.ya?ml$" (readers file)
+      )
+    ) hostFiles
+    ++ [ (rule "infra/secrets\\.ya?ml$" [ ]) ]
+    ++ map (stack: rule "infra/${stack}/secrets\\.ya?ml$" [ ]) (lib.attrNames config.den.stacks);
+
+  rules =
+    assert lib.assertMsg (owners != [ ]) "no host has a primary user with a PGP key to own the secrets";
+    rulesFor (name: builtins.pathExists (hostKey name));
 in
 {
   perSystem =
@@ -125,6 +133,32 @@ in
         touch $out
       '';
     };
+
+  # A repo with no host keys yet, or after retiring the last host, still
+  # has an owner for every file it can create.
+  evalTests.sops-rules-without-host-keys = {
+    expr = rulesFor (_: false);
+    expected =
+      map
+        (path_regex: {
+          inherit path_regex;
+          pgp = [ ../../identities/alexander/gpg.pub.asc ];
+          hosts = [ ];
+        })
+        (
+          [
+            "secrets/hosts/[^/]+\\.yaml$"
+            "infra/secrets\\.ya?ml$"
+          ]
+          ++ map (stack: "infra/${stack}/secrets\\.ya?ml$") [
+            "dns"
+            "repos"
+            "router"
+            "storage"
+            "tailnet"
+          ]
+        );
+  };
 
   evalTests.sops-rules =
     let

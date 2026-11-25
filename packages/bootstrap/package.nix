@@ -44,6 +44,13 @@ writeShellApplication {
       done
     }
 
+    # Reachability comes before the identity: a wrong address or an
+    # installed host must not leave a new key or re-keyed secrets behind.
+    reaches_preflight() {
+      refuses "cannot reach root@127.0.0.1\\|looks installed" nixos h 127.0.0.1
+      [ ! -e secrets/hosts/h.pub ] || { echo "preflight left an identity behind" >&2; exit 1; }
+    }
+
     refuses Usage
     refuses Usage nixos
     refuses Usage nixos h
@@ -63,15 +70,15 @@ writeShellApplication {
     git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm init
 
     refuses "--new-key" nixos old 1.2.3.4
-    refuses terminal nixos h 1.2.3.4
+    reaches_preflight
     ${lib.optionalString stdenv.hostPlatform.isDarwin "refuses terminal darwin old --new-key"}
 
     # What an interrupted run leaves behind is not in the way of a rerun.
     echo x >> .sops.yaml
-    refuses terminal nixos h 1.2.3.4
+    reaches_preflight
 
     printf 'a: 1\nsops:\n  pgp: new\n' > secrets/nixos.yaml
-    refuses terminal nixos h 1.2.3.4
+    reaches_preflight
 
     printf 'a: 2\nsops:\n  pgp: new\n' > secrets/nixos.yaml
     refuses "uncommitted changes" nixos h 1.2.3.4

@@ -61,6 +61,18 @@ if [ -f "$pub" ] && [ ! -f "$enc" ] && [ -z "$new_key" ]; then
     die "$pub has no private key in $enc; a new key cuts the live host off its secrets until reinstalled; pass --new-key"
 fi
 
+# Before any key or recipient changes: a wrong address or an installed host
+# must leave the repo as it was.
+if [ "$platform" = nixos ]; then
+    ssh_opts=(-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR -o ConnectTimeout=10 -o BatchMode=yes)
+    if ! out=$(ssh "${ssh_opts[@]}" "root@$address" true 2>&1); then
+        if grep -q "Permission denied" <<<"$out"; then
+            die "root@$address refuses root; $host looks installed, use: just deploy $host"
+        fi
+        die "cannot reach root@$address: $out"
+    fi
+fi
+
 # Confirmations and passphrases are typed; a closed stdin would end at `read`.
 [ -t 0 ] || die "this needs a terminal; run it interactively"
 
@@ -139,13 +151,6 @@ EOF
     exit 0
 fi
 
-ssh_opts=(-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR -o ConnectTimeout=10 -o BatchMode=yes)
-if ! out=$(ssh "${ssh_opts[@]}" "root@$address" true 2>&1); then
-    if grep -q "Permission denied" <<<"$out"; then
-        die "root@$address refuses root; $host looks installed, use: just deploy $host"
-    fi
-    die "cannot reach root@$address: $out"
-fi
 
 device=$(jq -r .device <<<"$facts")
 [ "$device" != null ] || die "$host declares no root disk"
