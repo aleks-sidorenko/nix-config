@@ -62,7 +62,8 @@ modules/
 └── users/          # alexander
 packages/           # our own programs, plain callPackage files: disk-report, iso-write, media-tools
 identities/         # per-person public keys (see identities/README.md)
-secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml; hosts/ holds each host's SSH identity
+hosts/              # per-host SSH identities (see hosts/README.md)
+secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 ```
 
 - The aspect path mirrors the file path: `modules/services/nginx.nix` defines
@@ -96,8 +97,8 @@ secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml; hosts/ holds each
   [SOPS](https://github.com/getsops/sops) to the owner's PGP key and the age
   key of every host that reads them.
 - A host's age key comes from its SSH host key. The key is kept in the repo:
-  `secrets/hosts/<host>.pub` in plaintext, the private key in
-  `secrets/hosts/<host>.yaml`, encrypted to the owner only, so a reinstall
+  `hosts/<host>/ssh.pub` in plaintext, the private key in
+  `hosts/<host>/ssh.yaml`, encrypted to the owner only, so a reinstall
   keeps the identity.
 - `.sops.yaml` is generated from the hosts' configs and those keys
   (`just sops-write`); `just check` fails when it is stale.

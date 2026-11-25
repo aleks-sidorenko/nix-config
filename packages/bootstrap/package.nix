@@ -48,7 +48,7 @@ writeShellApplication {
     # installed host must not leave a new key or re-keyed secrets behind.
     reaches_preflight() {
       refuses "cannot reach root@127.0.0.1\\|looks installed" nixos h 127.0.0.1
-      [ ! -e secrets/hosts/h.pub ] || { echo "preflight left an identity behind" >&2; exit 1; }
+      [ ! -e hosts/h/ssh.pub ] || { echo "preflight left an identity behind" >&2; exit 1; }
     }
 
     refuses Usage
@@ -62,9 +62,9 @@ writeShellApplication {
     refuses "run inside the repository" nixos h 1.2.3.4
 
     git init -q repo && cd repo
-    mkdir -p secrets/hosts
+    mkdir -p secrets hosts/old
     touch flake.nix .sops.yaml
-    echo "ssh-ed25519 AAAA root@old" > secrets/hosts/old.pub
+    echo "ssh-ed25519 AAAA root@old" > hosts/old/ssh.pub
     printf 'a: 1\nsops:\n  pgp: old\n' > secrets/nixos.yaml
     git add -A
     git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm init

@@ -41,8 +41,8 @@ root=$(git rev-parse --show-toplevel 2>/dev/null) || die "run inside the reposit
 [ -f "$root/flake.nix" ] && [ -f "$root/.sops.yaml" ] || die "run inside the repository"
 cd "$root"
 
-pub="secrets/hosts/$host.pub"
-enc="secrets/hosts/$host.yaml"
+pub="hosts/$host/ssh.pub"
+enc="hosts/$host/ssh.yaml"
 
 # A rerun after an interruption finds its own outputs: the generated config,
 # this host's identity and secrets files whose only change is their recipients.
@@ -55,7 +55,7 @@ own_change() {
 }
 while IFS= read -r path; do
     own_change "$path" || die "uncommitted changes to $path; commit or stash them first"
-done < <(git status --porcelain -uall -- .sops.yaml secrets infra | cut -c4-)
+done < <(git status --porcelain -uall -- .sops.yaml hosts secrets infra | cut -c4-)
 
 if [ -f "$pub" ] && [ ! -f "$enc" ] && [ -z "$new_key" ]; then
     die "$pub has no private key in $enc; a new key cuts the live host off its secrets until reinstalled; pass --new-key"
@@ -113,6 +113,7 @@ encrypt() {
     jq -n --rawfile k "$key" '{ ssh_host_ed25519_key: $k }' >"$tmp/key.json"
     sops --encrypt --input-type json --output-type yaml --filename-override "$enc" "$tmp/key.json" >"$tmp/enc"
     ssh-keygen -y -f "$key" >"$tmp/pub"
+    mkdir -p "$(dirname "$enc")"
     mv "$tmp/enc" "$enc"
     mv "$tmp/pub" "$pub"
 }
@@ -137,13 +138,13 @@ fi
 git add "$pub" "$enc"
 
 commit_hint() {
-    git diff --cached --quiet -- .sops.yaml secrets infra ||
-        echo "  git commit .sops.yaml secrets infra" >&2
+    git diff --cached --quiet -- .sops.yaml hosts secrets infra ||
+        echo "  git commit .sops.yaml hosts secrets infra" >&2
 }
 
 # Recipients follow the identity; updatekeys is a no-op where they didn't change.
 nix run .#write-sops
-for file in secrets/*.yaml secrets/hosts/*.yaml infra/secrets.yaml infra/*/secrets.yaml; do
+for file in secrets/*.yaml hosts/*/ssh.yaml infra/secrets.yaml infra/*/secrets.yaml; do
     [ -f "$file" ] || continue
     sops updatekeys -y "$file" >&2 || die "re-keying $file failed; nothing was installed, rerun when fixed"
     git add "$file"

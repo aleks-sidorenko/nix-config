@@ -51,8 +51,10 @@ read. Its secrets are in `secrets/darwin.yaml`, decrypted with the host's SSH
 key.
 
 Every host's SSH key, and with it its SOPS identity, is kept in the repo:
-`secrets/hosts/<host>.pub` in plaintext and the private key in
-`secrets/hosts/<host>.yaml`, encrypted to the owner only. `.sops.yaml` is
+`hosts/<host>/ssh.pub` in plaintext and the private key in
+`hosts/<host>/ssh.yaml`, encrypted to the owner only. The host option
+`sshKeyFile` is the one place that knows the folder, as `identity` is for
+people. `.sops.yaml` is
 generated, like `flake.nix`: `modules/flake/sops.nix` gives each secrets file
 the owner's PGP encryption subkey (from `identities/<id>/gpg.pub.asc`) and the
 age key of every host whose `sops.defaultSopsFile` it is, and

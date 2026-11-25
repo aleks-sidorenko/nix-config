@@ -139,7 +139,7 @@ iso-write host="" device="":
 flake-write:
     nix run .#write-flake
 
-# Regenerate .sops.yaml from the hosts and their keys under secrets/hosts
+# Regenerate .sops.yaml from the hosts and their keys under hosts/
 [group('flake')]
 sops-write:
     nix run .#write-sops

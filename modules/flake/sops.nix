@@ -1,9 +1,8 @@
 # Renders .sops.yaml: who may decrypt each secrets file follows from the
-# hosts' configs and the host keys under secrets/hosts, never a hand-kept list.
+# hosts' configs and their SSH keys (`sshKeyFile`), never a hand-kept list.
 { config, lib, ... }:
 let
   secrets = ../../secrets;
-  hostKey = name: secrets + "/hosts/${name}.pub";
 
   systemOf =
     name: config.flake.nixosConfigurations.${name} or config.flake.darwinConfigurations.${name} or null;
@@ -58,7 +57,7 @@ let
         );
     in
     [
-      (rule "secrets/hosts/[^/]+\\.yaml$" [ ])
+      (rule "hosts/[^/]+/ssh\\.yaml$" [ ])
     ]
     ++ lib.concatMap (
       file:
@@ -71,7 +70,7 @@ let
 
   rules =
     assert lib.assertMsg (owners != [ ]) "no host has a primary user with a PGP key to own the secrets";
-    rulesFor (name: builtins.pathExists (hostKey name));
+    rulesFor (name: allHosts.${name}.sshKeyFile != null);
 in
 {
   perSystem =
@@ -116,7 +115,7 @@ in
           ''
             ages='{}'
             ${lib.concatMapStrings (name: ''
-              ages=$(jq --arg n ${name} --arg a "$(ssh-to-age -i ${hostKey name})" '.[$n] = $a' <<<"$ages")
+              ages=$(jq --arg n ${name} --arg a "$(ssh-to-age -i ${allHosts.${name}.sshKeyFile})" '.[$n] = $a' <<<"$ages")
             '') hostNames}
             jq --argjson ages "$ages" --slurpfile pgp ${encryptionKey} '{
               creation_rules: map({
@@ -194,7 +193,7 @@ in
           })
           (
             [
-              "secrets/hosts/[^/]+\\.yaml$"
+              "hosts/[^/]+/ssh\\.yaml$"
               "infra/secrets\\.ya?ml$"
             ]
             ++ map (stack: "infra/${stack}/secrets\\.ya?ml$") [
@@ -219,7 +218,7 @@ in
       {
         expr = rules;
         expected = [
-          (ownerOnly "secrets/hosts/[^/]+\\.yaml$")
+          (ownerOnly "hosts/[^/]+/ssh\\.yaml$")
           {
             path_regex = "secrets/darwin\\.ya?ml$";
             pgp = [ owner ];

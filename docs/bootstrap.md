@@ -157,8 +157,8 @@ already-managed resource is a no-op.
 2. `just iso-fetch iso-x86_64`, `just iso-write iso-x86_64 <device>`, and boot
    the machine from the stick. Root logs in with the owner's SSH key.
 3. `just bootstrap-nixos <host> <address>`. It
-   - reuses the host's identity from `secrets/hosts/<host>.yaml`, or creates
-     one: `<host>.pub` in plaintext, the private key encrypted to the owner;
+   - reuses the host's identity from `hosts/<host>/ssh.yaml`, or creates
+     one: `ssh.pub` in plaintext, the private key encrypted to the owner;
    - regenerates `.sops.yaml` and re-keys every secrets file, so the host can
      read its secrets on first boot;
    - shows the target's disks next to the configured one and asks for the
@@ -171,7 +171,7 @@ already-managed resource is a no-op.
    picks up where it stopped; with `--new-key`, a rerun makes yet another
    key, so drop the flag once the first run has created one. It checks the
    target first: a wrong address or an installed host changes nothing.
-4. Commit `.sops.yaml`, `secrets/` and `infra/` (the re-keyed files are
+4. Commit `.sops.yaml`, `hosts/`, `secrets/` and `infra/` (the re-keyed files are
    staged), and run what it prints:
    `just infra-apply dns` for a deployed host that publishes names,
    `just infra-apply router` for one with a LAN address.
@@ -184,7 +184,7 @@ already-managed resource is a no-op.
 2. On the Mac, `just bootstrap-darwin <host>`. With no identity in the repo
    it adopts the Mac's own `/etc/ssh` key; with one, it puts it in place of
    a different key, after the host name is typed back.
-3. Commit `.sops.yaml`, `secrets/` and `infra/`, then
+3. Commit `.sops.yaml`, `hosts/`, `secrets/` and `infra/`, then
    `nix run .#<host> -- switch`. If the key in `/etc/ssh` was replaced,
    restart sshd as it prints.
 
@@ -202,9 +202,9 @@ console (Machines) before `just infra-apply dns`.
 
 ## 8. Retiring a host
 
-1. Remove its `den.hosts` entry and module, and `secrets/hosts/<host>.*`.
-2. `just sops-write`, then `sops updatekeys -y` on each file under `secrets/`
-   and `infra/` whose recipients changed.
+1. Remove its `den.hosts` entry and module, and `hosts/<host>/`.
+2. `just sops-write`, then `sops updatekeys -y` on each file under `hosts/`,
+   `secrets/` and `infra/` whose recipients changed.
 3. Remove its tailnet node in the admin console; the stacks cannot delete
    devices.
 4. `just infra-apply dns` and `just infra-apply router` if it had names or a
