@@ -166,8 +166,8 @@ init` first, which needs the internet: the router must stay online throughout.
 1. Write `bootstrap.rsc`, filling the secrets from
    `sops secrets/nixos.yaml` (`system-wifi-password`) and
    `just infra-secrets-edit router` (`router-api-password`)
-   and the upstream's SSID and passphrase; `<apiUser>` is the `apiUser`
-   setting:
+   and the upstream's SSID and passphrase; `<user>` is the stack's
+   `identity`:
 
    ```
    :delay 15s
@@ -183,7 +183,7 @@ init` first, which needs the internet: the router must stay online throughout.
    /ip dhcp-server network add address=10.0.0.0/24 gateway=10.0.0.1 dns-server=1.1.1.1
    /ip dhcp-client add interface=wifi2 comment=bootstrap
    /ip firewall nat add chain=srcnat out-interface=wifi2 action=masquerade comment=bootstrap
-   /user add name=<apiUser> group=full password="<router-api-password>"
+   /user add name=<user> group=full password="<router-api-password>"
    /ip service set api address=10.0.0.0/24
    ```
 
@@ -197,7 +197,7 @@ init` first, which needs the internet: the router must stay online throughout.
 
 3. After the reboot, join `SWEET-HOME`; the laptop gets an address by DHCP
    and reaches the internet through the router. Connect WinBox to `10.0.0.1`
-   as `<apiUser>` and remove the script, it holds secrets: `/file remove bootstrap.rsc`. Check the uplink:
+   as `<user>` and remove the script, it holds secrets: `/file remove bootstrap.rsc`. Check the uplink:
 
    ```
    /interface wifi monitor wifi2 once

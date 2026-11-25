@@ -14,7 +14,6 @@ in
     stacks.router = {
       settings.infra.router = {
         country = "Ukraine";
-        apiUser = "alexander";
         importIds = {
           "routeros_interface_bridge.bridge" = "*9";
           "routeros_interface_bridge_port.wifi1" = "*0";
@@ -53,10 +52,6 @@ in
         country = lib.mkOption {
           type = lib.types.str;
           description = "Wi-Fi regulatory country, in the form RouterOS expects.";
-        };
-        apiUser = lib.mkOption {
-          type = lib.types.str;
-          description = "RouterOS API user the provider logs in as.";
         };
         importIds = lib.mkOption {
           type = lib.types.attrsOf lib.types.str;
@@ -106,11 +101,17 @@ in
               key = "system-wifi-password";
             };
 
+            resource.routeros_system_user_sshkeys.identity = {
+              user = stack.identity.name;
+              key = stack.identity.sshKey;
+              comment = stack.identity.name;
+            };
+
             routeros = {
               device = "hap-ax3";
               connection = {
                 inherit address;
-                username = router.apiUser;
+                username = stack.identity.name;
               };
               system = {
                 identity = stack.name;
@@ -146,6 +147,10 @@ in
                 localDomain = stack.settings.system.networking.domains.lan;
                 # The library sanitizes each key into a resource name.
                 records = {
+                  ${stack.name} = {
+                    name = "${stack.name}.${stack.settings.system.networking.domains.lan}";
+                    inherit address;
+                  };
                   canary-application-dns = {
                     name = "use-application-dns.net";
                     type = "NXDOMAIN";
@@ -257,6 +262,25 @@ in
           id = "*2";
         }
       ];
+    };
+    infra-router-ssh = {
+      expr =
+        let
+          inherit (config.infraStacks.router.config) resource;
+        in
+        {
+          key = resource.routeros_system_user_sshkeys.identity;
+          inherit (resource.routeros_ip_dns_record.router) name address;
+        };
+      expected = {
+        key = {
+          user = "alexander";
+          key = lib.trim (builtins.readFile ../../identities/alexander/ssh.pub);
+          comment = "alexander";
+        };
+        name = "router.lan";
+        address = "10.0.0.1";
+      };
     };
     infra-router-secrets = {
       expr = lib.attrNames config.infraStacks.router.meta.secrets;

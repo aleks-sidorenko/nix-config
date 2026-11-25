@@ -198,8 +198,9 @@ Cloud and API resources are OpenTofu stacks, a den entity kind of their own
 declared in `modules/flake/terranix.nix`: `den.stacks.<name>` (kind
 `den.schema.stack`, inheriting `den.schema.conf`), resolved from the flake
 root like hosts. A stack takes `settings` like a host, and aspects take it as
-`stack`. A stack managing a person's accounts declares whose with `identity`,
-as a user does (`infra.github` derives the repository owner from it).
+`stack`. A stack's `identity` is the person whose accounts it manages, as a
+user's is, defaulting to the repo's one person (`infra.github` derives the
+repository owner from it, `infra.router` the device's login and SSH key).
 
 Every stack includes `den.aspects.infra.<name>` (`modules/infra/<name>.nix`)
 and `infra.state`. Their `terranix` bodies, and those of the provider aspects
@@ -229,7 +230,7 @@ The `router` stack (`modules/infra/router.nix`) configures the MikroTik router
 through the nix-routeros library over the RouterOS API. It collects
 `lan-leases` (any deployed host that sets `lan` gets a lease automatically) and
 `published-names`, so the router's DNS answers each published name with its
-host's LAN address (split-horizon). Its settings are `country`, `apiUser` and
+host's LAN address (split-horizon). Its settings are `country` and
 `importIds`, the ids of the hand-made objects the first apply adopts with
 `import` blocks (see [homelab](homelab.md#router)). A published name whose
 host has no `lan` address fails evaluation.

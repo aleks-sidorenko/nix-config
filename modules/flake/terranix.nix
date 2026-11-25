@@ -125,7 +125,8 @@ in
             };
             options.identity = lib.mkOption {
               type = config.identityType;
-              description = "The person whose accounts the stack manages; only stacks whose aspects read it set it.";
+              default = "alexander";
+              description = "The person whose accounts the stack manages.";
             };
           })
         ];
