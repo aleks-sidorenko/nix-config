@@ -1,10 +1,16 @@
-{ den, ... }:
+{ den, lib, ... }:
 let
   secret = "system-wifi-password";
 in
 {
-  den.aspects.system.wifi = {
+  den.aspects.system.networking.wifi = {
     includes = [ den.aspects.system.networkmanager ];
+
+    settings.ssid = lib.mkOption {
+      type = lib.types.str;
+      default = "SWEET-HOME";
+      description = "SSID of the home LAN's Wi-Fi: the router broadcasts it, hosts on Wi-Fi join it.";
+    };
 
     nixos =
       { config, host, ... }:

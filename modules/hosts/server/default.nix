@@ -41,18 +41,20 @@ in
   # Shared with server-vm in ../home-servers.nix.
   den.hosts.x86_64-linux.server = {
     deploy = { };
-    # Read from the wireless NIC; the wired one is 34:e3:da:d9:c1:f1, for when the box is cabled.
-    lan = {
-      address = "10.0.0.10";
-      mac = "80:30:49:13:75:41";
+    settings = {
+      # Read from the wireless NIC; the wired one is 34:e3:da:d9:c1:f1, for when the box is cabled.
+      system.networking.lan = {
+        address = "10.0.0.10";
+        mac = "80:30:49:13:75:41";
+      };
+      storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
     };
-    settings.storage.disko.device = "/dev/disk/by-id/ata-SSD_2TB_004208";
   };
 
   den.aspects.server = {
     includes = [
       den.aspects.roles.home-server
-      den.aspects.system.wifi
+      den.aspects.system.networking.wifi
     ];
     nixos.imports = [ ./_hardware.nix ];
   };
@@ -78,7 +80,7 @@ in
       };
     };
     server-lan = {
-      expr = config.den.hosts.x86_64-linux.server.lan;
+      expr = config.den.hosts.x86_64-linux.server.settings.system.networking.lan;
       expected = {
         address = "10.0.0.10";
         mac = "80:30:49:13:75:41";

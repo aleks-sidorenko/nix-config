@@ -45,6 +45,7 @@ in
       includes = [
         den.aspects.infra.routeros
         den.aspects.system.networking
+        den.aspects.system.networking.wifi
         den.aspects.system.locale
       ];
 

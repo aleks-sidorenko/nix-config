@@ -79,9 +79,9 @@ without breaking another.
 | Data many aspects contribute and one collects | quirk | `den.quirks.<name>` beside the collecting aspect; values may be `{ host, ... }:` or `{ config, ... }:`; the ones in use follow |
 | State kept across reboots | `persist` quirk | `persist.directories` / `persist.files` in the aspect |
 | Throwaway state the guard must accept | `persist` quirk | `persist.ignore` in the aspect |
-| A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<public>`, the `system.networking.domains.public` setting (`modules/system/networking.nix`) |
+| A service nginx proxies to | `vhosts` quirk | `vhosts = [ { name; port; … } ];` in the aspect; served at `<name>.<public>`, the `system.networking.domains.public` setting (`modules/system/networking/default.nix`) |
 | A public DNS name for a service | `published-names` quirk | FQDNs in the aspect; the `dns` stack points them at the host's tailnet address on deployed hosts (`modules/infra/dns.nix`) |
-| A host's fixed LAN address and MAC | `lan` host option | `lan = { address; mac; };` on the host (`modules/den.nix`); any deployed host setting it gets a lease automatically (`system.lan` contributes `lan-leases` to the `router` stack) (static DHCP lease, split-horizon records) |
+| A host's fixed LAN address and MAC | setting | `settings.system.networking.lan = { address; mac; };` on the host (`modules/system/networking/lan.nix`); any deployed host setting it gets a lease automatically (`system.networking.lan` contributes `lan-leases` to the `router` stack) (static DHCP lease, split-horizon records) |
 | Offsite backup paths or excludes | `backup` quirk | `backup = { paths; exclude; };` in the aspect (`modules/services/restic.nix`) |
 | Extra install-test assertion | `installChecks` quirk | Python snippets in the aspect |
 | Test-VM-only config an aspect needs | `installTest.extraConfig` | inside the aspect's `nixos` body |
@@ -243,7 +243,8 @@ Stage new files (`git add`) before `just check`.
 1. In the aspect: `settings.<name> = lib.mkOption { type; default; description; };`
    (see `settings.root` in `modules/storage/impermanence.nix`; others:
    `system.locale.timeZone`, `system.stylix.flavor` and `wallpaper`,
-   `system.networking.domains` and `wifi.ssid`, `services.media.root`,
+   `system.networking.domains`, `system.networking.lan.{address,mac}`,
+   `system.networking.wifi.ssid`, `services.media.root`,
    `services.restic.bucketUrl`, minecraft's `ops`, `whitelist`, `gamerules`,
    `serverProperties`). Read only your own aspect's settings, or those of an
    aspect you include.

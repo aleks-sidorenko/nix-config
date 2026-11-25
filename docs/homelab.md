@@ -120,7 +120,7 @@ A MikroTik hAP ax³ is the LAN's router, DHCP and DNS server, managed by the
 | Device | Address |
 | --- | --- |
 | router | `10.0.0.1` |
-| `server` | `10.0.0.10`, static lease from its `lan` option |
+| `server` | `10.0.0.10`, static lease from its `system.networking.lan` setting |
 | DHCP pool | `10.0.0.100`-`10.0.0.250` |
 
 The router has no cables: its only uplink is a Wi-Fi station on `wifi2`
@@ -128,7 +128,7 @@ joining the upstream network, and every LAN device, `server` included, joins
 the `SWEET-HOME` access point. Every ethernet port is a LAN bridge port, unused.
 The SSID is the `system.networking.wifi.ssid` setting and the password
 `system-wifi-password` in `secrets/nixos.yaml`; the router broadcasts them and
-hosts including `system.wifi` (`server`) join with a NetworkManager profile
+hosts including `system.networking.wifi` (`server`) join with a NetworkManager profile
 that outranks any made by hand.
 The library makes `wifi2` the station master, so the access point on that
 radio is a virtual interface following the station: it shares the upstream's

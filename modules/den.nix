@@ -91,7 +91,7 @@
           den.aspects.system.nixpkgs
           den.aspects.system.locale
           den.aspects.system.networking
-          den.aspects.system.lan
+          den.aspects.system.networking.lan
           den.aspects.security.ssh
         ];
 
@@ -99,24 +99,6 @@
           stateVersion = lib.mkOption {
             type = lib.types.str;
             description = "Release the host's and its users' stateful data was first created with.";
-          };
-          lan = lib.mkOption {
-            type = lib.types.nullOr (
-              lib.types.submodule {
-                options = {
-                  address = lib.mkOption {
-                    type = lib.types.str;
-                    description = "IPv4 address the router leases to the host.";
-                  };
-                  mac = lib.mkOption {
-                    type = lib.types.str;
-                    description = "MAC address of the interface the host reaches the LAN on.";
-                  };
-                };
-              }
-            );
-            default = null;
-            description = "The host's fixed address and MAC on the home LAN; the router gives it a static lease.";
           };
           settings = lib.mkOption {
             type = config.settingsType;
