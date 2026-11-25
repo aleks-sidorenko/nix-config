@@ -67,7 +67,7 @@ if [ "$platform" = nixos ]; then
     ssh_opts=(-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR -o ConnectTimeout=10 -o BatchMode=yes)
     if ! out=$(ssh "${ssh_opts[@]}" "root@$address" true 2>&1); then
         if grep -q "Permission denied" <<<"$out"; then
-            die "root@$address refuses root; $host looks installed, use: just deploy $host"
+            die "root@$address refuses root; $host looks installed (use: just deploy $host), or your SSH key is not loaded"
         fi
         die "cannot reach root@$address: $out"
     fi
@@ -75,6 +75,10 @@ fi
 
 # Confirmations and passphrases are typed; a closed stdin would end at `read`.
 [ -t 0 ] || die "this needs a terminal; run it interactively"
+
+if [ "$platform" = darwin ] && [ ! -f /etc/ssh/ssh_host_ed25519_key.pub ]; then
+    die "this Mac has no SSH host key; turn on Remote Login (or run: sudo ssh-keygen -A) first"
+fi
 
 case "$platform" in
 nixos) systems=nixosConfigurations ;;
@@ -94,7 +98,9 @@ facts=$(nix eval --json ".#$systems.\"$host\".config" --apply '
 key_path=$(jq -r .keyPath <<<"$facts")
 
 tmp=$(mktemp -d -t bootstrap.XXXXXX)
-trap 'rm -rf "$tmp"' EXIT INT TERM
+trap 'rm -rf "$tmp"' EXIT
+# Without an exit here, an interrupted prompt would carry on with $tmp gone.
+trap 'exit 130' INT TERM
 key="$tmp/key"
 
 confirm() {
@@ -106,13 +112,16 @@ confirm() {
 encrypt() {
     jq -n --rawfile k "$key" '{ ssh_host_ed25519_key: $k }' >"$tmp/key.json"
     sops --encrypt --input-type json --output-type yaml --filename-override "$enc" "$tmp/key.json" >"$tmp/enc"
+    ssh-keygen -y -f "$key" >"$tmp/pub"
     mv "$tmp/enc" "$enc"
-    ssh-keygen -y -f "$key" >"$pub"
+    mv "$tmp/pub" "$pub"
 }
 
 # The identity: reuse the repo's, else adopt the Mac's own or make one.
 if [ -f "$enc" ] && [ -z "$new_key" ]; then
     (umask 077 && sops --decrypt --extract '["ssh_host_ed25519_key"]' "$enc" >"$key")
+    # An interrupted run can leave the private key without its public half.
+    [ -f "$pub" ] || ssh-keygen -y -f "$key" >"$pub"
     [ "$(ssh-keygen -y -f "$key" | cut -d' ' -f1-2)" = "$(cut -d' ' -f1-2 "$pub")" ] ||
         die "$enc does not hold the private half of $pub"
     echo "Reusing $host's identity from $enc" >&2
@@ -126,6 +135,11 @@ else
     echo "Created a new identity for $host in $enc" >&2
 fi
 git add "$pub" "$enc"
+
+commit_hint() {
+    git diff --cached --quiet -- .sops.yaml secrets infra ||
+        echo "  git commit .sops.yaml secrets infra" >&2
+}
 
 # Recipients follow the identity; updatekeys is a no-op where they didn't change.
 nix run .#write-sops
@@ -141,16 +155,13 @@ if [ "$platform" = darwin ]; then
         confirm "This Mac's SSH host key differs from $host's in the repo; it will be replaced."
         sudo install -m 600 "$key" /etc/ssh/ssh_host_ed25519_key
         sudo install -m 644 "$pub" /etc/ssh/ssh_host_ed25519_key.pub
+        echo "Restart sshd to serve it: sudo launchctl kickstart -k system/com.openssh.sshd" >&2
     fi
-    cat >&2 <<EOF
-
-$host has its identity. Next:
-  git commit .sops.yaml secrets infra
-  nix run .#$host -- switch
-EOF
+    echo -e "\n$host has its identity. Next:" >&2
+    commit_hint
+    echo "  nix run .#$host -- switch" >&2
     exit 0
 fi
-
 
 device=$(jq -r .device <<<"$facts")
 [ "$device" != null ] || die "$host declares no root disk"
@@ -159,7 +170,8 @@ ssh "${ssh_opts[@]}" "root@$address" test -e "$device" || die "$device does not 
 confirm "
 Installing $host on $address wipes $device."
 
-mkdir -p "$tmp/extra$(dirname "$key_path")"
+# The tree is copied with its modes onto the target's root.
+(umask 022 && mkdir -p "$tmp/extra$(dirname "$key_path")")
 install -m 600 "$key" "$tmp/extra$key_path"
 install -m 644 "$pub" "$tmp/extra$key_path.pub"
 
@@ -174,13 +186,12 @@ while IFS= read -r -u 3 target; do
     disk_keys+=(--disk-encryption-keys "$target" "$tmp/disk$n.key")
 done 3< <(jq -r '.luksKeys | unique[]' <<<"$facts")
 
-nixos-anywhere --flake ".#$host" --extra-files "$tmp/extra" --build-on-remote \
+nixos-anywhere --flake ".#$host" --extra-files "$tmp/extra" --build-on remote \
     "${disk_keys[@]}" "${extra[@]}" "root@$address"
 
+echo -e "\n$host is installed. Next:" >&2
+commit_hint
 cat >&2 <<EOF
-
-$host is installed. Next:
-  git commit .sops.yaml secrets infra
   just infra-apply dns      # if $host is deployed and publishes names
   just infra-apply router   # if $host has a LAN address
   just deploy $host         # every later change

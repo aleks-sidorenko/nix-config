@@ -168,8 +168,11 @@ already-managed resource is a no-op.
      placed where the host reads it.
 
    Arguments after `--` go to nixos-anywhere. Interrupted, the same command
-   picks up where it stopped.
-4. Commit `.sops.yaml` and `secrets/`, and run what it prints:
+   picks up where it stopped; with `--new-key`, a rerun makes yet another
+   key, so drop the flag once the first run has created one. It checks the
+   target first: a wrong address or an installed host changes nothing.
+4. Commit `.sops.yaml`, `secrets/` and `infra/` (the re-keyed files are
+   staged), and run what it prints:
    `just infra-apply dns` for a deployed host that publishes names,
    `just infra-apply router` for one with a LAN address.
 5. Later changes: `just deploy <host>`.
@@ -181,11 +184,15 @@ already-managed resource is a no-op.
 2. On the Mac, `just bootstrap-darwin <host>`. With no identity in the repo
    it adopts the Mac's own `/etc/ssh` key; with one, it puts it in place of
    a different key, after the host name is typed back.
-3. Commit `.sops.yaml` and `secrets/`, then `nix run .#<host> -- switch`.
+3. Commit `.sops.yaml`, `secrets/` and `infra/`, then
+   `nix run .#<host> -- switch`. If the key in `/etc/ssh` was replaced,
+   restart sshd as it prints.
 
 ## 7. Reinstalling
 
-The same command as the first install. The host keeps its identity, so its
+Boot the machine from the installer and run the same command as the first
+install; on the running system it stops, since root may not log in. The
+host keeps its identity, so its
 secrets, backups and SSH host key are unchanged. `--new-key` rotates it: the
 old key can no longer decrypt anything once the run re-keys, so a live host
 is cut off until it is reinstalled.

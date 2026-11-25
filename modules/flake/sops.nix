@@ -32,6 +32,15 @@ let
     hosts = readers;
   };
 
+  # Every file a host decrypts, as strings of paths in the flake's source.
+  filesOf =
+    c:
+    lib.unique (
+      map toString (
+        [ c.sops.defaultSopsFile ] ++ map (secret: secret.sopsFile) (lib.attrValues c.sops.secrets)
+      )
+    );
+
   # The rules, given which hosts have an identity in the repo.
   rulesFor =
     hasKey:
@@ -40,12 +49,11 @@ let
       keyed = lib.filterAttrs (
         name: _: hasKey name && systemOf name != null && (systemOf name).config ? sops
       ) allHosts;
-      # Both sides are paths in the flake's source, so equal strings mean the same file.
       readers =
         file:
         lib.attrNames (
           lib.filterAttrs (
-            name: _: toString (secrets + "/${file}") == toString (systemOf name).config.sops.defaultSopsFile
+            name: _: lib.elem (toString (secrets + "/${file}")) (filesOf (systemOf name).config)
           ) keyed
         );
     in
@@ -70,6 +78,12 @@ in
     { pkgs, ... }:
     let
       hostNames = lib.unique (lib.concatMap (r: r.hosts) rules);
+      # Reads `gpg --with-colons`; prints the fingerprint of the encryption subkey.
+      encryptionSubkey = pkgs.writeText "encryption-subkey.awk" ''
+        $1 == "sub" { enc = $12 ~ /e/ && $2 !~ /[erd]/; next }
+        enc && $1 == "fpr" { last = $10; enc = 0 }
+        END { if (last == "") exit 1; print last }
+      '';
       # The recipient is the encryption subkey, named by its fingerprint.
       encryptionKey =
         pkgs.runCommand "pgp-encryption-keys.json"
@@ -83,7 +97,7 @@ in
             export GNUPGHOME=$(mktemp -d)
             keys='{}'
             ${lib.concatMapStrings (file: ''
-              fpr=$(gpg --show-keys --with-colons ${file} | awk -F: '$1 == "sub" && $12 ~ /e/ { enc = 1; next } enc && $1 == "fpr" { print $10; exit }')
+              fpr=$(gpg --show-keys --with-colons ${file} | awk -F: -f ${encryptionSubkey})
               keys=$(jq --arg f ${file} --arg k "$fpr" '.[$f] = $k' <<<"$keys")
             '') owners}
             echo "$keys" > $out
@@ -125,6 +139,22 @@ in
         '';
       };
 
+      # A rotated key keeps its expired or revoked subkeys; only a usable one is
+      # a recipient, and none at all fails the build.
+      checks.sops-encryption-subkey = pkgs.runCommand "sops-encryption-subkey" { } ''
+        pick() { printf '%s\n' "$@" | awk -F: -f ${encryptionSubkey}; }
+        signing='sub:-:255:22:S:1:2:::::s:'
+        expired='sub:e:255:18:E:1:2:::::e:'
+        revoked='sub:r:255:18:R:1:2:::::e:'
+        valid='sub:-:255:18:V:1:2:::::e:'
+        fpr() { echo "fpr:::::::::$1:"; }
+        [ "$(pick "$signing" "$(fpr S)" "$valid" "$(fpr V)")" = V ]
+        [ "$(pick "$expired" "$(fpr E)" "$valid" "$(fpr V)")" = V ]
+        [ "$(pick "$valid" "$(fpr V)" "$revoked" "$(fpr R)")" = V ]
+        ! pick "$expired" "$(fpr E)" "$revoked" "$(fpr R)"
+        touch $out
+      '';
+
       checks.sops-config = pkgs.runCommand "sops-config" { } ''
         diff -u ${../../.sops.yaml} ${rendered} || {
           echo ".sops.yaml is stale; run: just sops-write" >&2
@@ -134,61 +164,79 @@ in
       '';
     };
 
-  # A repo with no host keys yet, or after retiring the last host, still
-  # has an owner for every file it can create.
-  evalTests.sops-rules-without-host-keys = {
-    expr = rulesFor (_: false);
-    expected =
-      map
-        (path_regex: {
-          inherit path_regex;
-          pgp = [ ../../identities/alexander/gpg.pub.asc ];
-          hosts = [ ];
-        })
-        (
-          [
-            "secrets/hosts/[^/]+\\.yaml$"
-            "infra/secrets\\.ya?ml$"
-          ]
-          ++ map (stack: "infra/${stack}/secrets\\.ya?ml$") [
-            "dns"
-            "repos"
-            "router"
-            "storage"
-            "tailnet"
-          ]
-        );
-  };
-
-  evalTests.sops-rules =
-    let
-      owner = ../../identities/alexander/gpg.pub.asc;
-      ownerOnly = path_regex: {
-        inherit path_regex;
-        pgp = [ owner ];
-        hosts = [ ];
+  evalTests = {
+    sops-files-of-a-host = {
+      expr = filesOf {
+        sops = {
+          defaultSopsFile = /a.yaml;
+          secrets = {
+            x.sopsFile = /a.yaml;
+            y.sopsFile = /b.yaml;
+          };
+        };
       };
-    in
-    {
-      expr = rules;
       expected = [
-        (ownerOnly "secrets/hosts/[^/]+\\.yaml$")
-        {
-          path_regex = "secrets/darwin\\.ya?ml$";
-          pgp = [ owner ];
-          hosts = [ "workbook" ];
-        }
-        {
-          path_regex = "secrets/nixos\\.ya?ml$";
-          pgp = [ owner ];
-          hosts = [ "server" ];
-        }
-        (ownerOnly "infra/secrets\\.ya?ml$")
-        (ownerOnly "infra/dns/secrets\\.ya?ml$")
-        (ownerOnly "infra/repos/secrets\\.ya?ml$")
-        (ownerOnly "infra/router/secrets\\.ya?ml$")
-        (ownerOnly "infra/storage/secrets\\.ya?ml$")
-        (ownerOnly "infra/tailnet/secrets\\.ya?ml$")
+        "/a.yaml"
+        "/b.yaml"
       ];
     };
+
+    # A repo with no host keys yet, or after retiring the last host, still
+    # has an owner for every file it can create.
+    sops-rules-without-host-keys = {
+      expr = rulesFor (_: false);
+      expected =
+        map
+          (path_regex: {
+            inherit path_regex;
+            pgp = [ ../../identities/alexander/gpg.pub.asc ];
+            hosts = [ ];
+          })
+          (
+            [
+              "secrets/hosts/[^/]+\\.yaml$"
+              "infra/secrets\\.ya?ml$"
+            ]
+            ++ map (stack: "infra/${stack}/secrets\\.ya?ml$") [
+              "dns"
+              "repos"
+              "router"
+              "storage"
+              "tailnet"
+            ]
+          );
+    };
+
+    sops-rules =
+      let
+        owner = ../../identities/alexander/gpg.pub.asc;
+        ownerOnly = path_regex: {
+          inherit path_regex;
+          pgp = [ owner ];
+          hosts = [ ];
+        };
+      in
+      {
+        expr = rules;
+        expected = [
+          (ownerOnly "secrets/hosts/[^/]+\\.yaml$")
+          {
+            path_regex = "secrets/darwin\\.ya?ml$";
+            pgp = [ owner ];
+            hosts = [ "workbook" ];
+          }
+          {
+            path_regex = "secrets/nixos\\.ya?ml$";
+            pgp = [ owner ];
+            hosts = [ "server" ];
+          }
+          (ownerOnly "infra/secrets\\.ya?ml$")
+          (ownerOnly "infra/dns/secrets\\.ya?ml$")
+          (ownerOnly "infra/repos/secrets\\.ya?ml$")
+          (ownerOnly "infra/router/secrets\\.ya?ml$")
+          (ownerOnly "infra/storage/secrets\\.ya?ml$")
+          (ownerOnly "infra/tailnet/secrets\\.ya?ml$")
+        ];
+      };
+  };
 }
