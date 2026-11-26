@@ -40,8 +40,7 @@ parse_args() {
     case "$1" in
       --date)
         if [[ $# -lt 2 ]]; then
-          print_error "--date requires a value (e.g., --date \"2023-01-15 14:30:00\")"
-          exit 1
+          die "--date requires a value (e.g., --date \"2023-01-15 14:30:00\")"
         fi
         FORCE_DATE="$2"; shift 2 ;;
       *)
@@ -66,10 +65,10 @@ lowercase_extensions() {
     while IFS= read -r -d '' file; do
       local newfile="${file%."$EXT"}.$ext"
       if [[ "$DRY_RUN" == true ]]; then
-        print_info "[dry-run] Rename: $file -> $newfile"
+        log "[dry-run] Rename: $file -> $newfile"
       else
         case_safe_mv "$file" "$newfile"
-        print_info "Renamed: $file -> $newfile"
+        log "Renamed: $file -> $newfile"
       fi
     done < <(find "$dir" "${find_depth[@]}" -name "*.$EXT" -type f -print0 2>/dev/null)
   done
@@ -137,7 +136,7 @@ force_set_dates() {
   oldest_mtime=$(oldest_media_mtime "$dir")
 
   if [[ -z "$oldest_mtime" ]]; then
-    print_info "No media files found."
+    log "No media files found."
     return
   fi
 
@@ -148,11 +147,11 @@ force_set_dates() {
     offset=$(( $(mtime_epoch "$file") - oldest_mtime ))
 
     if [[ "$DRY_RUN" == true ]]; then
-      print_info "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
+      log "[dry-run] Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     elif set_all_dates "$file" "$target_date" "$(get_tz_offset "$(( base_epoch + offset ))")"; then
-      print_info "Force CreateDate: $file -> $target_date (offset: ${offset}s)"
+      log "Force CreateDate: $file -> $target_date (offset: ${offset}s)"
     else
-      print_error "Skipping (metadata write failed): $file"
+      warn "Skipping (metadata write failed): $file"
     fi
   done < <(collect_media_files "$dir")
 }
@@ -186,18 +185,18 @@ rename_files() {
     fi
 
     if [[ -z "$newname" ]]; then
-      print_error "Skipping (could not determine date): $file"
+      warn "Skipping (could not determine date): $file"
       continue
     fi
 
     target=$(unique_target "$(dirname "$file")" "$newname" "$file")
 
     if [[ "$DRY_RUN" == true ]]; then
-      print_info "[dry-run] Normalized: $file -> $target"
+      log "[dry-run] Normalized: $file -> $target"
     elif case_safe_mv "$file" "$target"; then
-      print_info "Normalized: $file -> $target"
+      log "Normalized: $file -> $target"
     else
-      print_error "Skipping (rename failed): $file"
+      warn "Skipping (rename failed): $file"
     fi
   done < <(collect_media_files "$dir")
 }
@@ -207,16 +206,15 @@ parse_args "$@"
 DIR="${POSITIONAL[0]:-.}"
 
 if [[ ! -d "$DIR" ]]; then
-  print_error "Directory does not exist: $DIR"
-  exit 1
+  die "Directory does not exist: $DIR"
 fi
 
-print_info "Normalizing media in: $DIR"
-[[ "$DRY_RUN" == true ]] && print_info "DRY RUN - no files will be modified"
-[[ -n "$FORCE_DATE" ]] && print_info "Force date: $FORCE_DATE (base for oldest file, others offset by mtime)"
+log "Normalizing media in: $DIR"
+[[ "$DRY_RUN" == true ]] && log "DRY RUN - no files will be modified"
+[[ -n "$FORCE_DATE" ]] && log "Force date: $FORCE_DATE (base for oldest file, others offset by mtime)"
 
 lowercase_extensions "$DIR"
 set_dates "$DIR"
 rename_files "$DIR"
 
-print_info "Done."
+log "Done."

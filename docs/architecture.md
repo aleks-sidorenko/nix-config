@@ -48,7 +48,19 @@ A darwin host (`den.hosts.aarch64-darwin.<name>`) is an entity like any
 other. Its darwin release is an integer, set in the host aspect
 (`darwin.system.stateVersion`), apart from the string `stateVersion` homes
 read. Its secrets are in `secrets/darwin.yaml`, decrypted with the host's SSH
-key. Per-person facts (name, email, GitHub accounts) are in
+key.
+
+Every host's SSH key, and with it its SOPS identity, is kept in the repo:
+`hosts/<host>/ssh.pub` in plaintext and the private key in
+`hosts/<host>/ssh.yaml`, encrypted to the owner only. The host option
+`sshKeyFile` is the one place that knows the folder, as `identity` is for
+people. `.sops.yaml` is
+generated, like `flake.nix`: `modules/flake/sops.nix` gives each secrets file
+the owner's PGP encryption subkey (from `identities/<id>/gpg.pub.asc`) and the
+age key of every host whose `sops.defaultSopsFile` it is, and
+`checks.<system>.sops-config` fails when the committed file differs.
+`packages/bootstrap` installs a host with that identity
+([bootstrap.md](bootstrap.md)). Per-person facts (name, email, GitHub accounts) are in
 `identities/<id>/git.json`; the user module names the identity.
 
 ## Aspects and roles

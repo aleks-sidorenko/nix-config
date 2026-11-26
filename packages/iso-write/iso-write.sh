@@ -1,8 +1,3 @@
-die() {
-    echo "iso-write: $*" >&2
-    exit 1
-}
-
 [ $# -eq 2 ] || die "Usage: iso-write <image> <device>"
 image="$1"
 device="$2"
@@ -37,9 +32,7 @@ fi
 # Typing the device back catches naming the wrong disk, which a timed window
 # does not. A closed stdin would otherwise exit silently at `read`.
 [ -t 0 ] || die "confirmation needs a terminal; run this interactively"
-echo "About to write $image to $device; this destroys everything on it." >&2
-read -rp "Type '$device' to confirm: " reply
-[ "$reply" = "$device" ] || die "aborted"
+confirm "About to write $image to $device; this destroys everything on it." "$device"
 
 # macOS refuses raw writes to a disk with mounted volumes, and its raw node is
 # several times faster than the buffered one.
@@ -55,4 +48,4 @@ fi
 
 sudo dd if="$image" of="$target" bs=4194304 status=progress
 sync
-echo "Written; boot from $device." >&2
+log "Written; boot from $device."

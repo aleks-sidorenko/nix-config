@@ -63,6 +63,16 @@ vm-test host:
     @if [ "$(uname -sm)" != "Linux x86_64" ]; then echo "install tests run in CI (x86_64 KVM)" >&2; exit 1; fi
     nix build .#checks.x86_64-linux.install-{{ host }} -L
 
+# Install a NixOS host from the installer image at <address>, keeping its identity in the repo
+[group('bootstrap')]
+bootstrap-nixos host address *args:
+    nix run .#bootstrap -- nixos {{ host }} {{ address }} {{ args }}
+
+# Give the Mac this runs on its identity from the repo, or adopt its own
+[group('bootstrap')]
+bootstrap-darwin host *args:
+    nix run .#bootstrap -- darwin {{ host }} {{ args }}
+
 # Print the hosts that build an image, one per line
 [group('iso')]
 _iso-hosts:
@@ -128,6 +138,16 @@ iso-write host="" device="":
 [group('flake')]
 flake-write:
     nix run .#write-flake
+
+# Regenerate .sops.yaml from the hosts and their keys under hosts/
+[group('flake')]
+sops-write:
+    nix run .#write-sops
+
+# Regenerate .sops.yaml and re-key every secrets file to it (a no-op where recipients didn't change)
+[group('flake')]
+sops-rekey: sops-write
+    {{ run }} bash -c 'for f in secrets/*.yaml hosts/*/ssh.yaml infra/secrets.yaml infra/*/secrets.yaml; do [ ! -f "$f" ] || sops updatekeys -y "$f"; done'
 
 # Update flake inputs (all, or the named ones)
 [group('flake')]

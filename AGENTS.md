@@ -43,7 +43,8 @@ without breaking another.
   `naming-imports-stay-in-folder` eval test enforces this.
 - **Config in `modules/`, data outside it.** Top-level folders hold data
   that modules read by path and that tools write, never Nix config:
-  `identities/` (per-person facts), `secrets/` (host secrets, sops),
+  `identities/` (per-person facts), `hosts/` (per-host SSH identities),
+  `secrets/` (host secrets, sops),
   `infra/` (stack state, provider locks and stack secrets, written by
   OpenTofu and sops).
 - **Pick the mechanism by what is shared**, from the table below (den's
@@ -90,7 +91,7 @@ without breaking another.
 | Host identity and its tests | host module | `modules/hosts/<host>/default.nix` (`_` helpers beside it) |
 | Values several hosts share | module setting those hosts | `modules/hosts/<group>.nix`, e.g. `home-servers.nix` sets `server` and `server-vm` |
 | Flake outputs, checks, tooling | flake-parts module | `modules/flake/<name>.nix` |
-| A program of our own (scripts, a derivation with no host data) | package | `packages/<name>/package.nix` in callPackage form, with its tests as `checkPhase`; `modules/flake/packages.nix` exposes every folder as `packages.<system>.<name>`, `checks.<system>.package-<name>` and `overlays.default`. The aspect that installs it adds the overlay (`modules/cli/media.nix`) |
+| A program of our own (scripts, a derivation with no host data) | package | `packages/<name>/package.nix` in callPackage form, with its tests as `checkPhase`; `modules/flake/packages.nix` exposes every folder as `packages.<system>.<name>`, `checks.<system>.package-<name>` and `overlays.default`. The aspect that installs it adds the overlay (`modules/cli/media.nix`). Packages take each other as callPackage arguments. Scripts log with `log`, `warn`, `die` and `confirm` from the `shell-lib` package (`source ${shell-lib}`, `packages/bootstrap/package.nix`) |
 | A helper one folder uses | `_`-prefixed file | beside its readers, e.g. `modules/services/_media.nix` |
 | A helper several folders use | read-only option | declared by the module that owns it, e.g. `config.installTests` (`modules/flake/install-tests.nix`), `config.isReservedKey` (`modules/den.nix`) |
 | Names the aspects of one category must agree on | `_`-prefixed helper | `modules/<category>/_<name>.nix`, e.g. `modules/storage/_layout.nix` (disk label, subvolume names); data crossing categories goes through quirks, settings or host options |
@@ -100,7 +101,8 @@ without breaking another.
 | Cloud/API resources | infra stack | `den.stacks.<name>` + `den.aspects.infra.<name>` in `modules/infra/<name>.nix` |
 | A stack's state and provider lock | stack data | `infra/<stack>/terraform.tfstate`, `.terraform.lock.hcl`; written by OpenTofu, committed |
 | A stack's credentials | `_meta.secrets` | in the provider's `terranix` body, e.g. `modules/infra/cloudflare.nix` |
-| Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts), `infra/secrets.yaml` (shared provider credentials), `infra/<stack>/secrets.yaml` (a stack's own); recipients in `.sops.yaml` |
+| A host's SSH identity | host data | `hosts/<host>/ssh.pub` (plaintext) and `hosts/<host>/ssh.yaml` (the private key, owner only); written by `just bootstrap-<platform>`, loaded once by the `sshKeyFile` host option (`modules/den.nix`), which `.sops.yaml`'s generator reads (`modules/flake/sops.nix`) |
+| Secrets | SOPS | `secrets/nixos.yaml` (NixOS hosts), `secrets/darwin.yaml` (darwin hosts), `infra/secrets.yaml` (shared provider credentials), `infra/<stack>/secrets.yaml` (a stack's own); recipients in the generated `.sops.yaml` (`just sops-write`) |
 
 An aspect in `den.schema.<kind>.includes` reaches the host, but its
 `homeManager` body does not reach users: only aspects in the host's include
@@ -192,7 +194,10 @@ Stage new files (`git add`) before `just check`.
    `deploy = null` (default) means no node;
    `modules/flake/deploy.nix` derives `interactiveSudo` from
    `security.sudo.wheelNeedsPassword`.
-4. Add the host key to `.sops.yaml`, then `sops updatekeys secrets/nixos.yaml`.
+4. Install it with `just bootstrap-nixos <host> <address>`: it creates the
+   host's identity under `hosts/<host>/`, regenerates `.sops.yaml` and
+   re-keys ([docs/bootstrap.md](docs/bootstrap.md)). Never edit `.sops.yaml`
+   by hand.
 5. Add eval tests beside it. A host replacing a live one needs a parity test
    like `modules/hosts/server/_parity.nix`.
 
@@ -222,7 +227,8 @@ Stage new files (`git add`) before `just check`.
    with the string `stateVersion` homes read.
 2. darwin's own integer release goes in the host aspect:
    `den.aspects.<host>.darwin.system.stateVersion = <int>;`.
-3. `just build <host>` builds `darwinConfigurations.<host>.system`; switch with
+3. `just build <host>` builds `darwinConfigurations.<host>.system`. On the Mac,
+   `just bootstrap-darwin <host>` gives it its identity; then switch with
    `nix run .#<host> -- switch`.
 
 ### A user
@@ -272,13 +278,13 @@ Stage new files (`git add`) before `just check`.
 2. A new provider is an aspect `modules/infra/<provider>.nix` with the
    provider block, its variables and each credential as
    `_meta.secrets.TF_VAR_<var> = { file = "infra/secrets.yaml"; key = "…"; };`.
-3. Add a `.sops.yaml` creation rule for
-   `infra/<stack>/secrets.yaml` (same recipients as the other infra rules).
-   Create the file with a `state-passphrase`
+3. `just sops-write` adds its `.sops.yaml` rule. Create
+   `infra/<stack>/secrets.yaml` with a `state-passphrase`
    (`just infra-secrets-edit <stack>`), then `just infra-validate <stack>`
    and commit `.terraform.lock.hcl`, `secrets.yaml` and, after the first
    apply, `terraform.tfstate`.
-4. Extend the `infra-stacks` eval test (`modules/flake/terranix.nix`), and add
+4. Extend the `infra-stacks` eval test (`modules/flake/terranix.nix`) and
+   `sops-rules` (`modules/flake/sops.nix`), and add
    eval tests on `config.infraStacks.<stack>.config` beside the stack.
 
 ### An input
@@ -323,13 +329,15 @@ Stage new files (`git add`) before `just check`.
 
 ## Secrets
 
-- Edit with `sops secrets/nixos.yaml`; recipients are in `.sops.yaml`.
-- After adding a host's recipient: `sops updatekeys secrets/nixos.yaml`.
-  Never re-encrypt by hand.
+- Edit with `sops secrets/nixos.yaml`. `.sops.yaml` is generated by
+  `modules/flake/sops.nix` from the hosts' sops files and
+  `hosts/<host>/ssh.pub`; `just check` fails when it is stale.
+- After recipients change: `just sops-rekey` (`just sops-write`, then
+  `sops updatekeys` on every secrets file; `just bootstrap-<platform>` does
+  both). Never re-encrypt by hand.
 - The install test generates its own secrets, encrypted to a throwaway age
   key, so CI never decrypts with a real host key. The host-key → sops path on
-  the second boot is covered by the interactive install rehearsal (next
-  slice), not by CI.
+  the second boot is covered by an install with `just bootstrap-nixos`, not by CI.
 
 ## Commands
 
@@ -343,9 +351,13 @@ just format-check
 just lint             # statix + deadnix
 just lint-fix
 just flake-write      # regenerate flake.nix from flake-file.inputs
+just sops-write       # regenerate .sops.yaml from the hosts and hosts/*/ssh.pub
+just sops-rekey       # sops-write, then sops updatekeys on every secrets file
 just flake-check      # nix flake check
 just build <host>     # build a host's toplevel
 just deploy <host> [args]  # deploy-rs, built on the target; `--boot` activates on next boot
+just bootstrap-nixos <host> <address> [--new-key] [-- args]  # install from the installer image
+just bootstrap-darwin <host> [--new-key]  # on the Mac: its identity from the repo, or adopt its own
 just vm-test <host>   # install test; x86_64 Linux with KVM only (exits 1 elsewhere)
 just update [input]   # nix flake update
 just infra-show <stack>          # rendered config.tf.json

@@ -1,0 +1,18 @@
+ssh_host_ed25519_key: ENC[AES256_GCM,data:92p5nDak8SDNGh/Iy560GwGJMZBOgT1eFCwxmDUhDb9Jh9S1WKF3Bd/Md3ym53Ncr1YxHWOgqdDD5AiIVCnb5Ox/chW/T81OLbf7vBBCjlxuUAyfHo3Nrbe4jDGAPQJJUwlK1pbywy3yQYB3kKlqWgXxKACNmHbDqzSt3oXVJZYQ9tHSKyhCIvknz8+8oKRaZGt7X+8F4vwy/ZgKSddJjphwibIi9a5qjCOKRptfL4/nikfQBK9OK6Ett2FKMyU2owQ1oo3XeG/EW5d6IRuaqXSNR+TQHS8XZMaRfgJPgO1dj9BU9U2EdAvjCjEqjzuZVdc/OuNSqAMz7Y59Ht0v2G7FcKKor0Fhu6CsfY867p+jt04tZSqQC0ZSzbHUi2n4BkNzbPtR9RK2dykAB2QlFV+9AxwTqz8KIrQqDoW1QVv/W8hajoiVBKosyOW52x859PxEvEQypM6w751y6GFi1giwq8zg2sbI7+3slWb3viabtm9tvZN4A89LNkn/rCSYoqzILPxMkxHrb6p6OjZo,iv:CSP1Olxw4/qfP9CD1h2adDMhyCMrASreByBAFqlVAog=,tag:mJVgK6zwMqZDTOZbHSsV2Q==,type:str]
+sops:
+    lastmodified: "2026-11-25T19:38:43Z"
+    mac: ENC[AES256_GCM,data:1ic3ZlXn7e+lHjtad+dHlNp2kWueXd7Q16o8Fo66pZfLeyJXDftM9LqadJ8/CCmZt0R7tgkPV9W36R3pcR64iFR3GTP5IrQC9fm82e5Q+/+vIlfR07boPFdqgEjQpUw1AO9VO/Empk1AcC6+NdjUfKgID+w9MeACr/CKYLR4YIw=,iv:flqwnDhFWJjuubQn+8205+VPPKunIqse94FmrYyIVxE=,tag:trPTCFNQ6fF+cPcyIbH6fw==,type:str]
+    pgp:
+        - created_at: "2026-11-25T19:38:43Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DtCPRYwpYg3wSAQdAVjwJzluyv9dORbM7jnp+gGWTE6mReMC5P7g6h/5OQ34w
+            1EUXmYMR3KBOt51bVTb53yro71e02QpTsryUeCm78y5h5j3p/MJ079GLRodqpOAx
+            0l4BDwHZWIAJofjzUKmmh/m07wBkFqgbdAzv9HPBv9Ew2CH2ad0qR4TSXxbD/dtL
+            c/68qi/LCsczmhv5Sbhpy1vOM/Sds0UlyTne1hmoqf6/74QX2tamZ+2DYAuOEJj7
+            =r45u
+            -----END PGP MESSAGE-----
+          fp: 07E36E87C0270E464DB4D663B423D1630A58837C
+    unencrypted_suffix: _unencrypted
+    version: 3.13.3

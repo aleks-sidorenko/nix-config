@@ -49,7 +49,7 @@ parse_args() {
 parse_args "$@"
 
 if [[ ${#POSITIONAL[@]} -gt 2 ]]; then
-  print_error "Too many arguments; expected at most [SOURCE] [DEST]."
+  warn "Too many arguments; expected at most [SOURCE] [DEST]."
   usage
   exit 1
 fi
@@ -57,22 +57,20 @@ fi
 IFS=$'\t' read -r SRC DEST_ROOT < <(resolve_src_dest "${POSITIONAL[@]}")
 
 if [[ -z "$DEST_ROOT" ]]; then
-  print_error "No destination given and MEDIA_HOME is not set."
-  print_error "Pass a DEST or set MEDIA_HOME to your library root (e.g., ~/Media)."
-  exit 1
+  warn "No destination given and MEDIA_HOME is not set."
+  die "Pass a DEST or set MEDIA_HOME to your library root (e.g., ~/Media)."
 fi
 
 if [[ ! -d "$SRC" ]]; then
-  print_error "Source directory does not exist: $SRC"
-  exit 1
+  die "Source directory does not exist: $SRC"
 fi
 
 DST="$DEST_ROOT/All"
 
-print_info "Importing media from: $SRC"
-print_info "Destination: $DST"
-[[ "$DRY_RUN" == true ]] && print_info "DRY RUN - no files will be modified"
-[[ "$MOVE" == true ]] && print_info "Mode: move" || print_info "Mode: copy"
+log "Importing media from: $SRC"
+log "Destination: $DST"
+[[ "$DRY_RUN" == true ]] && log "DRY RUN - no files will be modified"
+[[ "$MOVE" == true ]] && log "Mode: move" || log "Mode: copy"
 
 depth_args=$(exiftool_depth_args)
 
@@ -87,8 +85,8 @@ mapfile -t import_files < <(
 )
 
 if [[ ${#import_files[@]} -eq 0 ]]; then
-  print_info "No files to import."
-  print_info "Done."
+  log "No files to import."
+  log "Done."
   exit 0
 fi
 
@@ -99,14 +97,14 @@ for file in "${import_files[@]}"; do
   IFS=$'\t' read -r rdate rsource < <(resolve_date "$file")
   newname=$(canonical_name_from_date "$rdate" "$file")
   if [[ -z "$newname" ]]; then
-    print_error "Skipping (could not determine date): $file"
+    warn "Skipping (could not determine date): $file"
     continue
   fi
   compact="${rdate//[: ]/}"  # YYYY:MM:DD HH:MM:SS -> YYYYMMDDHHMMSS
   dest_dir="$DST/${compact:0:4}/${compact:4:2}"
 
   if [[ "$DRY_RUN" == true ]]; then
-    print_info "[dry-run] Imported: $file -> $dest_dir/$newname  [$rsource]"
+    log "[dry-run] Imported: $file -> $dest_dir/$newname  [$rsource]"
     continue
   fi
 
@@ -120,13 +118,13 @@ for file in "${import_files[@]}"; do
   mkdir -p "$dest_dir"
   target=$(unique_target "$dest_dir" "$newname" "$file")
   if cp -p -- "$file" "$target"; then
-    print_info "Imported: $file -> $target"
+    log "Imported: $file -> $target"
     if [[ "$MOVE" == true ]]; then
-      rm -- "$file" && print_info "Removed source: $file"
+      rm -- "$file" && log "Removed source: $file"
     fi
   else
-    print_error "Skipping (copy failed): $file"
+    warn "Skipping (copy failed): $file"
   fi
 done
 
-print_info "Done."
+log "Done."

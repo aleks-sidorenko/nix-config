@@ -22,7 +22,7 @@ fi
 inspect() {
   local file="$1"
   if [[ ! -f "$file" ]]; then
-    print_error "Not a file: $file"
+    warn "Not a file: $file"
     return 1
   fi
 

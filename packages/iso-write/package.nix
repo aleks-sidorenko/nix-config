@@ -2,6 +2,7 @@
   lib,
   stdenv,
   writeShellApplication,
+  shell-lib,
   coreutils,
   gnugrep,
   util-linux,
@@ -13,7 +14,11 @@ writeShellApplication {
     gnugrep
   ]
   ++ lib.optional stdenv.hostPlatform.isLinux util-linux;
-  text = builtins.readFile ./iso-write.sh;
+  text = ''
+    # shellcheck source=/dev/null
+    source ${shell-lib}
+  ''
+  + builtins.readFile ./iso-write.sh;
 
   # Every refusal must fire before anything touches a disk, so each runs here.
   derivationArgs.postCheck = ''

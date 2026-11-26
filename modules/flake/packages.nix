@@ -11,7 +11,8 @@ in
   perSystem =
     { pkgs, ... }:
     let
-      packages = build pkgs.callPackage;
+      # Packages take each other as arguments, as the overlay's `final` gives them.
+      packages = build (lib.callPackageWith (pkgs // packages));
     in
     {
       inherit packages;

@@ -111,6 +111,18 @@
           (
             { config, ... }:
             {
+              # The only place that knows where host keys live.
+              options.sshKeyFile = lib.mkOption {
+                type = lib.types.nullOr lib.types.path;
+                default =
+                  let
+                    file = ../hosts + "/${config.name}/ssh.pub";
+                  in
+                  if builtins.pathExists file then file else null;
+                defaultText = "hosts/<name>/ssh.pub, or null before the host is bootstrapped";
+                description = "The host's SSH public key, and with it its SOPS identity.";
+              };
+
               options.primaryUser = lib.mkOption {
                 type = lib.types.str;
                 default =
