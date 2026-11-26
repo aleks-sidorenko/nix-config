@@ -203,8 +203,9 @@ console (Machines) before `just infra-apply dns`.
 ## 8. Retiring a host
 
 1. Remove its `den.hosts` entry and module, and `hosts/<host>/`.
-2. `just sops-write`, then `sops updatekeys -y` on each file under `hosts/`,
-   `secrets/` and `infra/` whose recipients changed.
+2. `just sops-rekey`: regenerates `.sops.yaml` and re-keys every secrets
+   file, so the host can no longer read them. Commit `.sops.yaml`,
+   `hosts/`, `secrets/` and `infra/`.
 3. Remove its tailnet node in the admin console; the stacks cannot delete
    devices.
 4. `just infra-apply dns` and `just infra-apply router` if it had names or a

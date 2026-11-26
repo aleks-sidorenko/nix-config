@@ -144,6 +144,11 @@ flake-write:
 sops-write:
     nix run .#write-sops
 
+# Regenerate .sops.yaml and re-key every secrets file to it (a no-op where recipients didn't change)
+[group('flake')]
+sops-rekey: sops-write
+    {{ run }} bash -c 'for f in secrets/*.yaml hosts/*/ssh.yaml infra/secrets.yaml infra/*/secrets.yaml; do [ ! -f "$f" ] || sops updatekeys -y "$f"; done'
+
 # Update flake inputs (all, or the named ones)
 [group('flake')]
 update *input:

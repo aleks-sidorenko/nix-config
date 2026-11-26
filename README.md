@@ -89,6 +89,7 @@ secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
 | `just vm-test <host>` | Run a VM host's install test (x86_64 Linux with KVM only; otherwise CI runs it) |
 | `just flake-write` | Regenerate `flake.nix` |
 | `just sops-write` | Regenerate `.sops.yaml` from the hosts and their keys |
+| `just sops-rekey` | `sops-write`, then re-key every secrets file to it |
 | `just update [input]` | Update flake inputs |
 
 ## Secrets
