@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=../shell-lib/shell-lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../shell-lib/shell-lib.sh"
+
 EXTENSIONS="jpg jpeg png heic mp4 mov"
 # %%le lowercases the extension so imported files match the normalized form
 # (e.g. .MOV -> .mov), consistent with media-normalize and media-info.
@@ -36,7 +39,7 @@ parse_date_from_filename() {
       # shellcheck disable=SC2086
       set -- $order  # positional params 1..6 = group indices for Y M D H Mi S
       if [[ $# -ne 6 ]]; then
-        print_error "filename pattern '$name' has ${#} group-order tokens (need 6); skipping"
+        warn "filename pattern '$name' has ${#} group-order tokens (need 6); skipping"
         continue
       fi
       printf '%s:%s:%s %s:%s:%s\n' \
@@ -70,7 +73,7 @@ filename_pattern_name() {
 resolve_date() {
   local file="$1"
   if [[ ! -f "$file" ]]; then
-    print_error "resolve_date: not a file: $file"
+    warn "resolve_date: not a file: $file"
     return 1
   fi
 
@@ -158,22 +161,22 @@ fill_missing_dates() {
           continue ;;
         filename)
           if [[ "$DRY_RUN" == true ]]; then
-            print_info "[dry-run] Set date from filename: $file -> $date"
+            log "[dry-run] Set date from filename: $file -> $date"
           elif set_all_dates "$file" "$date"; then
-            print_info "Set date from filename: $file -> $date"
+            log "Set date from filename: $file -> $date"
           else
-            print_error "Skipping (metadata write failed): $file"
+            warn "Skipping (metadata write failed): $file"
           fi ;;
         mtime)
           if [[ "$DRY_RUN" == true ]]; then
-            print_info "[dry-run] Set date from mtime: $file"
+            log "[dry-run] Set date from mtime: $file"
           elif set_all_dates "$file" --from-mtime; then
-            print_info "Set date from mtime: $file"
+            log "Set date from mtime: $file"
           else
-            print_error "Skipping (metadata write failed): $file"
+            warn "Skipping (metadata write failed): $file"
           fi ;;
         *)
-          print_error "fill_missing_dates: unknown source '$source' for $file" ;;
+          warn "fill_missing_dates: unknown source '$source' for $file" ;;
       esac
     done < <(find "$dir" "${find_depth[@]}" -iname "*.$ext" -type f -print0 2>/dev/null)
   done
@@ -251,16 +254,6 @@ exiftool_ext_args() {
   echo "$args"
 }
 
-# Print error to stderr
-print_error() {
-  echo "ERROR: $1" >&2
-}
-
-# Print info message
-print_info() {
-  echo ":: $1"
-}
-
 # Parse common flags. Sets DRY_RUN, RECURSIVE, and remaining args in POSITIONAL.
 # Tool-specific flags (e.g. --move) should be parsed before calling this.
 DRY_RUN=false
@@ -277,7 +270,7 @@ parse_common_args() {
       --dry-run)  DRY_RUN=true; shift ;;
       --recursive) RECURSIVE=true; shift ;;
       --help|-h)  usage; exit 0 ;;
-      -*)         print_error "Unknown option: $1"; usage; exit 1 ;;
+      -*)         warn "Unknown option: $1"; usage; exit 1 ;;
       *)          POSITIONAL+=("$1"); shift ;;
     esac
   done

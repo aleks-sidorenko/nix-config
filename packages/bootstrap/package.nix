@@ -2,6 +2,7 @@
   lib,
   stdenv,
   writeShellApplication,
+  shell-lib,
   coreutils,
   gnugrep,
   git,
@@ -25,7 +26,11 @@ writeShellApplication {
     sops
     yq-go
   ];
-  text = builtins.readFile ./bootstrap.sh;
+  text = ''
+    # shellcheck source=/dev/null
+    source ${shell-lib}
+  ''
+  + builtins.readFile ./bootstrap.sh;
 
   # Every refusal that needs no flake evaluation runs here, before any key,
   # recipient or disk is touched.

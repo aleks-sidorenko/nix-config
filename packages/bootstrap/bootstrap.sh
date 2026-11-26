@@ -1,8 +1,3 @@
-die() {
-    echo "bootstrap: $*" >&2
-    exit 1
-}
-
 usage="Usage: bootstrap nixos <host> <address> [--new-key] [-- <nixos-anywhere args>]
        bootstrap darwin <host> [--new-key]"
 
@@ -103,12 +98,6 @@ trap 'rm -rf "$tmp"' EXIT
 trap 'exit 130' INT TERM
 key="$tmp/key"
 
-confirm() {
-    echo "$1" >&2
-    read -r -p "Type the host name to continue: " answer
-    [ "$answer" = "$host" ] || die "not confirmed"
-}
-
 encrypt() {
     jq -n --rawfile k "$key" '{ ssh_host_ed25519_key: $k }' >"$tmp/key.json"
     sops --encrypt --input-type json --output-type yaml --filename-override "$enc" "$tmp/key.json" >"$tmp/enc"
@@ -125,21 +114,21 @@ if [ -f "$enc" ] && [ -z "$new_key" ]; then
     [ -f "$pub" ] || ssh-keygen -y -f "$key" >"$pub"
     [ "$(ssh-keygen -y -f "$key" | cut -d' ' -f1-2)" = "$(cut -d' ' -f1-2 "$pub")" ] ||
         die "$enc does not hold the private half of $pub"
-    echo "Reusing $host's identity from $enc" >&2
+    log "Reusing $host's identity from $enc"
 elif [ "$platform" = darwin ]; then
     sudo cat /etc/ssh/ssh_host_ed25519_key | (umask 077 && cat >"$key")
     encrypt
-    echo "Imported this Mac's identity into $enc" >&2
+    log "Imported this Mac's identity into $enc"
 else
     ssh-keygen -q -t ed25519 -N "" -C "root@$host" -f "$key"
     encrypt
-    echo "Created a new identity for $host in $enc" >&2
+    log "Created a new identity for $host in $enc"
 fi
 git add "$pub" "$enc"
 
 commit_hint() {
     git diff --cached --quiet -- .sops.yaml hosts secrets infra ||
-        echo "  git commit .sops.yaml hosts secrets infra" >&2
+        log "  git commit .sops.yaml hosts secrets infra"
 }
 
 # Recipients follow the identity; updatekeys is a no-op where they didn't change.
@@ -153,14 +142,14 @@ git add .sops.yaml
 
 if [ "$platform" = darwin ]; then
     if [ "$(cut -d' ' -f1-2 "$pub")" != "$(cut -d' ' -f1-2 /etc/ssh/ssh_host_ed25519_key.pub)" ]; then
-        confirm "This Mac's SSH host key differs from $host's in the repo; it will be replaced."
+        confirm "This Mac's SSH host key differs from $host's in the repo; it will be replaced." "$host"
         sudo install -m 600 "$key" /etc/ssh/ssh_host_ed25519_key
         sudo install -m 644 "$pub" /etc/ssh/ssh_host_ed25519_key.pub
-        echo "Restart sshd to serve it: sudo launchctl kickstart -k system/com.openssh.sshd" >&2
+        log "Restart sshd to serve it: sudo launchctl kickstart -k system/com.openssh.sshd"
     fi
-    echo -e "\n$host has its identity. Next:" >&2
+    log $'\n'"$host has its identity. Next:"
     commit_hint
-    echo "  nix run .#$host -- switch" >&2
+    log "  nix run .#$host -- switch"
     exit 0
 fi
 
@@ -169,7 +158,7 @@ device=$(jq -r .device <<<"$facts")
 ssh "${ssh_opts[@]}" "root@$address" 'lsblk -o NAME,SIZE,MODEL,TYPE; echo; ls -l /dev/disk/by-id' >&2
 ssh "${ssh_opts[@]}" "root@$address" test -e "$device" || die "$device does not exist on $address"
 confirm "
-Installing $host on $address wipes $device."
+Installing $host on $address wipes $device." "$host"
 
 # The tree is copied with its modes onto the target's root.
 (umask 022 && mkdir -p "$tmp/extra$(dirname "$key_path")")
@@ -190,7 +179,7 @@ done 3< <(jq -r '.luksKeys | unique[]' <<<"$facts")
 nixos-anywhere --flake ".#$host" --extra-files "$tmp/extra" --build-on remote \
     "${disk_keys[@]}" "${extra[@]}" "root@$address"
 
-echo -e "\n$host is installed. Next:" >&2
+log $'\n'"$host is installed. Next:"
 commit_hint
 cat >&2 <<EOF
   just infra-apply dns      # if $host is deployed and publishes names

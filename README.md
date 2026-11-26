@@ -60,7 +60,7 @@ modules/
 ├── gui/            # GUI apps: chrome, communication, photo and video, minecraft, raycast
 ├── hardware/       # qemu-guest
 └── users/          # alexander
-packages/           # our own programs, plain callPackage files: disk-report, iso-write, media-tools
+packages/           # our own programs, plain callPackage files: bootstrap, disk-report, iso-write, media-tools, shell-lib (the helpers they share)
 identities/         # per-person public keys (see identities/README.md)
 hosts/              # per-host SSH identities (see hosts/README.md)
 secrets/            # SOPS-encrypted: nixos.yaml, darwin.yaml
